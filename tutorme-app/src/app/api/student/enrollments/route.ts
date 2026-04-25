@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { withAuth, NotFoundError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseLesson, courseEnrollment, courseProgress, payment } from '@/lib/db/schema'
+import { course, courseLesson, courseEnrollment, courseProgress, payment, user } from '@/lib/db/schema'
 import { eq, and, inArray, desc } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
 
@@ -142,9 +142,11 @@ export const GET = withAuth(async (req, session) => {
       courseDescription: course.description,
       courseIsPublished: course.isPublished,
       courseSchedule: course.schedule,
+      tutorHandle: user.handle,
     })
     .from(courseEnrollment)
     .innerJoin(course, eq(courseEnrollment.courseId, course.courseId))
+    .leftJoin(user, eq(course.creatorId, user.userId))
     .where(eq(courseEnrollment.studentId, session.user.id))
     .orderBy(desc(courseEnrollment.enrolledAt))
 
@@ -172,6 +174,7 @@ export const GET = withAuth(async (req, session) => {
       description: row.courseDescription,
       isPublished: row.courseIsPublished,
       schedule: row.courseSchedule,
+      tutorHandle: row.tutorHandle,
       _count: {
         lessons: lessonCountByCourse.get(row.courseId) ?? 0,
       },

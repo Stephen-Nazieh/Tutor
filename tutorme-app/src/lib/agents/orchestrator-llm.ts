@@ -173,14 +173,25 @@ export async function chatWithFallback(
  * Stream responses with fallback
  * Note: This doesn't support fallback mid-stream, it picks provider at start
  */
+import { streamKimi } from '@/lib/ai/kimi'
+
 export async function* streamWithFallback(
   messages: Array<{ role: string; content: string }>,
   options: AIOptions = {}
 ): AsyncGenerator<{ content: string; provider: AIProvider }, void, unknown> {
+  const modelStr = process.env.KIMI_MODEL || 'moonshot-v1-auto'
   try {
-    const result = await chatWithFallback(messages, options)
-    yield { content: result.content, provider: result.provider }
+    const stream = streamKimi(messages, {
+      model: modelStr,
+      temperature: options.temperature ?? 0.7,
+      maxTokens: options.maxTokens,
+    })
+
+    for await (const chunk of stream) {
+      yield { content: chunk, provider: 'kimi' as AIProvider }
+    }
   } catch (error) {
+    console.error('[AI Stream] Stream failed:', error)
     throw error
   }
 }

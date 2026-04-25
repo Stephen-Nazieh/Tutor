@@ -515,6 +515,27 @@ export async function initEnhancedSocketServer(server: NetServer) {
     initFeedbackHandlers(io, socket)
 
     // Enhanced room management with authentication
+    socket.on('chat_message', ({ text, roomId }: { text: string; roomId?: string }) => {
+      if (!text || typeof text !== 'string') return
+      const targetRoomId = roomId || socket.data.roomId
+      if (!targetRoomId) return
+      
+      const room = activeRooms.get(targetRoomId)
+      if (!room) return
+      
+      const msg: ChatMessage = {
+        id: crypto.randomUUID(),
+        userId: socket.data.userId || 'anonymous',
+        name: socket.data.name || 'Anonymous',
+        text: text.slice(0, 1000),
+        timestamp: Date.now(),
+      }
+      room.chatHistory = room.chatHistory || []
+      room.chatHistory.push(msg)
+      io.to(targetRoomId).emit('chat_message', msg)
+    })
+
+    // Enhanced room management with authentication
     socket.on('join_class', async (data: { roomId: string; name?: string }) => {
       const { roomId, name } = data
       const userId = socket.data.userId
@@ -530,21 +551,6 @@ export async function initEnhancedSocketServer(server: NetServer) {
       socket.join(roomId)
       socket.data.roomId = roomId
 
-      socket.on('chat_message', ({ text }: { text: string }) => {
-        if (!text || typeof text !== 'string') return
-        const room = activeRooms.get(roomId)
-        if (!room) return
-        const msg: ChatMessage = {
-          id: crypto.randomUUID(),
-          userId,
-          name: socket.data.name || 'Anonymous',
-          text: text.slice(0, 1000),
-          timestamp: Date.now(),
-        }
-        room.chatHistory = room.chatHistory || []
-        room.chatHistory.push(msg)
-        io.to(roomId).emit('chat_message', msg)
-      })
 
       // Get or create room from Redis first, then memory
       let room = activeRooms.get(roomId)

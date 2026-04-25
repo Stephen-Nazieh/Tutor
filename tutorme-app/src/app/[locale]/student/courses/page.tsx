@@ -58,6 +58,7 @@ interface Course {
   subject: string
   difficulty: string
   estimatedHours: number
+  tutorHandle?: string | null
   hasOutline?: boolean
   _count: {
     modules: number
@@ -180,6 +181,7 @@ function CoursePageInner() {
             name: e.course?.name || 'Unknown Course',
             description: e.course?.description || null,
             subject: e.course?.categories?.[0] || 'general',
+            tutorHandle: e.course?.tutorHandle || null,
             difficulty: 'All Levels',
             estimatedHours: 0,
             _count: {
@@ -230,6 +232,7 @@ function CoursePageInner() {
   const favorites = courses.filter(c => favoriteIds.includes(c.id))
 
   const [detailCourse, setDetailCourse] = useState<Course | null>(null)
+  const [scheduleCourse, setScheduleCourse] = useState<Course | null>(null)
   const [enteringClass, setEnteringClass] = useState<string | null>(null)
   const router = useRouter()
 
@@ -296,21 +299,73 @@ function CoursePageInner() {
         </div>
       </header>
 
-      {/* Detail Modal */}
+      {/* Course Details Modal */}
       <Dialog open={!!detailCourse} onOpenChange={open => !open && setDetailCourse(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{detailCourse?.name}</DialogTitle>
-            <DialogDescription>{detailCourse?.description}</DialogDescription>
+            <DialogTitle className="text-2xl">{detailCourse?.name}</DialogTitle>
+            {detailCourse?.tutorHandle && (
+              <p className="text-sm font-medium text-indigo-600">@{detailCourse.tutorHandle}</p>
+            )}
+            <DialogDescription className="mt-4 text-base leading-relaxed">
+              {detailCourse?.description || 'No description provided.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-lg bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">Subject</p>
+                <p className="font-medium capitalize">{detailCourse?.subject}</p>
+              </div>
+              <div className="rounded-lg bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">Difficulty</p>
+                <p className="font-medium">{detailCourse?.difficulty}</p>
+              </div>
+              <div className="rounded-lg bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">Total Lessons</p>
+                <p className="font-medium">{detailCourse?._count?.lessons || 0}</p>
+              </div>
+              <div className="rounded-lg bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">Estimated Hours</p>
+                <p className="font-medium">{detailCourse?.estimatedHours || 0}</p>
+              </div>
+            </div>
+
+            {detailCourse?.enrollment?.startDate && (
+              <div className="mt-4 rounded-lg bg-blue-50 p-4">
+                <p className="text-sm text-blue-700">
+                  <span className="font-semibold">Commencement Date:</span>{' '}
+                  {new Date(detailCourse.enrollment.startDate).toLocaleDateString()}
+                </p>
+              </div>
+            )}
+          </div>
+          <CardFooter className="px-0 pb-0 pt-4">
+            <Button className="w-full" onClick={() => setDetailCourse(null)}>
+              Close Details
+            </Button>
+          </CardFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Modal */}
+      <Dialog open={!!scheduleCourse} onOpenChange={open => !open && setScheduleCourse(null)}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Course Schedule</DialogTitle>
+            <DialogDescription>
+              {scheduleCourse?.name}
+              {scheduleCourse?.availability?.summary && ` - ${scheduleCourse.availability.summary}`}
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <h4 className="mb-2 text-sm font-semibold">Weekly Schedule</h4>
-            {detailCourse?.availability?.slots && detailCourse.availability.slots.length > 0 ? (
+            <h4 className="mb-2 text-sm font-semibold">Weekly Classes</h4>
+            {scheduleCourse?.availability?.slots && scheduleCourse.availability.slots.length > 0 ? (
               <div className="space-y-2">
-                {detailCourse.availability.slots.map((slot, idx) => (
+                {scheduleCourse.availability.slots.map((slot, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between rounded-lg border bg-gray-50 p-2 text-sm"
+                    className="flex items-center justify-between rounded-lg border bg-gray-50 p-3 text-sm"
                   >
                     <span className="font-medium">{slot.dayOfWeek}</span>
                     <span>
@@ -320,12 +375,14 @@ function CoursePageInner() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">No fixed schedule for this course.</p>
+              <div className="rounded-lg bg-gray-50 p-4 text-center">
+                <p className="text-sm text-gray-500">Flexible schedule (TBD with tutor)</p>
+              </div>
             )}
           </div>
           <CardFooter className="px-0 pb-0 pt-4">
-            <Button className="w-full" onClick={() => setDetailCourse(null)}>
-              Close
+            <Button className="w-full" onClick={() => setScheduleCourse(null)}>
+              Close Schedule
             </Button>
           </CardFooter>
         </DialogContent>
@@ -408,6 +465,7 @@ function CoursePageInner() {
                 favoriteIds={favoriteIds}
                 toggleFavorite={toggleFavorite}
                 onDetails={setDetailCourse}
+                onSchedule={setScheduleCourse}
                 enteringClass={enteringClass}
                 onEnterClass={handleEnterClass}
               />
@@ -419,6 +477,7 @@ function CoursePageInner() {
                 favoriteIds={favoriteIds}
                 toggleFavorite={toggleFavorite}
                 onDetails={setDetailCourse}
+                onSchedule={setScheduleCourse}
                 enteringClass={enteringClass}
                 onEnterClass={handleEnterClass}
               />
@@ -430,6 +489,7 @@ function CoursePageInner() {
                 favoriteIds={favoriteIds}
                 toggleFavorite={toggleFavorite}
                 onDetails={setDetailCourse}
+                onSchedule={setScheduleCourse}
                 enteringClass={enteringClass}
                 onEnterClass={handleEnterClass}
               />
@@ -441,6 +501,7 @@ function CoursePageInner() {
                 favoriteIds={favoriteIds}
                 toggleFavorite={toggleFavorite}
                 onDetails={setDetailCourse}
+                onSchedule={setScheduleCourse}
                 enteringClass={enteringClass}
                 onEnterClass={handleEnterClass}
               />
@@ -598,6 +659,7 @@ function CourseSection({
   favoriteIds,
   toggleFavorite,
   onDetails,
+  onSchedule,
   enteringClass,
   onEnterClass,
 }: {
@@ -606,6 +668,7 @@ function CourseSection({
   favoriteIds: string[]
   toggleFavorite: (id: string) => void
   onDetails: (c: Course) => void
+  onSchedule: (c: Course) => void
   enteringClass: string | null
   onEnterClass: (courseId: string) => void
 }) {
@@ -623,6 +686,7 @@ function CourseSection({
             isFavorite={favoriteIds.includes(course.id)}
             onFavorite={() => toggleFavorite(course.id)}
             onDetails={() => onDetails(course)}
+            onSchedule={() => onSchedule(course)}
             enteringClass={enteringClass}
             onEnterClass={onEnterClass}
           />
@@ -637,6 +701,7 @@ function CourseCard({
   isFavorite,
   onFavorite,
   onDetails,
+  onSchedule,
   enteringClass,
   onEnterClass,
 }: {
@@ -644,6 +709,7 @@ function CourseCard({
   isFavorite: boolean
   onFavorite: () => void
   onDetails: () => void
+  onSchedule: () => void
   enteringClass: string | null
   onEnterClass: (courseId: string) => void
 }) {
@@ -681,12 +747,27 @@ function CourseCard({
           </div>
         </div>
         <CardTitle className="mt-4">{course.name}</CardTitle>
+        {course.tutorHandle && (
+          <p className="mt-1 text-sm font-medium text-indigo-600">@{course.tutorHandle}</p>
+        )}
         <CardDescription className="mt-2 line-clamp-2">
           {course.description || 'No description available'}
         </CardDescription>
         <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
           <Clock className="h-3.5 w-3.5" />
-          <span>{course.availability?.summary || 'Flexible Schedule'}</span>
+          <button
+            type="button"
+            className="font-medium text-indigo-600 hover:underline"
+            onClick={e => {
+              e.stopPropagation()
+              onSchedule()
+            }}
+          >
+            Schedule
+          </button>
+          {course.availability?.summary && (
+            <span className="truncate text-gray-400">({course.availability.summary})</span>
+          )}
         </div>
       </CardHeader>
 

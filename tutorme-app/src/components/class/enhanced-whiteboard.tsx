@@ -1400,6 +1400,38 @@ export function EnhancedWhiteboard({
           />
         )}
 
+        {/* Floating Background Color Toggle */}
+        {!readOnly && (
+          <div className="absolute bottom-6 left-6 z-20">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 rounded-full border border-white/40 shadow-2xl ring-1 ring-black/[0.05] backdrop-blur-xl transition-all hover:scale-105"
+              style={{
+                backgroundColor:
+                  currentPage.backgroundColor === '#ffffff'
+                    ? '#ffffff'
+                    : currentPage.backgroundColor === '#1f2937'
+                      ? '#1f2937'
+                      : currentPage.backgroundColor === '#1a3d2e'
+                        ? '#1a3d2e'
+                        : currentPage.backgroundColor,
+                color: currentPage.backgroundColor === '#ffffff' ? '#1f2937' : '#ffffff',
+              }}
+              onClick={() => {
+                let nextColor = '#ffffff'
+                if (currentPage.backgroundColor === '#ffffff') nextColor = '#1f2937'
+                else if (currentPage.backgroundColor === '#1f2937') nextColor = '#1a3d2e'
+                else nextColor = '#ffffff' // catch-all to reset
+                updateBackground(nextColor, currentPage.backgroundStyle)
+              }}
+              title="Toggle Background Color"
+            >
+              <Palette className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
+
         {/* Floating Zoom Widget */}
         <div className="absolute bottom-6 right-6 z-20 flex items-center gap-1 rounded-2xl border border-white/40 bg-white/70 px-2 py-1 shadow-2xl ring-1 ring-black/[0.05] backdrop-blur-xl">
           <Button

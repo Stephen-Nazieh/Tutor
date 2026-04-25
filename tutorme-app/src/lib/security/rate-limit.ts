@@ -24,11 +24,17 @@ interface RateLimitResult {
 
 const memoryStore = new Map<string, Entry>()
 
+let isPruning = false
 function prune(): void {
-  const now = Date.now()
-  for (const [key, entry] of memoryStore.entries()) {
-    if (entry.resetAt < now) memoryStore.delete(key)
-  }
+  if (isPruning) return
+  isPruning = true
+  setTimeout(() => {
+    const now = Date.now()
+    for (const [key, entry] of memoryStore.entries()) {
+      if (entry.resetAt < now) memoryStore.delete(key)
+    }
+    isPruning = false
+  }, 0)
 }
 
 function checkRateLimitMemory(key: string, options: RateLimitOptions): RateLimitResult {
@@ -163,14 +169,16 @@ export async function checkRateLimitPreset(
 /**
  * Get client identifier for rate limiting (IP or x-forwarded-for).
  */
-export function getClientIdentifier(req: Request): string {
+export function getClientIdentifier(req: Request | any): string {
   const trustProxy = process.env.TRUST_PROXY === 'true'
-  const forwarded = req.headers.get('x-forwarded-for')
-  const realIp = req.headers.get('x-real-ip')
-  const cfIp = req.headers.get('cf-connecting-ip')
+  const platformIp = req.ip || (req.socket && req.socket.remoteAddress)
 
-  const firstForwarded = forwarded?.split(',')[0]?.trim()
-  const candidate = trustProxy ? firstForwarded || realIp || cfIp : realIp || cfIp
+  const forwarded = typeof req.headers.get === 'function' ? req.headers.get('x-forwarded-for') : req.headers['x-forwarded-for']
+  const realIp = typeof req.headers.get === 'function' ? req.headers.get('x-real-ip') : req.headers['x-real-ip']
+  const cfIp = typeof req.headers.get === 'function' ? req.headers.get('cf-connecting-ip') : req.headers['cf-connecting-ip']
+
+  const firstForwarded = typeof forwarded === 'string' ? forwarded.split(',')[0]?.trim() : undefined
+  const candidate = trustProxy ? firstForwarded || realIp || cfIp || platformIp : platformIp || realIp || cfIp
   const ip = normalizeIp(candidate)
   if (ip !== 'unknown') return ip
 
