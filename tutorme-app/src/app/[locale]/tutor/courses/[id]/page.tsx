@@ -712,31 +712,46 @@ export default function TutorCoursePage() {
                     className="flex flex-col"
                   >
                     <div className="border-b bg-slate-50/50 px-2 pt-2">
-                      <TabsList className="flex w-full flex-wrap gap-1 bg-transparent p-0">
-                        <TabsTrigger value="global" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                      <TabsList className="flex w-full flex-wrap justify-start gap-2 bg-transparent p-0">
+                        <TabsTrigger 
+                          value="global" 
+                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+                        >
                           <Globe className="mr-2 h-4 w-4" />
                           Global
                         </TabsTrigger>
-                        <TabsTrigger value="ap" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                        <TabsTrigger 
+                          value="ap" 
+                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+                        >
                           <Award className="mr-2 h-4 w-4" />
                           AP
                         </TabsTrigger>
-                        <TabsTrigger value="alevel" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                        <TabsTrigger 
+                          value="alevel" 
+                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+                        >
                           <GraduationCap className="mr-2 h-4 w-4" />
                           A Level
                         </TabsTrigger>
-                        <TabsTrigger value="ib" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                        <TabsTrigger 
+                          value="ib" 
+                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+                        >
                           <BookOpen className="mr-2 h-4 w-4" />
                           IB
                         </TabsTrigger>
-                        <TabsTrigger value="igcse" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                        <TabsTrigger 
+                          value="igcse" 
+                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
+                        >
                           <School className="mr-2 h-4 w-4" />
                           IGCSE
                         </TabsTrigger>
                         <TabsTrigger
                           value="national"
-                          className="data-[state=active]:bg-white data-[state=active]:shadow-sm"
                           disabled={nationalExams.length === 0}
+                          className="rounded-t-lg rounded-b-none border-b-2 border-transparent px-4 py-2 font-medium text-slate-500 disabled:opacity-50 data-[state=active]:border-indigo-600 data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-[0_-2px_10px_rgba(0,0,0,0.05)]"
                         >
                           <Flag className="mr-2 h-4 w-4" />
                           National
