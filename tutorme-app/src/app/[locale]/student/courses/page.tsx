@@ -657,6 +657,116 @@ function CoursePageInner() {
           }}
         />
       )}
+
+      {/* Course Sessions Modal */}
+      <Dialog open={!!sessionsCourseId} onOpenChange={open => !open && setSessionsCourseId(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-indigo-600" />
+              Course Sessions
+            </DialogTitle>
+            <DialogDescription>
+              Select a session to enter.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {isLoadingSessions ? (
+              <div className="flex justify-center p-8">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+              </div>
+            ) : courseSessions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                No sessions found for this course.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {courseSessions.map((session) => {
+                  const isScheduled = session.status === 'scheduled'
+                  const isActive = session.status === 'active'
+                  const isEnded = session.status === 'ended'
+                  
+                  // Logic for upcoming (within 15 mins) and passed
+                  const now = Date.now()
+                  const scheduledTime = session.scheduledAt ? new Date(session.scheduledAt).getTime() : now
+                  const isUpcomingClose = isScheduled && (scheduledTime - now <= 15 * 60 * 1000)
+                  const isPassedSession = isScheduled && (scheduledTime + 2 * 60 * 60 * 1000 < now)
+                  
+                  const canEnterLive = isActive || isUpcomingClose
+                  
+                  return (
+                    <div key={session.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-white border rounded-xl shadow-sm hover:shadow-md transition-shadow gap-4">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-gray-900">{session.title}</h4>
+                          <Badge 
+                            variant={isEnded ? 'secondary' : isActive ? 'default' : 'outline'}
+                            className={
+                              isActive && isPassedSession
+                                ? 'bg-amber-100 text-amber-800 hover:bg-amber-100'
+                                : isActive
+                                  ? 'bg-green-100 text-green-700 hover:bg-green-100'
+                                  : isEnded
+                                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    : ''
+                            }
+                          >
+                            {isEnded ? 'Ended' : isActive ? (isPassedSession ? 'Passed (Open)' : 'Active') : 'Scheduled'}
+                          </Badge>
+                        </div>
+                        {session.scheduledAt && (
+                          <div className="flex items-center text-sm text-gray-500">
+                            <Clock className="mr-1.5 h-4 w-4" />
+                            {new Date(session.scheduledAt).toLocaleString(undefined, {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                            })}
+                          </div>
+                        )}
+                        {isPassedSession && !isEnded && (
+                          <p className="text-xs text-amber-600 mt-1">
+                            This session has passed. If it was recorded, content will load automatically. Otherwise, contact your tutor for materials.
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-2 min-w-[140px]">
+                        <Button 
+                          onClick={() => {
+                            setSessionsCourseId(null)
+                            router.push(`/student/feedback?sessionId=${session.id}`)
+                          }}
+                          variant={canEnterLive ? 'default' : 'outline'}
+                          className={canEnterLive ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : ''}
+                        >
+                          Enter Session
+                        </Button>
+                        {isPassedSession && !isEnded && (
+                          <Button 
+                            variant="secondary" 
+                            size="sm"
+                            disabled={requestingSessionId === session.id}
+                            onClick={() => handleRequestMaterials(session.id)}
+                          >
+                            {requestingSessionId === session.id ? 'Sending...' : 'Request Materials'}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+          <CardFooter className="px-0 pb-0 pt-2">
+            <Button variant="outline" className="w-full" onClick={() => setSessionsCourseId(null)}>
+              Close
+            </Button>
+          </CardFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
