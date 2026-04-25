@@ -556,7 +556,8 @@ function CourseBuilderInsightsRouteInner({
                     </SelectContent>
                   </Select>
                 )}
-                {insightsProps.sessionId && onSyncToLiveSession && (
+                {/* Sync Button is always available if a course is selected */}
+                {courseId && courseId !== 'insights-draft' && onSyncToLiveSession && (
                   <Button
                     variant="outline"
                     onClick={async () => {

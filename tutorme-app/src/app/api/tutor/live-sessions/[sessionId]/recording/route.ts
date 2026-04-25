@@ -11,18 +11,12 @@ export async function PATCH(req: NextRequest, { params }: { params: any }) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  let liveSessionId = ''
-  try {
-    const resolvedParams = await params
-    liveSessionId = resolvedParams?.sessionId
-  } catch (e) {}
+  const safeUrl = req.nextUrl?.href || req.url || ''
+  const match = safeUrl.match(/\/live-sessions\/([^/]+)\/recording/)
+  const liveSessionId = match ? match[1] : ''
 
-  if (!liveSessionId) {
-    const parts = req.nextUrl.pathname.split('/').filter(Boolean)
-    const recIdx = parts.lastIndexOf('recording')
-    if (recIdx > 0) {
-      liveSessionId = parts[recIdx - 1]
-    }
+  if (!liveSessionId || liveSessionId === 'undefined' || liveSessionId === 'null') {
+    return NextResponse.json({ error: 'Session ID is required' }, { status: 400 })
   }
   const body = await req.json().catch(() => ({}))
   const isRecording = Boolean(body?.isRecording)

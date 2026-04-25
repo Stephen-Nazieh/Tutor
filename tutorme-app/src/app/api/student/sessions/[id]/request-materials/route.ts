@@ -9,18 +9,12 @@ export const POST = withAuth(
   async (req, sessionObj, context) => {
     const studentId = sessionObj.user.id
     
-    let sessionId = ''
-    try {
-      const params = await context?.params
-      sessionId = (params as any)?.id
-    } catch (e) {}
-    
-    if (!sessionId) {
-      const parts = req.nextUrl.pathname.split('/').filter(Boolean)
-      const reqIdx = parts.lastIndexOf('request-materials')
-      if (reqIdx > 0) {
-        sessionId = parts[reqIdx - 1]
-      }
+    const safeUrl = req.nextUrl?.href || req.url || ''
+    const match = safeUrl.match(/\/sessions\/([^/]+)\/request-materials/)
+    const sessionId = match ? match[1] : ''
+
+    if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
+      return NextResponse.json({ error: 'Session ID is required' }, { status: 400 })
     }
 
     // Verify session

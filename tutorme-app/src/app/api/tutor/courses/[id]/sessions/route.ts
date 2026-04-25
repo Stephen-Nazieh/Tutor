@@ -12,23 +12,20 @@ import { liveSession as liveSessionTable } from '@/lib/db/schema'
 export const GET = withAuth(
   async (req, session, context) => {
     const tutorId = session.user.id
-    // Safely extract courseId whether context.params is a Promise or an object, or fallback to URL parsing
-    let courseId = ''
-    try {
-      const params = await context?.params
-      courseId = (params as any)?.id
-    } catch (e) {}
     
-    if (!courseId) {
-      // Fallback string extraction that handles both /sessions and /sessions/ safely
-      const parts = req.nextUrl.pathname.split('/').filter(Boolean)
-      const sessionsIdx = parts.lastIndexOf('sessions')
-      if (sessionsIdx > 0) {
-        courseId = parts[sessionsIdx - 1]
-      }
+    // Ultimate source of truth: extract directly from the URL pathname to avoid Next.js param bugs
+    const safeUrl = req.nextUrl?.href || req.url || ''
+    
+    // Extract the ID robustly using RegExp: matches /courses/<id>/sessions
+    const match = safeUrl.match(/\/courses\/([^/]+)\/sessions/)
+    const courseId = match ? match[1] : ''
+
+    if (!courseId || courseId === 'undefined' || courseId === 'null') {
+      return NextResponse.json({ error: 'Course ID is required' }, { status: 400 })
     }
 
-    const statusParam = req.nextUrl.searchParams.get('status')
+    const urlObj = new URL(safeUrl, 'http://localhost:3000')
+    const statusParam = urlObj.searchParams.get('status')
     const allowedStatuses = statusParam
       ? statusParam
           .split(',')
@@ -66,7 +63,7 @@ export const GET = withAuth(
       startedAt: s.startedAt?.toISOString() ?? null,
       endedAt: s.endedAt?.toISOString() ?? null,
       maxStudents: s.maxStudents,
-      enrolledStudents: s.participants.length,
+      enrolledStudents: s.participants?.length ?? 0,
       status: s.status,
       roomUrl: s.roomUrl,
     }))

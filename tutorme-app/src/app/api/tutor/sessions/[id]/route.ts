@@ -14,18 +14,11 @@ export const PATCH = withAuth(
   async (req, session, context) => {
     const tutorId = session.user.id
     
-    let sessionId = ''
-    try {
-      const params = await context?.params
-      sessionId = (params as any)?.id
-    } catch (e) {}
-    
-    if (!sessionId) {
-      const parts = req.nextUrl.pathname.split('/').filter(Boolean)
-      sessionId = parts[parts.length - 1]
-    }
+    const safeUrl = req.nextUrl?.href || req.url || ''
+    const match = safeUrl.match(/\/sessions\/([^/]+)$/)
+    const sessionId = match ? match[1] : ''
 
-    if (!sessionId) {
+    if (!sessionId || sessionId === 'undefined' || sessionId === 'null') {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 })
     }
 

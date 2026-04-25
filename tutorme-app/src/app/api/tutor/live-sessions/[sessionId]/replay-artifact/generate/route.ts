@@ -45,18 +45,12 @@ export async function POST(req: NextRequest, { params }: { params: any }) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  let liveSessionId = ''
-  try {
-    const resolvedParams = await params
-    liveSessionId = resolvedParams?.sessionId
-  } catch (e) {}
+  const safeUrl = req.nextUrl?.href || req.url || ''
+  const match = safeUrl.match(/\/live-sessions\/([^/]+)\/replay-artifact/)
+  const liveSessionId = match ? match[1] : ''
 
-  if (!liveSessionId) {
-    const parts = req.nextUrl.pathname.split('/').filter(Boolean)
-    const replayIdx = parts.lastIndexOf('replay-artifact')
-    if (replayIdx > 0) {
-      liveSessionId = parts[replayIdx - 1]
-    }
+  if (!liveSessionId || liveSessionId === 'undefined' || liveSessionId === 'null') {
+    return NextResponse.json({ error: 'Session ID is required' }, { status: 400 })
   }
 
   const sessionRows = await drizzleDb

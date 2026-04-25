@@ -8,18 +8,12 @@ export const GET = withAuth(
   async (req, session, context) => {
     const studentId = session.user.id
     
-    let courseId = ''
-    try {
-      const params = await context?.params
-      courseId = (params as any)?.id
-    } catch (e) {}
-    
-    if (!courseId) {
-      const parts = req.nextUrl.pathname.split('/').filter(Boolean)
-      const sessionsIdx = parts.lastIndexOf('sessions')
-      if (sessionsIdx > 0) {
-        courseId = parts[sessionsIdx - 1]
-      }
+    const safeUrl = req.nextUrl?.href || req.url || ''
+    const match = safeUrl.match(/\/courses\/([^/]+)\/sessions/)
+    const courseId = match ? match[1] : ''
+
+    if (!courseId || courseId === 'undefined' || courseId === 'null') {
+      return NextResponse.json({ error: 'Course ID is required' }, { status: 400 })
     }
 
     // Verify enrollment
