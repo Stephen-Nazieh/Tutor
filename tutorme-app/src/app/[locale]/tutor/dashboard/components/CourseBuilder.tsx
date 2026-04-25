@@ -4581,7 +4581,7 @@ FEEDBACK: [your explanation]`
                             : 'text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,1)]'
                         )}
                       />
-                      {isSessionActive ? 'Session Active' : 'Go Live'}
+                      {isSessionActive ? 'Session Active' : 'Live Classroom'}
                     </div>
                   </TabsTrigger>
                   {!isStudentView && (
