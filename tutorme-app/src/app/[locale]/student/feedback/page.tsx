@@ -88,6 +88,7 @@ function StudentFeedbackContent() {
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(sessionIdFromQuery)
   const [tasks, setTasks] = useState<LiveTask[]>([])
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
+  const [requestingSessionId, setRequestingSessionId] = useState<string | null>(null)
   const [showTasksPanel, setShowTasksPanel] = useState(false)
   const [showFeedbackPanel, setShowFeedbackPanel] = useState(false)
   const [unseenTaskIds, setUnseenTaskIds] = useState<string[]>([])
@@ -419,9 +420,33 @@ function StudentFeedbackContent() {
   }, [activeTaskId, tasks])
 
   const activeTask = tasks.find(task => task.id === activeTaskId) || null
+  const currentSession = sessions.find(s => s.id === selectedSessionId) || null
+  const isScheduled = currentSession?.status === 'scheduled'
+  const isPassedSession =
+    isScheduled &&
+    currentSession?.scheduledAt &&
+    new Date(currentSession.scheduledAt).getTime() + 2 * 60 * 60 * 1000 < Date.now()
 
   const feedbackPolls = activeTask?.polls ?? []
   const feedbackQuestions = activeTask?.questions ?? []
+
+  const handleRequestMaterials = async (sessionId: string) => {
+    setRequestingSessionId(sessionId)
+    try {
+      const res = await fetch(`/api/student/sessions/${sessionId}/request-materials`, {
+        method: 'POST',
+      })
+      if (res.ok) {
+        toast.success('Material request sent to tutor.')
+      } else {
+        toast.error('Failed to send request.')
+      }
+    } catch {
+      toast.error('An error occurred while sending request.')
+    } finally {
+      setRequestingSessionId(null)
+    }
+  }
 
   const handleSelectTask = (taskId: string) => {
     setActiveTaskId(taskId)

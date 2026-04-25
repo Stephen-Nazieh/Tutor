@@ -27,6 +27,7 @@ import {
 } from '@/components/course/PreferenceEnrollmentDialog'
 import {
   Clock,
+  Calendar,
   ChevronRight,
   Play,
   Trophy,
@@ -99,6 +100,28 @@ function CoursePageInner() {
   >((searchParams.get('tab') as any) || 'mine')
   const [selectedEnrollment, setSelectedEnrollment] = useState<Course | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
+  const [sessionsCourseId, setSessionsCourseId] = useState<string | null>(null)
+  const [courseSessions, setCourseSessions] = useState<any[]>([])
+  const [isLoadingSessions, setIsLoadingSessions] = useState(false)
+  const [requestingSessionId, setRequestingSessionId] = useState<string | null>(null)
+
+  const handleRequestMaterials = async (sessionId: string) => {
+    setRequestingSessionId(sessionId)
+    try {
+      const res = await fetch(`/api/student/sessions/${sessionId}/request-materials`, {
+        method: 'POST',
+      })
+      if (res.ok) {
+        toast.success('Material request sent to tutor.')
+      } else {
+        toast.error('Failed to send request.')
+      }
+    } catch {
+      toast.error('An error occurred while sending request.')
+    } finally {
+      setRequestingSessionId(null)
+    }
+  }
 
   const loadFavorites = () => {
     try {
@@ -236,34 +259,27 @@ function CoursePageInner() {
   const [enteringClass, setEnteringClass] = useState<string | null>(null)
   const router = useRouter()
 
-  const handleEnterClass = useCallback(
-    async (courseId: string) => {
-      setEnteringClass(courseId)
-      try {
-        // Fetch active sessions for this course
-        const res = await fetch(`/api/class/rooms?courseId=${courseId}`, {
-          credentials: 'include',
-        })
-        if (res.ok) {
-          const data = await res.json()
-          const sessions = data.sessions || []
-          if (sessions.length > 0) {
-            // Navigate to the first active session
-            router.push(`/student/feedback?sessionId=${sessions[0].id}`)
-          } else {
-            toast.error('No active classroom found for this course')
-          }
-        } else {
-          toast.error('Failed to check for active classrooms')
-        }
-      } catch {
-        toast.error('Failed to enter classroom')
-      } finally {
-        setEnteringClass(null)
+  const handleEnterClass = useCallback(async (courseId: string) => {
+    setEnteringClass(courseId)
+    setSessionsCourseId(courseId)
+    setIsLoadingSessions(true)
+    try {
+      const res = await fetch(`/api/student/courses/${courseId}/sessions`)
+      if (res.ok) {
+        const data = await res.json()
+        setCourseSessions(data.sessions || [])
+      } else {
+        toast.error('Failed to load sessions')
+        setSessionsCourseId(null)
       }
-    },
-    [router]
-  )
+    } catch {
+      toast.error('Failed to load sessions')
+      setSessionsCourseId(null)
+    } finally {
+      setEnteringClass(null)
+      setIsLoadingSessions(false)
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50">

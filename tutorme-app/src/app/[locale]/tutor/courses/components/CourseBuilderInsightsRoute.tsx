@@ -21,6 +21,7 @@ import {
   ArrowLeft,
   Loader2,
   BookOpen,
+  Edit3,
   MoreVertical,
   RefreshCw,
   Plus,
@@ -462,6 +463,54 @@ function CourseBuilderInsightsRouteInner({
 
             <div className="flex h-full flex-col items-end justify-between gap-4 pb-0">
               <div className="mt-0 flex shrink-0 items-center gap-2">
+                {activeMainTab === 'builder' && onSaveModeChange && (
+                  <Select
+                    value={saveMode}
+                    onValueChange={(val: 'live' | 'draft') => onSaveModeChange(val)}
+                  >
+                    <SelectTrigger className="h-9 w-[190px] border-slate-200 bg-white text-sm font-medium">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="live">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-green-500" />
+                          Editing: Published
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="draft">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-amber-500" />
+                          Editing: Draft
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                {activeMainTab === 'builder' && onSaveModeChange && (
+                  <Select
+                    value={saveMode}
+                    onValueChange={(val: 'live' | 'draft') => onSaveModeChange(val)}
+                  >
+                    <SelectTrigger className="h-9 w-[190px] border-slate-200 bg-white text-sm font-medium">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="live">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-green-500" />
+                          Editing: Published
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="draft">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-amber-500" />
+                          Editing: Draft
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
                 {activeMainTab === 'builder' && insightsProps.sessionId && onSyncToLiveSession && (
                   <Button
                     variant="outline"

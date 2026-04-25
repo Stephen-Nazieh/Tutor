@@ -49,6 +49,9 @@ export interface CourseBuilderInsightsProps {
   sessionId: string | null
   sessions: InsightsSessionOption[]
   onSessionChange: (sessionId: string) => void
+  onStartSession?: () => void
+  onEndSession?: () => void
+  endingSession?: boolean
   liveTasks: LiveTask[]
   onDeployTask: (task: LiveTask) => void
   onSendPoll: (payload: { taskId: string; question: string }) => void

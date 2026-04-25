@@ -4559,7 +4559,9 @@ FEEDBACK: [your explanation]`
                         if (mainTab === 'live') {
                           e.preventDefault()
                           e.stopPropagation()
-                          setComingSoonDialog(true)
+                          if (!isSessionActive && insightsProps?.onStartSession) {
+                            insightsProps.onStartSession()
+                          }
                         }
                       }}
                     >
@@ -4612,23 +4614,8 @@ FEEDBACK: [your explanation]`
                         'relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors',
                         mainTab === 'builder'
                           ? 'pointer-events-auto cursor-pointer'
-                          : 'pointer-events-none',
-                        isLiveMode &&
-                          'animate-pulse border-blue-300/50 bg-blue-50/30 shadow-[0_0_8px_rgba(37,99,235,0.5)]'
+                          : 'pointer-events-none'
                       )}
-                      onPointerDown={e => {
-                        if (mainTab === 'builder') {
-                          e.preventDefault()
-                          e.stopPropagation()
-
-                          // Always allow toggling for now since Live feature is "Coming Soon"
-                          if (onSaveModeChange) {
-                            onSaveModeChange(saveMode === 'live' ? 'draft' : 'live')
-                          } else {
-                            setCoursePropsModal(prev => ({ ...prev, isLive: !prev.isLive }))
-                          }
-                        }
-                      }}
                     >
                       <PencilRuler className="h-4 w-4" />
                       Build
