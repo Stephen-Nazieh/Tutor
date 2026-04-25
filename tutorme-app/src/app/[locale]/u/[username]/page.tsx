@@ -46,6 +46,7 @@ import {
   Video,
   Search,
   ExternalLink,
+  User,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -100,14 +101,14 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
-function StarRating({ rating, count }: { rating: number | null; count?: number }) {
+function StarRating({ rating, count, className }: { rating: number | null; count?: number; className?: string }) {
   if (rating === null) return null
   return (
-    <div className="flex items-center gap-1">
+    <div className={cn("flex items-center gap-1", className)}>
       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-      <span className="font-medium">{rating.toFixed(1)}</span>
+      <span className="font-medium text-inherit">{rating.toFixed(1)}</span>
       {count !== undefined && count > 0 && (
-        <span className="text-muted-foreground text-sm">({count})</span>
+        <span className="text-sm opacity-70">({count})</span>
       )}
     </div>
   )
@@ -1164,113 +1165,139 @@ export default function PublicTutorPage() {
                     <div
                       key={course.id}
                       className={cn(
-                        'bg-card flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 text-left shadow-sm',
+                        'group relative flex h-full min-h-0 flex-col overflow-hidden rounded-[20px] text-left transition-all duration-300',
+                        'border border-[rgba(255,255,255,0.08)]',
+                        'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
+                        'shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)]',
+                        'hover:-translate-y-[2px] hover:brightness-105',
+                        'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]',
                         isList &&
                           'aspect-auto min-h-0 flex-row items-stretch sm:min-h-[148px] [&>*]:first:shrink-0',
                         isCompact && 'text-xs'
                       )}
+                      style={{
+                        backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
+                      }}
                     >
                       <div
                         className={cn(
-                          'flex flex-1 flex-col p-4',
+                          'flex flex-1 p-4',
                           isList && 'min-w-0 pr-3',
                           isCompact && 'p-3'
                         )}
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <h3
-                            className={cn(
-                              'line-clamp-2 font-semibold text-slate-900',
-                              isCompact ? 'text-sm' : 'text-base'
-                            )}
-                          >
-                            {course.name}
-                          </h3>
-                          <Badge variant="secondary" className="shrink-0 text-[10px] sm:text-xs">
-                            {course.categories[0] || 'general'}
-                          </Badge>
-                        </div>
-                        <p className="mt-0.5 text-xs font-medium text-slate-500">
-                          @{tutor.username}
-                        </p>
-                        <p
-                          className={cn(
-                            'mt-2 line-clamp-3 text-slate-600',
-                            isCompact ? 'line-clamp-2 text-[11px]' : 'text-sm'
-                          )}
-                        >
-                          {desc}
-                        </p>
-                        <dl
-                          className={cn(
-                            'mt-auto space-y-1.5 pt-3 text-slate-600',
-                            isCompact ? 'text-[11px]' : 'text-xs sm:text-sm'
-                          )}
-                        >
-                          <div className="flex gap-1">
-                            <dd className="font-medium text-slate-800">
-                              {course.lessonCount} lessons
-                            </dd>
-                          </div>
-                          <div className="flex items-start gap-1">
-                            <dd className="min-w-0 text-slate-800">
-                              {course.scheduleSummary ? (
-                                <button
-                                  type="button"
-                                  onClick={e => {
-                                    e.preventDefault()
-                                    setScheduleCourse(course)
-                                  }}
-                                  className="inline-flex items-center gap-1 font-medium text-blue-600 transition-colors hover:text-blue-800 hover:underline"
-                                >
-                                  <CalendarDays className="h-3.5 w-3.5" />
-                                  Schedule <ExternalLink className="h-3 w-3" />
-                                </button>
-                              ) : (
-                                <span className="flex shrink-0 items-center gap-0.5 font-medium text-slate-500">
-                                  <CalendarDays className="h-3.5 w-3.5" />
-                                  Schedule to be announced
-                                </span>
-                              )}
-                            </dd>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Badge
-                              variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
+                        <div className="flex flex-1 flex-col min-w-0 pr-4">
+                          <div className="flex items-start justify-between gap-2">
+                            <h3
                               className={cn(
-                                'text-[10px] font-semibold sm:text-xs',
-                                enrollmentStatus === 'ongoing' &&
-                                  'bg-emerald-600 hover:bg-emerald-600'
+                                'line-clamp-2 font-semibold text-slate-100',
+                                isCompact ? 'text-sm' : 'text-base'
                               )}
                             >
-                              {enrollmentStatus === 'ended'
-                                ? 'Enrollment ended'
-                                : 'Enrollment ongoing'}
-                            </Badge>
+                              {course.name}
+                            </h3>
                           </div>
-                        </dl>
+                          <p className="mt-0.5 text-xs font-medium text-slate-300">
+                            @{tutor.username}
+                          </p>
+                          <p
+                            className={cn(
+                              'mt-2 line-clamp-3 text-slate-400',
+                              isCompact ? 'line-clamp-2 text-[11px]' : 'text-sm'
+                            )}
+                          >
+                            {desc}
+                          </p>
+                          <dl
+                            className={cn(
+                              'mt-auto space-y-1.5 pt-3 text-slate-300',
+                              isCompact ? 'text-[11px]' : 'text-xs sm:text-sm'
+                            )}
+                          >
+                            <div className="flex gap-1">
+                              <dd className="font-medium text-slate-200">
+                                {course.lessonCount} lessons
+                              </dd>
+                            </div>
+                            <div className="flex items-start gap-1">
+                              <dd className="min-w-0 text-slate-200">
+                                {course.scheduleSummary ? (
+                                  <button
+                                    type="button"
+                                    onClick={e => {
+                                      e.preventDefault()
+                                      setScheduleCourse(course)
+                                    }}
+                                    className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
+                                  >
+                                    <CalendarDays className="h-3.5 w-3.5" />
+                                    Schedule <ExternalLink className="h-3 w-3" />
+                                  </button>
+                                ) : (
+                                  <span className="flex shrink-0 items-center gap-0.5 font-medium text-slate-300">
+                                    <CalendarDays className="h-3.5 w-3.5" />
+                                    Schedule to be announced
+                                  </span>
+                                )}
+                              </dd>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                              <Badge
+                                variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
+                                className={cn(
+                                  'text-[10px] font-semibold sm:text-xs transition-all hover:brightness-105',
+                                  enrollmentStatus === 'ongoing'
+                                    ? 'bg-emerald-600 text-white hover:bg-emerald-600 border-transparent'
+                                    : 'border-[rgba(255,255,255,0.2)] text-slate-300'
+                                )}
+                              >
+                                {enrollmentStatus === 'ended'
+                                  ? 'Enrollment ended'
+                                  : 'Enrollment ongoing'}
+                              </Badge>
+                            </div>
+                          </dl>
+                        </div>
+                        {/* Right column: Badge + Avatar */}
+                        <div className="flex shrink-0 flex-col items-end justify-between w-24 sm:w-28">
+                          <Badge 
+                            variant="secondary" 
+                            className="shrink-0 text-[10px] sm:text-xs bg-blue-600 hover:bg-blue-700 text-white border-0 mb-2 transition-all hover:brightness-105"
+                          >
+                            {course.categories[0] || 'general'}
+                          </Badge>
+                          <div className="mt-auto w-24 h-24 sm:w-28 sm:h-28 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)]">
+                            {tutor.avatarUrl ? (
+                              <img src={tutor.avatarUrl} alt={tutor.username} className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center bg-[rgba(255,255,255,0.05)] text-slate-300">
+                                <User className="h-8 w-8 opacity-50" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                       <div
                         className={cn(
-                          'flex flex-col gap-3 border-t border-slate-100 bg-slate-50/80 px-4 py-3',
+                          'flex flex-col gap-3 border-t border-[rgba(255,255,255,0.1)] px-4 py-3',
                           isList &&
                             'w-full min-w-[200px] max-w-full justify-between border-l border-t-0 sm:w-52',
                           isCompact && 'gap-2 px-3 py-2'
                         )}
                       >
                         <div className="flex w-full flex-wrap items-center justify-between gap-2">
-                          <StarRating rating={course.rating ?? null} count={course.reviewCount} />
+                          <StarRating rating={course.rating ?? null} count={course.reviewCount} className="text-slate-200" />
                           {course.isFree ? (
-                            <span className="text-sm font-bold text-emerald-600">Free</span>
+                            <span className="text-sm font-bold text-emerald-400">Free</span>
                           ) : course.price != null && course.price > 0 ? (
-                            <span className="text-sm font-bold text-slate-900">
+                            <span className="text-sm font-bold text-slate-100">
                               ${course.price}{' '}
-                              <span className="text-[10px] font-normal text-slate-500">
+                              <span className="text-[10px] font-normal text-slate-400">
                                 / 1h session
                               </span>
                             </span>
                           ) : (
-                            <span className="text-sm font-bold text-emerald-600">Free</span>
+                            <span className="text-sm font-bold text-emerald-400">Free</span>
                           )}
                         </div>
 
@@ -1283,7 +1310,7 @@ export default function PublicTutorPage() {
                           <button
                             type="button"
                             className={cn(
-                              'inline-flex items-center text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 disabled:opacity-50',
+                              'inline-flex items-center text-sm font-medium text-slate-300 transition-colors hover:text-white disabled:opacity-50',
                               isCompact && 'text-xs'
                             )}
                             onClick={() => setDetailsCourse(course)}
@@ -1296,7 +1323,7 @@ export default function PublicTutorPage() {
                             <button
                               type="button"
                               className={cn(
-                                'inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50',
+                                'inline-flex items-center text-sm font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
                                 isCompact && 'text-xs'
                               )}
                               onClick={() => handleEnterClassroom(course)}
@@ -1314,7 +1341,7 @@ export default function PublicTutorPage() {
                                       <button
                                         type="button"
                                         className={cn(
-                                          'inline-flex items-center text-sm font-medium text-emerald-600 disabled:opacity-50',
+                                          'inline-flex items-center text-sm font-medium text-emerald-400 disabled:opacity-50',
                                           isCompact && 'text-xs'
                                         )}
                                         disabled
@@ -1326,7 +1353,7 @@ export default function PublicTutorPage() {
                                       <button
                                         type="button"
                                         className={cn(
-                                          'inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50',
+                                          'inline-flex items-center text-sm font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
                                           isCompact && 'text-xs'
                                         )}
                                         onClick={() => handleEnrollClick(course)}
@@ -1345,7 +1372,7 @@ export default function PublicTutorPage() {
                               <button
                                 type="button"
                                 className={cn(
-                                  'inline-flex items-center text-sm font-medium text-blue-600 transition-colors hover:text-blue-800 disabled:opacity-50',
+                                  'inline-flex items-center text-sm font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
                                   isCompact && 'text-xs'
                                 )}
                                 onClick={() => void handleStudentEnterClassroom(course)}
