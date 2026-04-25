@@ -4567,37 +4567,23 @@ FEEDBACK: [your explanation]`
                     onClick={e => {
                       if (mainTab !== 'live') {
                         setMainTab('live')
-                      }
-                    }}
-                    onPointerDown={e => {
-                      if (mainTab === 'live') {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        if (!isSessionActive && insightsProps?.onStartSession) {
-                          insightsProps.onStartSession()
-                        }
+                      } else if (!isSessionActive && insightsProps?.onStartSession) {
+                        insightsProps.onStartSession()
                       }
                     }}
                   >
                     <div
-                      className={cn(
-                        'relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors',
-                        mainTab === 'live'
-                          ? 'pointer-events-auto cursor-pointer'
-                          : 'pointer-events-none'
-                      )}
+                      className="relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors pointer-events-none"
                     >
                       <VideoIcon
                         className={cn(
                           'h-4 w-4 transition-all duration-300',
-                          isLiveMode
-                            ? !isSessionActive
-                              ? 'animate-pulse text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
-                              : 'animate-pulse text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]'
-                            : ''
+                          isSessionActive 
+                            ? 'animate-pulse text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]' 
+                            : 'animate-pulse text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
                         )}
                       />
-                      {isSessionActive ? 'Go Live' : 'Go Live'}
+                      {isSessionActive ? 'Session Active' : 'Go Live'}
                     </div>
                   </TabsTrigger>
                   {!isStudentView && (

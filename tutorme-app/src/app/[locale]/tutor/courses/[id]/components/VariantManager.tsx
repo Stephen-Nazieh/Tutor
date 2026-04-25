@@ -190,7 +190,7 @@ export function VariantManager({
 
   const closeScheduleDialog = () => {
     setScheduleDialogOpen(false)
-    setScheduleDialogIndex(null)
+    setTimeout(() => setScheduleDialogIndex(null), 300)
   }
 
   const handleSave = async () => {
@@ -423,7 +423,7 @@ export function VariantManager({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="flex items-center justify-between rounded-lg border p-3 mt-4">
                 <div className="flex items-center gap-3">
                   <Calendar className="text-muted-foreground h-5 w-5" />
                   <div>
@@ -458,7 +458,13 @@ export function VariantManager({
       </div>
 
       {/* Schedule Dialog */}
-      <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+      <Dialog open={scheduleDialogOpen} onOpenChange={(open) => {
+        setScheduleDialogOpen(open)
+        if (!open) {
+          // Add small delay to prevent unmounting content before animation finishes
+          setTimeout(() => setScheduleDialogIndex(null), 300)
+        }
+      }}>
         <DialogContent className="h-[95vh] max-h-[95vh] w-[95vw] max-w-[95vw] overflow-hidden p-0">
           <div className="flex h-full flex-col">
             <DialogHeader className="border-b px-6 py-4">
