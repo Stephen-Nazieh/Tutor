@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select'
 import { MessageSquare, Send, Loader2, Users, Bell, Search, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
-import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
+import { cn } from '@/lib/utils'
 
 interface Conversation {
   id: string
@@ -64,23 +64,6 @@ export default function CommunicationCenterPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Theme state with localStorage persistence
-  const [themeId, setThemeId] = useState('current')
-  const selectedTheme = DASHBOARD_THEMES.find(theme => theme.id === themeId) ?? DASHBOARD_THEMES[0]
-  const themeStyle = getThemeStyle(selectedTheme)
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('tutor-dashboard-theme')
-    if (savedTheme) {
-      setThemeId(savedTheme)
-    }
-  }, [])
-
-  useEffect(() => {
-    localStorage.setItem('tutor-dashboard-theme', themeId)
-  }, [themeId])
-
-  // Load conversations on mount
   useEffect(() => {
     fetchConversations()
   }, [])
@@ -181,54 +164,46 @@ export default function CommunicationCenterPage() {
 
   if (loading) {
     return (
-      <div
-        className="bg-background text-foreground min-h-screen w-full px-4 py-8 sm:px-6 lg:px-8"
-        style={themeStyle}
-      >
-        <div className="flex h-64 items-center justify-center">
-          <Loader2 className="text-primary h-8 w-8 animate-spin" />
-        </div>
+      <div className="flex h-screen w-full items-center justify-center bg-[#FFFFFF]">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
       </div>
     )
   }
 
   return (
-    <div
-      className="bg-background text-foreground min-h-screen w-full px-4 py-8 sm:px-6 lg:px-8"
-      style={themeStyle}
-    >
+    <div className="flex min-h-screen w-full flex-col bg-[#FFFFFF] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 min-h-[52px] shrink-0">
-        <div className="flex h-full w-full items-center justify-between gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="flex h-full w-full items-center justify-between gap-2 rounded-2xl border border-[#E5E7EB] bg-white p-1.5 px-4 shadow-[0_8px_20px_rgba(0,0,0,0.08)]">
           <div className="flex items-center gap-2">
-            <h1 className="text-sm font-semibold text-[#1F2933]">Messages</h1>
+            <h1 className="text-sm font-bold text-slate-800">Messages</h1>
           </div>
         </div>
       </div>
 
       <div className="grid h-[600px] grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Conversations List */}
-        <Card className="border-border bg-card flex flex-col overflow-hidden lg:col-span-1">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-foreground flex items-center justify-between text-base">
+        <div className="flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] lg:col-span-1">
+          <div className="p-4 pb-3">
+            <h2 className="flex items-center justify-between text-base font-bold text-slate-800">
               Conversations
               {totalUnread > 0 && <Badge className="bg-red-500">{totalUnread}</Badge>}
-            </CardTitle>
-            <div className="relative mt-2">
-              <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+            </h2>
+            <div className="relative mt-3">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
                 placeholder="Search messages..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="border-input bg-background pl-9 text-sm"
+                className="pl-9 text-sm bg-slate-50/50 border-slate-200"
               />
             </div>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-hidden p-0">
+          </div>
+          <div className="flex-1 overflow-hidden p-0">
             <ScrollArea className="h-full">
-              <div className="divide-border divide-y">
+              <div className="divide-y divide-slate-100">
                 {filteredConversations.length === 0 ? (
-                  <div className="text-muted-foreground p-4 text-center">
-                    <MessageSquare className="text-muted mx-auto mb-2 h-10 w-10" />
+                  <div className="p-8 text-center text-slate-500">
+                    <MessageSquare className="mx-auto mb-2 h-10 w-10 text-slate-300" />
                     <p className="text-sm">No conversations yet</p>
                   </div>
                 ) : (
@@ -236,25 +211,26 @@ export default function CommunicationCenterPage() {
                     <button
                       key={conv.id}
                       onClick={() => setSelectedConversation(conv)}
-                      className={`hover:bg-accent flex w-full items-center gap-3 p-4 text-left transition-colors ${
-                        selectedConversation?.id === conv.id ? 'bg-accent' : ''
-                      }`}
+                      className={cn(
+                        "flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-slate-50",
+                        selectedConversation?.id === conv.id && "bg-slate-50"
+                      )}
                     >
                       <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-primary/10 text-primary">
+                        <AvatarFallback className="bg-indigo-50 text-indigo-600 font-medium">
                           {conv.otherParticipant.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-foreground truncate text-sm font-medium">
+                          <span className="truncate text-sm font-semibold text-slate-800">
                             {conv.otherParticipant.name}
                           </span>
                           {conv.unreadCount > 0 && (
-                            <Badge className="ml-2 bg-red-500 text-xs">{conv.unreadCount}</Badge>
+                            <Badge className="ml-2 bg-red-500 text-[10px]">{conv.unreadCount}</Badge>
                           )}
                         </div>
-                        <p className="text-muted-foreground truncate text-xs">
+                        <p className="truncate text-xs text-slate-500 mt-0.5">
                           {conv.lastMessage?.content || 'No messages yet'}
                         </p>
                       </div>
@@ -263,100 +239,99 @@ export default function CommunicationCenterPage() {
                 )}
               </div>
             </ScrollArea>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Chat Area */}
-        <Card className="border-border bg-card flex flex-col overflow-hidden lg:col-span-2">
+        <div className="flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] lg:col-span-2">
           {selectedConversation ? (
             <>
-              <CardHeader className="border-border border-b pb-3">
+              <div className="border-b border-slate-100 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-primary/10 text-primary">
+                      <AvatarFallback className="bg-indigo-50 text-indigo-600 font-medium">
                         {selectedConversation.otherParticipant.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-foreground text-base">
+                      <h2 className="text-base font-bold text-slate-800">
                         {selectedConversation.otherParticipant.name}
-                      </CardTitle>
-                      <p className="text-muted-foreground text-xs">Student</p>
+                      </h2>
+                      <p className="text-xs text-slate-500 font-medium">Student</p>
                     </div>
                   </div>
                   <Link href={`/tutor/reports/${selectedConversation.otherParticipant.id}`}>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="outline" size="sm" className="border-slate-200 text-slate-600 hover:bg-slate-50">
                       View Profile
                       <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
-              </CardHeader>
+              </div>
 
-              <CardContent className="flex flex-1 flex-col p-0">
+              <div className="flex flex-1 flex-col p-0 bg-slate-50/30">
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-4">
                     {messages.length === 0 ? (
-                      <div className="text-muted-foreground py-8 text-center">
-                        <MessageSquare className="text-muted mx-auto mb-3 h-12 w-12" />
-                        <p>No messages yet</p>
-                        <p className="text-sm">Start the conversation!</p>
+                      <div className="py-12 text-center text-slate-500">
+                        <MessageSquare className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                        <p className="font-medium text-slate-700">No messages yet</p>
+                        <p className="text-sm mt-1">Start the conversation!</p>
                       </div>
                     ) : (
-                      messages.map(msg => (
-                        <div
-                          key={msg.id}
-                          className={`flex gap-3 ${
-                            msg.senderId === 'me' || msg.sender.profile?.name === 'You'
-                              ? 'flex-row-reverse'
-                              : ''
-                          }`}
-                        >
-                          <Avatar className="h-8 w-8 shrink-0">
-                            <AvatarFallback
-                              className={`text-xs ${
-                                msg.senderId === 'me' || msg.sender.profile?.name === 'You'
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted'
-                              }`}
-                            >
-                              {(msg.sender.profile?.name || 'U').charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
+                      messages.map(msg => {
+                        const isMe = msg.senderId === 'me' || msg.sender.profile?.name === 'You'
+                        return (
                           <div
-                            className={`max-w-[70%] rounded-lg p-3 text-sm ${
-                              msg.senderId === 'me' || msg.sender.profile?.name === 'You'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted text-muted-foreground'
-                            }`}
+                            key={msg.id}
+                            className={cn(
+                              "flex gap-3",
+                              isMe ? "flex-row-reverse" : "flex-row"
+                            )}
                           >
-                            <p>{renderMentions(msg.content)}</p>
-                            <span
-                              className={`mt-1 block text-xs ${
-                                msg.senderId === 'me' || msg.sender.profile?.name === 'You'
-                                  ? 'text-primary-foreground/70'
-                                  : 'text-muted-foreground'
-                              }`}
+                            <Avatar className="h-8 w-8 shrink-0">
+                              <AvatarFallback
+                                className={cn(
+                                  "text-xs font-medium",
+                                  isMe ? "bg-indigo-600 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                )}
+                              >
+                                {(msg.sender.profile?.name || 'U').charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div
+                              className={cn(
+                                "max-w-[70%] rounded-2xl p-3.5 text-sm shadow-sm",
+                                isMe 
+                                  ? "bg-indigo-600 text-white rounded-tr-sm" 
+                                  : "bg-white border border-slate-100 text-slate-800 rounded-tl-sm"
+                              )}
                             >
-                              {new Date(msg.createdAt).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                              {msg.read &&
-                                (msg.senderId === 'me' || msg.sender.profile?.name === 'You') &&
-                                ' • Read'}
-                            </span>
+                              <p className="leading-relaxed">{renderMentions(msg.content)}</p>
+                              <span
+                                className={cn(
+                                  "mt-1.5 block text-[10px] font-medium",
+                                  isMe ? "text-indigo-200" : "text-slate-400"
+                                )}
+                              >
+                                {new Date(msg.createdAt).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                                {msg.read && isMe && ' • Read'}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        )
+                      })
                     )}
                     <div ref={messagesEndRef} />
                   </div>
                 </ScrollArea>
 
-                <div className="border-border border-t p-4">
-                  <div className="flex gap-2">
+                <div className="border-t border-slate-100 bg-white p-4">
+                  <div className="flex gap-2 items-center">
                     <MentionInput
                       placeholder="Type a message..."
                       value={inputMessage}
@@ -368,27 +343,31 @@ export default function CommunicationCenterPage() {
                         }
                       }}
                       disabled={sending}
-                      className="flex-1"
+                      className="flex-1 bg-slate-50/50 border-slate-200 rounded-xl"
                     />
-                    <Button onClick={sendMessage} disabled={sending || !inputMessage.trim()}>
+                    <Button 
+                      onClick={sendMessage} 
+                      disabled={sending || !inputMessage.trim()}
+                      className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white h-10 w-10 p-0 shrink-0"
+                    >
                       {sending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        <Send className="h-4 w-4" />
+                        <Send className="h-4 w-4 ml-0.5" />
                       )}
                     </Button>
                   </div>
                 </div>
-              </CardContent>
+              </div>
             </>
           ) : (
-            <CardContent className="flex flex-1 flex-col items-center justify-center text-gray-500">
-              <MessageSquare className="mb-4 h-16 w-16 text-gray-300" />
-              <p className="text-lg font-medium">Select a conversation</p>
-              <p className="text-sm">Choose a conversation from the list to start messaging</p>
-            </CardContent>
+            <div className="flex flex-1 flex-col items-center justify-center text-slate-500 bg-slate-50/30">
+              <MessageSquare className="mb-4 h-16 w-16 text-slate-300" />
+              <p className="text-lg font-bold text-slate-700">Select a conversation</p>
+              <p className="text-sm mt-1">Choose a conversation from the list to start messaging</p>
+            </div>
           )}
-        </Card>
+        </div>
       </div>
     </div>
   )
