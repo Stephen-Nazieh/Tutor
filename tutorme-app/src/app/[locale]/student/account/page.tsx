@@ -296,29 +296,47 @@ export default function StudentAccount() {
 
       <main className="mx-auto max-w-5xl px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 md:w-auto md:grid-cols-6">
-            <TabsTrigger value="profile" className="gap-2">
-              <User className="h-4 w-4 md:mr-1" />
+          <TabsList className="flex w-full flex-wrap gap-2 bg-transparent p-0 h-auto">
+            <TabsTrigger 
+              value="profile" 
+              className="rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 bg-[#F3F4F6] text-slate-700 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold border-0 gap-2 flex-1 md:flex-none justify-center"
+            >
+              <User className="h-4 w-4" />
               <span className="hidden md:inline">Profile</span>
             </TabsTrigger>
-            <TabsTrigger value="billing" className="gap-2">
-              <CreditCard className="h-4 w-4 md:mr-1" />
+            <TabsTrigger 
+              value="billing" 
+              className="rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 bg-[#F3F4F6] text-slate-700 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold border-0 gap-2 flex-1 md:flex-none justify-center"
+            >
+              <CreditCard className="h-4 w-4" />
               <span className="hidden md:inline">Billing</span>
             </TabsTrigger>
-            <TabsTrigger value="history" className="gap-2">
-              <FileText className="h-4 w-4 md:mr-1" />
+            <TabsTrigger 
+              value="history" 
+              className="rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 bg-[#F3F4F6] text-slate-700 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold border-0 gap-2 flex-1 md:flex-none justify-center"
+            >
+              <FileText className="h-4 w-4" />
               <span className="hidden md:inline">History</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-2">
-              <Bell className="h-4 w-4 md:mr-1" />
+            <TabsTrigger 
+              value="notifications" 
+              className="rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 bg-[#F3F4F6] text-slate-700 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold border-0 gap-2 flex-1 md:flex-none justify-center"
+            >
+              <Bell className="h-4 w-4" />
               <span className="hidden md:inline">Notifications</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="gap-2">
-              <Shield className="h-4 w-4 md:mr-1" />
+            <TabsTrigger 
+              value="security" 
+              className="rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 bg-[#F3F4F6] text-slate-700 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold border-0 gap-2 flex-1 md:flex-none justify-center"
+            >
+              <Shield className="h-4 w-4" />
               <span className="hidden md:inline">Security</span>
             </TabsTrigger>
-            <TabsTrigger value="controls" className="gap-2">
-              <Power className="h-4 w-4 md:mr-1" />
+            <TabsTrigger 
+              value="controls" 
+              className="rounded-full px-4 py-2.5 text-sm font-medium transition-all duration-200 bg-[#F3F4F6] text-slate-700 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold border-0 gap-2 flex-1 md:flex-none justify-center"
+            >
+              <Power className="h-4 w-4" />
               <span className="hidden md:inline">Controls</span>
             </TabsTrigger>
           </TabsList>
