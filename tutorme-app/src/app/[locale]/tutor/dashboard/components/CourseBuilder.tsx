@@ -4577,8 +4577,8 @@ FEEDBACK: [your explanation]`
                         className={cn(
                           'h-4 w-4 transition-all duration-300',
                           isSessionActive 
-                            ? 'animate-pulse text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,0.8)]' 
-                            : 'animate-pulse text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]'
+                            ? 'text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,1)]' 
+                            : 'text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,1)]'
                         )}
                       />
                       {isSessionActive ? 'Session Active' : 'Go Live'}

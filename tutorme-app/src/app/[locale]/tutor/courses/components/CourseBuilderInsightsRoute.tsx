@@ -532,11 +532,11 @@ function CourseBuilderInsightsRouteInner({
                   <Button
                     variant="default"
                     className={cn(
-                      "gap-2 font-medium text-white transition-all duration-300",
-                      insightsProps.sessionId 
-                        ? "bg-red-600 hover:bg-red-700 shadow-[0_0_12px_rgba(220,38,38,0.5)] animate-pulse"
-                        : "bg-green-600 hover:bg-green-700 shadow-[0_0_12px_rgba(34,197,94,0.5)] animate-pulse"
-                    )}
+                        "gap-2 font-medium text-white transition-all duration-300",
+                        insightsProps.sessionId 
+                          ? "bg-red-600 hover:bg-red-700 shadow-[0_0_15px_rgba(220,38,38,0.8)]"
+                          : "bg-green-500 hover:bg-green-600 shadow-[0_0_15px_rgba(34,197,94,0.8)] ring-1 ring-green-400"
+                      )}
                     onClick={() => {
                       if (!insightsProps.sessionId && insightsProps.onStartSession) {
                         insightsProps.onStartSession()

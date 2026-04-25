@@ -92,11 +92,16 @@ export function VariantScheduleEditor({
     return d
   })
 
-  const formatDateKey = (date: Date) => date.toLocaleDateString('en-CA')
+  const formatDateKey = (date: Date) => {
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
 
   const effectiveWeeks =
-    scheduleRepeatWeekly && schedule.length > 0 && totalSessionsDesired !== ''
-      ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
+    scheduleRepeatWeekly && Array.isArray(schedule) && schedule.filter(Boolean).length > 0 && totalSessionsDesired !== ''
+      ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.filter(Boolean).length))
       : numberOfWeeks
 
   // Add this effect to notify the parent when effectiveWeeks changes
@@ -105,22 +110,23 @@ export function VariantScheduleEditor({
   }, [effectiveWeeks, onWeeksChange])
 
   const scheduleSummary = useMemo(() => {
-    if (schedule.length === 0) return []
+    if (!Array.isArray(schedule) || schedule.length === 0) return []
+    const validSchedule = schedule.filter(Boolean)
     if (scheduleRepeatWeekly) {
       const MAX_WEEKS = 52
       const weeks = Math.min(
         MAX_WEEKS,
         totalSessionsDesired !== ''
-          ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / schedule.length))
+          ? Math.max(1, Math.ceil(Number(totalSessionsDesired) / validSchedule.length))
           : numberOfWeeks
       )
       const expanded: ScheduleItem[] = []
       for (let w = 0; w < weeks; w++) {
-        schedule.forEach(slot => expanded.push({ ...slot }))
+        validSchedule.forEach(slot => expanded.push({ ...slot }))
       }
       return expanded
     }
-    return [...schedule]
+    return [...validSchedule]
   }, [schedule, scheduleRepeatWeekly, numberOfWeeks, totalSessionsDesired])
 
   const priceNumber = Number(price)
@@ -149,9 +155,10 @@ export function VariantScheduleEditor({
   )
 
   const toggleSlot = (day: string, dateKey: string, timeStr: string) => {
-    onScheduleChange(prev => {
+    onScheduleChange(prevRaw => {
+      const prev = Array.isArray(prevRaw) ? prevRaw.filter(Boolean) : []
       const idx = prev.findIndex(s => {
-        if (s.dayOfWeek !== day) return false
+        if (!s || s.dayOfWeek !== day) return false
         if (!scheduleRepeatWeekly) {
           if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0) return false
         }
@@ -180,7 +187,7 @@ export function VariantScheduleEditor({
   return (
     <div className="space-y-6">
       {/* Cost vs Revenue - visible when price and schedule are set */}
-      {priceNumber > 0 && schedule.length > 0 && (
+      {priceNumber > 0 && Array.isArray(schedule) && schedule.filter(Boolean).length > 0 && (
         <div className="bg-muted/30 grid grid-cols-2 gap-3 rounded-lg border p-3 text-sm">
           <div>
             <div className="text-muted-foreground text-xs">Cost for course</div>
@@ -204,7 +211,7 @@ export function VariantScheduleEditor({
           />
           <span className="text-sm font-medium">Apply same schedule every week</span>
         </label>
-        {scheduleRepeatWeekly && schedule.length > 0 && (
+        {scheduleRepeatWeekly && Array.isArray(schedule) && schedule.filter(Boolean).length > 0 && (
           <>
             <div className="flex items-center gap-2">
               <Label className="text-xs">Number of weeks</Label>
@@ -340,8 +347,9 @@ export function VariantScheduleEditor({
                   </div>
                   {DAYS.map((day, dayIndex) => {
                     const dateKey = formatDateKey(weekDates[dayIndex])
-                    const matchingSlotIndex = schedule.findIndex(s => {
-                      if (s.dayOfWeek !== day) return false
+                    const validScheduleArray = Array.isArray(schedule) ? schedule.filter(Boolean) : []
+                    const matchingSlotIndex = validScheduleArray.findIndex(s => {
+                      if (!s || s.dayOfWeek !== day) return false
                       if (!scheduleRepeatWeekly) {
                         if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0) return false
                       }
@@ -355,8 +363,8 @@ export function VariantScheduleEditor({
                     const inRange = matchingSlotIndex >= 0
                     let sessionNum = 0
                     if (inRange) {
-                      const currentSlot = schedule[matchingSlotIndex]
-                      const sortedSessions = [...schedule].sort((a, b) => {
+                      const currentSlot = validScheduleArray[matchingSlotIndex]
+                      const sortedSessions = [...validScheduleArray].sort((a, b) => {
                         const aDate = a.date || ''
                         const bDate = b.date || ''
                         if (aDate !== bDate) return aDate.localeCompare(bDate)
@@ -365,6 +373,7 @@ export function VariantScheduleEditor({
                       sessionNum =
                         sortedSessions.findIndex(
                           s =>
+                            s &&
                             s.dayOfWeek === currentSlot.dayOfWeek &&
                             s.startTime === currentSlot.startTime &&
                             s.date === currentSlot.date
@@ -431,9 +440,9 @@ export function VariantScheduleEditor({
                   Sessions
                 </div>
                 <div className="mt-0.5 text-2xl font-bold text-blue-900">{totalSessions}</div>
-                {scheduleRepeatWeekly && schedule.length > 0 && totalSessions > schedule.length && (
+                {scheduleRepeatWeekly && Array.isArray(schedule) && schedule.filter(Boolean).length > 0 && totalSessions > schedule.filter(Boolean).length && (
                   <div className="mt-0.5 text-xs text-blue-600">
-                    Over {Math.ceil(totalSessions / schedule.length)} weeks
+                    Over {Math.ceil(totalSessions / schedule.filter(Boolean).length)} weeks
                   </div>
                 )}
               </div>
@@ -493,10 +502,18 @@ export function VariantScheduleEditor({
                           >
                             {slot.date && (
                               <span className="text-xs text-slate-600">
-                                {new Date(slot.date + 'T00:00:00').toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}
+                                {(() => {
+                                  try {
+                                    const d = new Date(slot.date + 'T00:00:00')
+                                    if (Number.isNaN(d.getTime())) return slot.date
+                                    return d.toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                    })
+                                  } catch {
+                                    return slot.date
+                                  }
+                                })()}
                               </span>
                             )}
                             <span>{formatTimeRange(slot.startTime, slot.durationMinutes)}</span>
