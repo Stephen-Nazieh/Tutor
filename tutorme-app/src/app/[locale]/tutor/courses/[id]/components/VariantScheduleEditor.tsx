@@ -267,7 +267,12 @@ export function VariantScheduleEditor({
       {/* Calendar grid */}
       <div
         key={`week-${scheduleWeekStart.getTime()}`}
-        className="overflow-hidden rounded-lg border"
+        className="overflow-hidden rounded-[14px] bg-white"
+        style={{
+          margin: '16px 0',
+          boxShadow:
+            '0 18px 45px rgba(0,0,0,0.14), 0 6px 18px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+        }}
       >
         <div className="bg-muted/30 flex flex-wrap items-center justify-between gap-2 border-b px-2 py-2">
           <div className="flex items-center gap-1">
