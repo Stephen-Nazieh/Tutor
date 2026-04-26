@@ -324,7 +324,7 @@ const DialogDescription = React.forwardRef<
       ref={ref}
       className={cn(
         sizeClasses[size],
-        theme === 'metallic' ? 'text-gray-300' : 'text-muted-foreground',
+        theme === 'metallic' ? 'text-gray-300 leading-[1.6]' : 'text-muted-foreground',
         className
       )}
       {...props}
@@ -357,7 +357,7 @@ const DialogBody = React.forwardRef<
       ref={ref}
       className={cn(
         spacingClasses[spacing],
-        theme === 'metallic' && 'text-gray-300',
+        theme === 'metallic' && 'text-gray-300 leading-[1.6]',
         scrollable && ['scrollbar-thin overflow-y-auto', maxHeight && `max-h-[${maxHeight}]`],
         className
       )}
