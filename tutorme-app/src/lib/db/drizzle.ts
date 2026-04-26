@@ -15,7 +15,7 @@ const globalForDrizzle = globalThis as unknown as {
   drizzleDb?: NodePgDatabase<typeof schema>
 }
 
-function getPool(): Pool {
+export function getPool(): Pool {
   if (!connectionString) {
     throw new Error(
       'Missing database URL. Set DATABASE_URL, DIRECT_URL, or DATABASE_POOL_URL in .env or .env.local'
