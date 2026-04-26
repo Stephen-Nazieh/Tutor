@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession, course, user } from '@/lib/db/schema'
-import { eq, inArray } from 'drizzle-orm'
+import { getPool } from '@/lib/db/drizzle'
+import { liveSession, user, course } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { notify } from '@/lib/notifications/notify'
 
@@ -40,14 +41,72 @@ export const POST = withAuth(
         })
 
         // Notify tutors based on target audience
-        const targetTutors = await drizzleDb
-          .select({ id: user.userId })
-          .from(user)
-          .where(eq(user.role, 'TUTOR'))
+        const pool = getPool()
+        let targetTutorIds: string[] = []
 
-        const notifyPromises = targetTutors.map(t =>
+        if (targetAudience === 'new') {
+          // Tutors who have NEVER attended a training session
+          const result = await pool.query(
+            `SELECT u."id" FROM "User" u
+             WHERE u."role" = 'TUTOR'
+             AND NOT EXISTS (
+               SELECT 1 FROM "TrainingAttendance" ta
+               WHERE ta."tutorId" = u."id"
+             )`
+          )
+          targetTutorIds = result.rows.map((r: any) => r.id)
+        } else if (targetAudience === 'math') {
+          const result = await pool.query(
+            `SELECT u."id" FROM "User" u
+             JOIN "Profile" p ON u."id" = p."userId"
+             WHERE u."role" = 'TUTOR'
+             AND EXISTS (
+               SELECT 1 FROM unnest(p."subjectsOfInterest") s
+               WHERE LOWER(s) LIKE '%math%'
+             )`
+          )
+          targetTutorIds = result.rows.map((r: any) => r.id)
+        } else if (targetAudience === 'science') {
+          const result = await pool.query(
+            `SELECT u."id" FROM "User" u
+             JOIN "Profile" p ON u."id" = p."userId"
+             WHERE u."role" = 'TUTOR'
+             AND EXISTS (
+               SELECT 1 FROM unnest(p."subjectsOfInterest") s
+               WHERE LOWER(s) LIKE '%science%'
+                OR LOWER(s) LIKE '%physics%'
+                OR LOWER(s) LIKE '%chemistry%'
+                OR LOWER(s) LIKE '%biology%'
+             )`
+          )
+          targetTutorIds = result.rows.map((r: any) => r.id)
+        } else if (targetAudience === 'language') {
+          const result = await pool.query(
+            `SELECT u."id" FROM "User" u
+             JOIN "Profile" p ON u."id" = p."userId"
+             WHERE u."role" = 'TUTOR'
+             AND EXISTS (
+               SELECT 1 FROM unnest(p."subjectsOfInterest") s
+               WHERE LOWER(s) LIKE '%english%'
+                OR LOWER(s) LIKE '%language%'
+                OR LOWER(s) LIKE '%literature%'
+                OR LOWER(s) LIKE '%ielts%'
+                OR LOWER(s) LIKE '%toefl%'
+             )`
+          )
+          targetTutorIds = result.rows.map((r: any) => r.id)
+        } else {
+          // 'all' or any other value — notify all tutors
+          const result = await drizzleDb
+            .select({ id: user.userId })
+            .from(user)
+            .where(eq(user.role, 'TUTOR'))
+          targetTutorIds = result.map(r => r.id)
+        }
+
+        const notifyPromises = targetTutorIds.map(tutorId =>
           notify({
-            userId: t.id,
+            userId: tutorId,
             type: 'system',
             title: 'New Training Session Started',
             message: `A new ${trainingCategory || 'orientation'} training session has started!`,
@@ -107,7 +166,11 @@ export const POST = withAuth(
       return NextResponse.json({ error: 'Invalid session type' }, { status: 400 })
     } catch (error) {
       console.error('Failed to create session:', error)
-      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      const errObj = error as any
+      return NextResponse.json(
+        { error: errObj?.message || 'Internal server error' },
+        { status: 500 }
+      )
     }
   },
   { role: 'TUTOR' }
