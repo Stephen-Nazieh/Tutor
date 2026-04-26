@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useSession } from 'next-auth/react'
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -170,6 +170,8 @@ function TutorDashboardContent() {
   )
   const [courseSessions, setCourseSessions] = useState<CourseSession[]>([])
   const [loadingSessions, setLoadingSessions] = useState(false)
+  const loadingSessionsRef = useRef(false)
+  const [sessionLoadError, setSessionLoadError] = useState<string | null>(null)
   const [cancellingSessionId, setCancellingSessionId] = useState<string | null>(null)
   useEffect(() => {
     try {
@@ -370,10 +372,12 @@ function TutorDashboardContent() {
 
   const handleOpenSessionsModal = useCallback(
     async (course: EnrolledCourse) => {
-      if (loadingSessions) return
+      if (loadingSessionsRef.current) return
+      loadingSessionsRef.current = true
       setSelectedCourseForCancel(course)
       setCancelModalOpen(true)
       setCourseSessions([])
+      setSessionLoadError(null)
       setLoadingSessions(true)
 
       try {
@@ -381,23 +385,22 @@ function TutorDashboardContent() {
           credentials: 'include',
         })
         if (res.ok) {
-        const data = await res.json()
-        setCourseSessions(data.sessions || [])
-      } else {
-        const errData = await res.json().catch(() => ({}))
-        console.error('Tutor session load failed:', errData, res.status)
-        toast.error(`Failed to load course sessions: ${errData.error || res.statusText}`)
-        setCancelModalOpen(false)
+          const data = await res.json()
+          setCourseSessions(data.sessions || [])
+        } else {
+          const errData = await res.json().catch(() => ({}))
+          console.error('Tutor session load failed:', errData, res.status)
+          setSessionLoadError(errData.error || res.statusText || 'Failed to load sessions')
+        }
+      } catch (e) {
+        console.error('Tutor session load exception:', e)
+        setSessionLoadError('Network error. Please try again.')
+      } finally {
+        loadingSessionsRef.current = false
+        setLoadingSessions(false)
       }
-    } catch (e) {
-      console.error('Tutor session load exception:', e)
-      toast.error('Failed to load course sessions')
-      setCancelModalOpen(false)
-    } finally {
-      setLoadingSessions(false)
-    }
     },
-    [loadingSessions]
+    []
   )
 
   const handleEnterCourseClassroom = useCallback(
@@ -824,6 +827,22 @@ function TutorDashboardContent() {
               {loadingSessions ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" />
+                </div>
+              ) : sessionLoadError ? (
+                <div className="rounded-lg border border-dashed border-red-200 p-6 text-center text-sm">
+                  <AlertCircle className="mx-auto mb-2 h-8 w-8 text-red-400" />
+                  <p className="font-medium text-red-600">Failed to load sessions</p>
+                  <p className="text-muted-foreground mt-1 text-xs">{sessionLoadError}</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() =>
+                      selectedCourseForCancel && handleOpenSessionsModal(selectedCourseForCancel)
+                    }
+                  >
+                    Retry
+                  </Button>
                 </div>
               ) : courseSessions.length === 0 ? (
                 <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
