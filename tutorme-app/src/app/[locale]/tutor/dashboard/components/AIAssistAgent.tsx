@@ -124,7 +124,7 @@ Format your response clearly and concisely.`
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
+      <DialogContent theme="default" className="flex max-h-[90vh] max-w-2xl flex-col rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-amber-500" />

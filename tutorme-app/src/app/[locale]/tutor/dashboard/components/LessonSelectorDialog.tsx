@@ -62,7 +62,7 @@ export function LessonSelectorDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
+      <DialogContent theme="default" className="max-w-md rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />

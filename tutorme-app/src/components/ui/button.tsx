@@ -109,6 +109,26 @@ const buttonVariants = cva(
         // Soft - Subtle background
         soft: ['bg-primary/10 text-primary', 'hover:bg-primary/20', 'active:bg-primary/30'],
 
+        // Dialog Primary - Metallic popup primary action
+        'dialog-primary': [
+          'bg-gradient-to-br from-[#3A7CFF] to-[#1D4ED8]',
+          'text-white',
+          'rounded-[10px]',
+          'shadow-elevation-2',
+          'hover:shadow-hover-lift hover:-translate-y-0.5',
+          'active:shadow-active-press active:translate-y-0',
+        ],
+
+        // Dialog Secondary - Metallic popup secondary action
+        'dialog-secondary': [
+          'bg-transparent',
+          'text-gray-400',
+          'rounded-[10px]',
+          'border border-white/[0.08]',
+          'hover:bg-white/5 hover:text-gray-300',
+          'active:bg-white/10',
+        ],
+
         // Glass - Translucent effect
         glass: [
           'bg-background/80 backdrop-blur-md',

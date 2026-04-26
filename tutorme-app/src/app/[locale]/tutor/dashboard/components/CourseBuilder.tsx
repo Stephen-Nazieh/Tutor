@@ -3797,7 +3797,7 @@ FEEDBACK: [your explanation]`
             }
           }}
         >
-          <DialogContent className="rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-w-md">
+          <DialogContent theme="default" className="rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-xl font-semibold text-slate-900">Load as...</DialogTitle>
             </DialogHeader>
@@ -8200,7 +8200,7 @@ FEEDBACK: [your explanation]`
           open={!!importTypeModalData}
           onOpenChange={open => !open && setImportTypeModalData(null)}
         >
-          <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+          <DialogContent theme="default" className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Import as...</DialogTitle>
             </DialogHeader>
@@ -8415,7 +8415,7 @@ FEEDBACK: [your explanation]`
 
         {/* DMI Version History Modal */}
         <Dialog open={showDmiVersionList} onOpenChange={open => setShowDmiVersionList(open)}>
-          <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+          <DialogContent theme="default" className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
             <DialogHeader>
               <DialogTitle>DMI Version History</DialogTitle>
               <DialogDescription>
@@ -8495,7 +8495,7 @@ FEEDBACK: [your explanation]`
             if (!open) setPreviewDmiVersion(null)
           }}
         >
-          <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-lg">
+          <DialogContent theme="default" className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>DMI Preview — Version {previewDmiVersion?.versionNumber}</DialogTitle>
               <DialogDescription>
@@ -8550,7 +8550,7 @@ FEEDBACK: [your explanation]`
             if (!open) setPptUploadDialog({ isOpen: false, file: null, target: null })
           }}
         >
-          <DialogContent className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+          <DialogContent theme="default" className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-orange-500" />

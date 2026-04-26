@@ -140,7 +140,7 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
         </div>
 
         <Dialog open={!!selectedDay} onOpenChange={() => setSelectedDay(null)}>
-          <DialogContent className="border-slate-200 bg-white sm:max-w-md">
+          <DialogContent theme="default" className="border-slate-200 bg-white sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-slate-800">
                 {selectedDay?.date.toLocaleDateString('en-US', {

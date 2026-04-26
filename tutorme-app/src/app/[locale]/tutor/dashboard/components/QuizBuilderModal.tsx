@@ -78,7 +78,7 @@ export function QuizBuilderModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
+        <DialogContent theme="default" className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileQuestion className="h-5 w-5 text-red-500" />

@@ -105,7 +105,7 @@ export function GoLiveDialog({
               className="flex flex-col space-y-2"
             >
               <div
-                className="flex cursor-pointer items-center space-x-2 rounded-lg border p-4 hover:bg-slate-50"
+                className="flex cursor-pointer items-center space-x-2 rounded-[14px] border border-slate-200 bg-white p-4 shadow-[0_8px_20px_rgba(0,0,0,0.12)] hover:bg-slate-50"
                 onClick={() => setSessionType('teaching')}
               >
                 <RadioGroupItem value="teaching" id="teaching" />
@@ -118,7 +118,7 @@ export function GoLiveDialog({
                 </Label>
               </div>
               <div
-                className="flex cursor-pointer items-center space-x-2 rounded-lg border p-4 hover:bg-slate-50"
+                className="flex cursor-pointer items-center space-x-2 rounded-[14px] border border-slate-200 bg-white p-4 shadow-[0_8px_20px_rgba(0,0,0,0.12)] hover:bg-slate-50"
                 onClick={() => setSessionType('training')}
               >
                 <RadioGroupItem value="training" id="training" />
@@ -155,45 +155,47 @@ export function GoLiveDialog({
 
           {step === 2 && sessionType === 'training' && (
             <div className="animate-in fade-in slide-in-from-right-2 space-y-4">
-              <div className="space-y-2">
-                <Label>Special Access Token</Label>
-                <Input
-                  type="password"
-                  placeholder="Enter the landing page token"
-                  value={token}
-                  onChange={e => setToken(e.target.value)}
-                />
-              </div>
+              <div className="space-y-4 rounded-[14px] bg-white p-4 shadow-[0_8px_20px_rgba(0,0,0,0.12)]">
+                <div className="space-y-2">
+                  <Label>Special Access Token</Label>
+                  <Input
+                    type="password"
+                    placeholder="Enter the landing page token"
+                    value={token}
+                    onChange={e => setToken(e.target.value)}
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label>Target Audience</Label>
-                <Select value={targetAudience} onValueChange={setTargetAudience}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Tutors</SelectItem>
-                    <SelectItem value="new">New (Never attended training)</SelectItem>
-                    <SelectItem value="math">Math Tutors</SelectItem>
-                    <SelectItem value="science">Science Tutors</SelectItem>
-                    <SelectItem value="language">Language Tutors</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                <div className="space-y-2">
+                  <Label>Target Audience</Label>
+                  <Select value={targetAudience} onValueChange={setTargetAudience}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Tutors</SelectItem>
+                      <SelectItem value="new">New (Never attended training)</SelectItem>
+                      <SelectItem value="math">Math Tutors</SelectItem>
+                      <SelectItem value="science">Science Tutors</SelectItem>
+                      <SelectItem value="language">Language Tutors</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label>Training Category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="orientation">Orientation</SelectItem>
-                    <SelectItem value="features">Features Explanation</SelectItem>
-                    <SelectItem value="subject_specific">Subject Specific</SelectItem>
-                    <SelectItem value="emergency">Emergency Update</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  <Label>Training Category</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="orientation">Orientation</SelectItem>
+                      <SelectItem value="features">Features Explanation</SelectItem>
+                      <SelectItem value="subject_specific">Subject Specific</SelectItem>
+                      <SelectItem value="emergency">Emergency Update</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}
@@ -202,17 +204,20 @@ export function GoLiveDialog({
         <DialogFooter>
           {step === 1 ? (
             <>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
+              <Button variant="dialog-secondary" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleNext}>Next</Button>
+              <Button variant="dialog-primary" onClick={handleNext}>
+                Next
+              </Button>
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={handleBack} disabled={loading}>
+              <Button variant="dialog-secondary" onClick={handleBack} disabled={loading}>
                 Back
               </Button>
               <Button
+                variant="dialog-primary"
                 onClick={handleConfirm}
                 disabled={loading || (sessionType === 'training' && !token)}
               >

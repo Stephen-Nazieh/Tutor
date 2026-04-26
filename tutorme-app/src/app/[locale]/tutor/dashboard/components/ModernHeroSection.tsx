@@ -213,7 +213,7 @@ export function ModernHeroSection({
 
         {/* Day Detail Modal */}
         <Dialog open={!!selectedDay} onOpenChange={() => setSelectedDay(null)}>
-          <DialogContent className="border-border bg-card border sm:max-w-md">
+          <DialogContent theme="default" className="border-border bg-card border sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
                 {selectedDay?.date.toLocaleDateString('en-US', {
