@@ -513,8 +513,17 @@ export function VariantManager({
             )}
             <div className="border-t px-6 py-4">
               <div className="flex justify-end">
-                <Button type="button" onClick={closeScheduleDialog}>
-                  Done
+                <Button
+                  type="button"
+                  onClick={closeScheduleDialog}
+                  className="text-white"
+                  style={{
+                    background: '#1D4ED8',
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 18px rgba(29,78,216,0.28)',
+                  }}
+                >
+                  Save
                 </Button>
               </div>
             </div>

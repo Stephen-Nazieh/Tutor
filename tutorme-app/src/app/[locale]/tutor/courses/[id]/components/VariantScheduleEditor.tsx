@@ -1,13 +1,12 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { X, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react'
 import type { ScheduleItem } from '../constants'
 import { DAYS, TIME_SLOT_OPTIONS } from '../constants'
 
@@ -394,7 +393,6 @@ export function VariantScheduleEditor({
                             s.date === currentSlot.date
                         ) + 1
                     }
-                    const sessionLabel = inRange ? `Session ${sessionNum}` : ''
                     return (
                       <div
                         key={`${day}-${timeStr}`}
@@ -407,26 +405,11 @@ export function VariantScheduleEditor({
                             toggleSlot(day, dateKey, timeStr)
                           }
                         }}
-                        className={`min-h-[28px] w-full cursor-pointer border-b border-r border-dashed p-1 text-left transition-colors hover:bg-blue-50 ${inRange ? 'bg-blue-200 ring-1 ring-blue-400' : 'bg-white hover:bg-slate-50'}`}
+                        className={`min-h-[28px] w-full cursor-pointer border-b border-r border-dashed p-1 transition-colors hover:bg-blue-50 ${inRange ? 'bg-[#1D4ED8] text-center font-medium text-white' : 'bg-white text-left hover:bg-slate-50'}`}
                         aria-pressed={inRange}
                         aria-label={`${day} ${displayTime}${inRange ? ', selected' : ''}. Click to ${inRange ? 'remove' : 'add'} session.`}
                       >
-                        {inRange && (
-                          <span className="inline-flex items-center gap-0.5 text-[8px] font-medium text-blue-800">
-                            {sessionLabel}
-                            <button
-                              type="button"
-                              className="rounded-full p-0.5 hover:bg-blue-100"
-                              onClick={e => {
-                                e.stopPropagation()
-                                toggleSlot(day, dateKey, timeStr)
-                              }}
-                              aria-label="Remove this session"
-                            >
-                              <X className="h-2.5 w-2.5" />
-                            </button>
-                          </span>
-                        )}
+                        {inRange && <span className="text-[10px]">Session {sessionNum}</span>}
                       </div>
                     )
                   })}
@@ -439,54 +422,115 @@ export function VariantScheduleEditor({
 
       {/* Schedule Summary */}
       {scheduleSummary.length > 0 && (
-        <Card className="border-primary/20 overflow-hidden border-2 shadow-lg">
-          <CardHeader className="border-b bg-gradient-to-r from-slate-50 to-blue-50/50 pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <CalendarIcon className="text-primary h-5 w-5" />
+        <div
+          className="space-y-4"
+          style={{
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            border: 'none',
+            boxShadow:
+              '0 18px 45px rgba(0,0,0,0.14), 0 6px 18px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+            padding: '28px 32px',
+          }}
+        >
+          <div className="pb-3" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+            <div
+              className="flex items-center gap-2 text-base font-semibold"
+              style={{ color: '#1F2933' }}
+            >
+              <CalendarIcon className="h-5 w-5" style={{ color: '#1D4ED8' }} />
               Schedule Summary
-            </CardTitle>
-            <CardDescription className="text-xs">Times in {timezoneLabel}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-4">
+            </div>
+            <div className="mt-1 text-xs" style={{ color: 'rgba(31,41,51,0.65)' }}>
+              Times in {timezoneLabel}
+            </div>
+          </div>
+          <div className="space-y-4">
             {/* Sessions & duration */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
-                <div className="text-xs font-medium uppercase tracking-wide text-blue-700">
+            <div className="flex flex-wrap gap-3">
+              <div
+                style={{
+                  width: '120px',
+                  minHeight: '72px',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  background: 'rgba(239,246,255,0.9)',
+                }}
+              >
+                <div
+                  className="text-xs font-medium uppercase tracking-wide"
+                  style={{ color: '#1D4ED8' }}
+                >
                   Sessions
                 </div>
-                <div className="mt-0.5 text-2xl font-bold text-blue-900">{totalSessions}</div>
+                <div className="mt-0.5 text-2xl font-bold" style={{ color: '#1F2933' }}>
+                  {totalSessions}
+                </div>
                 {scheduleRepeatWeekly &&
                   Array.isArray(schedule) &&
                   schedule.filter(Boolean).length > 0 &&
                   totalSessions > schedule.filter(Boolean).length && (
-                    <div className="mt-0.5 text-xs text-blue-600">
+                    <div className="mt-0.5 text-xs" style={{ color: '#1D4ED8' }}>
                       Over {Math.ceil(totalSessions / schedule.filter(Boolean).length)} weeks
                     </div>
                   )}
               </div>
-              <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
-                <div className="text-xs font-medium uppercase tracking-wide text-emerald-700">
+              <div
+                style={{
+                  width: '120px',
+                  minHeight: '72px',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  background: 'rgba(240,253,250,0.9)',
+                }}
+              >
+                <div
+                  className="text-xs font-medium uppercase tracking-wide"
+                  style={{ color: '#0D9488' }}
+                >
                   Total duration
                 </div>
-                <div className="mt-0.5 text-2xl font-bold text-emerald-900">
+                <div className="mt-0.5 text-2xl font-bold" style={{ color: '#1F2933' }}>
                   {totalDurationHours} h
                 </div>
               </div>
               {priceNumber > 0 && (
                 <>
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                    <div className="text-xs font-medium uppercase tracking-wide text-slate-600">
+                  <div
+                    style={{
+                      width: '120px',
+                      minHeight: '72px',
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      background: 'rgba(248,250,252,0.9)',
+                    }}
+                  >
+                    <div
+                      className="text-xs font-medium uppercase tracking-wide"
+                      style={{ color: 'rgba(31,41,51,0.65)' }}
+                    >
                       Cost
                     </div>
-                    <div className="mt-0.5 text-xl font-bold text-slate-900">
+                    <div className="mt-0.5 text-xl font-bold" style={{ color: '#1F2933' }}>
                       USD {scheduleCost.toFixed(2)}
                     </div>
                   </div>
-                  <div className="rounded-xl border border-amber-100 bg-amber-50 p-3">
-                    <div className="text-xs font-medium uppercase tracking-wide text-amber-700">
+                  <div
+                    style={{
+                      width: '120px',
+                      minHeight: '72px',
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      background: 'rgba(255,251,235,0.9)',
+                    }}
+                  >
+                    <div
+                      className="text-xs font-medium uppercase tracking-wide"
+                      style={{ color: '#B45309' }}
+                    >
                       Revenue (70%)
                     </div>
-                    <div className="mt-0.5 text-xl font-bold text-amber-900">
+                    <div className="mt-0.5 text-xl font-bold" style={{ color: '#1F2933' }}>
                       USD {totalRevenue.toFixed(2)}
                     </div>
                   </div>
@@ -495,17 +539,36 @@ export function VariantScheduleEditor({
             </div>
             {/* By day - interactive list */}
             <div className="space-y-2">
-              <div className="text-sm font-semibold text-slate-700">By day</div>
+              <div className="text-sm font-semibold" style={{ color: '#1F2933' }}>
+                By day
+              </div>
               {dayOrder
                 .filter(day => scheduleByDay[day]?.length)
                 .map(day => (
                   <div
                     key={day}
-                    className="rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                    className="transition-shadow hover:shadow-md"
+                    style={{
+                      padding: '14px 18px',
+                      minHeight: '72px',
+                      borderRadius: '14px',
+                      background: '#FFFFFF',
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.08)',
+                    }}
                   >
-                    <div className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-800">
+                    <div
+                      className="mb-2 flex items-center justify-between text-sm font-semibold"
+                      style={{ color: '#1F2933' }}
+                    >
                       <span>{day}</span>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge
+                        variant="secondary"
+                        className="text-xs"
+                        style={{
+                          background: 'rgba(241,245,249,0.9)',
+                          color: 'rgba(31,41,51,0.65)',
+                        }}
+                      >
                         {scheduleByDay[day].length} session
                         {scheduleByDay[day].length !== 1 ? 's' : ''}
                       </Badge>
@@ -516,10 +579,18 @@ export function VariantScheduleEditor({
                         .map((slot, idx) => (
                           <div
                             key={`${day}-${idx}-${slot.startTime || '00:00'}`}
-                            className="inline-flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-sm font-medium text-slate-800"
+                            className="inline-flex items-center gap-2 font-medium"
+                            style={{
+                              padding: '6px 12px',
+                              minHeight: '28px',
+                              borderRadius: '10px',
+                              fontSize: '13px',
+                              background: 'rgba(241,245,249,0.9)',
+                              color: '#1F2933',
+                            }}
                           >
                             {slot.date && (
-                              <span className="text-xs text-slate-600">
+                              <span style={{ color: 'rgba(31,41,51,0.65)' }}>
                                 {(() => {
                                   try {
                                     const d = new Date(slot.date + 'T00:00:00')
@@ -535,18 +606,18 @@ export function VariantScheduleEditor({
                               </span>
                             )}
                             <span>{formatTimeRange(slot.startTime, slot.durationMinutes)}</span>
-                            <span className="text-xs text-slate-500">
+                            <span style={{ color: 'rgba(31,41,51,0.65)' }}>
                               • {slot.durationMinutes}m
                             </span>
-                            <span className="text-xs text-slate-500">• 0 students</span>
+                            <span style={{ color: 'rgba(31,41,51,0.65)' }}>• 0 students</span>
                           </div>
                         ))}
                     </div>
                   </div>
                 ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   )

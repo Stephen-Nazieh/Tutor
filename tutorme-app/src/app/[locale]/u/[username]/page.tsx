@@ -852,7 +852,12 @@ export default function PublicTutorPage() {
   }
 
   return (
-    <div className="w-full space-y-6 p-4 sm:p-6">
+    <div
+      className="w-full min-h-screen space-y-6 p-4 sm:p-6"
+      style={{
+        background: 'linear-gradient(160deg, #f5f5f7 0%, #e8e8ed 40%, #d2d2d7 100%)',
+      }}
+    >
       <section className="relative overflow-hidden rounded-[32px] border border-[#E2E8F0] bg-white/95 p-8 shadow-lg">
         <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-[#1D4ED8]/10 via-[#4FD1C5]/10 to-[#F17623]/10" />
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-stretch">
