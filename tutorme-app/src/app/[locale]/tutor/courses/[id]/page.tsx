@@ -1132,7 +1132,7 @@ export default function TutorCoursePage() {
               <div>
                 <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-800">
                   <Globe className="h-5 w-5 text-indigo-500" />
-                  Publish Variants
+                  Publish
                 </h2>
                 <p className="text-sm text-slate-500 mt-2">
                   Configure and publish course variants for each category and country combination.
@@ -1158,7 +1158,7 @@ export default function TutorCoursePage() {
             <div className="flex justify-end gap-4 pt-8">
               <Button size="lg" variant="default" onClick={handleSaveAll} disabled={saving} className="px-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full">
                 {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {saving ? 'Saving…' : 'Save Details'}
+                {saving ? 'Saving…' : 'Save'}
               </Button>
             </div>
 

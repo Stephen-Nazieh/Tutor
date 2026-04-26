@@ -463,7 +463,7 @@ export function VariantManager({
           className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-6 shadow-sm transition-all duration-300"
         >
           {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          {saving ? 'Saving…' : `Publish Variants (${publishedCount})`}
+          {saving ? 'Saving…' : `Publish (${publishedCount})`}
         </Button>
       </div>
 
