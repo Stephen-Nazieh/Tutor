@@ -583,7 +583,7 @@ function StudentFeedbackContent() {
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-gray-50">
         <div className="flex h-full w-full min-w-0 flex-1 flex-col bg-gray-50/50">
           {/* Content Wrapper */}
-          <div className="flex w-full flex-1 items-start overflow-hidden">
+          <div className="flex w-full flex-1 items-stretch overflow-hidden">
             {/* Floating collapsed/expanded pill */}
             <div
               className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
@@ -1023,7 +1023,7 @@ function StudentFeedbackContent() {
 
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="flex flex-1 flex-col overflow-y-auto bg-gray-50/50">
-            <div className="px-4 pb-2 pt-4 sm:px-6">
+            <div className="px-4 pb-4 pt-4 sm:px-6">
             <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
@@ -1078,7 +1078,7 @@ function StudentFeedbackContent() {
               )}
             </div>
           )}
-          <div id="student-live-tabs-portal" className="mt-4 mb-4 w-full" />
+          <div id="student-live-tabs-portal" className="w-full" />
         </div>
 
         {sessionContext?.roomUrl && (
@@ -1276,6 +1276,7 @@ function StudentFeedbackContent() {
             </Tabs>
           </div>
         </div>
+      </div>
         
         {/* Persistent Right Panel */}
         <div className="relative flex h-full w-[340px] shrink-0 flex-col overflow-hidden border-l border-gray-200 bg-white shadow-[-8px_0_24px_rgba(0,0,0,0.05)] transition-all sm:w-[380px] lg:w-[400px]">
@@ -1416,7 +1417,6 @@ function StudentFeedbackContent() {
             )}
           </div>
         </div>
-      </div>
       
       <Sheet open={showTasksPanel} onOpenChange={setShowTasksPanel}>
         <SheetContent side="right" className="w-[340px] sm:w-[380px]">
