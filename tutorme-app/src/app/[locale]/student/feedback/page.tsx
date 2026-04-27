@@ -582,8 +582,67 @@ function StudentFeedbackContent() {
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-gray-50">
         <div className="flex h-full w-full min-w-0 flex-1 flex-col bg-gray-50/50">
-          {/* Content Wrapper */}
-          <div className="relative flex w-full flex-1 items-stretch gap-4 overflow-hidden px-4 py-4">
+        <div className="w-full px-4 pt-4">
+          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold tracking-tight">
+                    {sessionContext?.courseName || 'Live Classroom'}
+                  </h1>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col items-end justify-between gap-4">
+              <div className="mt-0 flex shrink-0 items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowTasksPanel(true)}
+                  className="gap-2 font-medium text-slate-700 hover:text-slate-900"
+                >
+                  <ListTodo className="h-4 w-4" />
+                  Lessons
+                  {unseenTaskIds.length > 0 && (
+                    <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
+                      {unseenTaskIds.length}
+                    </span>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          {sessionContext && (sessionContext.topic || sessionContext.objectives) && (
+            <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2 text-sm text-blue-900">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                {sessionContext.topic && (
+                  <span>
+                    <span className="font-semibold">Lesson:</span> {sessionContext.topic}
+                  </span>
+                )}
+              </div>
+              {sessionContext.objectives && sessionContext.objectives.length > 0 && (
+                <div className="mt-1 text-xs text-blue-800">
+                  <span className="font-semibold">Objectives:</span>{' '}
+                  {sessionContext.objectives.map((obj, idx) => (
+                    <span key={idx}>
+                      {idx + 1}) {obj}{' '}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          
+          <div id="student-live-tabs-portal" className="mt-4 w-full" />
+        </div>
+
+        {/* Content Wrapper */}
+        <div className="relative flex w-full flex-1 items-stretch gap-4 overflow-hidden px-4 pb-4 pt-4">
             {/* Floating collapsed/expanded pill */}
             <div
               className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
@@ -1022,65 +1081,6 @@ function StudentFeedbackContent() {
       )}
 
         <div className="flex flex-1 flex-col overflow-hidden">
-          <div className="flex flex-1 flex-col overflow-y-auto bg-gray-50/50">
-            <div className="pb-4">
-            <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div className="flex flex-col justify-center">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-bold tracking-tight">
-                      {sessionContext?.courseName || 'Live Classroom'}
-                    </h1>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-end justify-between gap-4">
-                <div className="mt-0 flex shrink-0 items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowTasksPanel(true)}
-                    className="gap-2 font-medium text-slate-700 hover:text-slate-900"
-                  >
-                    <ListTodo className="h-4 w-4" />
-                    Lessons
-                    {unseenTaskIds.length > 0 && (
-                      <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
-                        {unseenTaskIds.length}
-                      </span>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-          {sessionContext && (sessionContext.topic || sessionContext.objectives) && (
-            <div className="border-t border-blue-100 bg-blue-50/60 px-4 py-2 text-sm text-blue-900">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                {sessionContext.topic && (
-                  <span>
-                    <span className="font-semibold">Lesson:</span> {sessionContext.topic}
-                  </span>
-                )}
-              </div>
-              {sessionContext.objectives && sessionContext.objectives.length > 0 && (
-                <div className="mt-1 text-xs text-blue-800">
-                  <span className="font-semibold">Objectives:</span>{' '}
-                  {sessionContext.objectives.map((obj, idx) => (
-                    <span key={idx}>
-                      {idx + 1}) {obj}{' '}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          <div id="student-live-tabs-portal" className="w-full" />
-        </div>
-
         {sessionContext?.roomUrl && (
           <div className="relative h-44 w-full border-b bg-black sm:h-52">
             <div className="absolute right-4 top-4 z-10">
