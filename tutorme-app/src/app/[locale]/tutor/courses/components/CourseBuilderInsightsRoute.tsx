@@ -577,16 +577,11 @@ function CourseBuilderInsightsRouteInner({
                 {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
                   <Button
                     variant="default"
-                    className={cn(
-                      'gap-2 font-medium text-white transition-all duration-300',
-                      insightsProps.sessionId
-                        ? 'shadow-[0_0_15px_rgba(220,38,38,0.8)] bg-red-600 hover:bg-red-700'
-                        : 'ring-green-400 shadow-[0_0_15px_rgba(34,197,94,0.8)] bg-green-500 ring-1 hover:bg-green-600'
-                    )}
+                    className="gap-2 bg-green-500 font-medium text-white shadow-[0_0_15px_rgba(34,197,94,0.8)] ring-1 ring-green-400 transition-all duration-300 hover:bg-green-600"
                     onClick={handleStartSessionClick}
                   >
                     <VideoIcon className="h-4 w-4" />
-                    {insightsProps.sessionId ? 'Session Active' : 'Go Live'}
+                    Go Live
                   </Button>
                 )}
 
