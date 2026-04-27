@@ -33,10 +33,6 @@ export const liveSession = pgTable(
     startedAt: timestamp('startedAt', { withTimezone: true }),
     endedAt: timestamp('endedAt', { withTimezone: true }),
     status: enums.liveSessionStatusEnum('status').notNull(),
-    sessionType: text('sessionType').notNull().default('teaching'), // 'teaching' | 'training'
-    trainingCategory: text('trainingCategory'),
-    trainingTargetAudience: text('trainingTargetAudience'),
-    trainingToken: text('trainingToken'),
     roomId: text('roomId'),
     roomUrl: text('roomUrl'),
     recordingUrl: text('recordingUrl'),

@@ -564,7 +564,9 @@ export function AssessmentBuilderModal({
                     {data.sourceDocument.mimeType === 'application/pdf' ? (
                       <div className="overflow-hidden rounded border">
                         <iframe
-                          src={data.sourceDocument.fileUrl}
+                          src={data.sourceDocument.fileUrl.includes('#') 
+                            ? `${data.sourceDocument.fileUrl}&toolbar=0&navpanes=0` 
+                            : `${data.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
                           title={data.sourceDocument.fileName}
                           className="h-64 w-full"
                         />

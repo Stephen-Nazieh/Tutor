@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, Suspense, type ComponentProps } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback, Suspense, type ComponentProps } from 'react'
 import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
@@ -94,10 +94,11 @@ function StudentFeedbackContent() {
   const [sessionsLoading, setSessionsLoading] = useState(true)
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(sessionIdFromQuery)
   const [tasks, setTasks] = useState<LiveTask[]>([])
+  const [selectedDirectoryItem, setSelectedDirectoryItem] = useState<LiveTask | null>(null)
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
   const [requestingSessionId, setRequestingSessionId] = useState<string | null>(null)
   const [showTasksPanel, setShowTasksPanel] = useState(false)
-  const [showFeedbackPanel, setShowFeedbackPanel] = useState(false)
+  const [rightPanelTab, setRightPanelTab] = useState<'dmi' | 'interactions'>('interactions')
   const [unseenTaskIds, setUnseenTaskIds] = useState<string[]>([])
   const [questionDrafts, setQuestionDrafts] = useState<Record<string, string>>({})
   const [chatInput, setChatInput] = useState('')
@@ -479,7 +480,7 @@ function StudentFeedbackContent() {
     }
   }, [activeTaskId, tasks])
 
-  const activeTask = tasks.find(task => task.id === activeTaskId) || null
+  const activeTask = tasks.find(task => task.id === activeTaskId) || (selectedDirectoryItem?.id === activeTaskId ? selectedDirectoryItem : null) || null
   const currentSession = sessions.find(s => s.id === selectedSessionId) || null
   const isScheduled = currentSession?.status === 'scheduled'
   const isPassedSession =
@@ -489,6 +490,29 @@ function StudentFeedbackContent() {
 
   const feedbackPolls = activeTask?.polls ?? []
   const feedbackQuestions = activeTask?.questions ?? []
+
+  let latestInteractionType: 'poll' | 'question' | null = null
+  let maxCreatedAt = 0
+  
+  feedbackPolls.forEach(p => {
+    if (p.createdAt > maxCreatedAt) {
+      maxCreatedAt = p.createdAt
+      latestInteractionType = 'poll'
+    }
+  })
+  
+  feedbackQuestions.forEach(q => {
+    if (q.createdAt > maxCreatedAt) {
+      maxCreatedAt = q.createdAt
+      latestInteractionType = 'question'
+    }
+  })
+  
+  const interactionsTitle = latestInteractionType === 'poll' 
+    ? 'Interactions: Poll' 
+    : latestInteractionType === 'question' 
+      ? 'Interactions: Question' 
+      : 'Interactions'
 
   const handleRequestMaterials = async (sessionId: string) => {
     setRequestingSessionId(sessionId)
@@ -507,6 +531,23 @@ function StudentFeedbackContent() {
       setRequestingSessionId(null)
     }
   }
+
+  const handleSelectDirectoryItem = useCallback((item: any) => {
+    if (item.type === 'task' || item.type === 'assessment' || item.type === 'homework') {
+      try {
+        const parsed = typeof item.content === 'string' ? JSON.parse(item.content) : item.content
+        parsed.title = item.title
+        parsed.id = item.itemId || item.id // Use itemId or fallback to id
+
+        setSelectedDirectoryItem(parsed)
+        setActiveTaskId(parsed.id)
+        setUnseenTaskIds(prev => prev.filter(id => id !== parsed.id))
+        setShowTasksPanel(false)
+      } catch (e) {
+        console.error('Failed to parse task content', e)
+      }
+    }
+  }, [])
 
   const handleSelectTask = (taskId: string) => {
     setActiveTaskId(taskId)
@@ -539,27 +580,90 @@ function StudentFeedbackContent() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-gray-50">
-      {/* Floating collapsed/expanded pill */}
-      <div
-        className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
-        style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
-        onClick={() => setLeftPanelHidden(!leftPanelHidden)}
-        title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
-      >
-        {leftPanelHidden ? (
-          <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
-        ) : (
-          <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
-        )}
-      </div>
+    <div className="relative flex h-screen w-full flex-col overflow-hidden bg-gray-50">
+        <div className="flex h-full w-full min-w-0 flex-1 flex-col bg-gray-50/50">
+        <div className="w-full px-4 pt-4">
+          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold tracking-tight">
+                    {sessionContext?.courseName || 'Live Classroom'}
+                  </h1>
+                </div>
+              </div>
+            </div>
 
-      {!leftPanelHidden && (
-        <div
-          className="absolute inset-y-0 left-0 z-40 flex h-full flex-col border-r border-[#E5E7EB] bg-white shadow-2xl transition-all"
-          style={{ width: leftPanelWidth }}
-        >
-          <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-[#E5E7EB] px-4">
+            <div className="flex flex-col items-end justify-between gap-4">
+              <div className="mt-0 flex shrink-0 items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowTasksPanel(true)}
+                  className="gap-2 font-medium text-slate-700 hover:text-slate-900"
+                >
+                  <ListTodo className="h-4 w-4" />
+                  Lessons
+                  {unseenTaskIds.length > 0 && (
+                    <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
+                      {unseenTaskIds.length}
+                    </span>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          {sessionContext && (sessionContext.topic || sessionContext.objectives) && (
+            <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2 text-sm text-blue-900">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                {sessionContext.topic && (
+                  <span>
+                    <span className="font-semibold">Lesson:</span> {sessionContext.topic}
+                  </span>
+                )}
+              </div>
+              {sessionContext.objectives && sessionContext.objectives.length > 0 && (
+                <div className="mt-1 text-xs text-blue-800">
+                  <span className="font-semibold">Objectives:</span>{' '}
+                  {sessionContext.objectives.map((obj, idx) => (
+                    <span key={idx}>
+                      {idx + 1}) {obj}{' '}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          
+          <div id="student-live-tabs-portal" className="mt-4 w-full" />
+        </div>
+
+        {/* Content Wrapper */}
+        <div className="relative flex w-full flex-1 items-stretch gap-4 overflow-hidden px-4 pb-4 pt-4">
+            {/* Floating collapsed/expanded pill */}
+            <div
+              className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
+              style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
+              onClick={() => setLeftPanelHidden(!leftPanelHidden)}
+              title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
+            >
+              {leftPanelHidden ? (
+                <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
+              ) : (
+                <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
+              )}
+            </div>
+
+            {/* Left Panel */}
+            {!leftPanelHidden && (
+              <div
+                className="relative z-40 flex h-full shrink-0 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)]"
+                style={{ width: leftPanelWidth }}
+              >
+          <div className="flex shrink-0 items-center justify-between border-b border-[#E5E7EB] px-4 py-3">
             <h2 className="text-sm font-semibold text-[#1F2933]">Directory</h2>
           </div>
           <ScrollArea className="flex-1 p-3">
@@ -661,25 +765,25 @@ function StudentFeedbackContent() {
                                       </button>
                                       {foldersOpen.tasks && (
                                         <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                          {tasks.length === 0 && (
+                                          {(!courses.tasks || courses.tasks.length === 0) && (
                                             <span className="px-2 py-1 text-xs text-slate-500">
                                               Empty folder
                                             </span>
                                           )}
-                                          {[...tasks].reverse().map(task => (
+                                          {courses.tasks && [...courses.tasks].reverse().map(task => (
                                             <button
                                               key={task.id}
-                                              onClick={() => handleSelectTask(task.id)}
+                                              onClick={() => handleSelectDirectoryItem(task)}
                                               className={cn(
-                                                'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
-                                                activeTaskId === task.id
+                                                'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                activeTaskId === (task.itemId || task.id)
                                                   ? 'bg-blue-50 font-medium text-blue-700'
-                                                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                                  : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
                                               )}
                                             >
                                               <FileText className="h-3.5 w-3.5 shrink-0" />
                                               <span className="truncate">{task.title}</span>
-                                              {unseenTaskIds.includes(task.id) && (
+                                              {unseenTaskIds.includes(task.itemId || task.id) && (
                                                 <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
                                               )}
                                             </button>
@@ -714,9 +818,26 @@ function StudentFeedbackContent() {
                                       </button>
                                       {foldersOpen.assessments && (
                                         <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                          <span className="px-2 py-1 text-xs text-slate-500">
-                                            Empty folder
-                                          </span>
+                                          {(!courses.assessments || courses.assessments.length === 0) && (
+                                            <span className="px-2 py-1 text-xs text-slate-500">
+                                              Empty folder
+                                            </span>
+                                          )}
+                                          {courses.assessments && [...courses.assessments].reverse().map(task => (
+                                            <button
+                                              key={task.id}
+                                              onClick={() => handleSelectDirectoryItem(task)}
+                                              className={cn(
+                                                'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                activeTaskId === (task.itemId || task.id)
+                                                  ? 'bg-purple-50 font-medium text-purple-700'
+                                                  : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+                                              )}
+                                            >
+                                              <FileText className="h-3.5 w-3.5 shrink-0 text-purple-400" />
+                                              <span className="truncate">{task.title}</span>
+                                            </button>
+                                          ))}
                                         </div>
                                       )}
                                     </div>
@@ -747,9 +868,26 @@ function StudentFeedbackContent() {
                                       </button>
                                       {foldersOpen.homework && (
                                         <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                          <span className="px-2 py-1 text-xs text-slate-500">
-                                            Empty folder
-                                          </span>
+                                          {(!courses.homework || courses.homework.length === 0) && (
+                                            <span className="px-2 py-1 text-xs text-slate-500">
+                                              Empty folder
+                                            </span>
+                                          )}
+                                          {courses.homework && [...courses.homework].reverse().map(task => (
+                                            <button
+                                              key={task.id}
+                                              onClick={() => handleSelectDirectoryItem(task)}
+                                              className={cn(
+                                                'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                activeTaskId === (task.itemId || task.id)
+                                                  ? 'bg-emerald-50 font-medium text-emerald-700'
+                                                  : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+                                              )}
+                                            >
+                                              <FileText className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                                              <span className="truncate">{task.title}</span>
+                                            </button>
+                                          ))}
                                         </div>
                                       )}
                                     </div>
@@ -942,74 +1080,7 @@ function StudentFeedbackContent() {
         </div>
       )}
 
-      <div className="flex flex-1 flex-col overflow-y-auto">
-        <div className="bg-[#fafafc] px-4 pb-2 pt-4 sm:px-6">
-          <div className="flex w-full flex-col gap-4">
-            <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div className="flex flex-col justify-center">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-bold tracking-tight">
-                      {sessionContext?.courseName || 'Live Classroom'}
-                    </h1>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-end justify-between gap-4">
-                <div className="mt-0 flex shrink-0 items-center gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowTasksPanel(true)}
-                    className="gap-2 font-medium text-slate-700 hover:text-slate-900"
-                  >
-                    <ListTodo className="h-4 w-4" />
-                    Directory
-                    {unseenTaskIds.length > 0 && (
-                      <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
-                        {unseenTaskIds.length}
-                      </span>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowFeedbackPanel(true)}
-                    className="gap-2 font-medium text-slate-700 hover:text-slate-900"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                    Feedback
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-          {sessionContext && (sessionContext.topic || sessionContext.objectives) && (
-            <div className="border-t border-blue-100 bg-blue-50/60 px-4 py-2 text-sm text-blue-900">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                {sessionContext.topic && (
-                  <span>
-                    <span className="font-semibold">Lesson:</span> {sessionContext.topic}
-                  </span>
-                )}
-              </div>
-              {sessionContext.objectives && sessionContext.objectives.length > 0 && (
-                <div className="mt-1 text-xs text-blue-800">
-                  <span className="font-semibold">Objectives:</span>{' '}
-                  {sessionContext.objectives.map((obj, idx) => (
-                    <span key={idx}>
-                      {idx + 1}) {obj}{' '}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          <div id="student-live-tabs-portal" className="mt-2 w-full" />
-        </div>
-
+        <div className="flex flex-1 flex-col overflow-hidden">
         {sessionContext?.roomUrl && (
           <div className="relative h-44 w-full border-b bg-black sm:h-52">
             <div className="absolute right-4 top-4 z-10">
@@ -1029,7 +1100,7 @@ function StudentFeedbackContent() {
           </div>
         )}
 
-        <div className="flex-1 p-4 pt-4 sm:p-6">
+        <div className="flex-1">
           <div className="flex h-full flex-col gap-6">
             <Tabs defaultValue="task" className="flex flex-1 flex-col">
               {portalTarget ? (
@@ -1080,95 +1151,57 @@ function StudentFeedbackContent() {
                   </CardHeader>
                   <CardContent className="h-[calc(100vh-280px)] min-h-[600px] flex-1 space-y-4 overflow-hidden p-0">
                     {activeTask ? (
-                      <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+                      <div className="h-full w-full">
                         {(activeTask.sourceDocument || activeTask.content) && (
-                          <ResizablePanel
-                            defaultSize={activeTask.dmiItems?.length ? 50 : 100}
-                            minSize={20}
-                          >
-                            <div className="h-full w-full overflow-y-auto p-4">
-                              {activeTask.sourceDocument ? (
-                                <div className="h-full space-y-2">
-                                  <p className="text-xs font-semibold uppercase text-gray-500">
-                                    Document
-                                  </p>
-                                  {activeTask.sourceDocument.mimeType === 'application/pdf' ||
-                                  !activeTask.sourceDocument.mimeType ||
-                                  !activeTask.sourceDocument.mimeType ? (
-                                    <div className="h-[calc(100%-24px)] w-full overflow-hidden rounded border">
-                                      <iframe
-                                        src={`${activeTask.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
-                                        title={activeTask.sourceDocument.fileName}
-                                        className="h-full w-full"
-                                      />
-                                    </div>
-                                  ) : activeTask.sourceDocument.mimeType.startsWith('image/') ? (
-                                    <div className="overflow-hidden rounded border">
-                                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                                      <img
-                                        src={activeTask.sourceDocument.fileUrl}
-                                        alt={activeTask.sourceDocument.fileName}
-                                        className="h-auto max-h-[500px] w-full object-contain"
-                                      />
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center gap-2 rounded border bg-white p-4">
-                                      <FileText className="h-5 w-5 text-blue-600" />
-                                      <a
-                                        href={activeTask.sourceDocument.fileUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-sm text-blue-600 underline"
-                                      >
-                                        Open {activeTask.sourceDocument.fileName}
-                                      </a>
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
-                                  <p className="whitespace-pre-wrap">{activeTask.content}</p>
-                                </div>
-                              )}
-                            </div>
-                          </ResizablePanel>
-                        )}
-
-                        {(activeTask.sourceDocument || activeTask.content) &&
-                        activeTask.dmiItems?.length ? (
-                          <ResizableHandle withHandle />
-                        ) : null}
-
-                        {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
-                          <ResizablePanel
-                            defaultSize={activeTask.sourceDocument || activeTask.content ? 50 : 100}
-                            minSize={20}
-                          >
-                            <div className="h-full w-full overflow-y-auto bg-gray-50/50 p-4">
-                              <div className="space-y-2">
+                          <div className="h-full w-full overflow-y-auto p-4">
+                            {activeTask.sourceDocument ? (
+                              <div className="h-full space-y-2">
                                 <p className="text-xs font-semibold uppercase text-gray-500">
-                                  Task Prompts (DMI)
+                                  Document
                                 </p>
-                                <div className="space-y-2">
-                                  {activeTask.dmiItems.map(item => (
-                                    <div
-                                      key={item.id}
-                                      className="rounded-lg border bg-white p-3 shadow-sm"
+                                {activeTask.sourceDocument.mimeType === 'application/pdf' ||
+                                !activeTask.sourceDocument.mimeType ||
+                                !activeTask.sourceDocument.mimeType ? (
+                                  <div className="h-[calc(100%-24px)] w-full overflow-hidden rounded border">
+                                    <iframe
+                                      src={activeTask.sourceDocument.fileUrl.includes('#') 
+                                        ? `${activeTask.sourceDocument.fileUrl}&toolbar=0&navpanes=0` 
+                                        : `${activeTask.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
+                                      title={activeTask.sourceDocument.fileName}
+                                      className="h-full w-full"
+                                    />
+                                  </div>
+                                ) : activeTask.sourceDocument.mimeType.startsWith('image/') ? (
+                                  <div className="overflow-hidden rounded border">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={activeTask.sourceDocument.fileUrl}
+                                      alt={activeTask.sourceDocument.fileName}
+                                      className="h-auto max-h-[500px] w-full object-contain"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2 rounded border bg-white p-4">
+                                    <FileText className="h-5 w-5 text-blue-600" />
+                                    <a
+                                      href={activeTask.sourceDocument.fileUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-sm text-blue-600 underline"
                                     >
-                                      <p className="mb-1 text-xs font-semibold text-blue-600">
-                                        Q{item.questionNumber}
-                                      </p>
-                                      <p className="text-sm font-medium text-gray-800">
-                                        {item.questionText}
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
+                                      Open {activeTask.sourceDocument.fileName}
+                                    </a>
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                          </ResizablePanel>
+                            ) : (
+                              <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
+                                <p className="whitespace-pre-wrap">{activeTask.content}</p>
+                              </div>
+                            )}
+                          </div>
                         )}
-                      </ResizablePanelGroup>
+                      </div>
                     ) : (
                       <div className="flex h-full items-center justify-center p-8">
                         <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
@@ -1244,7 +1277,147 @@ function StudentFeedbackContent() {
           </div>
         </div>
       </div>
+        
+        {/* Persistent Right Panel */}
+        <div className="relative flex h-full w-[340px] shrink-0 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all sm:w-[380px] lg:w-[400px]">
+          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+            <div className="flex w-full items-center gap-2 rounded-lg bg-gray-100 p-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setRightPanelTab('interactions')}
+                className={cn(
+                  'h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all',
+                  rightPanelTab === 'interactions'
+                    ? 'bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
+                    : 'text-gray-500 hover:text-gray-900'
+                )}
+              >
+                Interact
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setRightPanelTab('dmi')}
+                className={cn(
+                  'h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all',
+                  rightPanelTab === 'dmi'
+                    ? 'bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
+                    : 'text-gray-500 hover:text-gray-900'
+                )}
+              >
+                DMI
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-4">
+            {rightPanelTab === 'dmi' ? (
+              <div className="space-y-4">
+                <div className="mb-4 border-b border-gray-100 pb-2">
+                  <h2 className="text-base font-bold text-gray-900">DMI</h2>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-500">Digital Marking Interface</p>
+                </div>
+                {(!activeTask || !activeTask.dmiItems || activeTask.dmiItems.length === 0) ? (
+                  <p className="text-sm text-gray-500">No DMI available for this task.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {activeTask.dmiItems.map(item => (
+                      <div key={item.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <p className="mb-1.5 text-xs font-bold text-blue-600">Q{item.questionNumber}</p>
+                        <p className="text-sm font-medium text-gray-800">{item.questionText}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="mb-2 border-b border-gray-100 pb-2">
+                  <h2 className="text-base font-bold text-gray-900">
+                    {interactionsTitle}
+                  </h2>
+                </div>
+                {!activeTask && (
+                  <p className="text-sm text-gray-500">Select a task to see feedback prompts.</p>
+                )}
+                {activeTask && (
+                  <div className="space-y-6">
+                    {feedbackPolls.length > 0 && (
+                      <div className="space-y-3">
+                        {feedbackPolls.map(poll => {
+                          const selectedValue = poll.responses.find(
+                            response => response.studentId === session?.user?.id
+                          )?.value
+                          return (
+                            <div key={poll.id} className="rounded-lg border bg-white p-4">
+                              <p className="text-sm font-medium text-gray-900">{poll.question}</p>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {poll.options.map(option => (
+                                  <Button
+                                    key={`${poll.id}-${option}`}
+                                    variant={selectedValue === option ? 'default' : 'outline'}
+                                    size="sm"
+                                    disabled={poll.status === 'closed'}
+                                    onClick={() => handlePollVote(poll, option)}
+                                  >
+                                    {option}
+                                  </Button>
+                                ))}
+                              </div>
+                              {poll.status === 'closed' && (
+                                <p className="mt-2 text-xs text-gray-500">Poll closed</p>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
 
+                    {feedbackQuestions.length > 0 && (
+                      <div className="space-y-3">
+                        {feedbackQuestions.map(question => (
+                          <div key={question.id} className="rounded-lg border bg-white p-4">
+                            <p className="text-sm font-medium text-gray-900">{question.prompt}</p>
+                            <div className="mt-3">
+                              <AutoTextarea
+                                placeholder="Type your answer..."
+                                className="min-h-[72px]"
+                                value={questionDrafts[question.id] || ''}
+                                onChange={event =>
+                                  setQuestionDrafts(prev => ({
+                                    ...prev,
+                                    [question.id]: event.target.value,
+                                  }))
+                                }
+                              />
+                              <div className="mt-2 flex justify-end">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleQuestionSend(question)}
+                                  disabled={!questionDrafts[question.id]?.trim()}
+                                >
+                                  Send
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {feedbackPolls.length === 0 && feedbackQuestions.length === 0 && (
+                      <p className="text-sm text-gray-500">
+                        Waiting for tutor insights to appear here.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      
       <Sheet open={showTasksPanel} onOpenChange={setShowTasksPanel}>
         <SheetContent side="right" className="w-[340px] sm:w-[380px]">
           <SheetHeader>
@@ -1280,146 +1453,6 @@ function StudentFeedbackContent() {
         </SheetContent>
       </Sheet>
 
-      <Sheet open={showFeedbackPanel} onOpenChange={setShowFeedbackPanel}>
-        <SheetContent side="right" className="w-full sm:w-[50vw] sm:max-w-[50vw]">
-          <SheetHeader>
-            <SheetTitle>Feedback</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4 space-y-4">
-            {!activeTask && (
-              <p className="text-sm text-gray-500">Select a task to see feedback prompts.</p>
-            )}
-            {activeTask && (
-              <div className="space-y-6">
-                <div>
-                  <p className="text-xs font-semibold uppercase text-gray-500">Active Task</p>
-                  <p className="text-sm font-medium text-gray-900">{activeTask.title}</p>
-                </div>
-
-                {feedbackPolls.length > 0 && (
-                  <div className="space-y-3">
-                    <p className="text-xs font-semibold uppercase text-gray-500">Polls</p>
-                    {feedbackPolls.map(poll => {
-                      const selectedValue = poll.responses.find(
-                        response => response.studentId === session?.user?.id
-                      )?.value
-                      return (
-                        <div key={poll.id} className="rounded-lg border bg-white p-4">
-                          <p className="text-sm font-medium text-gray-900">{poll.question}</p>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {poll.options.map(option => (
-                              <Button
-                                key={`${poll.id}-${option}`}
-                                variant={selectedValue === option ? 'default' : 'outline'}
-                                size="sm"
-                                disabled={poll.status === 'closed'}
-                                onClick={() => handlePollVote(poll, option)}
-                              >
-                                {option}
-                              </Button>
-                            ))}
-                          </div>
-                          {poll.status === 'closed' && (
-                            <p className="mt-2 text-xs text-gray-500">Poll closed</p>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-
-                {feedbackQuestions.length > 0 && (
-                  <div className="space-y-3">
-                    <p className="text-xs font-semibold uppercase text-gray-500">Questions</p>
-                    {feedbackQuestions.map(question => (
-                      <div key={question.id} className="rounded-lg border bg-white p-4">
-                        <p className="text-sm font-medium text-gray-900">{question.prompt}</p>
-                        <div className="mt-3">
-                          <AutoTextarea
-                            placeholder="Type your answer..."
-                            className="min-h-[72px]"
-                            value={questionDrafts[question.id] || ''}
-                            onChange={event =>
-                              setQuestionDrafts(prev => ({
-                                ...prev,
-                                [question.id]: event.target.value,
-                              }))
-                            }
-                          />
-                          <div className="mt-2 flex justify-end">
-                            <Button
-                              size="sm"
-                              onClick={() => handleQuestionSend(question)}
-                              disabled={!questionDrafts[question.id]?.trim()}
-                            >
-                              Send
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {feedbackPolls.length === 0 && feedbackQuestions.length === 0 && (
-                  <p className="text-sm text-gray-500">
-                    Waiting for tutor insights to appear here.
-                  </p>
-                )}
-
-                <div className="border-t pt-4">
-                  <p className="mb-2 text-xs font-semibold uppercase text-gray-500">Class Chat</p>
-                  <ScrollArea className="h-48 rounded-lg border bg-gray-50 p-2">
-                    <div className="space-y-2">
-                      {chatMessages.length === 0 && (
-                        <p className="text-center text-xs text-gray-400">No messages yet.</p>
-                      )}
-                      {chatMessages.map(msg => (
-                        <div key={msg.id} className="flex flex-col text-sm">
-                          <span className="text-[10px] text-gray-500">{msg.name}</span>
-                          <div className="w-fit max-w-[90%] rounded-lg bg-white px-2.5 py-1.5 text-xs text-gray-800 shadow-sm">
-                            {msg.text}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                  <div className="mt-2 flex items-end gap-2">
-                    <Input
-                      placeholder="Type a message..."
-                      value={chatInput}
-                      onChange={e => setChatInput(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault()
-                          if (chatInput.trim() && socket) {
-                            socket.emit('chat_message', { text: chatInput.trim() })
-                            setChatInput('')
-                          }
-                        }
-                      }}
-                      className="min-h-[36px] flex-1 text-xs"
-                    />
-                    <Button
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      disabled={!chatInput.trim() || !socket}
-                      onClick={() => {
-                        if (chatInput.trim() && socket) {
-                          socket.emit('chat_message', { text: chatInput.trim() })
-                          setChatInput('')
-                        }
-                      }}
-                    >
-                      <Send className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </SheetContent>
-      </Sheet>
 
       {/* Report Modal */}
       <Dialog open={reportModalOpen} onOpenChange={setReportModalOpen}>
@@ -1492,6 +1525,8 @@ function StudentFeedbackContent() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+    </div>
     </div>
   )
 }

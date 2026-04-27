@@ -62,6 +62,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 import { DailyVideoFrame } from '@/components/class/daily-video-frame'
 import { PDFViewer } from '@/components/pdf/PDFViewer'
+import { PDFDocument } from 'pdf-lib'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -553,7 +554,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }[]
     >([])
     const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
-    const [assetToLoad, setAssetToLoad] = useState<{
+  const [isSplitting, setIsSplitting] = useState(false)
+  const [assetToLoad, setAssetToLoad] = useState<{
       name: string
       content?: string
       url?: string
@@ -3812,7 +3814,8 @@ FEEDBACK: [your explanation]`
               <Button
                 className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:border-slate-300 hover:bg-slate-50"
                 variant="outline"
-                onClick={() => {
+                disabled={isSplitting}
+                onClick={async () => {
                   if (!assetToLoad) return
 
                   let nodeIndex = -1
@@ -3852,61 +3855,117 @@ FEEDBACK: [your explanation]`
                     pages = chunks.length > 1 ? chunks : [textToInsert]
                   }
 
-                  const newCourseBuilderNodes = [...nodes]
+                  setIsSplitting(true)
                   const newTasks: Task[] = []
-
-                  const startIndex =
-                    newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.length
+                  const newCourseBuilderNodes = [...nodes]
+                  const startIndex = newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.length
                   const groupNumber = startIndex + 1
 
-                  pages.forEach((pageContent, idx) => {
-                    const newTask = DEFAULT_TASK(startIndex + idx)
-                    newTask.title = `Task ${groupNumber}.${idx + 1}`
-                    newTask.description = pageContent
-                    if (assetToLoad.url && assetToLoad.mimeType) {
-                      newTask.sourceDocument = {
-                        fileName: assetToLoad.name,
-                        fileUrl: assetToLoad.url,
-                        mimeType: assetToLoad.mimeType,
-                        uploadedAt: new Date().toISOString(),
+                  try {
+                    const isPdf = assetToLoad.mimeType === 'application/pdf' || assetToLoad.name.toLowerCase().endsWith('.pdf')
+                    
+                    if (isPdf && assetToLoad.url) {
+                      // Fetch original PDF and split it physically
+                      const pdfBytes = await fetch(assetToLoad.url).then(res => res.arrayBuffer())
+                      const pdfDoc = await PDFDocument.load(pdfBytes)
+                      const pageCount = pdfDoc.getPageCount()
+                      
+                      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+                      const csrfData = await csrfRes.json().catch(() => ({}))
+                      const csrfToken = csrfData?.token ?? null
+
+                      for (let i = 0; i < pageCount; i++) {
+                        const newPdf = await PDFDocument.create()
+                        const [copiedPage] = await newPdf.copyPages(pdfDoc, [i])
+                        newPdf.addPage(copiedPage)
+                        const splitPdfBytes = await newPdf.save()
+                        
+                        const blob = new Blob([splitPdfBytes as any], { type: 'application/pdf' })
+                        const formData = new FormData()
+                        formData.append('file', blob, `${assetToLoad.name.replace(/\.pdf$/i, '')}_page_${i + 1}.pdf`)
+
+                        const uploadRes = await fetch('/api/uploads/documents', {
+                          method: 'POST',
+                          headers: {
+                            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+                          },
+                          body: formData,
+                          credentials: 'include',
+                        })
+
+                        const uploadData = await uploadRes.json()
+                        if (!uploadRes.ok) throw new Error(uploadData.error || 'Failed to upload split page')
+
+                        const newTask = DEFAULT_TASK(startIndex + i)
+                        newTask.title = `Task ${groupNumber}.${i + 1}`
+                        newTask.description = pages[i] || `Page ${i + 1} from ${assetToLoad.name}`
+                        newTask.sourceDocument = {
+                          fileName: `${assetToLoad.name} (Page ${i + 1})`,
+                          fileUrl: uploadData.url,
+                          mimeType: 'application/pdf',
+                          uploadedAt: new Date().toISOString(),
+                        }
+                        newTasks.push(newTask)
                       }
+                    } else {
+                      // Standard non-PDF handling
+                      pages.forEach((pageContent, idx) => {
+                        const newTask = DEFAULT_TASK(startIndex + idx)
+                        newTask.title = `Task ${groupNumber}.${idx + 1}`
+                        newTask.description = pageContent
+                        if (assetToLoad.url && assetToLoad.mimeType) {
+                          newTask.sourceDocument = {
+                            fileName: assetToLoad.name,
+                            fileUrl: assetToLoad.url,
+                            mimeType: assetToLoad.mimeType,
+                            uploadedAt: new Date().toISOString(),
+                          }
+                        }
+                        newTasks.push(newTask)
+                      })
                     }
-                    newTasks.push(newTask)
-                  })
 
-                  newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(...newTasks)
+                    newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(...newTasks)
 
-                  setCourseBuilderNodes(newCourseBuilderNodes)
-                  setMainBuilderTab('task')
+                    setCourseBuilderNodes(newCourseBuilderNodes)
+                    setMainBuilderTab('task')
 
-                  if (newTasks.length > 0) {
-                    const firstNew = newTasks[0]
-                    setSelectedItem({ type: 'task', id: firstNew.id })
-                    loadTaskIntoBuilder(firstNew)
+                    if (newTasks.length > 0) {
+                      const firstNew = newTasks[0]
+                      setSelectedItem({ type: 'task', id: firstNew.id })
+                      loadTaskIntoBuilder(firstNew)
 
-                    // Show PDF by default, hide text
-                    setTaskPdfVisibleMap(prev => ({ ...prev, [firstNew.id]: true }))
-                    setTaskTextVisibleMap(prev => ({ ...prev, [firstNew.id]: false }))
+                      setTaskPdfVisibleMap(prev => ({ ...prev, [firstNew.id]: true }))
+                      setTaskTextVisibleMap(prev => ({ ...prev, [firstNew.id]: false }))
 
-                    // Auto-send first PCI message
-                    setTimeout(() => {
-                      handlePciSend(
-                        'task',
-                        `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`
-                      )
-                    }, 500)
+                      setTimeout(() => {
+                        handlePciSend(
+                          'task',
+                          `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`
+                        )
+                      }, 500)
+                    }
+
+                    toast.success(`Created ${newTasks.length} Task(s) from '${assetToLoad?.name}'`)
+                    setLoadAsModalOpen(false)
+                    setAssetToLoad(null)
+                  } catch (err: any) {
+                    console.error('PDF splitting error:', err)
+                    toast.error(err.message || 'Failed to split PDF')
+                  } finally {
+                    setIsSplitting(false)
                   }
-
-                  toast.success(`Created ${pages.length} Task(s) from '${assetToLoad?.name}'`)
-                  setLoadAsModalOpen(false)
-                  setAssetToLoad(null)
                 }}
               >
-                <ListTodo className="mt-1 h-5 w-5 shrink-0 text-orange-500" />
+                {isSplitting ? (
+                  <Loader2 className="mt-1 h-5 w-5 shrink-0 animate-spin text-orange-500" />
+                ) : (
+                  <ListTodo className="mt-1 h-5 w-5 shrink-0 text-orange-500" />
+                )}
                 <div className="flex flex-col items-start text-left">
                   <span className="font-semibold text-slate-900">Tasks</span>
                   <span className="mt-1 text-xs font-normal text-slate-500">
-                    Extract text and create one task per page
+                    {isSplitting ? 'Processing and splitting PDF...' : 'Extract text and create one task per page'}
                   </span>
                 </div>
               </Button>
@@ -4613,12 +4672,7 @@ FEEDBACK: [your explanation]`
                 <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent p-0 shadow-none">
                   <TabsTrigger
                     value="live"
-                    className={cn(
-                      'z-20 flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
-                      mainTab === 'live'
-                        ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                        : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                    )}
+                    className="z-20 flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
                     onClick={e => {
                       if (mainTab !== 'live') {
                         setMainTab('live')
@@ -4634,19 +4688,14 @@ FEEDBACK: [your explanation]`
                             : 'text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,1)]'
                         )}
                       />
-                      {isSessionActive ? 'Session Active' : 'Live Classroom'}
+                      {saveMode === 'draft' ? 'Classroom' : 'Live'}
                     </div>
                   </TabsTrigger>
                   {!isStudentView && (
                     <>
                       <TabsTrigger
                         value="test-pci"
-                        className={cn(
-                          'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
-                          mainTab === 'test-pci'
-                            ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                            : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                        )}
+                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
                         onClick={e => {
                           if (mainTab !== 'test-pci') {
                             setMainTab('test-pci')
@@ -4658,12 +4707,7 @@ FEEDBACK: [your explanation]`
                       </TabsTrigger>
                       <TabsTrigger
                         value="builder"
-                        className={cn(
-                          'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
-                          mainTab === 'builder'
-                            ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                            : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                        )}
+                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
                         onClick={e => {
                           if (mainTab !== 'builder') {
                             setMainTab('builder')
@@ -4720,15 +4764,15 @@ FEEDBACK: [your explanation]`
 
             {!leftPanelHidden && (
               <div
-                className="absolute inset-y-0 left-0 z-40 flex min-h-0 flex-col"
+                className="relative z-40 flex h-full min-h-0 shrink-0 flex-col"
                 ref={leftPanelRef}
                 style={{ width: leftPanelWidth }}
               >
                 <div className="flex h-full min-h-0 flex-col pr-4">
                   <Card className="flex h-full min-h-0 flex-1 flex-col rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]">
-                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
+                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-2">
                       {/* Header with Hide, Import, and +Lesson buttons */}
-                      <div className="mb-4 flex min-h-[58px] items-center justify-between">
+                      <div className="mb-4 flex min-h-[58px] items-center justify-between px-2 pt-2">
                         <div className="flex flex-col justify-center gap-1">
                           <div className="flex items-center gap-2">
                             <div className="text-sm font-semibold text-[#1F2933]">Directory</div>
@@ -4823,7 +4867,7 @@ FEEDBACK: [your explanation]`
                                     depth={0}
                                     isLast={nodeIdx === nodes.length - 1}
                                     inlineDragHandle
-                                    className="lesson-card mb-0 ml-0 overflow-hidden rounded-[24px] border border-[#E7ECF3] bg-white pl-0 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition-[transform,box-shadow,border-color] duration-[160ms] ease-[ease] hover:-translate-y-[3px] hover:border-[rgba(37,99,235,0.35)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.16),0_4px_10px_rgba(37,99,235,0.10)]"
+                                    className="lesson-card mb-2 ml-0 overflow-hidden rounded-[24px] border border-[rgba(37,99,235,0.35)] bg-white pl-0 shadow-[0_14px_32px_rgba(0,0,0,0.16),0_4px_10px_rgba(37,99,235,0.10)] transition-[box-shadow,border-color] duration-[160ms] ease-[ease]"
                                   >
                                     <div className="group">
                                       <div
@@ -4873,10 +4917,12 @@ FEEDBACK: [your explanation]`
                                               <DropdownMenuItem
                                                 onSelect={() => {
                                                   const newName = window.prompt(
-                                                    'Rename Lesson',
+                                                    'Rename Lesson (Max 25 chars)',
                                                     node.title
                                                   )
                                                   if (newName && newName.trim()) {
+                                                    const sanitizedName = newName.replace(/[@;'"]/g, '').substring(0, 25).trim()
+                                                    if (!sanitizedName) return
                                                     setCourseBuilderNodes(prev =>
                                                       prev.map(n => {
                                                         if (n.id === node.id) {
@@ -4884,12 +4930,12 @@ FEEDBACK: [your explanation]`
                                                           if (lessons.length > 0) {
                                                             lessons[0] = {
                                                               ...lessons[0],
-                                                              title: newName.trim(),
+                                                              title: sanitizedName,
                                                             }
                                                           }
                                                           return {
                                                             ...n,
-                                                            title: newName.trim(),
+                                                            title: sanitizedName,
                                                             lessons,
                                                           }
                                                         }
@@ -4918,7 +4964,7 @@ FEEDBACK: [your explanation]`
                                       </div>
 
                                       {expandedCourseBuilderNodes.has(node.id) && (
-                                        <div className="mt-1 flex flex-col gap-3 px-3 pb-3">
+                                        <div className="mt-1 flex flex-col gap-2 px-3 pb-3">
                                           {/* Tasks - droppable so homework can be moved here */}
                                           <TreeItem
                                             depth={0}
@@ -4928,7 +4974,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableTaskZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex items-center justify-between gap-3 rounded-2xl border border-[#D5E5FF] bg-[#EEF4FF] px-3 py-2.5"
+                                              className="flex items-center justify-between gap-3 rounded-2xl border border-[#D5E5FF] bg-[#EEF4FF] px-3 py-1.5"
                                             >
                                               <div className="flex min-w-0 items-center gap-3">
                                                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#DCEAFF] text-[#2B5FB8]">
@@ -5624,12 +5670,12 @@ FEEDBACK: [your explanation]`
                                           <TreeItem
                                             depth={0}
                                             isLast={false}
-                                            className="ml-0 mt-1 border-l-0 pl-0"
+                                            className="ml-0 border-l-0 pl-0"
                                           >
                                             <DroppableAssessmentZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex items-center justify-between gap-3 rounded-2xl border border-[#E2D8FF] bg-[#F3EEFF] px-3 py-2.5"
+                                              className="flex items-center justify-between gap-3 rounded-2xl border border-[#E2D8FF] bg-[#F3EEFF] px-3 py-1.5"
                                             >
                                               <div className="flex min-w-0 items-center gap-3">
                                                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#E7DEFF] text-[#6D59D8]">
@@ -5972,12 +6018,12 @@ FEEDBACK: [your explanation]`
                                                 <TreeItem
                                                   depth={0}
                                                   isLast={false}
-                                                  className="ml-0 mt-1 border-l-0 pl-0"
+                                                  className="ml-0 border-l-0 pl-0"
                                                 >
                                                   <DroppableHomeworkZone
                                                     nodeId={node.id}
                                                     lessonId={primaryLesson.id}
-                                                    className="flex items-center justify-between gap-3 rounded-2xl border border-[#D2F3E3] bg-[#ECFBF4] px-3 py-2.5"
+                                                    className="flex items-center justify-between gap-3 rounded-2xl border border-[#D2F3E3] bg-[#ECFBF4] px-3 py-1.5"
                                                   >
                                                     <div className="flex min-w-0 items-center gap-3">
                                                       <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#D7F6E8] text-[#1E9E72]">
@@ -6784,7 +6830,9 @@ FEEDBACK: [your explanation]`
                                                   <div className="h-full w-full pr-1">
                                                     {doc?.fileUrl ? (
                                                       <iframe
-                                                        src={`${doc.fileUrl}#toolbar=0&navpanes=0`}
+                                                        src={doc.fileUrl.includes('#') 
+                                                          ? `${doc.fileUrl}&toolbar=0&navpanes=0` 
+                                                          : `${doc.fileUrl}#toolbar=0&navpanes=0`}
                                                         className="h-full w-full rounded-md border-0"
                                                         title="PDF Viewer"
                                                       />
@@ -7057,7 +7105,7 @@ FEEDBACK: [your explanation]`
                   <div className="h-full w-full flex-1">
                     {/* COMBINED BUILDER: Task & Assessment Tabs */}
                     <Card className="flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
-                      <CardContent className="flex h-full flex-col overflow-hidden p-4">
+                      <CardContent className="flex h-full flex-col overflow-hidden p-2">
                         <Tabs
                           value={mainBuilderTab}
                           onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
@@ -7067,15 +7115,35 @@ FEEDBACK: [your explanation]`
                           <div className="mb-4 flex w-full items-center justify-between gap-4">
                             {/* Left: current task name */}
                             <div className="flex min-w-0 flex-1 items-center gap-2 px-3 text-sm font-semibold text-[#1F2933]">
-                              <span className="truncate">
-                                {mainBuilderTab === 'task'
-                                  ? taskBuilder.activeExtensionId
-                                    ? taskBuilder.extensions.find(
-                                        x => x.id === taskBuilder.activeExtensionId
-                                      )?.name || 'Extension'
-                                    : taskBuilder.title || 'Select a Task'
-                                  : ''}
-                              </span>
+                              {mainBuilderTab === 'task' && (
+                                <input
+                                  className="w-full truncate bg-transparent outline-none placeholder:text-gray-400 focus:border-b focus:border-blue-300"
+                                  placeholder="Select or name a Task"
+                                  value={
+                                    taskBuilder.activeExtensionId
+                                      ? taskBuilder.extensions.find(
+                                          x => x.id === taskBuilder.activeExtensionId
+                                        )?.name || ''
+                                      : taskBuilder.title || ''
+                                  }
+                                  onChange={e => {
+                                    const sanitized = e.target.value.replace(/[@;'"]/g, '').substring(0, 25)
+                                    setTaskBuilder(prev => {
+                                      if (prev.activeExtensionId) {
+                                        return {
+                                          ...prev,
+                                          extensions: prev.extensions.map(x =>
+                                            x.id === prev.activeExtensionId
+                                              ? { ...x, name: sanitized }
+                                              : x
+                                          ),
+                                        }
+                                      }
+                                      return { ...prev, title: sanitized }
+                                    })
+                                  }}
+                                />
+                              )}
                             </div>
 
                             <TabsList className="grid h-[46px] w-[400px] shrink-0 grid-cols-2 gap-2 bg-transparent p-0 shadow-none">
@@ -7097,11 +7165,20 @@ FEEDBACK: [your explanation]`
 
                             {/* Right: current assessment name */}
                             <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-3 text-sm font-semibold text-[#1F2933]">
-                              <span className="truncate">
-                                {mainBuilderTab === 'assessment'
-                                  ? assessmentBuilder.title || 'Select an Assessment'
-                                  : ''}
-                              </span>
+                              {mainBuilderTab === 'assessment' && (
+                                <input
+                                  className="w-full truncate bg-transparent text-right outline-none placeholder:text-gray-400 focus:border-b focus:border-purple-300"
+                                  placeholder="Select or name an Assessment"
+                                  value={assessmentBuilder.title || ''}
+                                  onChange={e => {
+                                    const sanitized = e.target.value.replace(/[@;'"]/g, '').substring(0, 25)
+                                    setAssessmentBuilder(prev => ({
+                                      ...prev,
+                                      title: sanitized,
+                                    }))
+                                  }}
+                                />
+                              )}
                             </div>
                           </div>
 
@@ -7132,7 +7209,7 @@ FEEDBACK: [your explanation]`
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="pci"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <Brain className="mr-2 h-4 w-4 shrink-0" />
                                         PCI
@@ -7667,7 +7744,7 @@ FEEDBACK: [your explanation]`
                                     <TabsList className="mb-px grid h-[46px] w-full grid-cols-2 gap-2 rounded-xl bg-transparent p-0 shadow-none">
                                       <TabsTrigger
                                         value="content"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <LayoutPanelTop className="mr-2 h-4 w-4 shrink-0" />
                                         Assessment
@@ -7703,61 +7780,6 @@ FEEDBACK: [your explanation]`
                                           )
                                         }}
                                       >
-                                        {/* Centered Pill for Test, Generate DMI, and Version History */}
-                                        <div className="pointer-events-none absolute left-1/2 top-0 z-20 flex -translate-x-1/2 items-center justify-center">
-                                          <div className="pointer-events-auto flex h-11 items-center gap-1 rounded-b-xl border-x border-b border-[#E5E7EB] bg-white/90 px-2 shadow-sm backdrop-blur-sm">
-                                            <span className="text-xs font-light text-gray-400">
-                                              (
-                                            </span>
-
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
-                                              disabled={dmiGenerating}
-                                              onClick={() => {
-                                                const content = assessmentBuilder.taskContent
-                                                const hasPdf =
-                                                  assessmentSourceDocument?.mimeType ===
-                                                  'application/pdf'
-                                                if (!content.trim() && !hasPdf) {
-                                                  toast.error(
-                                                    'Please add content to the Assessment tab or load a PDF first'
-                                                  )
-                                                  return
-                                                }
-                                                handleGenerateDMI('assessment')
-                                              }}
-                                            >
-                                              {dmiGenerating ? (
-                                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                              ) : null}
-                                              Generate DMI
-                                            </Button>
-
-                                            <div className="h-3 w-px bg-gray-300" />
-
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
-                                              onClick={() => setShowDmiVersionList(true)}
-                                              title="View DMI Versions"
-                                            >
-                                              <History className="h-3 w-3" />
-                                              {assessmentDmiVersions.length > 0 && (
-                                                <span className="ml-1">
-                                                  ({assessmentDmiVersions.length})
-                                                </span>
-                                              )}
-                                            </Button>
-
-                                            <span className="text-xs font-light text-gray-400">
-                                              )
-                                            </span>
-                                          </div>
-                                        </div>
-
                                         {/* Left Panel (Text) */}
                                         {assessmentTextVisible && (
                                           <div
@@ -7946,8 +7968,63 @@ FEEDBACK: [your explanation]`
                                       value="pci"
                                       className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      <div className="flex h-full min-h-0 flex-col rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
-                                        <div className="flex-1 space-y-4 overflow-y-auto p-1">
+                                      <div className="relative flex h-full min-h-0 flex-col rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
+                                        {/* Centered Pill for Test, Generate DMI, and Version History */}
+                                        <div className="pointer-events-none absolute left-1/2 top-0 z-20 flex -translate-x-1/2 items-center justify-center">
+                                          <div className="pointer-events-auto flex h-11 items-center gap-1 rounded-b-xl border-x border-b border-[#E5E7EB] bg-white/90 px-2 shadow-sm backdrop-blur-sm">
+                                            <span className="text-xs font-light text-gray-400">
+                                              (
+                                            </span>
+
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              disabled={dmiGenerating}
+                                              onClick={() => {
+                                                const content = assessmentBuilder.taskContent
+                                                const hasPdf =
+                                                  assessmentSourceDocument?.mimeType ===
+                                                  'application/pdf'
+                                                if (!content.trim() && !hasPdf) {
+                                                  toast.error(
+                                                    'Please add content to the Assessment tab or load a PDF first'
+                                                  )
+                                                  return
+                                                }
+                                                handleGenerateDMI('assessment')
+                                              }}
+                                            >
+                                              {dmiGenerating ? (
+                                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                              ) : null}
+                                              Generate DMI
+                                            </Button>
+
+                                            <div className="h-3 w-px bg-gray-300" />
+
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              onClick={() => setShowDmiVersionList(true)}
+                                              title="View DMI Versions"
+                                            >
+                                              <History className="h-3 w-3" />
+                                              {assessmentDmiVersions.length > 0 && (
+                                                <span className="ml-1">
+                                                  ({assessmentDmiVersions.length})
+                                                </span>
+                                              )}
+                                            </Button>
+
+                                            <span className="text-xs font-light text-gray-400">
+                                              )
+                                            </span>
+                                          </div>
+                                        </div>
+
+                                        <div className="flex-1 space-y-4 overflow-y-auto p-1 mt-6">
                                           {(
                                             assessmentPciMessagesMap[loadedAssessmentId || ''] || []
                                           ).length === 0 && (

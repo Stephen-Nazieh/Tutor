@@ -33,10 +33,6 @@ export const POST = withAuth(
           status: 'active',
           startedAt: new Date(),
           scheduledAt: new Date(),
-          sessionType: 'training',
-          trainingCategory: trainingCategory || 'orientation',
-          trainingTargetAudience: targetAudience || 'all',
-          trainingToken,
           roomId: randomUUID(), // This will be created in daily.co when accessed
         })
 
@@ -150,7 +146,6 @@ export const POST = withAuth(
           status: 'active',
           startedAt: new Date(),
           scheduledAt: new Date(),
-          sessionType: 'teaching',
           roomId: randomUUID(),
         })
 

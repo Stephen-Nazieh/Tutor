@@ -401,9 +401,9 @@ function CourseBuilderInsightsRouteInner({
       data-tutor-route="insights-builder"
       style={model.themeStyle}
     >
-      <div className="sticky top-0 z-10 w-full bg-[#fafafc] px-4 pb-2 pt-4 sm:px-6">
+      <div className="sticky top-0 z-10 w-full bg-[#fafafc] px-4 pb-4 pt-4 sm:px-6">
         <div className="flex w-full flex-col gap-4">
-          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 pt-4 pb-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <Link href="/tutor/dashboard">
                 <Button variant="ghost" size="icon">
@@ -544,13 +544,13 @@ function CourseBuilderInsightsRouteInner({
                       <SelectItem value="live">
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-green-500" />
-                          Editing: Published
+                          Live
                         </div>
                       </SelectItem>
                       <SelectItem value="draft">
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-amber-500" />
-                          Editing: Draft
+                          Editing
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -573,20 +573,15 @@ function CourseBuilderInsightsRouteInner({
                   </Button>
                 )}
 
-                {/* Always show Go Live if a real course is selected */}
-                {courseId && courseId !== 'insights-draft' && (
+                {/* Show Go Live only in Draft mode */}
+                {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
                   <Button
                     variant="default"
-                    className={cn(
-                      'gap-2 font-medium text-white transition-all duration-300',
-                      insightsProps.sessionId
-                        ? 'shadow-[0_0_15px_rgba(220,38,38,0.8)] bg-red-600 hover:bg-red-700'
-                        : 'ring-green-400 shadow-[0_0_15px_rgba(34,197,94,0.8)] bg-green-500 ring-1 hover:bg-green-600'
-                    )}
+                    className="gap-2 bg-green-500 font-medium text-white shadow-[0_0_15px_rgba(34,197,94,0.8)] ring-1 ring-green-400 transition-all duration-300 hover:bg-green-600"
                     onClick={handleStartSessionClick}
                   >
                     <VideoIcon className="h-4 w-4" />
-                    {insightsProps.sessionId ? 'Session Active' : 'Go Live'}
+                    Go Live
                   </Button>
                 )}
 
@@ -651,7 +646,7 @@ function CourseBuilderInsightsRouteInner({
           </div>
 
           {/* The outer container for Course Builder Tabs */}
-          <div id="course-builder-tabs-portal" className="mt-2 w-full"></div>
+          <div id="course-builder-tabs-portal" className="w-full"></div>
         </div>
       </div>
 
