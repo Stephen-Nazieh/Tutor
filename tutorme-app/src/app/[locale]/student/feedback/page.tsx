@@ -94,6 +94,7 @@ function StudentFeedbackContent() {
   const [sessionsLoading, setSessionsLoading] = useState(true)
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(sessionIdFromQuery)
   const [tasks, setTasks] = useState<LiveTask[]>([])
+  const [selectedDirectoryItem, setSelectedDirectoryItem] = useState<LiveTask | null>(null)
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
   const [requestingSessionId, setRequestingSessionId] = useState<string | null>(null)
   const [showTasksPanel, setShowTasksPanel] = useState(false)
@@ -479,7 +480,7 @@ function StudentFeedbackContent() {
     }
   }, [activeTaskId, tasks])
 
-  const activeTask = tasks.find(task => task.id === activeTaskId) || null
+  const activeTask = tasks.find(task => task.id === activeTaskId) || (selectedDirectoryItem?.id === activeTaskId ? selectedDirectoryItem : null) || null
   const currentSession = sessions.find(s => s.id === selectedSessionId) || null
   const isScheduled = currentSession?.status === 'scheduled'
   const isPassedSession =
@@ -538,12 +539,7 @@ function StudentFeedbackContent() {
         parsed.title = item.title
         parsed.id = item.itemId || item.id // Use itemId or fallback to id
 
-        setTasks(prev => {
-          if (!prev.some(t => t.id === parsed.id)) {
-            return [...prev, parsed]
-          }
-          return prev
-        })
+        setSelectedDirectoryItem(parsed)
         setActiveTaskId(parsed.id)
         setUnseenTaskIds(prev => prev.filter(id => id !== parsed.id))
         setShowTasksPanel(false)
@@ -1280,17 +1276,17 @@ function StudentFeedbackContent() {
       </div>
         
       {/* Persistent Right Panel */}
-        <div className="flex w-[340px] sm:w-[380px] shrink-0 flex-col border-l border-gray-200 bg-white overflow-hidden h-full">
+        <div className="relative flex w-[340px] sm:w-[380px] lg:w-[400px] shrink-0 flex-col rounded-l-2xl border-l border-gray-200 bg-white shadow-[-8px_0_24px_rgba(0,0,0,0.12)] overflow-hidden h-full z-10 transition-all">
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-            <div className="flex items-center gap-2 rounded-lg bg-gray-100 p-1">
+            <div className="flex w-full items-center gap-2 rounded-lg bg-gray-100 p-1">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setRightPanelTab('interactions')}
                 className={cn(
-                  'h-7 rounded-md px-3 text-xs font-medium',
+                  'h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all',
                   rightPanelTab === 'interactions'
-                    ? 'bg-white text-gray-900 shadow-sm'
+                    ? 'bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
                     : 'text-gray-500 hover:text-gray-900'
                 )}
               >
@@ -1301,9 +1297,9 @@ function StudentFeedbackContent() {
                 size="sm"
                 onClick={() => setRightPanelTab('dmi')}
                 className={cn(
-                  'h-7 rounded-md px-3 text-xs font-medium',
+                  'h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all',
                   rightPanelTab === 'dmi'
-                    ? 'bg-white text-gray-900 shadow-sm'
+                    ? 'bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
                     : 'text-gray-500 hover:text-gray-900'
                 )}
               >

@@ -4632,12 +4632,7 @@ FEEDBACK: [your explanation]`
                 <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent p-0 shadow-none">
                   <TabsTrigger
                     value="live"
-                    className={cn(
-                      'z-20 flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
-                      mainTab === 'live'
-                        ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                        : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                    )}
+                    className="z-20 flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
                     onClick={e => {
                       if (mainTab !== 'live') {
                         setMainTab('live')
@@ -4660,12 +4655,7 @@ FEEDBACK: [your explanation]`
                     <>
                       <TabsTrigger
                         value="test-pci"
-                        className={cn(
-                          'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
-                          mainTab === 'test-pci'
-                            ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                            : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                        )}
+                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
                         onClick={e => {
                           if (mainTab !== 'test-pci') {
                             setMainTab('test-pci')
@@ -4677,12 +4667,7 @@ FEEDBACK: [your explanation]`
                       </TabsTrigger>
                       <TabsTrigger
                         value="builder"
-                        className={cn(
-                          'flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all',
-                          mainTab === 'builder'
-                            ? 'bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] text-white shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]'
-                            : 'bg-white text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]'
-                        )}
+                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
                         onClick={e => {
                           if (mainTab !== 'builder') {
                             setMainTab('builder')
