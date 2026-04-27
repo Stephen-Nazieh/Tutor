@@ -69,18 +69,68 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
     const startDate = start ? new Date(start) : now
     const endDate = end ? new Date(end) : new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000) // 2 weeks default
 
-    // Get availability
-    const availability = await drizzleDb
+    const availabilityRows = await drizzleDb
       .select()
       .from(calendarAvailability)
       .where(
         and(
           eq(calendarAvailability.tutorId, tutorId),
-          eq(calendarAvailability.isAvailable, true),
           or(isNull(calendarAvailability.validUntil), gte(calendarAvailability.validUntil, now))
         )
       )
       .orderBy(asc(calendarAvailability.dayOfWeek), asc(calendarAvailability.startTime))
+
+    const timeSlots = [
+      '00:00',
+      '01:00',
+      '02:00',
+      '03:00',
+      '04:00',
+      '05:00',
+      '06:00',
+      '07:00',
+      '08:00',
+      '09:00',
+      '10:00',
+      '11:00',
+      '12:00',
+      '13:00',
+      '14:00',
+      '15:00',
+      '16:00',
+      '17:00',
+      '18:00',
+      '19:00',
+      '20:00',
+      '21:00',
+      '22:00',
+      '23:00',
+    ]
+    const baseTimezone = availabilityRows?.[0]?.timezone ?? tutorProfile.timezone ?? 'UTC'
+    const availabilityByKey = new Map<string, any>()
+    for (let day = 0; day <= 6; day += 1) {
+      for (let i = 0; i < timeSlots.length - 1; i += 1) {
+        const startTime = timeSlots[i]
+        const endTime = timeSlots[i + 1]
+        availabilityByKey.set(`${day}-${startTime}-${endTime}`, {
+          dayOfWeek: day,
+          startTime,
+          endTime,
+          timezone: baseTimezone,
+          isAvailable: true,
+        })
+      }
+    }
+    for (const row of availabilityRows) {
+      const key = `${row.dayOfWeek}-${row.startTime}-${row.endTime}`
+      const base = availabilityByKey.get(key)
+      availabilityByKey.set(key, {
+        ...(base ?? { dayOfWeek: row.dayOfWeek, startTime: row.startTime, endTime: row.endTime }),
+        timezone: row.timezone ?? baseTimezone,
+        isAvailable: row.isAvailable ?? true,
+      })
+    }
+    const availability = Array.from(availabilityByKey.values())
 
     // Get exceptions
     const exceptions = await drizzleDb
@@ -139,6 +189,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ user
       const dayAvailability = availability.filter(a => a.dayOfWeek === dayOfWeek)
 
       for (const slot of dayAvailability) {
+        if (!slot.isAvailable) continue
         const slotStart = new Date(`${dateStr}T${slot.startTime}`)
         const slotEnd = new Date(`${dateStr}T${slot.endTime}`)
 

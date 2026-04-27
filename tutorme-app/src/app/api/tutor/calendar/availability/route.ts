@@ -121,41 +121,54 @@ export const POST = withAuth(
 
       const data = validation.data
 
-      // Validate times
       if (data.startTime >= data.endTime) {
         return NextResponse.json({ error: 'End time must be after start time' }, { status: 400 })
       }
 
-      const [created] = await drizzleDb
-        .insert(calendarAvailability)
-        .values({
-          availabilityId: nanoid(),
-          tutorId,
-          dayOfWeek: data.dayOfWeek,
-          startTime: data.startTime,
-          endTime: data.endTime,
-          timezone: data.timezone,
-          isAvailable: data.isAvailable,
-          validFrom: data.validFrom ? new Date(data.validFrom) : null,
-          validUntil: data.validUntil ? new Date(data.validUntil) : null,
-        })
-        .onConflictDoUpdate({
-          target: [
-            calendarAvailability.tutorId,
-            calendarAvailability.dayOfWeek,
-            calendarAvailability.startTime,
-            calendarAvailability.endTime,
-          ],
-          set: {
+      const existing = await drizzleDb
+        .select()
+        .from(calendarAvailability)
+        .where(
+          and(
+            eq(calendarAvailability.tutorId, tutorId),
+            eq(calendarAvailability.dayOfWeek, data.dayOfWeek),
+            eq(calendarAvailability.startTime, data.startTime),
+            eq(calendarAvailability.endTime, data.endTime)
+          )
+        )
+        .limit(1)
+
+      let availability
+      if (existing.length > 0) {
+        const [updated] = await drizzleDb
+          .update(calendarAvailability)
+          .set({
             isAvailable: data.isAvailable,
             timezone: data.timezone,
             validFrom: data.validFrom ? new Date(data.validFrom) : null,
             validUntil: data.validUntil ? new Date(data.validUntil) : null,
             updatedAt: new Date(),
-          },
-        })
-        .returning()
-      const availability = created!
+          })
+          .where(eq(calendarAvailability.availabilityId, existing[0].availabilityId))
+          .returning()
+        availability = updated
+      } else {
+        const [created] = await drizzleDb
+          .insert(calendarAvailability)
+          .values({
+            availabilityId: nanoid(),
+            tutorId,
+            dayOfWeek: data.dayOfWeek,
+            startTime: data.startTime,
+            endTime: data.endTime,
+            timezone: data.timezone,
+            isAvailable: data.isAvailable,
+            validFrom: data.validFrom ? new Date(data.validFrom) : null,
+            validUntil: data.validUntil ? new Date(data.validUntil) : null,
+          })
+          .returning()
+        availability = created
+      }
 
       return NextResponse.json({ availability }, { status: 201 })
     } catch (error: any) {
@@ -228,6 +241,57 @@ async function generateAvailableSlots(
 ): Promise<any[]> {
   const slots: any[] = []
   const currentDate = new Date(startDate)
+  const timeSlots = [
+    '00:00',
+    '01:00',
+    '02:00',
+    '03:00',
+    '04:00',
+    '05:00',
+    '06:00',
+    '07:00',
+    '08:00',
+    '09:00',
+    '10:00',
+    '11:00',
+    '12:00',
+    '13:00',
+    '14:00',
+    '15:00',
+    '16:00',
+    '17:00',
+    '18:00',
+    '19:00',
+    '20:00',
+    '21:00',
+    '22:00',
+    '23:00',
+  ]
+  const baseTimezone = availability?.[0]?.timezone ?? 'Asia/Shanghai'
+  const availabilityByKey = new Map<string, any>()
+  for (let day = 0; day <= 6; day += 1) {
+    for (let i = 0; i < timeSlots.length - 1; i += 1) {
+      const startTime = timeSlots[i]
+      const endTime = timeSlots[i + 1]
+      availabilityByKey.set(`${day}-${startTime}-${endTime}`, {
+        dayOfWeek: day,
+        startTime,
+        endTime,
+        timezone: baseTimezone,
+        isAvailable: true,
+      })
+    }
+  }
+  for (const row of availability) {
+    const key = `${row.dayOfWeek}-${row.startTime}-${row.endTime}`
+    const base = availabilityByKey.get(key)
+    availabilityByKey.set(key, {
+      ...(base ?? { dayOfWeek: row.dayOfWeek, startTime: row.startTime, endTime: row.endTime }),
+      timezone: row.timezone ?? baseTimezone,
+      isAvailable: row.isAvailable ?? true,
+    })
+  }
+  const normalizedAvailability = Array.from(availabilityByKey.values())
 
   const existingEvents = await drizzleDb
     .select()
@@ -258,7 +322,7 @@ async function generateAvailableSlots(
     }
 
     // Get availability for this day
-    const dayAvailability = availability.filter(a => a.dayOfWeek === dayOfWeek)
+    const dayAvailability = normalizedAvailability.filter(a => a.dayOfWeek === dayOfWeek)
 
     for (const slot of dayAvailability) {
       if (!slot.isAvailable) continue

@@ -183,7 +183,7 @@ const generateAvailability = (): AvailabilityBlock[] => {
         dayOfWeek: day,
         startTime,
         endTime,
-        isAvailable: false,
+        isAvailable: true,
       })
     }
   }
