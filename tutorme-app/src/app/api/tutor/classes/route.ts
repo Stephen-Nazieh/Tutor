@@ -44,7 +44,7 @@ export const GET = withAuth(
       scheduledAt: s.scheduledAt?.toISOString() ?? new Date().toISOString(),
       startedAt: s.startedAt?.toISOString() ?? null,
       endedAt: s.endedAt?.toISOString() ?? null,
-      duration: DEFAULT_DURATION_MINUTES,
+      duration: s.durationMinutes,
       maxStudents: s.maxStudents,
       enrolledStudents: s.participants.length,
       status: s.status,

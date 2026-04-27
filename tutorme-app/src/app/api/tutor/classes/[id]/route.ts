@@ -245,6 +245,17 @@ export const POST = withCsrf(
         return NextResponse.json({ error: 'Cannot start a completed class' }, { status: 400 })
       }
 
+      // Enforce scheduled time: cannot start before scheduledAt
+      if (
+        liveSessionRow.scheduledAt &&
+        new Date(liveSessionRow.scheduledAt).getTime() > Date.now()
+      ) {
+        return NextResponse.json(
+          { error: 'Cannot start before the scheduled time' },
+          { status: 403 }
+        )
+      }
+
       const [updated] = await drizzleDb
         .update(liveSession)
         .set({

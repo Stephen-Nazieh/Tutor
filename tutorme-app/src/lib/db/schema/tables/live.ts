@@ -38,6 +38,7 @@ export const liveSession = pgTable(
     recordingUrl: text('recordingUrl'),
     recordingAvailableAt: timestamp('recordingAvailableAt', { withTimezone: true }),
     maxStudents: integer('maxStudents').notNull().default(50),
+    durationMinutes: integer('durationMinutes').notNull().default(120),
   },
   table => ({
     LiveSession_tutorId_idx: index('LiveSession_tutorId_idx').on(table.tutorId),

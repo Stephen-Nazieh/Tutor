@@ -125,6 +125,7 @@ export const POST = withCsrf(
               maxStudents: data.maxStudents,
               scheduledAt,
               status: isScheduledForFuture ? 'scheduled' : 'active',
+              durationMinutes: data.durationMinutes,
             })
             .returning()
           classSessionResult = result

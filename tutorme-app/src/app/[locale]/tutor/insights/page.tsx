@@ -36,6 +36,7 @@ interface InsightsSessionOption {
   subject: string
   scheduledAt: string
   status: string
+  durationMinutes: number
 }
 
 function TutorInsightsPageInner() {
@@ -187,14 +188,44 @@ function TutorInsightsPageInner() {
     }
   }, [sessionId])
 
+  const handleStopRecording = useCallback(async () => {
+    if (!isRecording) return
+    try {
+      setIsRecording(false)
+      await persistRecordingState(false)
+      toast.success('Recording stopped. Building transcript and AI lesson summary...')
+      await generateReplayArtifact()
+      toast.success('Replay artifact ready')
+    } catch (error) {
+      setIsRecording(false)
+      setRecordingDurationSeconds(0)
+      toast.error(error instanceof Error ? error.message : 'Recording action failed')
+    }
+  }, [generateReplayArtifact, isRecording, persistRecordingState])
+
   const handleToggleRecording = useCallback(async () => {
     try {
       if (isRecording) {
-        setIsRecording(false)
-        await persistRecordingState(false)
-        toast.success('Recording stopped. Building transcript and AI lesson summary...')
-        await generateReplayArtifact()
-        toast.success('Replay artifact ready')
+        await handleStopRecording()
+        return
+      }
+
+      // Guard: cannot start recording before scheduled time or after session ended
+      if (!sessionId) {
+        toast.error('No session selected')
+        return
+      }
+      const currentSession = sessions.find(s => s.id === sessionId)
+      if (!currentSession) {
+        toast.error('Session not found')
+        return
+      }
+      if (currentSession.status === 'ended') {
+        toast.error('Session has ended')
+        return
+      }
+      if (new Date(currentSession.scheduledAt).getTime() > Date.now()) {
+        toast.error('Session has not started yet')
         return
       }
 
@@ -207,7 +238,7 @@ function TutorInsightsPageInner() {
       setRecordingDurationSeconds(0)
       toast.error(error instanceof Error ? error.message : 'Recording action failed')
     }
-  }, [generateReplayArtifact, isRecording, persistRecordingState])
+  }, [isRecording, persistRecordingState, handleStopRecording, sessionId, sessions])
 
   const handleSave = useCallback(
     async (lessons: any[], options?: any) => {
@@ -460,7 +491,10 @@ function TutorInsightsPageInner() {
         const res = await fetch('/api/tutor/classes', { credentials: 'include' })
         if (!res.ok) throw new Error('Failed to load sessions')
         const data = await res.json()
-        const classSessions = (data.classes || []) as InsightsSessionOption[]
+        const classSessions = ((data.classes || []) as Array<InsightsSessionOption & { duration?: number }>).map(s => ({
+          ...s,
+          durationMinutes: s.duration ?? 60,
+        }))
         setSessions(classSessions)
 
         const activeSession = classSessions.find(item => item.status === 'active')
@@ -548,6 +582,13 @@ function TutorInsightsPageInner() {
     toast.success('Course synced to live session')
   }, [sessionId, socket, courseId])
 
+  // Track whether the current session has received the ending-soon alert
+  const [endingAlertShown, setEndingAlertShown] = useState(false)
+
+  useEffect(() => {
+    setEndingAlertShown(false)
+  }, [sessionId])
+
   useEffect(() => {
     if (!socket) return
 
@@ -565,22 +606,82 @@ function TutorInsightsPageInner() {
       setLiveTasks(prev => prev.map(item => (item.id === payload.task.id ? payload.task : item)))
     }
 
+    const handleSessionEndingSoon = (data: { sessionId: string; minutesRemaining: number }) => {
+      if (data.sessionId === sessionId && !endingAlertShown) {
+        setEndingAlertShown(true)
+        toast.warning(`Session ending in ${data.minutesRemaining} minutes!`, {
+          duration: 10000,
+          icon: '⏰',
+        })
+      }
+    }
+
+    const handleSessionEnded = (data: { sessionId: string; reason?: string }) => {
+      if (data.sessionId === sessionId) {
+        // Update local session status
+        setSessions(prev =>
+          prev.map(s => (s.id === sessionId ? { ...s, status: 'ended' } : s))
+        )
+        // Auto-stop recording after 5-minute grace period
+        setTimeout(() => {
+          handleStopRecording().catch(() => {})
+        }, 5 * 60 * 1000)
+        toast.info('Session has ended', { duration: 5000 })
+      }
+    }
+
+    const handleDeployError = (data: { error: string }) => {
+      toast.error(data.error || 'Cannot deploy right now')
+    }
+
     socket.on('task:deployed', handleTaskDeployed)
     socket.on('task:updated', handleTaskUpdated)
+    socket.on('session:ending-soon', handleSessionEndingSoon)
+    socket.on('session:ended', handleSessionEnded)
+    socket.on('task:deploy:error', handleDeployError)
+    socket.on('insight:send:error', handleDeployError)
 
     return () => {
       socket.off('task:deployed', handleTaskDeployed)
       socket.off('task:updated', handleTaskUpdated)
+      socket.off('session:ending-soon', handleSessionEndingSoon)
+      socket.off('session:ended', handleSessionEnded)
+      socket.off('task:deploy:error', handleDeployError)
+      socket.off('insight:send:error', handleDeployError)
     }
-  }, [socket])
+  }, [socket, sessionId, endingAlertShown, handleStopRecording])
+
+  const checkSessionActive = (source?: string): { ok: boolean; error?: string } => {
+    if (!sessionId) return { ok: false, error: 'No session selected' }
+    const currentSession = sessions.find(s => s.id === sessionId)
+    if (!currentSession) return { ok: false, error: 'Session not found' }
+    // Homework can be dropped even after session ends
+    if (source !== 'homework' && currentSession.status === 'ended') {
+      return { ok: false, error: 'Session has ended' }
+    }
+    if (new Date(currentSession.scheduledAt).getTime() > Date.now()) {
+      return { ok: false, error: 'Session has not started yet' }
+    }
+    return { ok: true }
+  }
 
   const handleDeployTask = (task: LiveTask) => {
     if (!socket || !sessionId) return
+    const check = checkSessionActive(task.source)
+    if (!check.ok) {
+      toast.error(check.error || 'Cannot deploy right now')
+      return
+    }
     socket.emit('task:deploy', { roomId: sessionId, task })
   }
 
   const handleSendPoll = (payload: { taskId: string; question: string }) => {
     if (!socket || !sessionId) return
+    const check = checkSessionActive()
+    if (!check.ok) {
+      toast.error(check.error || 'Cannot send poll right now')
+      return
+    }
     socket.emit('insight:send', {
       roomId: sessionId,
       taskId: payload.taskId,
@@ -591,6 +692,11 @@ function TutorInsightsPageInner() {
 
   const handleSendQuestion = (payload: { taskId: string; prompt: string }) => {
     if (!socket || !sessionId) return
+    const check = checkSessionActive()
+    if (!check.ok) {
+      toast.error(check.error || 'Cannot send question right now')
+      return
+    }
     socket.emit('insight:send', {
       roomId: sessionId,
       taskId: payload.taskId,

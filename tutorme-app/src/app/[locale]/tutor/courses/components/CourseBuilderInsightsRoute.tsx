@@ -141,7 +141,7 @@ function CourseBuilderInsightsRouteInner({
 
   const currentSession = insightsProps?.sessions?.find(s => s.id === insightsProps?.sessionId)
   const scheduledDateStr = currentSession?.scheduledAt
-  const sessionPlannedDurationMinutes = currentSession?.plannedDurationMinutes || 60
+  const sessionPlannedDurationMinutes = currentSession?.durationMinutes || 60
   let countdownText = '--:--'
   let isOverdue = false
   if (scheduledDateStr && activeMainTab === 'live') {

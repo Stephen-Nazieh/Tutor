@@ -483,6 +483,65 @@ export async function initEnhancedSocketServer(server: NetServer) {
     }
   }
 
+  // Track which sessions have already received the 5-min warning
+  const sessionAlertSent = new Set<string>()
+
+  // Session end alert: warn tutors when 5 minutes remain
+  intervalHandles.push(
+    setInterval(async () => {
+      const now = Date.now()
+      try {
+        const activeSessions = await drizzleDb
+          .select({
+            sessionId: liveSession.sessionId,
+            scheduledAt: liveSession.scheduledAt,
+            startedAt: liveSession.startedAt,
+            durationMinutes: liveSession.durationMinutes,
+          })
+          .from(liveSession)
+          .where(
+            inArray(liveSession.status, ['active', 'live', 'preparing', 'paused'])
+          )
+
+        for (const s of activeSessions) {
+          const startTime = s.startedAt
+            ? new Date(s.startedAt).getTime()
+            : s.scheduledAt
+              ? new Date(s.scheduledAt).getTime()
+              : null
+          if (!startTime) continue
+
+          const durationMs = (s.durationMinutes || 120) * 60 * 1000
+          const endTime = startTime + durationMs
+          const remaining = endTime - now
+
+          // Alert when between 5 min and 4 min 30 sec remaining (to avoid duplicate alerts)
+          if (remaining <= 5 * 60 * 1000 && remaining > 4.5 * 60 * 1000) {
+            if (!sessionAlertSent.has(s.sessionId)) {
+              sessionAlertSent.add(s.sessionId)
+              io.to(s.sessionId).emit('session:ending-soon', {
+                sessionId: s.sessionId,
+                minutesRemaining: 5,
+              })
+            }
+          }
+
+          // Auto-end sessions that have exceeded their duration by > 10 minutes
+          if (remaining < -10 * 60 * 1000) {
+            await drizzleDb
+              .update(liveSession)
+              .set({ status: 'ended', endedAt: new Date() })
+              .where(eq(liveSession.sessionId, s.sessionId))
+            io.to(s.sessionId).emit('session:ended', { sessionId: s.sessionId, reason: 'timeout' })
+            sessionAlertSent.delete(s.sessionId)
+          }
+        }
+      } catch (err) {
+        console.error('[Session Alert] Error:', err)
+      }
+    }, 30 * 1000) // Check every 30 seconds
+  )
+
   // Start cleanup intervals
   intervalHandles.push(setInterval(cleanupInactiveClassRooms, ROOM_CLEANUP_INTERVAL))
   intervalHandles.push(setInterval(cleanupInactiveDMRooms, DM_CLEANUP_INTERVAL))
@@ -924,12 +983,58 @@ export async function initEnhancedSocketServer(server: NetServer) {
       }
     )
 
+    // Helper: check if a session is currently in a state where tutors can deploy content
+    async function canDeployToSession(
+      sessionId: string,
+      source?: string
+    ): Promise<{ ok: true } | { ok: false; reason: string }> {
+      try {
+        const [sessionRec] = await drizzleDb
+          .select({
+            status: liveSession.status,
+            scheduledAt: liveSession.scheduledAt,
+            startedAt: liveSession.startedAt,
+            endedAt: liveSession.endedAt,
+          })
+          .from(liveSession)
+          .where(eq(liveSession.sessionId, sessionId))
+          .limit(1)
+
+        if (!sessionRec) return { ok: false, reason: 'Session not found' }
+
+        // Homework can be dropped even after session ends
+        if (source !== 'homework') {
+          if (sessionRec.status === 'ended') return { ok: false, reason: 'Session has ended' }
+          if (sessionRec.endedAt) return { ok: false, reason: 'Session has ended' }
+        }
+
+        // Must be active or live to deploy (or ended for homework)
+        const allowedStatuses =
+          source === 'homework'
+            ? ['active', 'live', 'preparing', 'paused', 'ended']
+            : ['active', 'live', 'preparing', 'paused']
+        if (!allowedStatuses.includes(sessionRec.status)) {
+          return { ok: false, reason: 'Session has not started yet' }
+        }
+
+        return { ok: true }
+      } catch {
+        return { ok: false, reason: 'Unable to verify session state' }
+      }
+    }
+
     socket.on('task:deploy', async (data: { roomId: string; task: LiveTask }) => {
       if (socket.data.role !== 'tutor') return
       const { roomId, task } = data
       if (!roomId || !task?.id) return
       const room = activeRooms.get(roomId)
       if (!room) return
+
+      const deployCheck = await canDeployToSession(roomId, task.source)
+      if (!deployCheck.ok) {
+        socket.emit('task:deploy:error', { error: deployCheck.reason })
+        return
+      }
 
       const normalizedTask: LiveTask = {
         id: task.id,
@@ -1006,7 +1111,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
     socket.on(
       'insight:send',
-      (data: {
+      async (data: {
         roomId: string
         taskId?: string
         type: 'poll' | 'question' | 'tutor:state_sync'
@@ -1019,6 +1124,12 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
         if (type === 'tutor:state_sync') {
           io.to(roomId).emit('insight:receive', { type, payload })
+          return
+        }
+
+        const deployCheck = await canDeployToSession(roomId)
+        if (!deployCheck.ok) {
+          socket.emit('insight:send:error', { error: deployCheck.reason })
           return
         }
 
