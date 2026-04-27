@@ -62,6 +62,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
 import { DailyVideoFrame } from '@/components/class/daily-video-frame'
 import { PDFViewer } from '@/components/pdf/PDFViewer'
+import { PDFDocument } from 'pdf-lib'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -553,7 +554,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }[]
     >([])
     const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
-    const [assetToLoad, setAssetToLoad] = useState<{
+  const [isSplitting, setIsSplitting] = useState(false)
+  const [assetToLoad, setAssetToLoad] = useState<{
       name: string
       content?: string
       url?: string
@@ -3810,7 +3812,8 @@ FEEDBACK: [your explanation]`
               <Button
                 className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:border-slate-300 hover:bg-slate-50"
                 variant="outline"
-                onClick={() => {
+                disabled={isSplitting}
+                onClick={async () => {
                   if (!assetToLoad) return
 
                   let nodeIndex = -1
@@ -3850,62 +3853,117 @@ FEEDBACK: [your explanation]`
                     pages = chunks.length > 1 ? chunks : [textToInsert]
                   }
 
-                  const newCourseBuilderNodes = [...nodes]
+                  setIsSplitting(true)
                   const newTasks: Task[] = []
-
-                  const startIndex =
-                    newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.length
+                  const newCourseBuilderNodes = [...nodes]
+                  const startIndex = newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.length
                   const groupNumber = startIndex + 1
 
-                  pages.forEach((pageContent, idx) => {
-                    const newTask = DEFAULT_TASK(startIndex + idx)
-                    newTask.title = `Task ${groupNumber}.${idx + 1}`
-                    newTask.description = pageContent
-                    if (assetToLoad.url && assetToLoad.mimeType) {
-                      const isPdf = assetToLoad.mimeType === 'application/pdf' || assetToLoad.name.toLowerCase().endsWith('.pdf')
-                      newTask.sourceDocument = {
-                        fileName: assetToLoad.name + (isPdf ? ` (Page ${idx + 1})` : ''),
-                        fileUrl: isPdf ? `${assetToLoad.url}#page=${idx + 1}` : assetToLoad.url,
-                        mimeType: assetToLoad.mimeType,
-                        uploadedAt: new Date().toISOString(),
+                  try {
+                    const isPdf = assetToLoad.mimeType === 'application/pdf' || assetToLoad.name.toLowerCase().endsWith('.pdf')
+                    
+                    if (isPdf && assetToLoad.url) {
+                      // Fetch original PDF and split it physically
+                      const pdfBytes = await fetch(assetToLoad.url).then(res => res.arrayBuffer())
+                      const pdfDoc = await PDFDocument.load(pdfBytes)
+                      const pageCount = pdfDoc.getPageCount()
+                      
+                      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+                      const csrfData = await csrfRes.json().catch(() => ({}))
+                      const csrfToken = csrfData?.token ?? null
+
+                      for (let i = 0; i < pageCount; i++) {
+                        const newPdf = await PDFDocument.create()
+                        const [copiedPage] = await newPdf.copyPages(pdfDoc, [i])
+                        newPdf.addPage(copiedPage)
+                        const splitPdfBytes = await newPdf.save()
+                        
+                        const blob = new Blob([splitPdfBytes as any], { type: 'application/pdf' })
+                        const formData = new FormData()
+                        formData.append('file', blob, `${assetToLoad.name.replace(/\.pdf$/i, '')}_page_${i + 1}.pdf`)
+
+                        const uploadRes = await fetch('/api/uploads/documents', {
+                          method: 'POST',
+                          headers: {
+                            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+                          },
+                          body: formData,
+                          credentials: 'include',
+                        })
+
+                        const uploadData = await uploadRes.json()
+                        if (!uploadRes.ok) throw new Error(uploadData.error || 'Failed to upload split page')
+
+                        const newTask = DEFAULT_TASK(startIndex + i)
+                        newTask.title = `Task ${groupNumber}.${i + 1}`
+                        newTask.description = pages[i] || `Page ${i + 1} from ${assetToLoad.name}`
+                        newTask.sourceDocument = {
+                          fileName: `${assetToLoad.name} (Page ${i + 1})`,
+                          fileUrl: uploadData.url,
+                          mimeType: 'application/pdf',
+                          uploadedAt: new Date().toISOString(),
+                        }
+                        newTasks.push(newTask)
                       }
+                    } else {
+                      // Standard non-PDF handling
+                      pages.forEach((pageContent, idx) => {
+                        const newTask = DEFAULT_TASK(startIndex + idx)
+                        newTask.title = `Task ${groupNumber}.${idx + 1}`
+                        newTask.description = pageContent
+                        if (assetToLoad.url && assetToLoad.mimeType) {
+                          newTask.sourceDocument = {
+                            fileName: assetToLoad.name,
+                            fileUrl: assetToLoad.url,
+                            mimeType: assetToLoad.mimeType,
+                            uploadedAt: new Date().toISOString(),
+                          }
+                        }
+                        newTasks.push(newTask)
+                      })
                     }
-                    newTasks.push(newTask)
-                  })
 
-                  newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(...newTasks)
+                    newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(...newTasks)
 
-                  setCourseBuilderNodes(newCourseBuilderNodes)
-                  setMainBuilderTab('task')
+                    setCourseBuilderNodes(newCourseBuilderNodes)
+                    setMainBuilderTab('task')
 
-                  if (newTasks.length > 0) {
-                    const firstNew = newTasks[0]
-                    setSelectedItem({ type: 'task', id: firstNew.id })
-                    loadTaskIntoBuilder(firstNew)
+                    if (newTasks.length > 0) {
+                      const firstNew = newTasks[0]
+                      setSelectedItem({ type: 'task', id: firstNew.id })
+                      loadTaskIntoBuilder(firstNew)
 
-                    // Show PDF by default, hide text
-                    setTaskPdfVisibleMap(prev => ({ ...prev, [firstNew.id]: true }))
-                    setTaskTextVisibleMap(prev => ({ ...prev, [firstNew.id]: false }))
+                      setTaskPdfVisibleMap(prev => ({ ...prev, [firstNew.id]: true }))
+                      setTaskTextVisibleMap(prev => ({ ...prev, [firstNew.id]: false }))
 
-                    // Auto-send first PCI message
-                    setTimeout(() => {
-                      handlePciSend(
-                        'task',
-                        `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`
-                      )
-                    }, 500)
+                      setTimeout(() => {
+                        handlePciSend(
+                          'task',
+                          `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`
+                        )
+                      }, 500)
+                    }
+
+                    toast.success(`Created ${newTasks.length} Task(s) from '${assetToLoad?.name}'`)
+                    setLoadAsModalOpen(false)
+                    setAssetToLoad(null)
+                  } catch (err: any) {
+                    console.error('PDF splitting error:', err)
+                    toast.error(err.message || 'Failed to split PDF')
+                  } finally {
+                    setIsSplitting(false)
                   }
-
-                  toast.success(`Created ${pages.length} Task(s) from '${assetToLoad?.name}'`)
-                  setLoadAsModalOpen(false)
-                  setAssetToLoad(null)
                 }}
               >
-                <ListTodo className="mt-1 h-5 w-5 shrink-0 text-orange-500" />
+                {isSplitting ? (
+                  <Loader2 className="mt-1 h-5 w-5 shrink-0 animate-spin text-orange-500" />
+                ) : (
+                  <ListTodo className="mt-1 h-5 w-5 shrink-0 text-orange-500" />
+                )}
                 <div className="flex flex-col items-start text-left">
                   <span className="font-semibold text-slate-900">Tasks</span>
                   <span className="mt-1 text-xs font-normal text-slate-500">
-                    Extract text and create one task per page
+                    {isSplitting ? 'Processing and splitting PDF...' : 'Extract text and create one task per page'}
                   </span>
                 </div>
               </Button>
