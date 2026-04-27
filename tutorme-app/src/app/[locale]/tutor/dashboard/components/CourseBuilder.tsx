@@ -1117,6 +1117,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           task.sourceDocument ? [{ id: 'source', name: task.sourceDocument.fileName }] : []
         )
         setTaskSourceDocument(task.sourceDocument)
+        setTaskBuilderActiveTab('content')
       },
       []
     )
@@ -1147,6 +1148,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           : []
       )
       setAssessmentSourceDocument(assessment.sourceDocument)
+      setAssessmentBuilderActiveTab('content')
     }, [])
 
     // Load tutor assets from API on mount
@@ -4387,8 +4389,13 @@ FEEDBACK: [your explanation]`
       {}
     )
 
-    const taskTextVisible = loadedTaskId ? (taskTextVisibleMap[loadedTaskId] ?? false) : false
-    const taskPdfVisible = loadedTaskId ? (taskPdfVisibleMap[loadedTaskId] ?? true) : true
+    const hasTaskDocument = !!taskSourceDocument
+    const taskTextVisible = loadedTaskId
+      ? (taskTextVisibleMap[loadedTaskId] ?? !hasTaskDocument)
+      : !hasTaskDocument
+    const taskPdfVisible = loadedTaskId
+      ? (taskPdfVisibleMap[loadedTaskId] ?? hasTaskDocument)
+      : hasTaskDocument
 
     const setTaskTextVisible = (val: boolean) => {
       if (loadedTaskId) setTaskTextVisibleMap(prev => ({ ...prev, [loadedTaskId]: val }))
@@ -4397,12 +4404,13 @@ FEEDBACK: [your explanation]`
       if (loadedTaskId) setTaskPdfVisibleMap(prev => ({ ...prev, [loadedTaskId]: val }))
     }
 
+    const hasAssessmentDocument = !!assessmentSourceDocument
     const assessmentTextVisible = loadedAssessmentId
-      ? (assessmentTextVisibleMap[loadedAssessmentId] ?? false)
-      : false
+      ? (assessmentTextVisibleMap[loadedAssessmentId] ?? !hasAssessmentDocument)
+      : !hasAssessmentDocument
     const assessmentPdfVisible = loadedAssessmentId
-      ? (assessmentPdfVisibleMap[loadedAssessmentId] ?? true)
-      : true
+      ? (assessmentPdfVisibleMap[loadedAssessmentId] ?? hasAssessmentDocument)
+      : hasAssessmentDocument
 
     const setAssessmentTextVisible = (val: boolean) => {
       if (loadedAssessmentId)
@@ -4412,6 +4420,38 @@ FEEDBACK: [your explanation]`
       if (loadedAssessmentId)
         setAssessmentPdfVisibleMap(prev => ({ ...prev, [loadedAssessmentId]: val }))
     }
+
+    // Auto-switch task panels based on document presence
+    useEffect(() => {
+      if (loadedTaskId) {
+        setTaskTextVisibleMap(prev => {
+          const expected = !hasTaskDocument
+          if (prev[loadedTaskId] === expected) return prev
+          return { ...prev, [loadedTaskId]: expected }
+        })
+        setTaskPdfVisibleMap(prev => {
+          const expected = hasTaskDocument
+          if (prev[loadedTaskId] === expected) return prev
+          return { ...prev, [loadedTaskId]: expected }
+        })
+      }
+    }, [loadedTaskId, hasTaskDocument])
+
+    // Auto-switch assessment panels based on document presence
+    useEffect(() => {
+      if (loadedAssessmentId) {
+        setAssessmentTextVisibleMap(prev => {
+          const expected = !hasAssessmentDocument
+          if (prev[loadedAssessmentId] === expected) return prev
+          return { ...prev, [loadedAssessmentId]: expected }
+        })
+        setAssessmentPdfVisibleMap(prev => {
+          const expected = hasAssessmentDocument
+          if (prev[loadedAssessmentId] === expected) return prev
+          return { ...prev, [loadedAssessmentId]: expected }
+        })
+      }
+    }, [loadedAssessmentId, hasAssessmentDocument])
 
     const handleSaveAll = () => {
       if (!onSave) return
