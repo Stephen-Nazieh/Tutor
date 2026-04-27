@@ -4024,97 +4024,175 @@ FEEDBACK: [your explanation]`
               <Button
                 className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:border-slate-300 hover:bg-slate-50"
                 variant="outline"
-                onClick={() => {
+                disabled={isSplitting}
+                onClick={async () => {
                   if (!assetToLoad) return
-                  const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
+                  setIsSplitting(true)
 
-                  let pages: string[] = []
-                  if (textToInsert.includes('\f')) {
-                    pages = textToInsert.split('\f').filter(p => p.trim())
-                  } else if (textToInsert.includes('--- Page')) {
-                    pages = textToInsert.split(/--- Page \d+ ---/).filter(p => p.trim())
-                  } else {
-                    const chunks = textToInsert.split(/\n\n+/).filter(p => p.trim().length > 50)
-                    pages = chunks.length > 1 ? chunks : [textToInsert]
-                  }
+                  try {
+                    const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
-                  const { nodeId, lessonId } = ensureFirstLessonContext()
-                  const nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                  const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                    let pages: string[] = []
+                    let pdfPagesUrls: string[] = []
 
-                  const newTask = DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
-                  newTask.description = pages[0] || textToInsert
-                  if (assetToLoad.url && assetToLoad.mimeType) {
-                    newTask.sourceDocument = {
-                      fileName: assetToLoad.name,
-                      fileUrl: assetToLoad.url,
-                      mimeType: assetToLoad.mimeType,
-                      uploadedAt: new Date().toISOString(),
+                    const isPdf = assetToLoad.mimeType === 'application/pdf' || assetToLoad.name.toLowerCase().endsWith('.pdf')
+
+                    if (isPdf && assetToLoad.url) {
+                      // Fetch original PDF and split it physically
+                      const pdfBytes = await fetch(assetToLoad.url).then(res => res.arrayBuffer())
+                      const pdfDoc = await PDFDocument.load(pdfBytes)
+                      const pageCount = pdfDoc.getPageCount()
+
+                      const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+                      const csrfData = await csrfRes.json().catch(() => ({}))
+                      const csrfToken = csrfData?.token ?? null
+
+                      for (let i = 0; i < pageCount; i++) {
+                        const newPdf = await PDFDocument.create()
+                        const [copiedPage] = await newPdf.copyPages(pdfDoc, [i])
+                        newPdf.addPage(copiedPage)
+                        const splitPdfBytes = await newPdf.save()
+
+                        const blob = new Blob([splitPdfBytes as any], { type: 'application/pdf' })
+                        const formData = new FormData()
+                        formData.append('file', blob, `${assetToLoad.name.replace(/\.pdf$/i, '')}_page_${i + 1}.pdf`)
+
+                        const uploadRes = await fetch('/api/uploads/documents', {
+                          method: 'POST',
+                          headers: {
+                            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+                          },
+                          body: formData,
+                          credentials: 'include',
+                        })
+
+                        const uploadData = await uploadRes.json()
+                        if (!uploadRes.ok) throw new Error(uploadData.error || 'Failed to upload split page')
+
+                        pdfPagesUrls.push(uploadData.url)
+                      }
+
+                      // Dummy text to represent pages since we use physical PDF URLs
+                      pages = Array(pageCount).fill('').map((_, i) => `Page ${i + 1} from ${assetToLoad.name}`)
+                    } else {
+                      if (textToInsert.includes('\f')) {
+                        pages = textToInsert.split('\f').filter(p => p.trim())
+                      } else if (textToInsert.includes('--- Page')) {
+                        pages = textToInsert.split(/--- Page \d+ ---/).filter(p => p.trim())
+                      } else {
+                        const chunks = textToInsert.split(/\n\n+/).filter(p => p.trim().length > 50)
+                        pages = chunks.length > 1 ? chunks : [textToInsert]
+                      }
                     }
-                  }
 
-                  const extensions = pages.slice(1).map((pageContent, idx) => ({
-                    id: `ext-${Date.now()}-${idx}`,
-                    name: `Extension ${idx + 1}`,
-                    description: '',
-                    content: pageContent,
-                    pci: '',
-                  }))
+                    const { nodeId, lessonId } = ensureFirstLessonContext()
+                    const nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                    const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
 
-                  newTask.extensions = extensions
+                    const newTask = DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
+                    newTask.description = pages[0] || textToInsert
+                    
+                    if (isPdf && pdfPagesUrls.length > 0) {
+                      newTask.sourceDocument = {
+                        fileName: `${assetToLoad.name} (Page 1)`,
+                        fileUrl: pdfPagesUrls[0],
+                        mimeType: 'application/pdf',
+                        uploadedAt: new Date().toISOString(),
+                      }
+                    } else if (assetToLoad.url && assetToLoad.mimeType) {
+                      newTask.sourceDocument = {
+                        fileName: assetToLoad.name,
+                        fileUrl: assetToLoad.url,
+                        mimeType: assetToLoad.mimeType,
+                        uploadedAt: new Date().toISOString(),
+                      }
+                    }
 
-                  const newCourseBuilderNodes = [...nodes]
-                  newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(newTask)
-                  setCourseBuilderNodes(newCourseBuilderNodes)
-                  setMainBuilderTab('task')
-                  setSelectedItem({ type: 'task', id: newTask.id })
+                    const extensions = pages.slice(1).map((pageContent, idx) => {
+                      const ext: any = {
+                        id: `ext-${Date.now()}-${idx}`,
+                        name: `Extension ${idx + 1}`,
+                        description: '',
+                        content: pageContent,
+                        pci: '',
+                      }
 
-                  setTaskBuilder({
-                    title: newTask.title,
-                    taskContent: newTask.description,
-                    taskPci: '',
-                    details: '',
-                    extensions: extensions,
-                    activeExtensionId: null,
-                  })
-                  setLoadedTaskId(newTask.id)
+                      if (isPdf && pdfPagesUrls[idx + 1]) {
+                        ext.sourceDocument = {
+                          fileName: `${assetToLoad.name} (Page ${idx + 2})`,
+                          fileUrl: pdfPagesUrls[idx + 1],
+                          mimeType: 'application/pdf',
+                          uploadedAt: new Date().toISOString(),
+                        }
+                      }
 
-                  const extPciMessages: Record<
-                    string,
-                    { role: 'user' | 'assistant'; content: string }[]
-                  > = {}
-                  extensions.forEach(ext => {
-                    extPciMessages[ext.id] = []
-                  })
-                  setTaskExtensionPciMessages(extPciMessages)
-                  setTaskExtensionPciInputs(
-                    extensions.reduce((acc, ext) => ({ ...acc, [ext.id]: '' }), {})
-                  )
+                      return ext
+                    })
 
-                  // Show PDF by default, hide text
-                  setTaskPdfVisibleMap(prev => ({ ...prev, [newTask.id]: true }))
-                  setTaskTextVisibleMap(prev => ({ ...prev, [newTask.id]: false }))
+                    newTask.extensions = extensions
 
-                  toast.success(
-                    `Created Task with ${extensions.length} extension(s) from '${assetToLoad?.name}'`
-                  )
-                  setLoadAsModalOpen(false)
-                  setAssetToLoad(null)
+                    const newCourseBuilderNodes = [...nodes]
+                    newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(newTask)
+                    setCourseBuilderNodes(newCourseBuilderNodes)
+                    setMainBuilderTab('task')
+                    setSelectedItem({ type: 'task', id: newTask.id })
 
-                  // Auto-send first PCI message
-                  setTimeout(() => {
-                    handlePciSend(
-                      'task',
-                      `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`
+                    setTaskBuilder({
+                      title: newTask.title,
+                      taskContent: newTask.description,
+                      taskPci: '',
+                      details: '',
+                      extensions: extensions,
+                      activeExtensionId: null,
+                    })
+                    setLoadedTaskId(newTask.id)
+
+                    const extPciMessages: Record<
+                      string,
+                      { role: 'user' | 'assistant'; content: string }[]
+                    > = {}
+                    extensions.forEach(ext => {
+                      extPciMessages[ext.id] = []
+                    })
+                    setTaskExtensionPciMessages(extPciMessages)
+                    setTaskExtensionPciInputs(
+                      extensions.reduce((acc, ext) => ({ ...acc, [ext.id]: '' }), {})
                     )
-                  }, 500)
+
+                    // Show PDF by default, hide text
+                    setTaskPdfVisibleMap(prev => ({ ...prev, [newTask.id]: true }))
+                    setTaskTextVisibleMap(prev => ({ ...prev, [newTask.id]: false }))
+
+                    toast.success(
+                      `Created Task with ${extensions.length} extension(s) from '${assetToLoad?.name}'`
+                    )
+                    setLoadAsModalOpen(false)
+                    setAssetToLoad(null)
+
+                    // Auto-send first PCI message
+                    setTimeout(() => {
+                      handlePciSend(
+                        'task',
+                        `I just uploaded a document named '${assetToLoad?.name}'. Please provide a brief summary of its content, especially noting any diagrams or images if applicable, and ask me to confirm if you got it right so we can build a rubric together.`
+                      )
+                    }, 500)
+                  } catch (err: any) {
+                    console.error('Task + Extensions splitting error:', err)
+                    toast.error(err.message || 'Failed to process document')
+                  } finally {
+                    setIsSplitting(false)
+                  }
                 }}
               >
-                <Layers2 className="mt-1 h-5 w-5 shrink-0 text-green-500" />
+                {isSplitting ? (
+                  <Loader2 className="mt-1 h-5 w-5 shrink-0 animate-spin text-green-500" />
+                ) : (
+                  <Layers2 className="mt-1 h-5 w-5 shrink-0 text-green-500" />
+                )}
                 <div className="flex flex-col items-start text-left">
                   <span className="font-semibold text-slate-900">Task + Extensions</span>
                   <span className="mt-1 text-xs font-normal text-slate-500">
-                    First page as task, remaining as extensions
+                    {isSplitting ? 'Processing and splitting PDF...' : 'First page as task, remaining as extensions'}
                   </span>
                 </div>
               </Button>
