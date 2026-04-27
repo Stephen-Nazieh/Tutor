@@ -813,6 +813,56 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       onMainTabChange?.(mainTab)
     }, [mainTab, onMainTabChange])
 
+    // Reset builder to blank slate whenever the builder tab is clicked
+    useEffect(() => {
+      if (mainTab !== 'builder') return
+      setLoadedTaskId(null)
+      setLoadedAssessmentId(null)
+      setTaskBuilder({
+        title: '',
+        taskContent: '',
+        taskPci: '',
+        details: '',
+        extensions: [],
+        activeExtensionId: null,
+      })
+      setAssessmentBuilder({
+        title: '',
+        taskContent: '',
+        taskPci: '',
+        details: '',
+        extensions: [],
+        activeExtensionId: null,
+      })
+      setTaskBuilderActiveTab('content')
+      setAssessmentBuilderActiveTab('content')
+      setMainBuilderTab('task')
+      setSelectedItem(null)
+      setTaskSourceDocument(undefined)
+      setAssessmentSourceDocument(undefined)
+      setTaskDmiItems([])
+      setAssessmentDmiItems([])
+      setTaskDmiVersions([])
+      setAssessmentDmiVersions([])
+      setShowDmiVersionList(false)
+      setPreviewDmiVersion(null)
+      setTaskPciMessages([])
+      setTaskExtensionPciMessages({})
+      setTaskExtensionPciInputs({})
+      setTaskPciInputMap({})
+      setAssessmentPciMessagesMap({})
+      setAssessmentPciInputMap({})
+      setTaskPciLoading(false)
+      setAssessmentPciLoadingMap({})
+      setTaskPciErrorHint('')
+      setAssessmentPciErrorHintMap({})
+      setAiAssistOpen(false)
+      setTaskAiMessages([])
+      setAssessmentAiMessages([])
+      setTaskUploadedFiles([])
+      setAssessmentUploadedFiles([])
+    }, [mainTab])
+
     useEffect(() => {
       if (!insightsProps) return
       if (mainTab === 'test-pci') {
