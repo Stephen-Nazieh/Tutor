@@ -7169,7 +7169,7 @@ FEEDBACK: [your explanation]`
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="pci"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <Brain className="mr-2 h-4 w-4 shrink-0" />
                                         PCI
@@ -7711,7 +7711,7 @@ FEEDBACK: [your explanation]`
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="pci"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <Brain className="mr-2 h-4 w-4 shrink-0" />
                                         PCI

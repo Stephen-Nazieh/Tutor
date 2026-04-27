@@ -583,7 +583,7 @@ function StudentFeedbackContent() {
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-gray-50">
         <div className="flex h-full w-full min-w-0 flex-1 flex-col bg-gray-50/50">
           {/* Content Wrapper */}
-          <div className="flex w-full flex-1 items-stretch overflow-hidden">
+          <div className="relative flex w-full flex-1 items-stretch gap-4 overflow-hidden px-4 py-4">
             {/* Floating collapsed/expanded pill */}
             <div
               className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
@@ -601,10 +601,10 @@ function StudentFeedbackContent() {
             {/* Left Panel */}
             {!leftPanelHidden && (
               <div
-                className="relative z-40 flex h-full shrink-0 flex-col border-r border-gray-200 bg-white"
+                className="relative z-40 flex h-full shrink-0 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)]"
                 style={{ width: leftPanelWidth }}
               >
-          <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-[#E5E7EB] px-4">
+          <div className="flex shrink-0 items-center justify-between border-b border-[#E5E7EB] px-4 py-3">
             <h2 className="text-sm font-semibold text-[#1F2933]">Directory</h2>
           </div>
           <ScrollArea className="flex-1 p-3">
@@ -1023,7 +1023,7 @@ function StudentFeedbackContent() {
 
         <div className="flex flex-1 flex-col overflow-hidden">
           <div className="flex flex-1 flex-col overflow-y-auto bg-gray-50/50">
-            <div className="px-4 pb-4 pt-4 sm:px-6">
+            <div className="pb-4">
             <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
@@ -1100,7 +1100,7 @@ function StudentFeedbackContent() {
           </div>
         )}
 
-        <div className="flex-1 p-4 pt-4 sm:p-6">
+        <div className="flex-1">
           <div className="flex h-full flex-col gap-6">
             <Tabs defaultValue="task" className="flex flex-1 flex-col">
               {portalTarget ? (
@@ -1279,7 +1279,7 @@ function StudentFeedbackContent() {
       </div>
         
         {/* Persistent Right Panel */}
-        <div className="relative flex h-full w-[340px] shrink-0 flex-col overflow-hidden border-l border-gray-200 bg-white shadow-[-8px_0_24px_rgba(0,0,0,0.05)] transition-all sm:w-[380px] lg:w-[400px]">
+        <div className="relative flex h-full w-[340px] shrink-0 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all sm:w-[380px] lg:w-[400px]">
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
             <div className="flex w-full items-center gap-2 rounded-lg bg-gray-100 p-1">
               <Button
