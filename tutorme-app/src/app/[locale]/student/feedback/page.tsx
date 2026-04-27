@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, Suspense, type ComponentProps } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback, Suspense, type ComponentProps } from 'react'
 import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
@@ -508,6 +508,28 @@ function StudentFeedbackContent() {
     }
   }
 
+  const handleSelectDirectoryItem = useCallback((item: any) => {
+    if (item.type === 'task' || item.type === 'assessment' || item.type === 'homework') {
+      try {
+        const parsed = typeof item.content === 'string' ? JSON.parse(item.content) : item.content
+        parsed.title = item.title
+        parsed.id = item.itemId || item.id // Use itemId or fallback to id
+
+        setTasks(prev => {
+          if (!prev.some(t => t.id === parsed.id)) {
+            return [...prev, parsed]
+          }
+          return prev
+        })
+        setActiveTaskId(parsed.id)
+        setUnseenTaskIds(prev => prev.filter(id => id !== parsed.id))
+        setShowTasksPanel(false)
+      } catch (e) {
+        console.error('Failed to parse task content', e)
+      }
+    }
+  }, [])
+
   const handleSelectTask = (taskId: string) => {
     setActiveTaskId(taskId)
     setUnseenTaskIds(prev => prev.filter(id => id !== taskId))
@@ -661,25 +683,25 @@ function StudentFeedbackContent() {
                                       </button>
                                       {foldersOpen.tasks && (
                                         <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                          {tasks.length === 0 && (
+                                          {(!courses.tasks || courses.tasks.length === 0) && (
                                             <span className="px-2 py-1 text-xs text-slate-500">
                                               Empty folder
                                             </span>
                                           )}
-                                          {[...tasks].reverse().map(task => (
+                                          {courses.tasks && [...courses.tasks].reverse().map(task => (
                                             <button
                                               key={task.id}
-                                              onClick={() => handleSelectTask(task.id)}
+                                              onClick={() => handleSelectDirectoryItem(task)}
                                               className={cn(
                                                 'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
-                                                activeTaskId === task.id
+                                                activeTaskId === (task.itemId || task.id)
                                                   ? 'bg-blue-50 font-medium text-blue-700'
                                                   : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                                               )}
                                             >
                                               <FileText className="h-3.5 w-3.5 shrink-0" />
                                               <span className="truncate">{task.title}</span>
-                                              {unseenTaskIds.includes(task.id) && (
+                                              {unseenTaskIds.includes(task.itemId || task.id) && (
                                                 <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
                                               )}
                                             </button>
@@ -714,9 +736,26 @@ function StudentFeedbackContent() {
                                       </button>
                                       {foldersOpen.assessments && (
                                         <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                          <span className="px-2 py-1 text-xs text-slate-500">
-                                            Empty folder
-                                          </span>
+                                          {(!courses.assessments || courses.assessments.length === 0) && (
+                                            <span className="px-2 py-1 text-xs text-slate-500">
+                                              Empty folder
+                                            </span>
+                                          )}
+                                          {courses.assessments && [...courses.assessments].reverse().map(task => (
+                                            <button
+                                              key={task.id}
+                                              onClick={() => handleSelectDirectoryItem(task)}
+                                              className={cn(
+                                                'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                activeTaskId === (task.itemId || task.id)
+                                                  ? 'bg-purple-50 font-medium text-purple-700'
+                                                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                              )}
+                                            >
+                                              <FileText className="h-3.5 w-3.5 shrink-0 text-purple-400" />
+                                              <span className="truncate">{task.title}</span>
+                                            </button>
+                                          ))}
                                         </div>
                                       )}
                                     </div>
@@ -747,9 +786,26 @@ function StudentFeedbackContent() {
                                       </button>
                                       {foldersOpen.homework && (
                                         <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                          <span className="px-2 py-1 text-xs text-slate-500">
-                                            Empty folder
-                                          </span>
+                                          {(!courses.homework || courses.homework.length === 0) && (
+                                            <span className="px-2 py-1 text-xs text-slate-500">
+                                              Empty folder
+                                            </span>
+                                          )}
+                                          {courses.homework && [...courses.homework].reverse().map(task => (
+                                            <button
+                                              key={task.id}
+                                              onClick={() => handleSelectDirectoryItem(task)}
+                                              className={cn(
+                                                'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                activeTaskId === (task.itemId || task.id)
+                                                  ? 'bg-emerald-50 font-medium text-emerald-700'
+                                                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                              )}
+                                            >
+                                              <FileText className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                                              <span className="truncate">{task.title}</span>
+                                            </button>
+                                          ))}
                                         </div>
                                       )}
                                     </div>

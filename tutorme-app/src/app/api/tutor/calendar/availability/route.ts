@@ -139,6 +139,21 @@ export const POST = withAuth(
           validFrom: data.validFrom ? new Date(data.validFrom) : null,
           validUntil: data.validUntil ? new Date(data.validUntil) : null,
         })
+        .onConflictDoUpdate({
+          target: [
+            calendarAvailability.tutorId,
+            calendarAvailability.dayOfWeek,
+            calendarAvailability.startTime,
+            calendarAvailability.endTime,
+          ],
+          set: {
+            isAvailable: data.isAvailable,
+            timezone: data.timezone,
+            validFrom: data.validFrom ? new Date(data.validFrom) : null,
+            validUntil: data.validUntil ? new Date(data.validUntil) : null,
+            updatedAt: new Date(),
+          },
+        })
         .returning()
       const availability = created!
 

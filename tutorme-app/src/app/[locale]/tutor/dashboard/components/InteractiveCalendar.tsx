@@ -332,9 +332,10 @@ export function InteractiveCalendar({
               slot.dayOfWeek === block.dayOfWeek &&
               slot.startTime === block.startTime &&
               slot.endTime === block.endTime &&
-              slot.isAvailable === true
+              slot.isAvailable === false
           )
-          return { ...block, isAvailable: found }
+          // Default to true, unless explicitly marked as false in the DB
+          return { ...block, isAvailable: !found }
         })
         setAvailability(normalized)
       } catch {
@@ -545,7 +546,7 @@ export function InteractiveCalendar({
       const csrfToken = csrfData?.token ?? null
 
       const res = await fetch('/api/tutor/calendar/availability', {
-        method: nextValue ? 'POST' : 'DELETE',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
