@@ -490,6 +490,29 @@ function StudentFeedbackContent() {
   const feedbackPolls = activeTask?.polls ?? []
   const feedbackQuestions = activeTask?.questions ?? []
 
+  let latestInteractionType: 'poll' | 'question' | null = null
+  let maxCreatedAt = 0
+  
+  feedbackPolls.forEach(p => {
+    if (p.createdAt > maxCreatedAt) {
+      maxCreatedAt = p.createdAt
+      latestInteractionType = 'poll'
+    }
+  })
+  
+  feedbackQuestions.forEach(q => {
+    if (q.createdAt > maxCreatedAt) {
+      maxCreatedAt = q.createdAt
+      latestInteractionType = 'question'
+    }
+  })
+  
+  const interactionsTitle = latestInteractionType === 'poll' 
+    ? 'Interactions: Poll' 
+    : latestInteractionType === 'question' 
+      ? 'Interactions: Question' 
+      : 'Interactions'
+
   const handleRequestMaterials = async (sessionId: string) => {
     setRequestingSessionId(sessionId)
     try {
@@ -1313,11 +1336,7 @@ function StudentFeedbackContent() {
               <div className="space-y-6">
                 <div className="mb-2 border-b border-gray-100 pb-2">
                   <h2 className="text-base font-bold text-gray-900">
-                    {feedbackPolls.length > 0 && feedbackQuestions.length === 0 
-                      ? 'Interactions: Polls' 
-                      : feedbackQuestions.length > 0 && feedbackPolls.length === 0 
-                        ? 'Interactions: Questions' 
-                        : 'Interactions'}
+                    {interactionsTitle}
                   </h2>
                 </div>
                 {!activeTask && (
@@ -1395,55 +1414,6 @@ function StudentFeedbackContent() {
                     )}
                   </div>
                 )}
-
-                <div className="border-t pt-4">
-                  <p className="mb-2 text-xs font-semibold uppercase text-gray-500">Class Chat</p>
-                  <ScrollArea className="h-48 rounded-lg border bg-gray-50 p-2">
-                    <div className="space-y-2">
-                      {chatMessages.length === 0 && (
-                        <p className="text-center text-xs text-gray-400">No messages yet.</p>
-                      )}
-                      {chatMessages.map(msg => (
-                        <div key={msg.id} className="flex flex-col text-sm">
-                          <span className="text-[10px] text-gray-500">{msg.name}</span>
-                          <div className="w-fit max-w-[90%] rounded-lg bg-white px-2.5 py-1.5 text-xs text-gray-800 shadow-sm">
-                            {msg.text}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                  <div className="mt-2 flex items-end gap-2">
-                    <Input
-                      placeholder="Type a message..."
-                      value={chatInput}
-                      onChange={e => setChatInput(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault()
-                          if (chatInput.trim() && socket) {
-                            socket.emit('chat_message', { text: chatInput.trim() })
-                            setChatInput('')
-                          }
-                        }
-                      }}
-                      className="min-h-[36px] flex-1 text-xs"
-                    />
-                    <Button
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      disabled={!chatInput.trim() || !socket}
-                      onClick={() => {
-                        if (chatInput.trim() && socket) {
-                          socket.emit('chat_message', { text: chatInput.trim() })
-                          setChatInput('')
-                        }
-                      }}
-                    >
-                      <Send className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                </div>
               </div>
             )}
           </div>
