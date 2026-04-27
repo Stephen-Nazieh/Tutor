@@ -3862,9 +3862,10 @@ FEEDBACK: [your explanation]`
                     newTask.title = `Task ${groupNumber}.${idx + 1}`
                     newTask.description = pageContent
                     if (assetToLoad.url && assetToLoad.mimeType) {
+                      const isPdf = assetToLoad.mimeType === 'application/pdf' || assetToLoad.name.toLowerCase().endsWith('.pdf')
                       newTask.sourceDocument = {
-                        fileName: assetToLoad.name,
-                        fileUrl: assetToLoad.url,
+                        fileName: assetToLoad.name + (isPdf ? ` (Page ${idx + 1})` : ''),
+                        fileUrl: isPdf ? `${assetToLoad.url}#page=${idx + 1}` : assetToLoad.url,
                         mimeType: assetToLoad.mimeType,
                         uploadedAt: new Date().toISOString(),
                       }
@@ -4680,7 +4681,7 @@ FEEDBACK: [your explanation]`
 
             {!leftPanelHidden && (
               <div
-                className="absolute inset-y-0 left-0 z-40 flex min-h-0 flex-col"
+                className="relative z-40 flex h-full min-h-0 shrink-0 flex-col"
                 ref={leftPanelRef}
                 style={{ width: leftPanelWidth }}
               >
@@ -6744,7 +6745,9 @@ FEEDBACK: [your explanation]`
                                                   <div className="h-full w-full pr-1">
                                                     {doc?.fileUrl ? (
                                                       <iframe
-                                                        src={`${doc.fileUrl}#toolbar=0&navpanes=0`}
+                                                        src={doc.fileUrl.includes('#') 
+                                                          ? `${doc.fileUrl}&toolbar=0&navpanes=0` 
+                                                          : `${doc.fileUrl}#toolbar=0&navpanes=0`}
                                                         className="h-full w-full rounded-md border-0"
                                                         title="PDF Viewer"
                                                       />

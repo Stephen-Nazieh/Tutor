@@ -97,7 +97,7 @@ function StudentFeedbackContent() {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
   const [requestingSessionId, setRequestingSessionId] = useState<string | null>(null)
   const [showTasksPanel, setShowTasksPanel] = useState(false)
-  const [showFeedbackPanel, setShowFeedbackPanel] = useState(false)
+  const [rightPanelTab, setRightPanelTab] = useState<'dmi' | 'interactions'>('interactions')
   const [unseenTaskIds, setUnseenTaskIds] = useState<string[]>([])
   const [questionDrafts, setQuestionDrafts] = useState<Record<string, string>>({})
   const [chatInput, setChatInput] = useState('')
@@ -942,8 +942,9 @@ function StudentFeedbackContent() {
         </div>
       )}
 
-      <div className="flex flex-1 flex-col overflow-y-auto">
-        <div className="bg-[#fafafc] px-4 pb-2 pt-4 sm:px-6">
+      <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-y-auto">
+          <div className="bg-[#fafafc] px-4 pb-2 pt-4 sm:px-6">
           <div className="flex w-full flex-col gap-4">
             <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
@@ -967,20 +968,12 @@ function StudentFeedbackContent() {
                     className="gap-2 font-medium text-slate-700 hover:text-slate-900"
                   >
                     <ListTodo className="h-4 w-4" />
-                    Directory
+                    Lessons
                     {unseenTaskIds.length > 0 && (
                       <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
                         {unseenTaskIds.length}
                       </span>
                     )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowFeedbackPanel(true)}
-                    className="gap-2 font-medium text-slate-700 hover:text-slate-900"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                    Feedback
                   </Button>
                 </div>
               </div>
@@ -1080,95 +1073,57 @@ function StudentFeedbackContent() {
                   </CardHeader>
                   <CardContent className="h-[calc(100vh-280px)] min-h-[600px] flex-1 space-y-4 overflow-hidden p-0">
                     {activeTask ? (
-                      <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+                      <div className="h-full w-full">
                         {(activeTask.sourceDocument || activeTask.content) && (
-                          <ResizablePanel
-                            defaultSize={activeTask.dmiItems?.length ? 50 : 100}
-                            minSize={20}
-                          >
-                            <div className="h-full w-full overflow-y-auto p-4">
-                              {activeTask.sourceDocument ? (
-                                <div className="h-full space-y-2">
-                                  <p className="text-xs font-semibold uppercase text-gray-500">
-                                    Document
-                                  </p>
-                                  {activeTask.sourceDocument.mimeType === 'application/pdf' ||
-                                  !activeTask.sourceDocument.mimeType ||
-                                  !activeTask.sourceDocument.mimeType ? (
-                                    <div className="h-[calc(100%-24px)] w-full overflow-hidden rounded border">
-                                      <iframe
-                                        src={`${activeTask.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
-                                        title={activeTask.sourceDocument.fileName}
-                                        className="h-full w-full"
-                                      />
-                                    </div>
-                                  ) : activeTask.sourceDocument.mimeType.startsWith('image/') ? (
-                                    <div className="overflow-hidden rounded border">
-                                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                                      <img
-                                        src={activeTask.sourceDocument.fileUrl}
-                                        alt={activeTask.sourceDocument.fileName}
-                                        className="h-auto max-h-[500px] w-full object-contain"
-                                      />
-                                    </div>
-                                  ) : (
-                                    <div className="flex items-center gap-2 rounded border bg-white p-4">
-                                      <FileText className="h-5 w-5 text-blue-600" />
-                                      <a
-                                        href={activeTask.sourceDocument.fileUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="text-sm text-blue-600 underline"
-                                      >
-                                        Open {activeTask.sourceDocument.fileName}
-                                      </a>
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
-                                  <p className="whitespace-pre-wrap">{activeTask.content}</p>
-                                </div>
-                              )}
-                            </div>
-                          </ResizablePanel>
-                        )}
-
-                        {(activeTask.sourceDocument || activeTask.content) &&
-                        activeTask.dmiItems?.length ? (
-                          <ResizableHandle withHandle />
-                        ) : null}
-
-                        {activeTask.dmiItems && activeTask.dmiItems.length > 0 && (
-                          <ResizablePanel
-                            defaultSize={activeTask.sourceDocument || activeTask.content ? 50 : 100}
-                            minSize={20}
-                          >
-                            <div className="h-full w-full overflow-y-auto bg-gray-50/50 p-4">
-                              <div className="space-y-2">
+                          <div className="h-full w-full overflow-y-auto p-4">
+                            {activeTask.sourceDocument ? (
+                              <div className="h-full space-y-2">
                                 <p className="text-xs font-semibold uppercase text-gray-500">
-                                  Task Prompts (DMI)
+                                  Document
                                 </p>
-                                <div className="space-y-2">
-                                  {activeTask.dmiItems.map(item => (
-                                    <div
-                                      key={item.id}
-                                      className="rounded-lg border bg-white p-3 shadow-sm"
+                                {activeTask.sourceDocument.mimeType === 'application/pdf' ||
+                                !activeTask.sourceDocument.mimeType ||
+                                !activeTask.sourceDocument.mimeType ? (
+                                  <div className="h-[calc(100%-24px)] w-full overflow-hidden rounded border">
+                                    <iframe
+                                      src={activeTask.sourceDocument.fileUrl.includes('#') 
+                                        ? `${activeTask.sourceDocument.fileUrl}&toolbar=0&navpanes=0` 
+                                        : `${activeTask.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
+                                      title={activeTask.sourceDocument.fileName}
+                                      className="h-full w-full"
+                                    />
+                                  </div>
+                                ) : activeTask.sourceDocument.mimeType.startsWith('image/') ? (
+                                  <div className="overflow-hidden rounded border">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
+                                      src={activeTask.sourceDocument.fileUrl}
+                                      alt={activeTask.sourceDocument.fileName}
+                                      className="h-auto max-h-[500px] w-full object-contain"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2 rounded border bg-white p-4">
+                                    <FileText className="h-5 w-5 text-blue-600" />
+                                    <a
+                                      href={activeTask.sourceDocument.fileUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-sm text-blue-600 underline"
                                     >
-                                      <p className="mb-1 text-xs font-semibold text-blue-600">
-                                        Q{item.questionNumber}
-                                      </p>
-                                      <p className="text-sm font-medium text-gray-800">
-                                        {item.questionText}
-                                      </p>
-                                    </div>
-                                  ))}
-                                </div>
+                                      Open {activeTask.sourceDocument.fileName}
+                                    </a>
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                          </ResizablePanel>
+                            ) : (
+                              <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
+                                <p className="whitespace-pre-wrap">{activeTask.content}</p>
+                              </div>
+                            )}
+                          </div>
                         )}
-                      </ResizablePanelGroup>
+                      </div>
                     ) : (
                       <div className="flex h-full items-center justify-center p-8">
                         <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
@@ -1244,127 +1199,145 @@ function StudentFeedbackContent() {
           </div>
         </div>
       </div>
-
-      <Sheet open={showTasksPanel} onOpenChange={setShowTasksPanel}>
-        <SheetContent side="right" className="w-[340px] sm:w-[380px]">
-          <SheetHeader>
-            <SheetTitle>Tasks & Assessments</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4 space-y-2">
-            {tasks.length === 0 && <p className="text-sm text-gray-500">No tasks deployed yet.</p>}
-            {[...tasks].reverse().map(task => (
-              <button
-                key={task.id}
-                type="button"
-                onClick={() => handleSelectTask(task.id)}
-                className={`flex w-full flex-col gap-1 rounded-lg border px-3 py-2 text-left transition-colors ${
-                  activeTaskId === task.id
-                    ? 'border-blue-200 bg-blue-50'
-                    : 'border-gray-200 hover:border-blue-100 hover:bg-blue-50/40'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-medium text-gray-900">{task.title}</span>
-                  {unseenTaskIds.includes(task.id) && (
-                    <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
-                      New
-                    </span>
-                  )}
-                </div>
-                <span className="text-xs text-gray-500">
-                  Deployed {new Date(task.deployedAt).toLocaleTimeString()}
-                </span>
-              </button>
-            ))}
-          </div>
-        </SheetContent>
-      </Sheet>
-
-      <Sheet open={showFeedbackPanel} onOpenChange={setShowFeedbackPanel}>
-        <SheetContent side="right" className="w-full sm:w-[50vw] sm:max-w-[50vw]">
-          <SheetHeader>
-            <SheetTitle>Feedback</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4 space-y-4">
-            {!activeTask && (
-              <p className="text-sm text-gray-500">Select a task to see feedback prompts.</p>
-            )}
-            {activeTask && (
-              <div className="space-y-6">
-                <div>
-                  <p className="text-xs font-semibold uppercase text-gray-500">Active Task</p>
-                  <p className="text-sm font-medium text-gray-900">{activeTask.title}</p>
-                </div>
-
-                {feedbackPolls.length > 0 && (
-                  <div className="space-y-3">
-                    <p className="text-xs font-semibold uppercase text-gray-500">Polls</p>
-                    {feedbackPolls.map(poll => {
-                      const selectedValue = poll.responses.find(
-                        response => response.studentId === session?.user?.id
-                      )?.value
-                      return (
-                        <div key={poll.id} className="rounded-lg border bg-white p-4">
-                          <p className="text-sm font-medium text-gray-900">{poll.question}</p>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {poll.options.map(option => (
-                              <Button
-                                key={`${poll.id}-${option}`}
-                                variant={selectedValue === option ? 'default' : 'outline'}
-                                size="sm"
-                                disabled={poll.status === 'closed'}
-                                onClick={() => handlePollVote(poll, option)}
-                              >
-                                {option}
-                              </Button>
-                            ))}
-                          </div>
-                          {poll.status === 'closed' && (
-                            <p className="mt-2 text-xs text-gray-500">Poll closed</p>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
+        
+      {/* Persistent Right Panel */}
+        <div className="flex w-[340px] sm:w-[380px] shrink-0 flex-col border-l border-gray-200 bg-white overflow-hidden h-full">
+          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+            <div className="flex items-center gap-2 rounded-lg bg-gray-100 p-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setRightPanelTab('interactions')}
+                className={cn(
+                  'h-7 rounded-md px-3 text-xs font-medium',
+                  rightPanelTab === 'interactions'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
                 )}
-
-                {feedbackQuestions.length > 0 && (
+              >
+                Interactions
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setRightPanelTab('dmi')}
+                className={cn(
+                  'h-7 rounded-md px-3 text-xs font-medium',
+                  rightPanelTab === 'dmi'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-900'
+                )}
+              >
+                DMI
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto p-4">
+            {rightPanelTab === 'dmi' ? (
+              <div className="space-y-4">
+                <div className="mb-4 border-b border-gray-100 pb-2">
+                  <h2 className="text-base font-bold text-gray-900">DMI</h2>
+                  <p className="text-[10px] uppercase tracking-wider text-gray-500">Digital Marking Interface</p>
+                </div>
+                {(!activeTask || !activeTask.dmiItems || activeTask.dmiItems.length === 0) ? (
+                  <p className="text-sm text-gray-500">No DMI available for this task.</p>
+                ) : (
                   <div className="space-y-3">
-                    <p className="text-xs font-semibold uppercase text-gray-500">Questions</p>
-                    {feedbackQuestions.map(question => (
-                      <div key={question.id} className="rounded-lg border bg-white p-4">
-                        <p className="text-sm font-medium text-gray-900">{question.prompt}</p>
-                        <div className="mt-3">
-                          <AutoTextarea
-                            placeholder="Type your answer..."
-                            className="min-h-[72px]"
-                            value={questionDrafts[question.id] || ''}
-                            onChange={event =>
-                              setQuestionDrafts(prev => ({
-                                ...prev,
-                                [question.id]: event.target.value,
-                              }))
-                            }
-                          />
-                          <div className="mt-2 flex justify-end">
-                            <Button
-                              size="sm"
-                              onClick={() => handleQuestionSend(question)}
-                              disabled={!questionDrafts[question.id]?.trim()}
-                            >
-                              Send
-                            </Button>
-                          </div>
-                        </div>
+                    {activeTask.dmiItems.map(item => (
+                      <div key={item.id} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                        <p className="mb-1.5 text-xs font-bold text-blue-600">Q{item.questionNumber}</p>
+                        <p className="text-sm font-medium text-gray-800">{item.questionText}</p>
                       </div>
                     ))}
                   </div>
                 )}
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="mb-2 border-b border-gray-100 pb-2">
+                  <h2 className="text-base font-bold text-gray-900">
+                    {feedbackPolls.length > 0 && feedbackQuestions.length === 0 
+                      ? 'Interactions: Polls' 
+                      : feedbackQuestions.length > 0 && feedbackPolls.length === 0 
+                        ? 'Interactions: Questions' 
+                        : 'Interactions'}
+                  </h2>
+                </div>
+                {!activeTask && (
+                  <p className="text-sm text-gray-500">Select a task to see feedback prompts.</p>
+                )}
+                {activeTask && (
+                  <div className="space-y-6">
+                    {feedbackPolls.length > 0 && (
+                      <div className="space-y-3">
+                        {feedbackPolls.map(poll => {
+                          const selectedValue = poll.responses.find(
+                            response => response.studentId === session?.user?.id
+                          )?.value
+                          return (
+                            <div key={poll.id} className="rounded-lg border bg-white p-4">
+                              <p className="text-sm font-medium text-gray-900">{poll.question}</p>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {poll.options.map(option => (
+                                  <Button
+                                    key={`${poll.id}-${option}`}
+                                    variant={selectedValue === option ? 'default' : 'outline'}
+                                    size="sm"
+                                    disabled={poll.status === 'closed'}
+                                    onClick={() => handlePollVote(poll, option)}
+                                  >
+                                    {option}
+                                  </Button>
+                                ))}
+                              </div>
+                              {poll.status === 'closed' && (
+                                <p className="mt-2 text-xs text-gray-500">Poll closed</p>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
 
-                {feedbackPolls.length === 0 && feedbackQuestions.length === 0 && (
-                  <p className="text-sm text-gray-500">
-                    Waiting for tutor insights to appear here.
-                  </p>
+                    {feedbackQuestions.length > 0 && (
+                      <div className="space-y-3">
+                        {feedbackQuestions.map(question => (
+                          <div key={question.id} className="rounded-lg border bg-white p-4">
+                            <p className="text-sm font-medium text-gray-900">{question.prompt}</p>
+                            <div className="mt-3">
+                              <AutoTextarea
+                                placeholder="Type your answer..."
+                                className="min-h-[72px]"
+                                value={questionDrafts[question.id] || ''}
+                                onChange={event =>
+                                  setQuestionDrafts(prev => ({
+                                    ...prev,
+                                    [question.id]: event.target.value,
+                                  }))
+                                }
+                              />
+                              <div className="mt-2 flex justify-end">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleQuestionSend(question)}
+                                  disabled={!questionDrafts[question.id]?.trim()}
+                                >
+                                  Send
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {feedbackPolls.length === 0 && feedbackQuestions.length === 0 && (
+                      <p className="text-sm text-gray-500">
+                        Waiting for tutor insights to appear here.
+                      </p>
+                    )}
+                  </div>
                 )}
 
                 <div className="border-t pt-4">
@@ -1418,8 +1391,44 @@ function StudentFeedbackContent() {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      <Sheet open={showTasksPanel} onOpenChange={setShowTasksPanel}>
+        <SheetContent side="right" className="w-[340px] sm:w-[380px]">
+          <SheetHeader>
+            <SheetTitle>Tasks & Assessments</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4 space-y-2">
+            {tasks.length === 0 && <p className="text-sm text-gray-500">No tasks deployed yet.</p>}
+            {[...tasks].reverse().map(task => (
+              <button
+                key={task.id}
+                type="button"
+                onClick={() => handleSelectTask(task.id)}
+                className={`flex w-full flex-col gap-1 rounded-lg border px-3 py-2 text-left transition-colors ${
+                  activeTaskId === task.id
+                    ? 'border-blue-200 bg-blue-50'
+                    : 'border-gray-200 hover:border-blue-100 hover:bg-blue-50/40'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-gray-900">{task.title}</span>
+                  {unseenTaskIds.includes(task.id) && (
+                    <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
+                      New
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs text-gray-500">
+                  Deployed {new Date(task.deployedAt).toLocaleTimeString()}
+                </span>
+              </button>
+            ))}
+          </div>
         </SheetContent>
       </Sheet>
+
 
       {/* Report Modal */}
       <Dialog open={reportModalOpen} onOpenChange={setReportModalOpen}>
