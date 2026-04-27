@@ -72,18 +72,10 @@ export default function StudentAssignmentsPage() {
 
   const loadAssignments = useCallback(async () => {
     setLoading(true)
-    try {
-      const res = await fetch('/api/student/assignments', { credentials: 'include' })
-      if (res.ok) {
-        const data = await res.json()
-        setAssignments(data.assignments ?? [])
-        setStats(data.stats ?? { pending: 0, submitted: 0, overdue: 0, total: 0 })
-      }
-    } catch {
-      toast.error('Failed to load assignments')
-    } finally {
-      setLoading(false)
-    }
+    // Legacy endpoint removed; show empty state
+    setAssignments([])
+    setStats({ pending: 0, submitted: 0, overdue: 0, total: 0 })
+    setLoading(false)
   }, [])
 
   useEffect(() => {

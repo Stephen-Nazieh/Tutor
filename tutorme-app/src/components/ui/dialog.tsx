@@ -179,7 +179,7 @@ const DialogContent = React.forwardRef<
                 'disabled:pointer-events-none',
                 theme === 'metallic'
                   ? 'text-gray-400 hover:bg-white/10 hover:text-white'
-                  : 'text-muted-foreground opacity-70 hover:bg-accent hover:opacity-100'
+                  : 'text-muted-foreground hover:bg-accent opacity-70 hover:opacity-100'
               )}
             >
               <X className="h-4 w-4" />
@@ -324,7 +324,7 @@ const DialogDescription = React.forwardRef<
       ref={ref}
       className={cn(
         sizeClasses[size],
-        theme === 'metallic' ? 'text-gray-300 leading-[1.6]' : 'text-muted-foreground',
+        theme === 'metallic' ? 'leading-[1.6] text-gray-300' : 'text-muted-foreground',
         className
       )}
       {...props}
@@ -357,7 +357,7 @@ const DialogBody = React.forwardRef<
       ref={ref}
       className={cn(
         spacingClasses[spacing],
-        theme === 'metallic' && 'text-gray-300 leading-[1.6]',
+        theme === 'metallic' && 'leading-[1.6] text-gray-300',
         scrollable && ['scrollbar-thin overflow-y-auto', maxHeight && `max-h-[${maxHeight}]`],
         className
       )}

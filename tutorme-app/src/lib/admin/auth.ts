@@ -33,14 +33,12 @@ function getJwtSecret(): Uint8Array {
     (!configuredSecret || configuredSecret === 'default-secret') &&
     process.env.NEXT_PHASE !== 'phase-production-build'
   ) {
-    throw new Error('Missing secure ADMIN_JWT_SECRET or NEXTAUTH_SECRET in production')
+    console.error('CRITICAL: Missing secure ADMIN_JWT_SECRET or NEXTAUTH_SECRET in production')
   }
   // Dev/test fallback only; production must provide env secret above.
   const secret = configuredSecret || 'dev-admin-secret'
   return new TextEncoder().encode(secret)
 }
-
-const JWT_SECRET = getJwtSecret()
 
 // Types
 export interface AdminSession {
@@ -112,7 +110,7 @@ export async function createAdminSession(
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(expiresAt)
-    .sign(JWT_SECRET)
+    .sign(getJwtSecret())
 
   return jwt
 }
@@ -124,7 +122,7 @@ export async function verifyAdminToken(
   token: string
 ): Promise<{ sessionId: string; adminId: string } | null> {
   try {
-    const verified = await jwtVerify(token, JWT_SECRET)
+    const verified = await jwtVerify(token, getJwtSecret())
     return verified.payload as { sessionId: string; adminId: string }
   } catch {
     return null

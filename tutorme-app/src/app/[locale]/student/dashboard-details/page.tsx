@@ -56,11 +56,6 @@ export default function StudentDashboardDetails() {
           status: 200,
           json: () => Promise.resolve({ recommendations: [] }),
         })),
-        fetch('/api/classes?limit=3').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ classes: [] }),
-        })),
         fetch('/api/student/subjects').catch(() => ({
           ok: true,
           status: 200,
@@ -79,7 +74,7 @@ export default function StudentDashboardDetails() {
         return
       }
 
-      const [contentData, recsData, classesData, subjectsData, reviewsData] = await Promise.all(
+      const [contentData, recsData, subjectsData, reviewsData] = await Promise.all(
         responses.map(r => r.json())
       )
 
@@ -87,7 +82,7 @@ export default function StudentDashboardDetails() {
       setData({
         contents: contentData?.contents ?? [],
         recommendations: recsData?.recommendations ?? [],
-        classes: classesData?.classes ?? [],
+        classes: [],
         courses: subjects.map(
           (s: {
             id: string

@@ -20,20 +20,9 @@ export function PendingAssignmentsCard() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/student/assignments')
-      .then(r => r.json())
-      .then(res => {
-        const pending = (res.assignments || [])
-          .filter((a: any) => a.status === 'pending')
-          .sort((a: any, b: any) => {
-            if (!a.dueDate) return 1
-            if (!b.dueDate) return -1
-            return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
-          })
-        setAssignments(pending)
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false))
+    // Legacy endpoint removed; show empty state
+    setAssignments([])
+    setLoading(false)
   }, [])
 
   if (loading) {

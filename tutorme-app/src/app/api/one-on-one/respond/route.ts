@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession, authOptions } from '@/lib/auth'
 import { eq, and, lt, gt, isNull, ne } from 'drizzle-orm'
-import { authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { oneOnOneBookingRequest, calendarEvent } from '@/lib/db/schema'
 import { notify } from '@/lib/notifications/notify'
@@ -23,7 +22,7 @@ const respondSchema = z.object({
 
 export async function PATCH(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession(authOptions, request)
 
     if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

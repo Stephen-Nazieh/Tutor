@@ -356,28 +356,28 @@ export default function TutorReports() {
               <TabsList className="grid h-full w-full grid-cols-4 gap-2 border-0 bg-transparent p-0 shadow-none">
                 <TabsTrigger
                   value="overview"
-                  className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                  className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
                 >
                   <BookOpen className="h-4 w-4" />
                   Overview
                 </TabsTrigger>
                 <TabsTrigger
                   value="revenue"
-                  className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                  className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
                 >
                   <DollarSign className="h-4 w-4" />
                   Revenue Insights
                 </TabsTrigger>
                 <TabsTrigger
                   value="students"
-                  className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                  className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
                 >
                   <Users className="h-4 w-4" />
                   Student Roster
                 </TabsTrigger>
                 <TabsTrigger
                   value="reports"
-                  className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                  className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
                 >
                   <FileText className="h-4 w-4" />
                   Student Reports
@@ -395,20 +395,22 @@ export default function TutorReports() {
             {/* Students Tab */}
             <TabsContent value="students" className="space-y-6">
               <div className="rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-xl font-bold text-slate-800">Student Roster</h2>
-                    <p className="text-sm text-slate-500 mt-1">Manage and view all enrolled students</p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Manage and view all enrolled students
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <Input
                       placeholder="Search students..."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="w-64 bg-slate-50/50 border-slate-200"
+                      className="w-64 border-slate-200 bg-slate-50/50"
                     />
                     <Select value={selectedCluster} onValueChange={setSelectedCluster}>
-                      <SelectTrigger className="w-40 bg-slate-50/50 border-slate-200">
+                      <SelectTrigger className="w-40 border-slate-200 bg-slate-50/50">
                         <SelectValue placeholder="Filter by cluster" />
                       </SelectTrigger>
                       <SelectContent>
@@ -422,10 +424,8 @@ export default function TutorReports() {
                 </div>
                 <div className="space-y-3">
                   {filteredStudents.length === 0 ? (
-                    <div className="py-10 text-center text-sm text-slate-500 rounded-xl border border-dashed border-slate-200">
-                      {searchQuery
-                        ? 'No students match your search.'
-                        : 'No students enrolled yet.'}
+                    <div className="rounded-xl border border-dashed border-slate-200 py-10 text-center text-sm text-slate-500">
+                      {searchQuery ? 'No students match your search.' : 'No students enrolled yet.'}
                     </div>
                   ) : (
                     filteredStudents.map(student => (
@@ -435,7 +435,9 @@ export default function TutorReports() {
                       >
                         <div className="flex items-center gap-4">
                           <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-indigo-50 text-indigo-600 font-medium">{student.name.charAt(0)}</AvatarFallback>
+                            <AvatarFallback className="bg-indigo-50 font-medium text-indigo-600">
+                              {student.name.charAt(0)}
+                            </AvatarFallback>
                           </Avatar>
                           <div>
                             <p className="font-semibold text-slate-800">{student.name}</p>
@@ -444,20 +446,37 @@ export default function TutorReports() {
                         </div>
                         <div className="flex items-center gap-6">
                           <div className="text-right">
-                            <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-0.5">Courses</p>
-                            <p className="font-semibold text-slate-700">{student.courseCount ?? 0}</p>
+                            <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                              Courses
+                            </p>
+                            <p className="font-semibold text-slate-700">
+                              {student.courseCount ?? 0}
+                            </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-0.5">Classes</p>
-                            <p className="font-semibold text-slate-700">{student.classCount ?? 0}</p>
+                            <p className="mb-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                              Classes
+                            </p>
+                            <p className="font-semibold text-slate-700">
+                              {student.classCount ?? 0}
+                            </p>
                           </div>
                           {student.cluster && (
-                            <Badge className={cn(getClusterBadgeClass(student.cluster), "border-0 font-semibold")}>
+                            <Badge
+                              className={cn(
+                                getClusterBadgeClass(student.cluster),
+                                'border-0 font-semibold'
+                              )}
+                            >
                               {getClusterLabel(student.cluster)}
                             </Badge>
                           )}
                           <Link href={`/tutor/reports/${student.id}`}>
-                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-800 hover:bg-slate-100">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-slate-400 hover:bg-slate-100 hover:text-slate-800"
+                            >
                               <ChevronRight className="h-4 w-4" />
                             </Button>
                           </Link>
@@ -621,7 +640,10 @@ function ItemAIChat({
               ? `ASK AI ABOUT ${session.title}`
               : 'ASK AI ABOUT YOUR COURSES & STUDENTS'}
         </span>
-        <Badge variant="outline" className="bg-slate-50 text-[10px] font-semibold text-slate-500 border-slate-200">
+        <Badge
+          variant="outline"
+          className="border-slate-200 bg-slate-50 text-[10px] font-semibold text-slate-500"
+        >
           AI Integrated
         </Badge>
       </div>
@@ -865,7 +887,7 @@ function CoursesAndClassesTab() {
                       <div className="text-sm font-semibold text-slate-800">{course.name}</div>
                       <Badge
                         variant="secondary"
-                        className="bg-indigo-100 text-[10px] text-indigo-700 hover:bg-indigo-200 border-0"
+                        className="border-0 bg-indigo-100 text-[10px] text-indigo-700 hover:bg-indigo-200"
                       >
                         Course
                       </Badge>
@@ -927,8 +949,12 @@ function CoursesAndClassesTab() {
                         <Badge
                           variant={isOngoing ? 'default' : isEnded ? 'secondary' : 'outline'}
                           className={cn(
-                            "shrink-0 text-[10px] border-0",
-                            isOngoing ? "bg-emerald-500 text-white" : isEnded ? "bg-slate-100 text-slate-500" : "bg-blue-100 text-blue-700"
+                            'shrink-0 border-0 text-[10px]',
+                            isOngoing
+                              ? 'bg-emerald-500 text-white'
+                              : isEnded
+                                ? 'bg-slate-100 text-slate-500'
+                                : 'bg-blue-100 text-blue-700'
                           )}
                         >
                           {statusLabel}
@@ -954,23 +980,31 @@ function CoursesAndClassesTab() {
               </div>
               <div className="flex items-center gap-8 text-sm">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Published</span>
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Published
+                  </span>
                   <span className="font-semibold text-slate-800">
                     {formatDate(selectedCourse.createdAt)}
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Sessions</span>
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Sessions
+                  </span>
                   <span className="font-semibold text-slate-800">{courseSessions.length}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Category</span>
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Category
+                  </span>
                   <span className="font-semibold text-slate-800">
                     {selectedCourse.categories[0] || 'N/A'}
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Students</span>
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Students
+                  </span>
                   <span className="font-semibold text-slate-800">{students.length}</span>
                 </div>
               </div>
@@ -983,31 +1017,41 @@ function CoursesAndClassesTab() {
               </div>
               <div className="flex items-center gap-8 text-sm">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Status</span>
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Status
+                  </span>
                   <span className="font-semibold text-slate-800">{selectedSession.status}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Scheduled</span>
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Scheduled
+                  </span>
                   <span className="font-semibold text-slate-800">
                     {formatDate(selectedSession.scheduledAt)}
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Subject</span>
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Subject
+                  </span>
                   <span className="font-semibold text-slate-800">
                     {selectedSession.subject || 'N/A'}
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Students</span>
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Students
+                  </span>
                   <span className="font-semibold text-slate-800">{students.length}</span>
                 </div>
               </div>
             </>
           ) : (
-            <div className="flex w-full items-center justify-center gap-2 text-slate-500 py-2">
+            <div className="flex w-full items-center justify-center gap-2 py-2 text-slate-500">
               <BarChart3 className="h-5 w-5" />
-              <span className="text-sm font-semibold">Select a course or class to view analytics</span>
+              <span className="text-sm font-semibold">
+                Select a course or class to view analytics
+              </span>
             </div>
           )}
         </div>

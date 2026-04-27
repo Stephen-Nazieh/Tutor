@@ -18,9 +18,6 @@ export type PollType = (typeof pollTypeEnum.enumValues)[number]
 export const pollStatusEnum = pgEnum('PollStatus', ['DRAFT', 'ACTIVE', 'CLOSED'])
 export type PollStatus = (typeof pollStatusEnum.enumValues)[number]
 
-export const sessionTypeEnum = pgEnum('SessionType', ['CLINIC', 'GROUP', 'ONE_ON_ONE'])
-export type SessionType = (typeof sessionTypeEnum.enumValues)[number]
-
 export const messageSourceEnum = pgEnum('MessageSource', ['AI', 'TUTOR', 'STUDENT'])
 export type MessageSource = (typeof messageSourceEnum.enumValues)[number]
 
@@ -60,23 +57,6 @@ export type EventType = (typeof eventTypeEnum.enumValues)[number]
 
 export const eventStatusEnum = pgEnum('EventStatus', ['CONFIRMED', 'TENTATIVE', 'CANCELLED'])
 export type EventStatus = (typeof eventStatusEnum.enumValues)[number]
-
-export const mathSessionStatusEnum = pgEnum('MathSessionStatus', [
-  'ACTIVE',
-  'PAUSED',
-  'ENDED',
-  'ARCHIVED',
-])
-export type MathSessionStatus = (typeof mathSessionStatusEnum.enumValues)[number]
-
-export const mathAIInteractionTypeEnum = pgEnum('MathAIInteractionType', [
-  'SOLVE',
-  'HINT',
-  'CHECK',
-  'EXPLAIN',
-  'RECOGNIZE',
-])
-export type MathAIInteractionType = (typeof mathAIInteractionTypeEnum.enumValues)[number]
 
 export const preferenceStatusEnum = pgEnum('PreferenceStatus', ['PENDING', 'MATCHED', 'REJECTED'])
 export type PreferenceStatus = (typeof preferenceStatusEnum.enumValues)[number]

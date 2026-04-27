@@ -45,6 +45,7 @@ export const liveSession = pgTable(
     LiveSession_courseId_idx: index('LiveSession_courseId_idx').on(table.courseId),
     LiveSession_status_idx: index('LiveSession_status_idx').on(table.status),
     LiveSession_scheduledAt_idx: index('LiveSession_scheduledAt_idx').on(table.scheduledAt),
+    LiveSession_roomId_idx: index('LiveSession_roomId_idx').on(table.roomId),
   })
 )
 
@@ -62,7 +63,7 @@ export const sessionReplayArtifact = pgTable(
     recordingUrl: text('recordingUrl'),
     transcript: text('transcript'),
     summary: text('summary'),
-    summaryJson: jsonb('summaryJson'),
+    summaryJson: jsonb('summaryJson').$type<Record<string, unknown>>(),
     status: text('status').notNull(),
     startedAt: timestamp('startedAt', { withTimezone: true }),
     endedAt: timestamp('endedAt', { withTimezone: true }),
@@ -120,11 +121,14 @@ export const poll = pgTable(
     allowMultiple: boolean('allowMultiple').notNull(),
     timeLimit: integer('timeLimit'),
     showResults: boolean('showResults').notNull(),
-    correctOptionId: text('correctOptionId'),
+    correctOptionId: text('correctOptionId').references(
+      (): any => pollOption.optionId,
+      { onDelete: 'set null' }
+    ),
     status: enums.pollStatusEnum('status').notNull(),
     startedAt: timestamp('startedAt', { withTimezone: true }),
     endedAt: timestamp('endedAt', { withTimezone: true }),
-    totalResponses: integer('totalResponses').notNull(),
+    totalResponses: integer('totalResponses').notNull().default(0),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
@@ -152,7 +156,7 @@ export const deployedMaterial = pgTable(
     type: text('type').notNull(), // 'task', 'assessment', 'homework', 'asset', 'recording'
     itemId: text('itemId').notNull(), // ID of the specific item being deployed
     title: text('title').notNull(),
-    content: jsonb('content'), // Snapshot of the item's content at deployment time
+    content: jsonb('content').$type<Record<string, unknown>>(), // Snapshot of the item's content at deployment time
     sessionSequence: integer('sessionSequence').notNull(), // e.g. 1 for 's1', 2 for 's2'
     deployedAt: timestamp('deployedAt', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -161,6 +165,9 @@ export const deployedMaterial = pgTable(
     DeployedMaterial_courseId_idx: index('DeployedMaterial_courseId_idx').on(table.courseId),
     DeployedMaterial_type_idx: index('DeployedMaterial_type_idx').on(table.type),
     DeployedMaterial_deployedAt_idx: index('DeployedMaterial_deployedAt_idx').on(table.deployedAt),
+    DeployedMaterial_sessionId_sessionSequence_idx: index(
+      'DeployedMaterial_sessionId_sessionSequence_idx'
+    ).on(table.sessionId, table.sessionSequence),
   })
 )
 
@@ -174,8 +181,8 @@ export const pollOption = pgTable(
     label: text('label').notNull(),
     text: text('text').notNull(),
     color: text('color'),
-    responseCount: integer('responseCount').notNull(),
-    percentage: doublePrecision('percentage').notNull(),
+    responseCount: integer('responseCount').notNull().default(0),
+    percentage: doublePrecision('percentage').notNull().default(0),
   },
   table => ({
     PollOption_pollId_idx: index('PollOption_pollId_idx').on(table.pollId),
@@ -199,6 +206,7 @@ export const pollResponse = pgTable(
   table => ({
     PollResponse_pollId_idx: index('PollResponse_pollId_idx').on(table.pollId),
     PollResponse_studentId_idx: index('PollResponse_studentId_idx').on(table.studentId),
+    PollResponse_createdAt_idx: index('PollResponse_createdAt_idx').on(table.createdAt),
     PollResponse_pollId_respondentHash_key: uniqueIndex(
       'PollResponse_pollId_respondentHash_key'
     ).on(table.pollId, table.respondentHash),
@@ -244,6 +252,10 @@ export const message = pgTable(
   table => ({
     Message_sessionId_idx: index('Message_sessionId_idx').on(table.sessionId),
     Message_userId_idx: index('Message_userId_idx').on(table.userId),
+    Message_sessionId_timestamp_idx: index('Message_sessionId_timestamp_idx').on(
+      table.sessionId,
+      table.timestamp
+    ),
   })
 )
 
@@ -289,7 +301,7 @@ export const directMessage = pgTable(
     content: text('content').notNull(),
     type: text('type').notNull(),
     attachmentUrl: text('attachmentUrl'),
-    read: boolean('read').notNull(),
+    read: boolean('read').notNull().default(false),
     readAt: timestamp('readAt', { withTimezone: true }),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -299,6 +311,10 @@ export const directMessage = pgTable(
     ),
     DirectMessage_senderId_idx: index('DirectMessage_senderId_idx').on(table.senderId),
     DirectMessage_createdAt_idx: index('DirectMessage_createdAt_idx').on(table.createdAt),
+    DirectMessage_conversationId_createdAt_idx: index('DirectMessage_conversationId_createdAt_idx').on(
+      table.conversationId,
+      table.createdAt
+    ),
   })
 )
 
@@ -356,7 +372,7 @@ export const notification = pgTable(
     type: text('type').notNull(),
     title: text('title').notNull(),
     message: text('message').notNull(),
-    data: jsonb('data'),
+    data: jsonb('data').$type<Record<string, unknown>>(),
     read: boolean('read').notNull(),
     readAt: timestamp('readAt', { withTimezone: true }),
     actionUrl: text('actionUrl'),
@@ -389,7 +405,7 @@ export const notificationPreference = pgTable('NotificationPreference', {
   emailEnabled: boolean('emailEnabled').notNull(),
   pushEnabled: boolean('pushEnabled').notNull(),
   inAppEnabled: boolean('inAppEnabled').notNull(),
-  channelOverrides: jsonb('channelOverrides').notNull(),
+  channelOverrides: jsonb('channelOverrides').notNull().$type<Record<string, unknown>>(),
   quietHoursStart: text('quietHoursStart'),
   quietHoursEnd: text('quietHoursEnd'),
   timezone: text('timezone').notNull(),

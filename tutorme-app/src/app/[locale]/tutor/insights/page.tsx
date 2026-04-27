@@ -491,7 +491,9 @@ function TutorInsightsPageInner() {
         const res = await fetch('/api/tutor/classes', { credentials: 'include' })
         if (!res.ok) throw new Error('Failed to load sessions')
         const data = await res.json()
-        const classSessions = ((data.classes || []) as Array<InsightsSessionOption & { duration?: number }>).map(s => ({
+        const classSessions = (
+          (data.classes || []) as Array<InsightsSessionOption & { duration?: number }>
+        ).map(s => ({
           ...s,
           durationMinutes: s.duration ?? 60,
         }))
@@ -619,13 +621,14 @@ function TutorInsightsPageInner() {
     const handleSessionEnded = (data: { sessionId: string; reason?: string }) => {
       if (data.sessionId === sessionId) {
         // Update local session status
-        setSessions(prev =>
-          prev.map(s => (s.id === sessionId ? { ...s, status: 'ended' } : s))
-        )
+        setSessions(prev => prev.map(s => (s.id === sessionId ? { ...s, status: 'ended' } : s)))
         // Auto-stop recording after 5-minute grace period
-        setTimeout(() => {
-          handleStopRecording().catch(() => {})
-        }, 5 * 60 * 1000)
+        setTimeout(
+          () => {
+            handleStopRecording().catch(() => {})
+          },
+          5 * 60 * 1000
+        )
         toast.info('Session has ended', { duration: 5000 })
       }
     }

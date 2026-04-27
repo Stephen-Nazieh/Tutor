@@ -53,6 +53,12 @@ import {
   studentMemoryProfile,
   resource,
   engagementSnapshot,
+  deployedMaterial,
+  sessionReplayArtifact,
+  trainingAttendance,
+  taskDeployment,
+  taskPoll,
+  taskQuestion,
 } from './tables'
 import { session } from './next-auth'
 import { consentLog } from './compliance'
@@ -85,6 +91,16 @@ export const userRelations = relations(user, ({ one, many }) => ({
   }),
   calendarEventsAsTutor: many(calendarEvent, { relationName: 'tutorCalendarEvents' }),
   calendarEventsAsStudent: many(calendarEvent, { relationName: 'studentCalendarEvents' }),
+  notifications: many(notification),
+  notificationPreference: one(notificationPreference, {
+    fields: [user.userId],
+    references: [notificationPreference.userId],
+  }),
+  messages: many(message),
+  pollsAsTutor: many(poll),
+  taskDeployments: many(taskDeployment),
+  taskPolls: many(taskPoll),
+  taskQuestions: many(taskQuestion),
 }))
 
 export const profileRelations = relations(profile, ({ one }) => ({
@@ -217,6 +233,18 @@ export const liveSessionRelations = relations(liveSession, ({ one, many }) => ({
     references: [user.userId],
   }),
   participants: many(sessionParticipant),
+  messages: many(message),
+  polls: many(poll),
+  deployedMaterials: many(deployedMaterial),
+  sessionReplayArtifact: one(sessionReplayArtifact, {
+    fields: [liveSession.sessionId],
+    references: [sessionReplayArtifact.sessionId],
+  }),
+  trainingAttendances: many(trainingAttendance),
+  course: one(course, {
+    fields: [liveSession.courseId],
+    references: [course.courseId],
+  }),
 }))
 
 export const sessionParticipantRelations = relations(sessionParticipant, ({ one }) => ({
@@ -337,6 +365,18 @@ export const mentionRelations = relations(mention, ({ one }) => ({
   }),
 }))
 
+export const messageRelations = relations(message, ({ one, many }) => ({
+  session: one(liveSession, {
+    fields: [message.sessionId],
+    references: [liveSession.sessionId],
+  }),
+  user: one(user, {
+    fields: [message.userId],
+    references: [user.userId],
+  }),
+  mentions: many(mention),
+}))
+
 export const taskSubmissionRelations = relations(taskSubmission, ({ one }) => ({
   task: one(builderTask, {
     fields: [taskSubmission.taskId],
@@ -406,6 +446,9 @@ export const builderTaskRelations = relations(builderTask, ({ one, many }) => ({
   dmi: many(builderTaskDmi),
   dmiVersions: many(builderTaskDmiVersion),
   versions: many(builderTaskVersion),
+  taskDeployments: many(taskDeployment),
+  taskPolls: many(taskPoll),
+  taskQuestions: many(taskQuestion),
 }))
 
 export const builderTaskExtensionRelations = relations(builderTaskExtension, ({ one }) => ({
@@ -591,5 +634,83 @@ export const pollResponseRelations = relations(pollResponse, ({ one }) => ({
   student: one(user, {
     fields: [pollResponse.studentId],
     references: [user.userId],
+  }),
+}))
+
+export const deployedMaterialRelations = relations(deployedMaterial, ({ one }) => ({
+  session: one(liveSession, {
+    fields: [deployedMaterial.sessionId],
+    references: [liveSession.sessionId],
+  }),
+  course: one(course, {
+    fields: [deployedMaterial.courseId],
+    references: [course.courseId],
+  }),
+}))
+
+export const sessionReplayArtifactRelations = relations(sessionReplayArtifact, ({ one }) => ({
+  session: one(liveSession, {
+    fields: [sessionReplayArtifact.sessionId],
+    references: [liveSession.sessionId],
+  }),
+  tutor: one(user, {
+    fields: [sessionReplayArtifact.tutorId],
+    references: [user.userId],
+  }),
+}))
+
+export const trainingAttendanceRelations = relations(trainingAttendance, ({ one }) => ({
+  session: one(liveSession, {
+    fields: [trainingAttendance.sessionId],
+    references: [liveSession.sessionId],
+  }),
+  user: one(user, {
+    fields: [trainingAttendance.tutorId],
+    references: [user.userId],
+  }),
+}))
+
+export const taskDeploymentRelations = relations(taskDeployment, ({ one }) => ({
+  task: one(builderTask, {
+    fields: [taskDeployment.taskId],
+    references: [builderTask.taskId],
+  }),
+  tutor: one(user, {
+    fields: [taskDeployment.tutorId],
+    references: [user.userId],
+  }),
+  session: one(liveSession, {
+    fields: [taskDeployment.sessionId],
+    references: [liveSession.sessionId],
+  }),
+}))
+
+export const taskPollRelations = relations(taskPoll, ({ one }) => ({
+  task: one(builderTask, {
+    fields: [taskPoll.taskId],
+    references: [builderTask.taskId],
+  }),
+  tutor: one(user, {
+    fields: [taskPoll.tutorId],
+    references: [user.userId],
+  }),
+  session: one(liveSession, {
+    fields: [taskPoll.sessionId],
+    references: [liveSession.sessionId],
+  }),
+}))
+
+export const taskQuestionRelations = relations(taskQuestion, ({ one }) => ({
+  task: one(builderTask, {
+    fields: [taskQuestion.taskId],
+    references: [builderTask.taskId],
+  }),
+  tutor: one(user, {
+    fields: [taskQuestion.tutorId],
+    references: [user.userId],
+  }),
+  session: one(liveSession, {
+    fields: [taskQuestion.sessionId],
+    references: [liveSession.sessionId],
   }),
 }))

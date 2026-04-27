@@ -5,8 +5,8 @@
  *
  * Security features:
  * - Returns success even if email not found (prevents user enumeration)
- * - Rate limiting should be applied at middleware level
- * - Tokens expire after 1 hour
+ * - Rate limiting applied at handler level (5 per 15 min per IP)
+ * - Tokens expire after 1 hour and are stored in cache (Redis or in-memory)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -15,6 +15,8 @@ import { user } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { randomBytes } from 'crypto'
 import { getAllowedOrigins } from '@/lib/middleware-edge/cors'
+import { checkRateLimit, getClientIdentifier } from '@/lib/security/rate-limit'
+import cacheManager from '@/lib/cache-manager'
 
 interface ForgotPasswordRequest {
   email: string
@@ -54,6 +56,19 @@ export async function POST(req: NextRequest): Promise<NextResponse<ForgotPasswor
       return NextResponse.json({ success: false, message: 'CORS not allowed' }, { status: 403 })
     }
     const corsHeaders = buildCorsHeaders(origin)
+
+    // Rate limiting: 5 requests per 15 minutes per IP
+    const clientId = getClientIdentifier(req)
+    const { allowed } = await checkRateLimit(`forgot-password:${clientId}`, {
+      max: 5,
+      windowMs: 15 * 60 * 1000,
+    })
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, message: 'Too many requests. Please try again later.' },
+        { status: 429, headers: { ...corsHeaders, 'Retry-After': '900' } }
+      )
+    }
 
     // Parse request body
     const body = (await req.json()) as ForgotPasswordRequest
@@ -103,32 +118,24 @@ export async function POST(req: NextRequest): Promise<NextResponse<ForgotPasswor
     const resetToken = generateResetToken()
     const tokenExpiry = new Date(Date.now() + 60 * 60 * 1000) // 1 hour from now
 
-    // TODO: Store token in database
-    // For now, log it in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Forgot Password] Reset token generated:', {
-        email: normalizedEmail,
-        token: resetToken,
-        expires: tokenExpiry.toISOString(),
-        userId: userRecord.userId,
-      })
+    // Store token in cache (Redis or in-memory fallback) with 1-hour TTL
+    try {
+      await cacheManager.set(
+        `password-reset:${resetToken}`,
+        {
+          userId: userRecord.userId,
+          email: normalizedEmail,
+          expiresAt: tokenExpiry.toISOString(),
+        },
+        { ttl: 3600 }
+      )
+    } catch (cacheError) {
+      console.error('[Forgot Password] Failed to store reset token:', cacheError)
+      // Return generic success to prevent enumeration, but log the backend failure
     }
 
     // TODO: Send password reset email
     // This should be implemented with a proper email service like SendGrid, Mailgun, etc.
-    // Example:
-    // await sendPasswordResetEmail({
-    //   to: normalizedEmail,
-    //   token: resetToken,
-    //   userName: userRecord.name,
-    // });
-
-    // For now, in development, we log the reset URL
-    if (process.env.NODE_ENV === 'development') {
-      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3003'
-      const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`
-      console.log('[Forgot Password] Reset URL:', resetUrl)
-    }
 
     return NextResponse.json(
       {

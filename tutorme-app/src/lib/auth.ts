@@ -158,6 +158,14 @@ export const authOptions: NextAuthOptions = {
   },
 
   secret: process.env.NEXTAUTH_SECRET,
+
+  events: {
+    async signOut(message) {
+      console.log('[Auth] User signed out', {
+        userId: (message.token as any)?.id || (message.session as any)?.user?.id,
+      })
+    },
+  },
 }
 
 // Helper function to check if onboarding is complete

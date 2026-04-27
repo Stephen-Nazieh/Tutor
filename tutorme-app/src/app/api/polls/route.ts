@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { handleApiError } from '@/lib/api/middleware'
-import { getServerSession, authOptions } from '@/lib/auth'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { poll, pollOption, pollResponse } from '@/lib/db/schema'
 import { eq, asc, desc, inArray } from 'drizzle-orm'
@@ -36,14 +35,9 @@ function getOptionColor(index: number): string {
 }
 
 // GET /api/polls - List polls for a session
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (req: NextRequest) => {
   try {
-    const session = await getServerSession(authOptions, request)
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = new URL(req.url)
     const sessionId = searchParams.get('sessionId')
 
     if (!sessionId) {
@@ -113,17 +107,12 @@ export async function GET(request: NextRequest) {
     console.error('Failed to fetch polls:', error)
     return handleApiError(error, 'Failed to fetch polls', 'api/polls/route.ts')
   }
-}
+})
 
 // POST /api/polls - Create a new poll
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (req: NextRequest, session) => {
   try {
-    const session = await getServerSession(authOptions, request)
-    if (!session?.user || session.user.role !== 'TUTOR') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await request.json()
+    const body = await req.json()
     const validated = CreatePollSchema.parse(body)
 
     const pollId = crypto.randomUUID()
@@ -195,4 +184,4 @@ export async function POST(request: NextRequest) {
     console.error('Failed to create poll:', error)
     return handleApiError(error, 'Failed to create poll', 'api/polls/route.ts')
   }
-}
+}, { role: 'TUTOR' })

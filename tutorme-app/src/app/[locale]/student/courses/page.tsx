@@ -110,7 +110,7 @@ function CoursePageInner() {
     try {
       const res = await fetch(`/api/student/sessions/${sessionId}/request-materials`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
       })
       if (res.ok) {
         toast.success('Material request sent to tutor.')
@@ -266,7 +266,7 @@ function CoursePageInner() {
     setIsLoadingSessions(true)
     try {
       const res = await fetch(`/api/student/courses/${courseId}/sessions`, {
-        credentials: 'include'
+        credentials: 'include',
       })
       if (res.ok) {
         const data = await res.json()
@@ -581,12 +581,13 @@ function CoursePageInner() {
                           'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
                         )}
                         style={{
-                          backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(70, 110, 180, 0.75), rgba(25, 55, 110, 0.95))',
+                          backgroundImage:
+                            'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(70, 110, 180, 0.75), rgba(25, 55, 110, 0.95))',
                         }}
                       >
-                        <div className="flex flex-col p-5 h-full">
+                        <div className="flex h-full flex-col p-5">
                           <div className="flex items-start gap-4">
-                            <div className="w-20 h-20 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)]">
+                            <div className="h-20 w-20 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)]">
                               {tutor.avatarUrl ? (
                                 <img
                                   src={tutor.avatarUrl}
@@ -599,30 +600,35 @@ function CoursePageInner() {
                                 </div>
                               )}
                             </div>
-                            <div className="min-w-0 flex-1 flex flex-col pt-1">
-                              <h3 className="text-slate-50 truncate text-lg font-semibold">{tutor.name}</h3>
-                              <p className="mt-1 text-xs font-medium text-slate-300">@{tutor.username}</p>
+                            <div className="flex min-w-0 flex-1 flex-col pt-1">
+                              <h3 className="truncate text-lg font-semibold text-slate-50">
+                                {tutor.name}
+                              </h3>
+                              <p className="mt-1 text-xs font-medium text-slate-300">
+                                @{tutor.username}
+                              </p>
                             </div>
                           </div>
-                          
+
                           {tutor.bio && (
-                            <p className="mt-4 text-slate-300 line-clamp-2 text-xs">
-                              {tutor.bio}
-                            </p>
+                            <p className="mt-4 line-clamp-2 text-xs text-slate-300">{tutor.bio}</p>
                           )}
 
-                          <div className="flex flex-wrap gap-1.5 mt-4 mb-4">
+                          <div className="mb-4 mt-4 flex flex-wrap gap-1.5">
                             {tutor.specialties?.slice(0, 3).map((specialty: string) => (
-                              <span key={specialty} className="px-2.5 py-0.5 text-[11px] text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+                              <span
+                                key={specialty}
+                                className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-2.5 py-0.5 text-[11px] text-slate-200"
+                              >
                                 {specialty}
                               </span>
                             ))}
                           </div>
 
-                          <div className="mt-auto pt-4 border-t border-[rgba(255,255,255,0.1)]">
+                          <div className="mt-auto border-t border-[rgba(255,255,255,0.1)] pt-4">
                             <Link
                               href={`/u/${tutor.username}`}
-                              className="flex items-center justify-center w-full py-2 text-sm font-medium text-slate-100 rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)] hover:text-white"
+                              className="flex w-full items-center justify-center rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] py-2 text-sm font-medium text-slate-100 backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)] hover:text-white"
                             >
                               View Profile
                             </Link>
@@ -889,7 +895,8 @@ function CourseCard({
         'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
       )}
       style={{
-        backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
+        backgroundImage:
+          'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
       }}
       onClick={onDetails}
     >
@@ -950,14 +957,19 @@ function CourseCard({
                 <span className="text-slate-300">Progress</span>
                 <span className="font-medium text-slate-100">{progressPercent}%</span>
               </div>
-              <Progress value={progressPercent} className="h-2 bg-[rgba(255,255,255,0.1)] [&>div]:bg-blue-500" />
+              <Progress
+                value={progressPercent}
+                className="h-2 bg-[rgba(255,255,255,0.1)] [&>div]:bg-blue-500"
+              />
             </div>
           )}
 
           {course.enrollment?.startDate && (
-            <div className="rounded-md bg-[rgba(255,255,255,0.05)] p-2 text-xs text-slate-300 border border-[rgba(255,255,255,0.1)]">
+            <div className="rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] p-2 text-xs text-slate-300">
               Commence{isPending ? 's' : 'd'} on:{' '}
-              <span className="text-slate-100 font-medium">{new Date(course.enrollment.startDate).toLocaleDateString()}</span>
+              <span className="font-medium text-slate-100">
+                {new Date(course.enrollment.startDate).toLocaleDateString()}
+              </span>
             </div>
           )}
 
@@ -968,7 +980,7 @@ function CourseCard({
       <div className="flex gap-2 border-t border-[rgba(255,255,255,0.1)] p-4">
         {(isOngoing || isPending) && (
           <Button
-            className="h-9 w-full flex-1 bg-emerald-600 hover:bg-emerald-500 text-white border-0"
+            className="h-9 w-full flex-1 border-0 bg-emerald-600 text-white hover:bg-emerald-500"
             disabled={enteringClass === course.id}
             onClick={e => {
               e.stopPropagation()
@@ -984,7 +996,7 @@ function CourseCard({
         )}
         {progress?.isCompleted && (
           <Link href={`/student/feedback`} className="flex-1" onClick={e => e.stopPropagation()}>
-            <Button className="h-9 w-full bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.15)] text-slate-100 border-[rgba(255,255,255,0.2)]">
+            <Button className="h-9 w-full border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] text-slate-100 hover:bg-[rgba(255,255,255,0.15)]">
               <Trophy className="mr-2 h-4 w-4 text-yellow-400" />
               View Results
             </Button>
@@ -993,7 +1005,7 @@ function CourseCard({
         <Button
           variant="outline"
           size="sm"
-          className="h-9 px-3 bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.15)] text-slate-100 border-[rgba(255,255,255,0.2)]"
+          className="h-9 border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] px-3 text-slate-100 hover:bg-[rgba(255,255,255,0.15)]"
           onClick={e => {
             e.stopPropagation()
             onDetails()

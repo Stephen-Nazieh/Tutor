@@ -255,7 +255,15 @@ export function ResourceImportPanel<
           {/* PDF / Image / File preview */}
           {isPdf && (
             <div className="overflow-hidden rounded border">
-              <iframe src={source.fileUrl.includes('#') ? `${source.fileUrl}&toolbar=0&navpanes=0` : `${source.fileUrl}#toolbar=0&navpanes=0`} title={source.fileName} className="h-64 w-full" />
+              <iframe
+                src={
+                  source.fileUrl.includes('#')
+                    ? `${source.fileUrl}&toolbar=0&navpanes=0`
+                    : `${source.fileUrl}#toolbar=0&navpanes=0`
+                }
+                title={source.fileName}
+                className="h-64 w-full"
+              />
             </div>
           )}
           {!isPdf && source.mimeType.startsWith('image/') && (

@@ -100,14 +100,12 @@ export function initFeedbackHandlers(io: SocketIOServer, socket: Socket) {
   socket.on('student_feedback_join', (data: { studentId: string }) => {
     socket.join(`feedback:student:${data.studentId}`)
     socket.data.feedbackStudentId = data.studentId
-    socket.data.role = 'student'
   })
 
   // Tutor joins insights room
   socket.on('tutor_insights_join', (data: { tutorId: string }) => {
     socket.join(`insights:tutor:${data.tutorId}`)
     socket.data.insightsTutorId = data.tutorId
-    socket.data.role = 'tutor'
   })
 
   // Tutor deploys a task
@@ -181,16 +179,19 @@ export function initFeedbackHandlers(io: SocketIOServer, socket: Socket) {
 
       feedbackPolls.set(data.id, poll)
 
-      // Broadcast to all connected students
-      io.emit('poll_received', {
-        id: data.id,
-        taskId: '',
-        question: data.question,
-        options: data.options,
-        responses: {},
-        isActive: true,
-        sentAt: data.sentAt,
-      })
+      // Broadcast to room if available
+      const roomId = socket.data.roomId
+      if (roomId) {
+        io.to(roomId).emit('poll_received', {
+          id: data.id,
+          taskId: '',
+          question: data.question,
+          options: data.options,
+          responses: {},
+          isActive: true,
+          sentAt: data.sentAt,
+        })
+      }
 
       // Notify tutor of success
       socket.emit('poll_sent', { pollId: data.id, success: true })
@@ -220,13 +221,16 @@ export function initFeedbackHandlers(io: SocketIOServer, socket: Socket) {
 
       feedbackQuestions.set(data.id, question)
 
-      // Broadcast to all connected students
-      io.emit('question_received', {
-        id: data.id,
-        taskId: '',
-        question: data.question,
-        sentAt: data.sentAt,
-      })
+      // Broadcast to room if available
+      const roomId = socket.data.roomId
+      if (roomId) {
+        io.to(roomId).emit('question_received', {
+          id: data.id,
+          taskId: '',
+          question: data.question,
+          sentAt: data.sentAt,
+        })
+      }
 
       // Notify tutor of success
       socket.emit('question_sent', { questionId: data.id, success: true })

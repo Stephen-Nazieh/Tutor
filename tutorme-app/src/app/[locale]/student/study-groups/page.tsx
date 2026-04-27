@@ -91,35 +91,14 @@ export default function StudyGroupsPage() {
   }, [status])
 
   const fetchGroups = async () => {
-    try {
-      const url =
-        subjectFilter !== 'all'
-          ? `/api/study-groups?limit=50&subject=${subjectFilter}`
-          : '/api/study-groups?limit=50'
-      const res = await fetch(url)
-      const data = await res.json()
-      if (data.groups) {
-        setGroups(data.groups)
-      }
-    } catch (error) {
-      toast.error(`Error`, {
-        description: 'Failed to load study groups',
-      })
-    } finally {
-      setLoading(false)
-    }
+    // Legacy endpoint removed; show empty state
+    setGroups([])
+    setLoading(false)
   }
 
   const fetchMyGroups = async () => {
-    try {
-      const res = await fetch('/api/study-groups?myGroups=true')
-      const data = await res.json()
-      if (data.groups) {
-        setMyGroups(data.groups)
-      }
-    } catch (error) {
-      console.error('Failed to fetch my groups')
-    }
+    // Legacy endpoint removed; show empty state
+    setMyGroups([])
   }
 
   const handleJoinGroup = async (groupId: string) => {

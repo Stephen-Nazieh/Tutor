@@ -58,11 +58,6 @@ export default function StudentDashboard() {
           status: 200,
           json: () => Promise.resolve({ recommendations: [] }),
         })),
-        fetch('/api/classes?limit=3').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ classes: [] }),
-        })),
         fetch('/api/student/subjects').catch(() => ({
           ok: true,
           status: 200,
@@ -78,7 +73,7 @@ export default function StudentDashboard() {
         return
       }
 
-      const [contentData, recsData, classesData, subjectsData] = await Promise.all(
+      const [contentData, recsData, subjectsData] = await Promise.all(
         responses.map(r => r.json())
       )
 
@@ -86,7 +81,7 @@ export default function StudentDashboard() {
       setData({
         contents: contentData?.contents ?? [],
         recommendations: recsData?.recommendations ?? [],
-        classes: classesData?.classes ?? [],
+        classes: [],
         courses: subjects.map(
           (s: {
             id: string
@@ -205,7 +200,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="bg-[#FFFFFF] text-foreground min-h-screen">
+    <div className="text-foreground min-h-screen bg-[#FFFFFF]">
       {/* Navigation */}
       <nav className="safe-top border-border bg-secondary sticky top-0 z-50 border-b">
         <div className="w-full px-4 sm:px-6 lg:px-8">

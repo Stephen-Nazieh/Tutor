@@ -37,8 +37,8 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
     return (
       <div className="flex items-center gap-1">
         <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-        <span className="text-slate-100 text-lg font-medium ml-1">{rating.toFixed(1)}</span>
-        <span className="text-slate-400 text-sm ml-1">({tutor.reviewCount})</span>
+        <span className="ml-1 text-lg font-medium text-slate-100">{rating.toFixed(1)}</span>
+        <span className="ml-1 text-sm text-slate-400">({tutor.reviewCount})</span>
       </div>
     )
   }
@@ -50,7 +50,8 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
     }
     return (
       <span className="font-semibold text-slate-100">
-        {tutor.currency} {tutor.hourlyRate.toFixed(2)}<span className="text-slate-400 text-sm font-normal">/hr</span>
+        {tutor.currency} {tutor.hourlyRate.toFixed(2)}
+        <span className="text-sm font-normal text-slate-400">/hr</span>
       </span>
     )
   }
@@ -84,96 +85,99 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
         'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
       )}
       style={{
-        backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(70, 110, 180, 0.75), rgba(25, 55, 110, 0.95))',
+        backgroundImage:
+          'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(70, 110, 180, 0.75), rgba(25, 55, 110, 0.95))',
       }}
     >
       <div className="flex flex-col p-5">
         <div className="flex items-start gap-4">
           {/* Avatar */}
-          <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)]">
-            <img src={tutor.avatar || undefined} alt={tutor.name} className="h-full w-full object-cover" />
+          <div className="h-24 w-24 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)] sm:h-28 sm:w-28">
+            <img
+              src={tutor.avatar || undefined}
+              alt={tutor.name}
+              className="h-full w-full object-cover"
+            />
           </div>
 
-          <div className="min-w-0 flex-1 flex flex-col pt-1">
-            <div className="flex justify-between items-start">
+          <div className="flex min-w-0 flex-1 flex-col pt-1">
+            <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-slate-50 truncate text-xl font-semibold">{tutor.name}</h3>
+                <h3 className="truncate text-xl font-semibold text-slate-50">{tutor.name}</h3>
                 <p className="mt-1 text-sm font-medium text-slate-300">
                   @{tutor.name.toLowerCase().replace(/\s+/g, '')}
                 </p>
               </div>
-              <button 
-                className="px-4 py-1.5 text-sm font-medium text-slate-100 rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)]"
-              >
+              <button className="rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] px-4 py-1.5 text-sm font-medium text-slate-100 backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)]">
                 Follow
               </button>
             </div>
 
             {/* Bio - truncated */}
-            <p className="text-slate-300 mt-3 line-clamp-2 text-sm">{tutor.bio}</p>
+            <p className="mt-3 line-clamp-2 text-sm text-slate-300">{tutor.bio}</p>
           </div>
         </div>
 
         {/* Rating */}
-        <div className="mt-6 mb-4">{renderStars(tutor.rating)}</div>
+        <div className="mb-4 mt-6">{renderStars(tutor.rating)}</div>
 
         {/* Tags */}
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-sm text-slate-200">
             IGCSE Physics
           </span>
-          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+          <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-sm text-slate-200">
             TOEFL iBT
           </span>
-          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+          <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-sm text-slate-200">
             general
           </span>
-          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+          <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-sm text-slate-200">
             +2
           </span>
         </div>
 
         {/* Regions */}
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+        <div className="mb-6 flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-sm text-slate-200">
             Kuwait
           </span>
-          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+          <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-sm text-slate-200">
             Qatar
           </span>
-          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+          <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-sm text-slate-200">
             Global
           </span>
-          <span className="px-3 py-1 text-sm text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+          <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-sm text-slate-200">
             +2
           </span>
         </div>
 
-        <div className="border-b border-[rgba(255,255,255,0.1)] mb-6" />
+        <div className="mb-6 border-b border-[rgba(255,255,255,0.1)]" />
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="mb-6 grid grid-cols-2 gap-3">
           <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-3">
-            <p className="text-xs text-slate-300 mb-1">Courses</p>
+            <p className="mb-1 text-xs text-slate-300">Courses</p>
             <p className="text-lg font-semibold text-slate-100">{tutor.totalClasses}</p>
           </div>
           <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-3">
-            <p className="text-xs text-slate-300 mb-1">Enrollments</p>
+            <p className="mb-1 text-xs text-slate-300">Enrollments</p>
             <p className="text-lg font-semibold text-slate-100">{tutor.totalStudents}</p>
           </div>
         </div>
 
         {/* Price and Action */}
         <div className="flex items-center justify-between pt-2">
-          <Link 
+          <Link
             href={`/student/classes?tutor=${tutor.id}&subject=${subjectCode}`}
-            className="flex items-center gap-2 text-slate-100 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-slate-100 transition-colors hover:text-white"
           >
             <Calendar className="h-6 w-6 text-[rgba(255,255,255,0.8)]" />
             <span className="text-lg font-medium">Book 1 on 1</span>
           </Link>
           <div className="text-right">
-            <div className="text-slate-100 text-lg">{formatPrice()}</div>
+            <div className="text-lg text-slate-100">{formatPrice()}</div>
             <div className="mt-1 text-sm">{formatAvailability()}</div>
           </div>
         </div>

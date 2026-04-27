@@ -10,7 +10,6 @@ export const PUBLIC_PREFIX_PATHS = [
   '/onboarding',
   '/u/',
   '/admin',
-  '/api/admin/',
   '/api/admin/auth',
   '/login',
   '/forgot-password',

@@ -167,65 +167,69 @@ export const POST = withCsrf(
 )
 
 // GET /api/class/rooms - List active class rooms
-export const GET = withAuth(async (req, session) => {
-  const { searchParams } = new URL(req.url)
-  const subject = searchParams.get('subject')
-  const tutorId = searchParams.get('tutorId')
-  const courseId = searchParams.get('courseId')
-  const includeScheduled =
-    searchParams.get('includeScheduled') === '1' || searchParams.get('includeScheduled') === 'true'
+export const GET = withAuth(
+  async (req, session) => {
+    const { searchParams } = new URL(req.url)
+    const subject = searchParams.get('subject')
+    const tutorId = searchParams.get('tutorId')
+    const courseId = searchParams.get('courseId')
+    const includeScheduled =
+      searchParams.get('includeScheduled') === '1' || searchParams.get('includeScheduled') === 'true'
 
-  // Build filter
-  const filtersOfRequest: SQL[] = [
-    includeScheduled
-      ? inArray(liveSession.status, ['active', 'scheduled'])
-      : eq(liveSession.status, 'active'),
-    gte(liveSession.scheduledAt, new Date(Date.now() - 4 * 60 * 60 * 1000)),
-  ]
+    // Build filter
+    const filtersOfRequest: SQL[] = [
+      includeScheduled
+        ? inArray(liveSession.status, ['active', 'scheduled'])
+        : eq(liveSession.status, 'active'),
+      gte(liveSession.scheduledAt, new Date(Date.now() - 4 * 60 * 60 * 1000)),
+    ]
 
-  if (subject) filtersOfRequest.push(eq(liveSession.category, subject))
-  if (tutorId) filtersOfRequest.push(eq(liveSession.tutorId, tutorId))
-  if (courseId) filtersOfRequest.push(eq(liveSession.courseId, courseId))
+    if (subject) filtersOfRequest.push(eq(liveSession.category, subject))
+    if (tutorId) filtersOfRequest.push(eq(liveSession.tutorId, tutorId))
+    if (courseId) filtersOfRequest.push(eq(liveSession.courseId, courseId))
 
-  // Fetch sessions with tutor info
-  // Since participants is a relation, and we don't have 'with' defined,
-  // we'll fetch sessions and then participants if needed, or just sessions with tutor.
-  const sessions = await drizzleDb
-    .select({
-      session: liveSession,
-      tutorName: profile.name,
-      tutorAvatar: profile.avatarUrl,
-    })
-    .from(liveSession)
-    .innerJoin(user, eq(user.userId, liveSession.tutorId))
-    .innerJoin(profile, eq(profile.userId, user.userId))
-    .where(filtersOfRequest.length > 0 ? and(...filtersOfRequest) : undefined)
-    .orderBy(includeScheduled ? asc(liveSession.scheduledAt) : desc(liveSession.scheduledAt))
-
-  // Filter out expired rooms and format
-  const activeSessions = (
-    await Promise.all(
-      sessions.map(async row => {
-        const s = row.session
-        if (!s.roomId) return null
-        if (s.status === 'active') {
-          const isActive = await dailyProvider.isRoomActive(s.roomId)
-          if (!isActive) return null
-        }
-
-        return {
-          ...s,
-          id: s.sessionId,
-          tutor: {
-            profile: {
-              name: row.tutorName,
-              avatarUrl: row.tutorAvatar,
-            },
-          },
-        }
+    // Fetch sessions with tutor info
+    // Since participants is a relation, and we don't have 'with' defined,
+    // we'll fetch sessions and then participants if needed, or just sessions with tutor.
+    const sessions = await drizzleDb
+      .select({
+        session: liveSession,
+        tutorName: profile.name,
+        tutorAvatar: profile.avatarUrl,
       })
-    )
-  ).filter((s): s is any => s !== null)
+      .from(liveSession)
+      .innerJoin(user, eq(user.userId, liveSession.tutorId))
+      .leftJoin(profile, eq(profile.userId, user.userId))
+      .where(filtersOfRequest.length > 0 ? and(...filtersOfRequest) : undefined)
+      .orderBy(includeScheduled ? asc(liveSession.scheduledAt) : desc(liveSession.scheduledAt))
+      .limit(50)
 
-  return NextResponse.json({ sessions: activeSessions })
-})
+    // Filter out expired rooms and format
+    const activeSessions = (
+      await Promise.all(
+        sessions.map(async row => {
+          const s = row.session
+          if (!s.roomId) return null
+          if (s.status === 'active') {
+            const isActive = await dailyProvider.isRoomActive(s.roomId)
+            if (!isActive) return null
+          }
+
+          return {
+            ...s,
+            id: s.sessionId,
+            tutor: {
+              profile: {
+                name: row.tutorName,
+                avatarUrl: row.tutorAvatar,
+              },
+            },
+          }
+        })
+      )
+    ).filter((s): s is any => s !== null)
+
+    return NextResponse.json({ sessions: activeSessions })
+  },
+  { role: 'TUTOR' }
+)

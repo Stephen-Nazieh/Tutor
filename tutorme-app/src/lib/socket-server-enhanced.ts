@@ -9,8 +9,8 @@ import Redis from 'ioredis'
 import * as Sentry from '@sentry/nextjs'
 import { eq, and, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession, poll, pollOption, pollResponse, courseEnrollment } from '@/lib/db/schema'
-import { initFeedbackHandlers } from './socket-server'
+import { liveSession, poll, pollOption, pollResponse, courseEnrollment, sessionParticipant } from '@/lib/db/schema'
+import { initFeedbackHandlers, initPollHandlers } from './socket-server'
 import { activePolls, sessionPolls, cleanupStaleSocketState } from '@/lib/socket'
 import type { PollState } from '@/lib/socket'
 import { socketAuthMiddleware } from './socket/socket-auth'
@@ -370,7 +370,7 @@ async function getRoomFromRedis(roomId: string): Promise<ClassRoom | null> {
 
 // Per-event rate limiting middleware
 function rateLimitMiddleware(socket: Socket, next: (err?: Error) => void) {
-  const connectionId = socket.id
+  const connectionId = socket.data.userId || socket.id
 
   try {
     if (isRateLimited(connectionId)) {
@@ -499,9 +499,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
             durationMinutes: liveSession.durationMinutes,
           })
           .from(liveSession)
-          .where(
-            inArray(liveSession.status, ['active', 'live', 'preparing', 'paused'])
-          )
+          .where(inArray(liveSession.status, ['active', 'live', 'preparing', 'paused']))
 
         for (const s of activeSessions) {
           const startTime = s.startedAt
@@ -534,6 +532,14 @@ export async function initEnhancedSocketServer(server: NetServer) {
               .where(eq(liveSession.sessionId, s.sessionId))
             io.to(s.sessionId).emit('session:ended', { sessionId: s.sessionId, reason: 'timeout' })
             sessionAlertSent.delete(s.sessionId)
+          }
+        }
+
+        // Clean up alerts for sessions that are no longer active
+        const activeSessionIds = new Set(activeSessions.map(s => s.sessionId))
+        for (const id of Array.from(sessionAlertSent)) {
+          if (!activeSessionIds.has(id)) {
+            sessionAlertSent.delete(id)
           }
         }
       } catch (err) {
@@ -572,6 +578,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
     // Feedback & Insights handlers — shared with socket-server.ts
     initFeedbackHandlers(io, socket)
+    initPollHandlers(io, socket)
 
     // Enhanced room management with authentication
     socket.on('chat_message', ({ text, roomId }: { text: string; roomId?: string }) => {
@@ -779,209 +786,6 @@ export async function initEnhancedSocketServer(server: NetServer) {
       delete socket.data.pollSessionId
     })
 
-    socket.on(
-      'poll:create',
-      async (data: {
-        sessionId: string
-        question: string
-        type: string
-        options: { label: string; text: string }[]
-        isAnonymous: boolean
-        allowMultiple: boolean
-        showResults: boolean
-        timeLimit?: number
-      }) => {
-        if (socket.data.role !== 'tutor') return
-
-        const liveSessionRow = await drizzleDb.query.liveSession.findFirst({
-          where: eq(liveSession.roomId, data.sessionId),
-        })
-        const dbSessionId = liveSessionRow?.sessionId ?? data.sessionId
-
-        const pollId = crypto.randomUUID()
-        const now = new Date()
-
-        await drizzleDb.insert(poll).values({
-          pollId,
-          sessionId: dbSessionId,
-          tutorId: socket.data.userId,
-          question: data.question,
-          type:
-            data.type === 'multiple_choice'
-              ? 'MULTIPLE_CHOICE'
-              : data.type === 'true_false'
-                ? 'TRUE_FALSE'
-                : data.type === 'rating'
-                  ? 'RATING'
-                  : data.type === 'short_answer'
-                    ? 'SHORT_ANSWER'
-                    : 'WORD_CLOUD',
-          isAnonymous: data.isAnonymous,
-          allowMultiple: data.allowMultiple,
-          showResults: data.showResults,
-          timeLimit: data.timeLimit,
-          status: 'ACTIVE',
-          totalResponses: 0,
-          createdAt: now,
-          updatedAt: now,
-        })
-
-        const optionsToInsert = data.options.map((opt, i) => ({
-          optionId: `opt-${pollId}-${i}`,
-          pollId,
-          label: opt.label || String.fromCharCode(65 + i),
-          text: opt.text,
-          color: getPollOptionColor(i),
-          responseCount: 0,
-          percentage: 0,
-        }))
-
-        if (optionsToInsert.length > 0) {
-          await drizzleDb.insert(pollOption).values(optionsToInsert)
-        }
-
-        const pollState: PollState = {
-          id: pollId,
-          sessionId: data.sessionId,
-          tutorId: socket.data.userId,
-          question: data.question,
-          type: data.type as PollState['type'],
-          options: optionsToInsert.map(opt => ({
-            id: opt.optionId,
-            label: opt.label,
-            text: opt.text,
-            color: opt.color,
-          })),
-          isAnonymous: data.isAnonymous,
-          allowMultiple: data.allowMultiple,
-          showResults: data.showResults,
-          timeLimit: data.timeLimit,
-          status: 'active',
-          responses: [],
-        }
-
-        activePolls.set(pollId, pollState)
-        if (!sessionPolls.has(data.sessionId)) {
-          sessionPolls.set(data.sessionId, new Set())
-        }
-        sessionPolls.get(data.sessionId)!.add(pollId)
-
-        io.to(`poll:${data.sessionId}`).emit('poll:created', formatPollForBroadcast(pollState))
-      }
-    )
-
-    socket.on('poll:start', (data: { pollId: string; sessionId: string }) => {
-      if (socket.data.role !== 'tutor') return
-
-      const pollState = activePolls.get(data.pollId)
-      if (!pollState || pollState.sessionId !== data.sessionId) return
-
-      pollState.status = 'active'
-      pollState.startedAt = Date.now()
-
-      if (pollState.timeLimit) {
-        pollState.timer = setTimeout(() => {
-          endPoll(io, data.pollId)
-        }, pollState.timeLimit * 1000)
-      }
-
-      io.to(`poll:${data.sessionId}`).emit('poll:started', formatPollForBroadcast(pollState))
-    })
-
-    socket.on('poll:end', async (data: { pollId: string; sessionId: string }) => {
-      if (socket.data.role !== 'tutor') return
-
-      await drizzleDb
-        .update(poll)
-        .set({
-          status: 'CLOSED',
-          endedAt: new Date(),
-        })
-        .where(eq(poll.pollId, data.pollId))
-
-      endPoll(io, data.pollId)
-    })
-
-    socket.on('poll:delete', async (data: { pollId: string; sessionId: string }) => {
-      if (socket.data.role !== 'tutor') return
-
-      const pollState = activePolls.get(data.pollId)
-      if (!pollState || pollState.sessionId !== data.sessionId) return
-
-      await drizzleDb
-        .update(poll)
-        .set({
-          status: 'CLOSED',
-          endedAt: new Date(),
-        })
-        .where(eq(poll.pollId, data.pollId))
-
-      if (pollState.timer) {
-        clearTimeout(pollState.timer)
-      }
-
-      activePolls.delete(data.pollId)
-      sessionPolls.get(data.sessionId)?.delete(data.pollId)
-
-      io.to(`poll:${data.sessionId}`).emit('poll:deleted', data.pollId)
-    })
-
-    socket.on(
-      'poll:vote',
-      async (data: {
-        pollId: string
-        sessionId: string
-        optionIds?: string[]
-        rating?: number
-        textAnswer?: string
-      }) => {
-        const pollState = activePolls.get(data.pollId)
-        if (!pollState || pollState.sessionId !== data.sessionId) return
-        if (pollState.status !== 'active') return
-
-        const userId = socket.data.userId
-
-        if (!pollState.isAnonymous) {
-          const existingVote = pollState.responses.find(r => r.studentId === userId)
-          if (existingVote) return
-        } else {
-          const respondentHash = await hashString(`${userId}:${data.pollId}`)
-          const existingVote = pollState.responses.find(r => r.respondentHash === respondentHash)
-          if (existingVote) return
-        }
-
-        const responseId = crypto.randomUUID()
-        const respondentHash = pollState.isAnonymous
-          ? await hashString(`${userId}:${data.pollId}`)
-          : undefined
-
-        await drizzleDb.insert(pollResponse).values({
-          responseId,
-          pollId: data.pollId,
-          respondentHash,
-          optionIds: data.optionIds || [],
-          rating: data.rating,
-          textAnswer: data.textAnswer,
-          studentId: pollState.isAnonymous ? undefined : userId,
-          createdAt: new Date(),
-        })
-
-        const response = {
-          id: responseId,
-          respondentHash,
-          optionIds: data.optionIds,
-          rating: data.rating,
-          textAnswer: data.textAnswer,
-          studentId: pollState.isAnonymous ? undefined : userId,
-          createdAt: Date.now(),
-        }
-
-        pollState.responses.push(response)
-
-        io.to(`poll:${data.sessionId}`).emit('poll:updated', formatPollForBroadcast(pollState))
-        socket.emit('poll:vote:confirmed', { pollId: data.pollId })
-      }
-    )
 
     // Helper: check if a session is currently in a state where tutors can deploy content
     async function canDeployToSession(
@@ -1072,7 +876,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
         const { eq } = await import('drizzle-orm')
 
         const sessionRec = await drizzleDb.query.liveSession.findFirst({
-          where: eq(liveSession.sessionId, roomId),
+          where: eq(liveSession.roomId, roomId),
           columns: { courseId: true },
         })
 
@@ -1093,7 +897,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
             type: normalizedTask.source,
             itemId: normalizedTask.id,
             title: normalizedTask.title,
-            content: JSON.stringify(normalizedTask),
+            content: normalizedTask as unknown as Record<string, unknown>,
             sessionSequence,
             deployedAt: new Date(normalizedTask.deployedAt || Date.now()),
           })
@@ -1265,7 +1069,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
     )
 
     // Enhanced disconnect handler with cleanup
-    socket.on('disconnect', () => {
+    socket.on('disconnect', async () => {
       console.log(`Client disconnected: ${socket.id}`)
 
       // Clean up various states
@@ -1280,12 +1084,33 @@ export async function initEnhancedSocketServer(server: NetServer) {
           room.students.delete(userId)
           room.lastActivity = Date.now()
           socket.to(roomId).emit('student_left', { userId })
+
+          // Update sessionParticipant.leftAt in database
+          try {
+            const liveSessionRow = await drizzleDb.query.liveSession.findFirst({
+              where: eq(liveSession.roomId, roomId),
+              columns: { sessionId: true },
+            })
+            if (liveSessionRow) {
+              await drizzleDb
+                .update(sessionParticipant)
+                .set({ leftAt: new Date() })
+                .where(
+                  and(
+                    eq(sessionParticipant.sessionId, liveSessionRow.sessionId),
+                    eq(sessionParticipant.studentId, userId)
+                  )
+                )
+            }
+          } catch (err) {
+            console.error('Failed to update sessionParticipant leftAt:', err)
+          }
         }
         // Whiteboard cleanup removed
       }
 
       // Connection rate limit cleanup
-      connectionRateLimits.delete(socket.id)
+      connectionRateLimits.delete(socket.data.userId || socket.id)
     })
   })
 

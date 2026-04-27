@@ -370,38 +370,35 @@ function TutorDashboardContent() {
     []
   )
 
-  const handleOpenSessionsModal = useCallback(
-    async (course: EnrolledCourse) => {
-      if (loadingSessionsRef.current) return
-      loadingSessionsRef.current = true
-      setSelectedCourseForCancel(course)
-      setCancelModalOpen(true)
-      setCourseSessions([])
-      setSessionLoadError(null)
-      setLoadingSessions(true)
+  const handleOpenSessionsModal = useCallback(async (course: EnrolledCourse) => {
+    if (loadingSessionsRef.current) return
+    loadingSessionsRef.current = true
+    setSelectedCourseForCancel(course)
+    setCancelModalOpen(true)
+    setCourseSessions([])
+    setSessionLoadError(null)
+    setLoadingSessions(true)
 
-      try {
-        const res = await fetch(`/api/tutor/courses/${course.id}/sessions`, {
-          credentials: 'include',
-        })
-        if (res.ok) {
-          const data = await res.json()
-          setCourseSessions(data.sessions || [])
-        } else {
-          const errData = await res.json().catch(() => ({}))
-          console.error('Tutor session load failed:', errData, res.status)
-          setSessionLoadError(errData.error || res.statusText || 'Failed to load sessions')
-        }
-      } catch (e) {
-        console.error('Tutor session load exception:', e)
-        setSessionLoadError('Network error. Please try again.')
-      } finally {
-        loadingSessionsRef.current = false
-        setLoadingSessions(false)
+    try {
+      const res = await fetch(`/api/tutor/courses/${course.id}/sessions`, {
+        credentials: 'include',
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setCourseSessions(data.sessions || [])
+      } else {
+        const errData = await res.json().catch(() => ({}))
+        console.error('Tutor session load failed:', errData, res.status)
+        setSessionLoadError(errData.error || res.statusText || 'Failed to load sessions')
       }
-    },
-    []
-  )
+    } catch (e) {
+      console.error('Tutor session load exception:', e)
+      setSessionLoadError('Network error. Please try again.')
+    } finally {
+      loadingSessionsRef.current = false
+      setLoadingSessions(false)
+    }
+  }, [])
 
   const handleEnterCourseClassroom = useCallback(
     async (course: EnrolledCourse) => {

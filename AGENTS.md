@@ -1,7 +1,6 @@
-<!-- From: /workspaces/Tutor/AGENTS.md -->
 # Solocorn — AI Coding Agent Guide
 
-> **Last updated:** 2026-04-26
+> **Last updated:** 2026-04-27
 > **Covers:** `tutorme-app/` (main Next.js app), `landing-page/` (Vite landing page), `services/adk/` (Google ADK microservice)
 
 ---
@@ -21,10 +20,10 @@ Solocorn (also marketed as CogniClass) is an AI-human hybrid tutoring platform. 
 - Payment processing through Airwallex, Hitpay, WeChat Pay, and Alipay.
 
 **Target tutor-to-student ratio:** 1 : 50
-**Supported locales:** `en` (default), `zh-CN`, `es`, `fr`, `de`, `ja`, `ko`, `pt`, `ru`, `ar`
+**Supported locales:** `en` (default), `zh-CN`, `es`, `fr`, `de`, `ja`, `ko`, `pt`, `ru`, `ar` (code supports 10 locales; only `en.json` and `zh-CN.json` translation files currently exist in `messages/`)
 **Main app default port:** `3003`
 **Landing page default port:** `3000`
-**ADK service default port:** `8080` (configured via `PORT` env var)
+**ADK service default port:** `8080` (configured via `PORT` env var; docker-compose maps to `4310`)
 
 ---
 
@@ -33,31 +32,33 @@ Solocorn (also marketed as CogniClass) is an AI-human hybrid tutoring platform. 
 This repository contains three independent sub-projects. **There is no root `package.json`** and no npm workspace / Turborepo configuration. Each sub-project is managed independently.
 
 ```
-/workspaces/Tutor/
+/Users/nazy/ADK_WORKSPACE/TutorMekimi/
 │
 ├── tutorme-app/              # Main Next.js application (all backend + primary frontend)
 │   ├── src/
 │   │   ├── app/              # Next.js App Router
 │   │   │   ├── [locale]/     # i18n route segments (pages per role)
-│   │   │   │   ├── student/
-│   │   │   │   ├── tutor/
-│   │   │   │   ├── parent/
-│   │   │   │   ├── admin/
+│   │   │   │   ├── (student)/# Route group (currently empty; student pages live under student/)
+│   │   │   │   ├── student/  # Student dashboard & features
+│   │   │   │   ├── tutor/    # Tutor dashboard & clinic management
+│   │   │   │   ├── parent/   # Parent dashboard & family management
+│   │   │   │   ├── admin/    # Admin dashboard & system management
 │   │   │   │   ├── login/
 │   │   │   │   ├── register/
 │   │   │   │   ├── onboarding/
 │   │   │   │   ├── payment/
+│   │   │   │   ├── legal/
 │   │   │   │   └── ...
-│   │   │   └── api/          # REST API routes (~45 top-level domains, 180+ route files)
-│   │   ├── components/       # React components (feature-organized, ~130+ files)
-│   │   ├── lib/              # Business logic, utilities, AI, db, security, etc.
+│   │   │   └── api/          # REST API routes (~45 top-level domains, 230+ route files)
+│   │   ├── components/       # React components (feature-organized, ~125+ files)
+│   │   ├── lib/              # Business logic, utilities, AI, db, security, etc. (~59 dirs)
 │   │   ├── hooks/            # Custom React hooks
 │   │   ├── stores/           # Zustand client stores
 │   │   └── __tests__/        # Unit, integration, accessibility tests + mocks
 │   ├── e2e/                  # Playwright E2E specs (11 spec files)
-│   ├── drizzle/              # Drizzle migration files (22 active migrations: 0019–0040)
-│   ├── messages/             # next-intl JSON translations (en.json, zh-CN.json, etc.)
-│   ├── scripts/              # Build, deployment & utility scripts
+│   ├── drizzle/              # Drizzle migration files (23 active migrations: 0019–0041)
+│   ├── messages/             # next-intl JSON translations (en.json, zh-CN.json)
+│   ├── scripts/              # Build, deployment & utility scripts (~40 files)
 │   ├── server.ts             # Custom Next.js HTTP server with Socket.io
 │   ├── Dockerfile            # Full .next + custom server build
 │   ├── Dockerfile.production # Standalone-output build for GCP Cloud Run
@@ -68,15 +69,20 @@ This repository contains three independent sub-projects. **There is no root `pac
 │   ├── src/
 │   │   ├── App.tsx
 │   │   ├── main.tsx
+│   │   ├── index.css
 │   │   └── components/
+│   │       ├── Layout.tsx
+│   │       ├── ProfilePage.tsx
+│   │       └── RegistrationPage.tsx
 │   ├── package.json
 │   ├── vite.config.ts
-│   └── tsconfig.json
+│   ├── tsconfig.json
+│   └── README.md
 │
 └── services/adk/             # Google ADK microservice (Express + TypeScript)
     ├── src/
     │   ├── server/           # Express server, routes, auth middleware
-    │   ├── agents/           # ADK agent definitions
+    │   ├── agents/           # ADK agent definitions (briefing, content-generator, grading, live-monitor, pci-master, supervisor, tutor)
     │   ├── adapters/         # External service adapters
     │   ├── memory/           # Memory / context storage
     │   ├── observability/    # Logging & monitoring
@@ -85,7 +91,8 @@ This repository contains three independent sub-projects. **There is no root `pac
     │   └── validation/       # Zod schemas
     ├── package.json
     ├── tsconfig.json
-    └── Dockerfile
+    ├── Dockerfile
+    └── docker-compose.yml
 ```
 
 ---
@@ -108,7 +115,7 @@ This repository contains three independent sub-projects. **There is no root `pac
 | **Cache / PubSub** | Redis | `^7` via `ioredis` |
 | **Real-time** | Socket.io | `^4.8.3` (server + client), Redis adapter |
 | **Auth** | NextAuth.js | `^4.24.13`, JWT sessions, CredentialsProvider |
-| **i18n** | next-intl | `^4.8.3`, 10 locales, RTL support for `ar` |
+| **i18n** | next-intl | `^4.8.3`, 10 locales configured, RTL support for `ar` |
 | **Validation** | Zod | `^4.3.6` (main app); `^3.23.8` (ADK service) |
 | **Video** | Daily.co | `@daily-co/daily-js ^0.87.0` |
 | **Whiteboard** | tldraw + Yjs + Fabric.js | Collaborative canvas |
@@ -163,7 +170,7 @@ npm run drizzle:generate     # Generate new migration SQL
 npm run drizzle:studio       # Open Drizzle Studio (https://local.drizzle.studio)
 npm run drizzle:push         # Push schema changes (force)
 npm run drizzle:pull         # Pull schema from database
-npm run db:seed              # Seed sample data (currently a no-op that prints "Seed skipped")
+npm run db:seed              # Seed sample data (legacy no-op; prints "Seed skipped")
 npm run db:seed:admin        # Seed admin user and roles only
 ```
 
@@ -181,6 +188,7 @@ npm run test:e2e:a11y        # Accessibility tests (Playwright)
 
 > **E2E requirements:** The app must be running (default `http://localhost:3003`). Some specs expect seeded test users (e.g., `student@example.com` / `Password1`).
 > **Integration requirements:** Requires `DATABASE_URL` pointing to a test database (e.g., `tutorme_test`). The integration test job in CI is currently commented out.
+> **Important:** The `playwright.config.ts` references `npm run dev:next` as the webServer command, but this script does **not exist** in `package.json`. Start the app manually with `npm run dev` before running E2E tests.
 
 ### Code Quality
 
@@ -270,22 +278,23 @@ Startup environment validation lives in `src/lib/env.ts` and is called from `ser
 
 - `src/app/layout.tsx` — Root layout with metadata, PWA manifest, and top-level providers (`Providers`, `PerformanceProviders`).
 - `src/app/[locale]/layout.tsx` — Locale layout wrapping `NextIntlClientProvider`, `ThemeProvider`, `AuthProvider`, `Toaster`, and `PWAInstallPrompt`.
-- `src/app/[locale]/` — All user-facing pages grouped by role (`student/`, `tutor/`, `parent/`, `admin/`) plus shared pages (`login/`, `register/`, `onboarding/`, `payment/`, `legal/`).
-- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files). There are ~45 top-level API domains and 180+ route files.
+- `src/app/[locale]/` — All user-facing pages grouped by role (`student/`, `tutor/`, `parent/`, `admin/`) plus shared pages (`login/`, `register/`, `onboarding/`, `payment/`, `legal/`). An empty `(student)` route group also exists.
+- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files). There are ~45 top-level API domains and 230+ route files.
 
 ### Components (`src/components/`)
 
-Organized by feature domain (~130+ component files across 28 top-level directories):
-- `ui/` — shadcn/ui primitives (Button, Card, Dialog, etc.)
+Organized by feature domain (~125+ component files across 30+ top-level directories):
+- `ui/` — shadcn/ui primitives (Button, Card, Dialog, etc.) — 31+ components
 - `ai-chat/`, `ai-tutor/` — AI interaction UIs
 - `class/` — Live classroom (whiteboard, polls, breakout rooms, engagement)
 - `student/`, `tutor/`, `parent/`, `admin/` — Role-specific dashboards
 - `video-player/`, `quiz/`, `polls/`, `whiteboard/`, `course-builder/` — Content & assessment UIs
 - `spaced-repetition/` — 11 components for spaced repetition system
+- `navigation/`, `notifications/`, `pwa/`, `pdf/`, `mentions/` — Supporting UI domains
 
 ### Library (`src/lib/`)
 
-Domain-organized business logic (~45 directories):
+Domain-organized business logic (~59 directories):
 - `lib/db/` — Drizzle client (`drizzle.ts`), schema (`schema/`), and migrations
 - `lib/ai/` — AI provider integrations (`kimi.ts`), prompts, teaching prompts, types, memory services
 - `lib/agents/` — Orchestrator (`orchestrator-llm.ts`), tutor agents, grading, live-monitor, content-generator, task-generator, tutor-chat-service
@@ -320,13 +329,13 @@ Zustand stores for client state. Currently contains `communication-store.ts`.
 
 - **Drizzle ORM** is the only ORM in use. No Prisma client is present.
 - Schema source of truth: `src/lib/db/schema/`
-  - `enums.ts` — 24 PostgreSQL enums (Role, PollType, PaymentStatus, LiveSessionStatus, BuilderTaskType, etc.)
+  - `enums.ts` — 24+ PostgreSQL enums (Role, PollType, PaymentStatus, LiveSessionStatus, BuilderTaskType, etc.)
   - `tables/` — Table definitions (14 table modules: admin, analytics, assistant, auth, builder, calendar, classroom, collaboration, content, course, family, finance, index, live)
   - `relations.ts` — Drizzle relational definitions
   - `next-auth.ts` — NextAuth.js Drizzle adapter tables
   - `compliance.ts` — GDPR / COPPA / FERPA compliance tables
   - `landing.ts` — Landing page inquiry/signup tables
-- Migrations live in `drizzle/` (22 active migrations numbered 0019–0040) and are managed by `drizzle-kit`.
+- Migrations live in `drizzle/` (23 active migrations numbered 0019–0041) and are managed by `drizzle-kit`.
 - Runtime client: `src/lib/db/drizzle.ts` uses `pg.Pool` with singleton pooling (dev pool cached on `globalThis`).
 - Legacy wrapper: `src/lib/db/index.ts` provides a query caching layer (Redis → in-memory fallback). Most app code imports `db` from here; new code should import `drizzleDb` from `./drizzle`.
 
@@ -403,12 +412,28 @@ export async function fetchUser(id: string): Promise<User | null> {
 ### ESLint Rules (excerpt from `eslint.config.mjs`)
 
 - `@typescript-eslint/no-explicit-any`: `warn`
+- `@typescript-eslint/no-require-imports`: `off`
 - `@typescript-eslint/no-unused-vars`: `warn` (ignores `_` prefixes)
+- `@typescript-eslint/no-empty-object-type`: `off`
+- `import/no-anonymous-default-export`: `off`
+- `@next/next/no-img-element`: `off`
+- `@next/next/no-html-link-for-pages`: `off`
+- `@next/next/no-assign-module-variable`: `off`
+- `react/no-unescaped-entities`: `off`
+- `react/jsx-no-undef`: `off`
+- `react/no-children-prop`: `off`
+- `react-hooks/exhaustive-deps`: `warn`
+- `react-hooks/set-state-in-effect`: `off`
+- `react-hooks/purity`: `off`
+- `react-hooks/refs`: `off`
+- `react-hooks/immutability`: `off`
+- `react-hooks/static-components`: `off`
+- `jsx-a11y/alt-text`: `off` (project uses explicit a11y patterns)
+- `@typescript-eslint/no-unused-expressions`: `off`
 - `no-console`: `warn` in production, `off` in development
 - `prefer-const`: `error`
 - `no-var`: `error`
-- `react-hooks/exhaustive-deps`: `warn`
-- `jsx-a11y/alt-text`: `off` (project uses explicit a11y patterns)
+- `@typescript-eslint/ban-ts-comment`: `warn`
 - Security rules: `no-implied-eval`, `no-new-func`, `no-script-url`, `no-proto`, `no-iterator`, `no-extend-native`, `no-with`, `no-caller`, `no-unsafe-finally` are all `error`
 
 ### Prettier (`.prettierrc`)
@@ -418,6 +443,7 @@ export async function fetchUser(id: string): Promise<User | null> {
 - `tabWidth: 2`
 - `trailingComma: "es5"`
 - `printWidth: 100`
+- `bracketSpacing: true`
 - `arrowParens: "avoid"`
 - `endOfLine: "lf"`
 - `plugins: ["prettier-plugin-tailwindcss"]`

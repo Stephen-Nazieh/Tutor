@@ -76,8 +76,8 @@ function StarRating({ rating, count }: { rating: number; count?: number }) {
   return (
     <div className="flex items-center gap-1 text-xs">
       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-      <span className="font-medium text-slate-100 text-base ml-1">{rating.toFixed(1)}</span>
-      {count !== undefined && <span className="text-slate-400 ml-1">({count})</span>}
+      <span className="ml-1 text-base font-medium text-slate-100">{rating.toFixed(1)}</span>
+      {count !== undefined && <span className="ml-1 text-slate-400">({count})</span>}
     </div>
   )
 }
@@ -368,7 +368,7 @@ export default function StudentTutorDirectoryPage() {
             <div
               key={tutor.id}
               className={cn(
-                'group relative flex flex-col overflow-hidden rounded-[20px] text-left transition-all duration-300 cursor-pointer',
+                'group relative flex cursor-pointer flex-col overflow-hidden rounded-[20px] text-left transition-all duration-300',
                 'border border-[rgba(255,255,255,0.12)]',
                 'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
                 'shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_12px_30px_rgba(0,0,0,0.35)]',
@@ -376,68 +376,81 @@ export default function StudentTutorDirectoryPage() {
                 'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
               )}
               style={{
-                backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(70, 110, 180, 0.75), rgba(25, 55, 110, 0.95))',
+                backgroundImage:
+                  'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(70, 110, 180, 0.75), rgba(25, 55, 110, 0.95))',
               }}
               onClick={() => router.push(`/${locale}/u/${tutor.username}`)}
             >
               <div className="flex flex-col p-5">
                 <div className="flex items-start gap-4">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)]">
-                    <img src={tutor.avatarUrl || undefined} alt={tutor.name} className="h-full w-full object-cover" />
+                  <div className="h-20 w-20 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)] sm:h-24 sm:w-24">
+                    <img
+                      src={tutor.avatarUrl || undefined}
+                      alt={tutor.name}
+                      className="h-full w-full object-cover"
+                    />
                   </div>
 
-                  <div className="min-w-0 flex-1 flex flex-col pt-1">
-                    <div className="flex justify-between items-start">
+                  <div className="flex min-w-0 flex-1 flex-col pt-1">
+                    <div className="flex items-start justify-between">
                       <div className="min-w-0 flex-1 pr-2">
-                        <h3 className="text-slate-50 truncate text-lg font-semibold">{tutor.name}</h3>
-                        <p className="mt-1 text-xs font-medium text-slate-300">
-                          @{tutor.username}
-                        </p>
+                        <h3 className="truncate text-lg font-semibold text-slate-50">
+                          {tutor.name}
+                        </h3>
+                        <p className="mt-1 text-xs font-medium text-slate-300">@{tutor.username}</p>
                       </div>
-                      <button 
+                      <button
                         onClick={e => {
                           e.stopPropagation()
                           toggleFollow(tutor.id)
                         }}
-                        className="shrink-0 px-3 py-1 text-xs font-medium text-slate-100 rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)]"
+                        className="shrink-0 rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-xs font-medium text-slate-100 backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)]"
                       >
                         {following.has(tutor.id) ? 'Following' : 'Follow'}
                       </button>
                     </div>
 
-                    <p className="text-slate-300 mt-2 line-clamp-2 text-xs">{tutor.bio || 'Experienced tutor ready to help you improve quickly.'}</p>
+                    <p className="mt-2 line-clamp-2 text-xs text-slate-300">
+                      {tutor.bio || 'Experienced tutor ready to help you improve quickly.'}
+                    </p>
                   </div>
                 </div>
 
-                <div className="mt-4 mb-3">
+                <div className="mb-3 mt-4">
                   <StarRating
                     rating={tutor.averageRating || 0}
                     count={tutor.totalReviewCount || 0}
                   />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                <div className="mb-3 flex flex-wrap items-center gap-1.5">
                   {tutor.categories.slice(0, 3).map(category => (
-                    <span key={`${tutor.id}:${category}`} className="px-2.5 py-0.5 text-[11px] text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+                    <span
+                      key={`${tutor.id}:${category}`}
+                      className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-2.5 py-0.5 text-[11px] text-slate-200"
+                    >
                       {category}
                     </span>
                   ))}
                   {tutor.categories.length > 3 ? (
-                    <span className="px-2.5 py-0.5 text-[11px] text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+                    <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-2.5 py-0.5 text-[11px] text-slate-200">
                       +{tutor.categories.length - 3}
                     </span>
                   ) : null}
                 </div>
 
                 {(tutor.tutorNationalities || []).length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 mb-4">
+                  <div className="mb-4 flex flex-wrap items-center gap-1.5">
                     {(tutor.tutorNationalities || []).slice(0, 3).map(nat => (
-                      <span key={`${tutor.id}:nat:${nat}`} className="px-2.5 py-0.5 text-[11px] text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+                      <span
+                        key={`${tutor.id}:nat:${nat}`}
+                        className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-2.5 py-0.5 text-[11px] text-slate-200"
+                      >
                         {nat}
                       </span>
                     ))}
                     {(tutor.tutorNationalities || []).length > 3 && (
-                      <span className="px-2.5 py-0.5 text-[11px] text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+                      <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-2.5 py-0.5 text-[11px] text-slate-200">
                         +{(tutor.tutorNationalities || []).length - 3}
                       </span>
                     )}
@@ -445,16 +458,18 @@ export default function StudentTutorDirectoryPage() {
                 )}
                 {!(tutor.tutorNationalities || []).length && <div className="mb-4" />}
 
-                <div className="border-b border-[rgba(255,255,255,0.1)] mb-4" />
+                <div className="mb-4 border-b border-[rgba(255,255,255,0.1)]" />
 
-                <div className="grid grid-cols-2 gap-3 mb-4 mt-auto">
+                <div className="mb-4 mt-auto grid grid-cols-2 gap-3">
                   <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-2.5">
-                    <p className="text-[10px] text-slate-300 mb-0.5">Courses</p>
+                    <p className="mb-0.5 text-[10px] text-slate-300">Courses</p>
                     <p className="text-base font-semibold text-slate-100">{tutor.courseCount}</p>
                   </div>
                   <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-2.5">
-                    <p className="text-[10px] text-slate-300 mb-0.5">Enrollments</p>
-                    <p className="text-base font-semibold text-slate-100">{tutor.totalEnrollments}</p>
+                    <p className="mb-0.5 text-[10px] text-slate-300">Enrollments</p>
+                    <p className="text-base font-semibold text-slate-100">
+                      {tutor.totalEnrollments}
+                    </p>
                   </div>
                 </div>
 
@@ -462,7 +477,7 @@ export default function StudentTutorDirectoryPage() {
                   <Link
                     href={`/${locale}/u/${tutor.username}?book=1`}
                     onClick={e => e.stopPropagation()}
-                    className="flex items-center justify-center w-full gap-2 py-2 text-sm font-medium text-slate-100 rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)] hover:text-white"
+                    className="flex w-full items-center justify-center gap-2 rounded-full border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.08)] py-2 text-sm font-medium text-slate-100 backdrop-blur-[6px] transition-colors hover:bg-[rgba(255,255,255,0.15)] hover:text-white"
                   >
                     <Calendar className="h-4 w-4 text-[rgba(255,255,255,0.8)]" />
                     Book 1 on 1

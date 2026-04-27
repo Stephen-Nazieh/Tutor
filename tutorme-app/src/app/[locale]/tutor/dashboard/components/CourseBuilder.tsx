@@ -554,8 +554,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }[]
     >([])
     const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
-  const [isSplitting, setIsSplitting] = useState(false)
-  const [assetToLoad, setAssetToLoad] = useState<{
+    const [isSplitting, setIsSplitting] = useState(false)
+    const [assetToLoad, setAssetToLoad] = useState<{
       name: string
       content?: string
       url?: string
@@ -3851,7 +3851,10 @@ FEEDBACK: [your explanation]`
             }
           }}
         >
-          <DialogContent theme="default" className="rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-w-md">
+          <DialogContent
+            theme="default"
+            className="rounded-2xl border border-slate-200 bg-white shadow-2xl sm:max-w-md"
+          >
             <DialogHeader>
               <DialogTitle className="text-xl font-semibold text-slate-900">Load as...</DialogTitle>
             </DialogHeader>
@@ -3908,18 +3911,21 @@ FEEDBACK: [your explanation]`
                   setIsSplitting(true)
                   const newTasks: Task[] = []
                   const newCourseBuilderNodes = [...nodes]
-                  const startIndex = newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.length
+                  const startIndex =
+                    newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.length
                   const groupNumber = startIndex + 1
 
                   try {
-                    const isPdf = assetToLoad.mimeType === 'application/pdf' || assetToLoad.name.toLowerCase().endsWith('.pdf')
-                    
+                    const isPdf =
+                      assetToLoad.mimeType === 'application/pdf' ||
+                      assetToLoad.name.toLowerCase().endsWith('.pdf')
+
                     if (isPdf && assetToLoad.url) {
                       // Fetch original PDF and split it physically
                       const pdfBytes = await fetch(assetToLoad.url).then(res => res.arrayBuffer())
                       const pdfDoc = await PDFDocument.load(pdfBytes)
                       const pageCount = pdfDoc.getPageCount()
-                      
+
                       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
                       const csrfData = await csrfRes.json().catch(() => ({}))
                       const csrfToken = csrfData?.token ?? null
@@ -3929,10 +3935,14 @@ FEEDBACK: [your explanation]`
                         const [copiedPage] = await newPdf.copyPages(pdfDoc, [i])
                         newPdf.addPage(copiedPage)
                         const splitPdfBytes = await newPdf.save()
-                        
+
                         const blob = new Blob([splitPdfBytes as any], { type: 'application/pdf' })
                         const formData = new FormData()
-                        formData.append('file', blob, `${assetToLoad.name.replace(/\.pdf$/i, '')}_page_${i + 1}.pdf`)
+                        formData.append(
+                          'file',
+                          blob,
+                          `${assetToLoad.name.replace(/\.pdf$/i, '')}_page_${i + 1}.pdf`
+                        )
 
                         const uploadRes = await fetch('/api/uploads/documents', {
                           method: 'POST',
@@ -3944,7 +3954,8 @@ FEEDBACK: [your explanation]`
                         })
 
                         const uploadData = await uploadRes.json()
-                        if (!uploadRes.ok) throw new Error(uploadData.error || 'Failed to upload split page')
+                        if (!uploadRes.ok)
+                          throw new Error(uploadData.error || 'Failed to upload split page')
 
                         const newTask = DEFAULT_TASK(startIndex + i)
                         newTask.title = `Task ${groupNumber}.${i + 1}`
@@ -4015,7 +4026,9 @@ FEEDBACK: [your explanation]`
                 <div className="flex flex-col items-start text-left">
                   <span className="font-semibold text-slate-900">Tasks</span>
                   <span className="mt-1 text-xs font-normal text-slate-500">
-                    {isSplitting ? 'Processing and splitting PDF...' : 'Extract text and create one task per page'}
+                    {isSplitting
+                      ? 'Processing and splitting PDF...'
+                      : 'Extract text and create one task per page'}
                   </span>
                 </div>
               </Button>
@@ -4033,9 +4046,11 @@ FEEDBACK: [your explanation]`
                     const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
                     let pages: string[] = []
-                    let pdfPagesUrls: string[] = []
+                    const pdfPagesUrls: string[] = []
 
-                    const isPdf = assetToLoad.mimeType === 'application/pdf' || assetToLoad.name.toLowerCase().endsWith('.pdf')
+                    const isPdf =
+                      assetToLoad.mimeType === 'application/pdf' ||
+                      assetToLoad.name.toLowerCase().endsWith('.pdf')
 
                     if (isPdf && assetToLoad.url) {
                       // Fetch original PDF and split it physically
@@ -4055,7 +4070,11 @@ FEEDBACK: [your explanation]`
 
                         const blob = new Blob([splitPdfBytes as any], { type: 'application/pdf' })
                         const formData = new FormData()
-                        formData.append('file', blob, `${assetToLoad.name.replace(/\.pdf$/i, '')}_page_${i + 1}.pdf`)
+                        formData.append(
+                          'file',
+                          blob,
+                          `${assetToLoad.name.replace(/\.pdf$/i, '')}_page_${i + 1}.pdf`
+                        )
 
                         const uploadRes = await fetch('/api/uploads/documents', {
                           method: 'POST',
@@ -4067,13 +4086,16 @@ FEEDBACK: [your explanation]`
                         })
 
                         const uploadData = await uploadRes.json()
-                        if (!uploadRes.ok) throw new Error(uploadData.error || 'Failed to upload split page')
+                        if (!uploadRes.ok)
+                          throw new Error(uploadData.error || 'Failed to upload split page')
 
                         pdfPagesUrls.push(uploadData.url)
                       }
 
                       // Dummy text to represent pages since we use physical PDF URLs
-                      pages = Array(pageCount).fill('').map((_, i) => `Page ${i + 1} from ${assetToLoad.name}`)
+                      pages = Array(pageCount)
+                        .fill('')
+                        .map((_, i) => `Page ${i + 1} from ${assetToLoad.name}`)
                     } else {
                       if (textToInsert.includes('\f')) {
                         pages = textToInsert.split('\f').filter(p => p.trim())
@@ -4091,7 +4113,7 @@ FEEDBACK: [your explanation]`
 
                     const newTask = DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
                     newTask.description = pages[0] || textToInsert
-                    
+
                     if (isPdf && pdfPagesUrls.length > 0) {
                       newTask.sourceDocument = {
                         fileName: `${assetToLoad.name} (Page 1)`,
@@ -4192,7 +4214,9 @@ FEEDBACK: [your explanation]`
                 <div className="flex flex-col items-start text-left">
                   <span className="font-semibold text-slate-900">Task + Extensions</span>
                   <span className="mt-1 text-xs font-normal text-slate-500">
-                    {isSplitting ? 'Processing and splitting PDF...' : 'First page as task, remaining as extensions'}
+                    {isSplitting
+                      ? 'Processing and splitting PDF...'
+                      : 'First page as task, remaining as extensions'}
                   </span>
                 </div>
               </Button>
@@ -4800,7 +4824,7 @@ FEEDBACK: [your explanation]`
                 <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent p-0 shadow-none">
                   <TabsTrigger
                     value="live"
-                    className="z-20 flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                    className="z-20 flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
                     onClick={e => {
                       if (mainTab !== 'live') {
                         setMainTab('live')
@@ -4823,7 +4847,7 @@ FEEDBACK: [your explanation]`
                     <>
                       <TabsTrigger
                         value="test-pci"
-                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
                         onClick={e => {
                           if (mainTab !== 'test-pci') {
                             setMainTab('test-pci')
@@ -4835,7 +4859,7 @@ FEEDBACK: [your explanation]`
                       </TabsTrigger>
                       <TabsTrigger
                         value="builder"
-                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:bg-white data-[state=inactive]:text-[#1F2933] shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
                         onClick={e => {
                           if (mainTab !== 'builder') {
                             setMainTab('builder')
@@ -5049,7 +5073,10 @@ FEEDBACK: [your explanation]`
                                                     node.title
                                                   )
                                                   if (newName && newName.trim()) {
-                                                    const sanitizedName = newName.replace(/[@;'"]/g, '').substring(0, 25).trim()
+                                                    const sanitizedName = newName
+                                                      .replace(/[@;'"]/g, '')
+                                                      .substring(0, 25)
+                                                      .trim()
                                                     if (!sanitizedName) return
                                                     setCourseBuilderNodes(prev =>
                                                       prev.map(n => {
@@ -6958,9 +6985,11 @@ FEEDBACK: [your explanation]`
                                                   <div className="h-full w-full pr-1">
                                                     {doc?.fileUrl ? (
                                                       <iframe
-                                                        src={doc.fileUrl.includes('#') 
-                                                          ? `${doc.fileUrl}&toolbar=0&navpanes=0` 
-                                                          : `${doc.fileUrl}#toolbar=0&navpanes=0`}
+                                                        src={
+                                                          doc.fileUrl.includes('#')
+                                                            ? `${doc.fileUrl}&toolbar=0&navpanes=0`
+                                                            : `${doc.fileUrl}#toolbar=0&navpanes=0`
+                                                        }
                                                         className="h-full w-full rounded-md border-0"
                                                         title="PDF Viewer"
                                                       />
@@ -7255,7 +7284,9 @@ FEEDBACK: [your explanation]`
                                       : taskBuilder.title || ''
                                   }
                                   onChange={e => {
-                                    const sanitized = e.target.value.replace(/[@;'"]/g, '').substring(0, 25)
+                                    const sanitized = e.target.value
+                                      .replace(/[@;'"]/g, '')
+                                      .substring(0, 25)
                                     setTaskBuilder(prev => {
                                       if (prev.activeExtensionId) {
                                         return {
@@ -7299,7 +7330,9 @@ FEEDBACK: [your explanation]`
                                   placeholder="Select or name an Assessment"
                                   value={assessmentBuilder.title || ''}
                                   onChange={e => {
-                                    const sanitized = e.target.value.replace(/[@;'"]/g, '').substring(0, 25)
+                                    const sanitized = e.target.value
+                                      .replace(/[@;'"]/g, '')
+                                      .substring(0, 25)
                                     setAssessmentBuilder(prev => ({
                                       ...prev,
                                       title: sanitized,
@@ -8152,7 +8185,7 @@ FEEDBACK: [your explanation]`
                                           </div>
                                         </div>
 
-                                        <div className="flex-1 space-y-4 overflow-y-auto p-1 mt-6">
+                                        <div className="mt-6 flex-1 space-y-4 overflow-y-auto p-1">
                                           {(
                                             assessmentPciMessagesMap[loadedAssessmentId || ''] || []
                                           ).length === 0 && (
@@ -8445,7 +8478,10 @@ FEEDBACK: [your explanation]`
           open={!!importTypeModalData}
           onOpenChange={open => !open && setImportTypeModalData(null)}
         >
-          <DialogContent theme="default" className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+          <DialogContent
+            theme="default"
+            className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md"
+          >
             <DialogHeader>
               <DialogTitle>Import as...</DialogTitle>
             </DialogHeader>
@@ -8660,7 +8696,10 @@ FEEDBACK: [your explanation]`
 
         {/* DMI Version History Modal */}
         <Dialog open={showDmiVersionList} onOpenChange={open => setShowDmiVersionList(open)}>
-          <DialogContent theme="default" className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+          <DialogContent
+            theme="default"
+            className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md"
+          >
             <DialogHeader>
               <DialogTitle>DMI Version History</DialogTitle>
               <DialogDescription>
@@ -8740,7 +8779,10 @@ FEEDBACK: [your explanation]`
             if (!open) setPreviewDmiVersion(null)
           }}
         >
-          <DialogContent theme="default" className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-lg">
+          <DialogContent
+            theme="default"
+            className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-lg"
+          >
             <DialogHeader>
               <DialogTitle>DMI Preview — Version {previewDmiVersion?.versionNumber}</DialogTitle>
               <DialogDescription>
@@ -8795,7 +8837,10 @@ FEEDBACK: [your explanation]`
             if (!open) setPptUploadDialog({ isOpen: false, file: null, target: null })
           }}
         >
-          <DialogContent theme="default" className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md">
+          <DialogContent
+            theme="default"
+            className="rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md sm:max-w-md"
+          >
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-orange-500" />

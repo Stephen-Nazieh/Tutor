@@ -403,7 +403,7 @@ function CourseBuilderInsightsRouteInner({
     >
       <div className="sticky top-0 z-10 w-full bg-[#fafafc] px-4 pb-4 pt-4 sm:px-6">
         <div className="flex w-full flex-col gap-4">
-          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 pt-4 pb-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 pb-3 pt-4 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <Link href="/tutor/dashboard">
                 <Button variant="ghost" size="icon">

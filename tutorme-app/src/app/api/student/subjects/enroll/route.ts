@@ -61,93 +61,91 @@ const subjectCourseMap: Record<string, { name: string; description: string }> = 
 }
 
 export const POST = withCsrf(
-  withAuth(
-    async (req: NextRequest, session) => {
-      const { response: rateLimitResponse } = await withRateLimitPreset(req, 'enroll')
-      if (rateLimitResponse) return rateLimitResponse
+  withAuth(async (req: NextRequest, session) => {
+    const { response: rateLimitResponse } = await withRateLimitPreset(req, 'enroll')
+    if (rateLimitResponse) return rateLimitResponse
 
-      const { subjectCode } = await req.json()
+    const { subjectCode } = await req.json()
 
-      if (!subjectCode) {
-        throw new ValidationError('Subject code required')
-      }
+    if (!subjectCode) {
+      throw new ValidationError('Subject code required')
+    }
 
-      const subjectKey = subjectCode.toLowerCase()
-      const subjectInfo = subjectCourseMap[subjectKey]
-      if (!subjectInfo) {
-        throw new ValidationError('Invalid subject code')
-      }
+    const subjectKey = subjectCode.toLowerCase()
+    const subjectInfo = subjectCourseMap[subjectKey]
+    if (!subjectInfo) {
+      throw new ValidationError('Invalid subject code')
+    }
 
-      const [courseByCategory] = await drizzleDb
-        .select()
-        .from(course)
-        .where(
-          sql`${course.categories} IS NOT NULL AND ${course.categories} @> ARRAY[${subjectKey}]::text[]`
-        )
-        .limit(1)
+    const [courseByCategory] = await drizzleDb
+      .select()
+      .from(course)
+      .where(
+        sql`${course.categories} IS NOT NULL AND ${course.categories} @> ARRAY[${subjectKey}]::text[]`
+      )
+      .limit(1)
 
-      if (courseByCategory) {
-        const [existingEnrollment] = await drizzleDb
-          .select()
-          .from(courseEnrollment)
-          .where(
-            and(
-              eq(courseEnrollment.studentId, session.user.id),
-              eq(courseEnrollment.courseId, courseByCategory.courseId)
-            )
-          )
-          .limit(1)
-        if (existingEnrollment) {
-          throw new ValidationError('Already enrolled in this subject')
-        }
-      }
-
-      let courseId: string
-      if (courseByCategory) {
-        courseId = courseByCategory.courseId
-      } else {
-        courseId = crypto.randomUUID()
-        const now = new Date()
-
-        // Insert with accurate schema defaults
-        const courseValues: Record<string, unknown> = {
-          courseId,
-          name: subjectInfo.name,
-          categories: [subjectKey],
-          description: subjectInfo.description,
-          isPublished: true,
-          isLiveOnline: true,
-          isFree: false,
-          createdAt: now,
-          updatedAt: now,
-        }
-
-        await drizzleDb.insert(course).values(courseValues as typeof course.$inferInsert)
-        await createDefaultLessons(courseId, subjectCode)
-      }
-
-      const enrollmentId = crypto.randomUUID()
-      await drizzleDb.insert(courseEnrollment).values({
-        enrollmentId,
-        studentId: session.user.id,
-        courseId,
-        lessonsCompleted: 0,
-        enrollmentSource: 'browse',
-      })
-
-      const [enrollment] = await drizzleDb
+    if (courseByCategory) {
+      const [existingEnrollment] = await drizzleDb
         .select()
         .from(courseEnrollment)
-        .where(eq(courseEnrollment.enrollmentId, enrollmentId))
+        .where(
+          and(
+            eq(courseEnrollment.studentId, session.user.id),
+            eq(courseEnrollment.courseId, courseByCategory.courseId)
+          )
+        )
         .limit(1)
-
-      return NextResponse.json({
-        success: true,
-        enrollment: enrollment!,
-        message: `Enrolled in ${subjectInfo.name}`,
-      })
+      if (existingEnrollment) {
+        throw new ValidationError('Already enrolled in this subject')
+      }
     }
-  )
+
+    let courseId: string
+    if (courseByCategory) {
+      courseId = courseByCategory.courseId
+    } else {
+      courseId = crypto.randomUUID()
+      const now = new Date()
+
+      // Insert with accurate schema defaults
+      const courseValues: Record<string, unknown> = {
+        courseId,
+        name: subjectInfo.name,
+        categories: [subjectKey],
+        description: subjectInfo.description,
+        isPublished: true,
+        isLiveOnline: true,
+        isFree: false,
+        createdAt: now,
+        updatedAt: now,
+      }
+
+      await drizzleDb.insert(course).values(courseValues as typeof course.$inferInsert)
+      await createDefaultLessons(courseId, subjectCode)
+    }
+
+    const enrollmentId = crypto.randomUUID()
+    await drizzleDb.insert(courseEnrollment).values({
+      enrollmentId,
+      studentId: session.user.id,
+      courseId,
+      lessonsCompleted: 0,
+      enrollmentSource: 'browse',
+    })
+
+    const [enrollment] = await drizzleDb
+      .select()
+      .from(courseEnrollment)
+      .where(eq(courseEnrollment.enrollmentId, enrollmentId))
+      .limit(1)
+
+    return NextResponse.json({
+      success: true,
+      enrollment: enrollment!,
+      message: `Enrolled in ${subjectInfo.name}`,
+    })
+  })
 )
 
 async function createDefaultLessons(courseId: string, subjectCode: string) {

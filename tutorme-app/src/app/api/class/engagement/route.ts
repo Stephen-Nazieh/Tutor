@@ -89,10 +89,15 @@ export const GET = withAuth(
 )
 
 // POST - Record engagement snapshot
-export const POST = withAuth(async (req: NextRequest) => {
+export const POST = withAuth(async (req: NextRequest, session) => {
   try {
     const body = await req.json()
     const data = engagementSnapshotSchema.parse(body)
+
+    // Students can only submit engagement data for themselves
+    if (session.user.role === 'STUDENT' && session.user.id !== data.studentId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     const id = crypto.randomUUID()
     await drizzleDb.insert(engagementSnapshot).values({

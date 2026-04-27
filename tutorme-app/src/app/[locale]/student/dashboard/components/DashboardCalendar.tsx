@@ -23,7 +23,7 @@ export interface CalendarEvent {
 }
 
 interface DashboardCalendarProps {
-  /** Optional initial data from dashboard fetch (classes from /api/classes?myBookings=true) */
+  /** Optional initial data from dashboard fetch */
   initialEvents?: CalendarEvent[]
   onRefresh?: () => void
   /** Continue Learning contents */
@@ -119,39 +119,9 @@ export function DashboardCalendar({
 
   // Fetch classes for My Classes tab
   useEffect(() => {
-    let cancelled = false
-    setClassesLoading(true)
-    fetch('/api/classes?myBookings=true', { credentials: 'include' })
-      .then(r => r.json())
-      .then(data => {
-        if (cancelled) return
-        const list: ClassItem[] = Array.isArray(data?.classes)
-          ? data.classes.map((c: any) => ({
-              id: c.id,
-              title: c.title,
-              subject: c.subject,
-              tutorName: c.tutor?.name || 'Unknown Tutor',
-              scheduledAt: c.scheduledAt,
-              duration: c.duration || 60,
-              type: c.type || 'online',
-              students: c._count?.participants || 0,
-              maxStudents: c.maxStudents || 50,
-              isBooked: c.isBooked,
-              requiresPayment: c.requiresPayment,
-              price: c.price,
-            }))
-          : []
-        setClasses(list)
-        setClassesLoading(false)
-      })
-      .catch(() => {
-        if (cancelled) return
-        setClasses([])
-        setClassesLoading(false)
-      })
-    return () => {
-      cancelled = true
-    }
+    // Legacy endpoint removed; show empty state
+    setClasses([])
+    setClassesLoading(false)
   }, [onRefresh])
 
   const interactiveEvents = useMemo(() => {
@@ -170,7 +140,7 @@ export function DashboardCalendar({
   }, [events])
 
   return (
-    <div className="w-full rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] overflow-hidden">
+    <div className="w-full overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="p-6 pb-3">
           <TabsList className="grid w-full grid-cols-2">
@@ -200,7 +170,7 @@ export function DashboardCalendar({
                 <p className="text-muted-foreground text-sm">Loading your classes...</p>
               </div>
             ) : classes.length === 0 ? (
-              <div className="py-12 text-center rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
+              <div className="rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] py-12 text-center shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
                 <BookOpen className="text-muted-foreground/60 mx-auto mb-3 h-12 w-12" />
                 <p className="text-muted-foreground">You haven&apos;t booked any classes yet.</p>
                 <Button className="mt-4" asChild>

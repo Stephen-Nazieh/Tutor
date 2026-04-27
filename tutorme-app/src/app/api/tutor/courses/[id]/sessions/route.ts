@@ -23,7 +23,10 @@ export const GET = withAuth(
     const urlObj = new URL(safeUrl, 'http://localhost:3000')
     const statusParam = urlObj.searchParams.get('status')
     const allowedStatuses = statusParam
-      ? statusParam.split(',').map(s => s.trim()).filter(Boolean)
+      ? statusParam
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
       : ['scheduled', 'active']
 
     const pool = getPool()
@@ -119,10 +122,7 @@ export const GET = withAuth(
 
       // Extract the most useful error message
       const pgMessage = errObj?.detail || errObj?.message || 'Database query failed'
-      return NextResponse.json(
-        { error: pgMessage, code: errObj?.code || null },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: pgMessage, code: errObj?.code || null }, { status: 500 })
     }
   },
   { role: 'TUTOR' }

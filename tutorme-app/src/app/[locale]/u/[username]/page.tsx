@@ -102,15 +102,21 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
-function StarRating({ rating, count, className }: { rating: number | null; count?: number; className?: string }) {
+function StarRating({
+  rating,
+  count,
+  className,
+}: {
+  rating: number | null
+  count?: number
+  className?: string
+}) {
   if (rating === null) return null
   return (
-    <div className={cn("flex items-center gap-1", className)}>
+    <div className={cn('flex items-center gap-1', className)}>
       <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
       <span className="font-medium text-inherit">{rating.toFixed(1)}</span>
-      {count !== undefined && count > 0 && (
-        <span className="text-sm opacity-70">({count})</span>
-      )}
+      {count !== undefined && count > 0 && <span className="text-sm opacity-70">({count})</span>}
     </div>
   )
 }
@@ -853,7 +859,7 @@ export default function PublicTutorPage() {
 
   return (
     <div
-      className="w-full min-h-screen space-y-6 p-4 sm:p-6"
+      className="min-h-screen w-full space-y-6 p-4 sm:p-6"
       style={{
         background: 'linear-gradient(160deg, #f5f5f7 0%, #e8e8ed 40%, #d2d2d7 100%)',
       }}
@@ -1043,22 +1049,22 @@ export default function PublicTutorPage() {
         </div>
       </section>
 
-      <div className="bg-[#FFFFFF] border border-[rgba(0,0,0,0.05)] rounded-[20px] shadow-[0_8px_24px_rgba(0,0,0,0.10)] mt-8 overflow-hidden">
-        <div className="p-6 sm:p-8 space-y-4">
+      <div className="mt-8 overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
+        <div className="space-y-4 p-6 sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-xl font-bold text-slate-800">Course Catalog</h2>
-              <p className="text-slate-500 mt-1">Published courses by @{tutor.username}</p>
+              <p className="mt-1 text-slate-500">Published courses by @{tutor.username}</p>
             </div>
 
             <div className="flex flex-1 flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:justify-end">
               <div className="relative flex w-full max-w-lg items-center gap-2">
                 <div className="relative flex-1">
-                  <Search className="text-slate-400 absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <Input
                     type="search"
                     placeholder="Search course..."
-                    className="h-10 w-full pl-9 bg-slate-50/50 border-slate-200"
+                    className="h-10 w-full border-slate-200 bg-slate-50/50 pl-9"
                     value={courseSearchQuery}
                     onChange={e => setCourseSearchQuery(e.target.value)}
                   />
@@ -1067,7 +1073,7 @@ export default function PublicTutorPage() {
                   value={courseCountryFilter}
                   onValueChange={(val: any) => setCourseCountryFilter(val)}
                 >
-                  <SelectTrigger className="h-10 w-[120px] bg-slate-50/50 border-slate-200">
+                  <SelectTrigger className="h-10 w-[120px] border-slate-200 bg-slate-50/50">
                     <SelectValue placeholder="Country" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1083,7 +1089,7 @@ export default function PublicTutorPage() {
                   value={courseSortOrder}
                   onValueChange={(val: any) => setCourseSortOrder(val)}
                 >
-                  <SelectTrigger className="h-10 w-[140px] bg-slate-50/50 border-slate-200">
+                  <SelectTrigger className="h-10 w-[140px] border-slate-200 bg-slate-50/50">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1102,7 +1108,7 @@ export default function PublicTutorPage() {
                   type="button"
                   variant={catalogLayout === 'grid' ? 'default' : 'ghost'}
                   size="sm"
-                  className={cn("h-8 gap-1 px-3", catalogLayout === 'grid' && "bg-white shadow-sm")}
+                  className={cn('h-8 gap-1 px-3', catalogLayout === 'grid' && 'bg-white shadow-sm')}
                   onClick={() => setCatalogLayout('grid')}
                 >
                   <LayoutGrid className="h-4 w-4" />
@@ -1112,7 +1118,7 @@ export default function PublicTutorPage() {
                   type="button"
                   variant={catalogLayout === 'list' ? 'default' : 'ghost'}
                   size="sm"
-                  className={cn("h-8 gap-1 px-3", catalogLayout === 'list' && "bg-white shadow-sm")}
+                  className={cn('h-8 gap-1 px-3', catalogLayout === 'list' && 'bg-white shadow-sm')}
                   onClick={() => setCatalogLayout('list')}
                 >
                   <List className="h-4 w-4" />
@@ -1122,7 +1128,10 @@ export default function PublicTutorPage() {
                   type="button"
                   variant={catalogLayout === 'compact' ? 'default' : 'ghost'}
                   size="sm"
-                  className={cn("h-8 gap-1 px-3", catalogLayout === 'compact' && "bg-white shadow-sm")}
+                  className={cn(
+                    'h-8 gap-1 px-3',
+                    catalogLayout === 'compact' && 'bg-white shadow-sm'
+                  )}
                   onClick={() => setCatalogLayout('compact')}
                 >
                   <PanelsTopLeft className="h-4 w-4" />
@@ -1134,9 +1143,9 @@ export default function PublicTutorPage() {
         </div>
         <div className="px-6 pb-8 sm:px-8">
           {filteredCourses.length === 0 ? (
-            <div className="py-12 text-center rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-slate-50/50">
-              <BookOpen className="mx-auto h-12 w-12 text-slate-300 mb-3" />
-              <p className="text-slate-500 text-sm">No published courses found.</p>
+            <div className="rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-slate-50/50 py-12 text-center">
+              <BookOpen className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+              <p className="text-sm text-slate-500">No published courses found.</p>
             </div>
           ) : (
             <div
@@ -1185,17 +1194,20 @@ export default function PublicTutorPage() {
                         isCompact && 'text-xs'
                       )}
                       style={{
-                        backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
+                        backgroundImage:
+                          'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
                       }}
                     >
                       <div
                         className={cn(
                           'flex flex-1 p-4',
-                          isList && 'min-w-0 pr-3 flex-col sm:flex-row sm:items-center sm:gap-6',
+                          isList && 'min-w-0 flex-col pr-3 sm:flex-row sm:items-center sm:gap-6',
                           isCompact && 'p-3'
                         )}
                       >
-                        <div className={cn("flex flex-col min-w-0", isList ? "flex-1" : "flex-1 pr-4")}>
+                        <div
+                          className={cn('flex min-w-0 flex-col', isList ? 'flex-1' : 'flex-1 pr-4')}
+                        >
                           <div className="flex items-start justify-between gap-2">
                             <h3
                               className={cn(
@@ -1217,7 +1229,7 @@ export default function PublicTutorPage() {
                           >
                             {desc}
                           </p>
-                          
+
                           {!isList && (
                             <dl
                               className={cn(
@@ -1256,9 +1268,9 @@ export default function PublicTutorPage() {
                                 <Badge
                                   variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
                                   className={cn(
-                                    'text-[10px] font-semibold sm:text-xs transition-all hover:brightness-105',
+                                    'text-[10px] font-semibold transition-all hover:brightness-105 sm:text-xs',
                                     enrollmentStatus === 'ongoing'
-                                      ? 'bg-emerald-600 text-white hover:bg-emerald-600 border-transparent'
+                                      ? 'border-transparent bg-emerald-600 text-white hover:bg-emerald-600'
                                       : 'border-[rgba(255,255,255,0.2)] text-slate-300'
                                   )}
                                 >
@@ -1273,7 +1285,7 @@ export default function PublicTutorPage() {
 
                         {/* Middle column (ONLY IN LIST MODE): Lessons, Schedule, Enrollment */}
                         {isList && (
-                          <div className="flex flex-col shrink-0 gap-2.5 min-w-[200px] py-1">
+                          <div className="flex min-w-[200px] shrink-0 flex-col gap-2.5 py-1">
                             <div className="flex items-center gap-2 text-sm text-slate-200">
                               <BookOpen className="h-4 w-4 text-slate-400" />
                               <span>{course.lessonCount} lessons</span>
@@ -1292,16 +1304,18 @@ export default function PublicTutorPage() {
                                   Schedule <ExternalLink className="h-3 w-3" />
                                 </button>
                               ) : (
-                                <span className="font-medium text-slate-300">Schedule to be announced</span>
+                                <span className="font-medium text-slate-300">
+                                  Schedule to be announced
+                                </span>
                               )}
                             </div>
                             <div className="pt-0.5">
                               <Badge
                                 variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
                                 className={cn(
-                                  'text-[10px] font-semibold sm:text-xs transition-all hover:brightness-105',
+                                  'text-[10px] font-semibold transition-all hover:brightness-105 sm:text-xs',
                                   enrollmentStatus === 'ongoing'
-                                    ? 'bg-emerald-600 text-white hover:bg-emerald-600 border-transparent'
+                                    ? 'border-transparent bg-emerald-600 text-white hover:bg-emerald-600'
                                     : 'border-[rgba(255,255,255,0.2)] text-slate-300'
                                 )}
                               >
@@ -1314,16 +1328,25 @@ export default function PublicTutorPage() {
                         )}
 
                         {/* Right column: Badge + Avatar */}
-                        <div className={cn("flex shrink-0 flex-col items-end justify-between w-24 sm:w-28", isList && "ml-4 h-full py-1")}>
-                          <Badge 
-                            variant="secondary" 
-                            className="shrink-0 text-[10px] sm:text-xs bg-blue-600 hover:bg-blue-700 text-white border-0 mb-2 transition-all hover:brightness-105"
+                        <div
+                          className={cn(
+                            'flex w-24 shrink-0 flex-col items-end justify-between sm:w-28',
+                            isList && 'ml-4 h-full py-1'
+                          )}
+                        >
+                          <Badge
+                            variant="secondary"
+                            className="mb-2 shrink-0 border-0 bg-blue-600 text-[10px] text-white transition-all hover:bg-blue-700 hover:brightness-105 sm:text-xs"
                           >
                             {course.categories[0] || 'general'}
                           </Badge>
-                          <div className="mt-auto w-24 h-24 sm:w-28 sm:h-28 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)]">
+                          <div className="mt-auto h-24 w-24 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)] sm:h-28 sm:w-28">
                             {tutor.avatarUrl ? (
-                              <img src={tutor.avatarUrl} alt={tutor.username} className="h-full w-full object-cover" />
+                              <img
+                                src={tutor.avatarUrl}
+                                alt={tutor.username}
+                                className="h-full w-full object-cover"
+                              />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center bg-[rgba(255,255,255,0.05)] text-slate-300">
                                 <User className="h-8 w-8 opacity-50" />
@@ -1332,17 +1355,23 @@ export default function PublicTutorPage() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div
                         className={cn(
                           'flex flex-col gap-3 border-t border-[rgba(255,255,255,0.1)] px-4 py-3',
-                          isList ? 'w-full min-w-[180px] max-w-[200px] border-l border-t-0 justify-center' : 'w-full justify-between',
+                          isList
+                            ? 'w-full min-w-[180px] max-w-[200px] justify-center border-l border-t-0'
+                            : 'w-full justify-between',
                           isCompact && 'gap-2 px-3 py-2'
                         )}
                       >
                         {!isList && (
                           <div className="flex w-full flex-wrap items-center justify-between gap-2">
-                            <StarRating rating={course.rating ?? null} count={course.reviewCount} className="text-slate-200" />
+                            <StarRating
+                              rating={course.rating ?? null}
+                              count={course.reviewCount}
+                              className="text-slate-200"
+                            />
                             {course.isFree ? (
                               <span className="text-sm font-bold text-emerald-400">Free</span>
                             ) : course.price != null && course.price > 0 ? (

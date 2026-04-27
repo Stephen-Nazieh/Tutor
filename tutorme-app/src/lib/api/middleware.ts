@@ -235,9 +235,10 @@ export async function requireAuth(req?: NextRequest): Promise<Session> {
  * Require specific role - throws if wrong role
  */
 export async function requireRole(
-  role: 'TUTOR' | 'STUDENT' | 'ADMIN' | 'PARENT'
+  role: 'TUTOR' | 'STUDENT' | 'ADMIN' | 'PARENT',
+  req?: NextRequest
 ): Promise<Session> {
-  const session = await requireAuth()
+  const session = await requireAuth(req)
   if (normalizeRole(session.user.role) !== normalizeRole(role)) {
     throw new ForbiddenError(`This action requires ${role} role`)
   }
@@ -248,7 +249,16 @@ export async function requireRole(
 const CSRF_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
 /** API path prefixes that skip CSRF (webhooks, auth, public) */
-const CSRF_SKIP_PATHS = ['/api/auth', '/api/payments/webhooks', '/api/csrf', '/api/health']
+const CSRF_SKIP_PATHS = [
+  '/api/auth/signin',
+  '/api/auth/signout',
+  '/api/auth/session',
+  '/api/auth/csrf',
+  '/api/auth/callback',
+  '/api/auth/session-realm',
+  '/api/payments/webhooks',
+  '/api/health',
+]
 
 /**
  * Verify CSRF for state-changing requests. Call at the start of POST/PUT/PATCH/DELETE handlers

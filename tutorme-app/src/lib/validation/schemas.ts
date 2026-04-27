@@ -143,8 +143,8 @@ export const CreateRoomSchema = z.object({
 })
 
 export const JoinRoomSchema = z.object({
-  sessionId: z.string().cuid('Invalid session ID'),
-  userId: z.string().cuid('Invalid user ID'),
+  sessionId: z.string().uuid('Invalid session ID'),
+  userId: z.string().uuid('Invalid user ID'),
 })
 
 export const CreateBreakoutSchema = z.object({

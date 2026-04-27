@@ -36,8 +36,8 @@ export async function PATCH(req: NextRequest, { params }: { params: any }) {
   await drizzleDb
     .update(liveSession)
     .set({
-      recordingUrl: isRecording ? null : recordingUrl,
-      recordingAvailableAt: isRecording ? null : recordingUrl ? new Date() : null,
+      recordingUrl: isRecording ? recordingUrl : null,
+      recordingAvailableAt: isRecording ? (recordingUrl ? new Date() : null) : null,
     })
     .where(eq(liveSession.sessionId, liveSessionId))
 
@@ -51,7 +51,7 @@ export async function PATCH(req: NextRequest, { params }: { params: any }) {
     await drizzleDb
       .update(sessionReplayArtifact)
       .set({
-        recordingUrl: isRecording ? null : recordingUrl,
+        recordingUrl: isRecording ? recordingUrl : null,
         status: isRecording ? 'processing' : 'pending',
         startedAt: isRecording ? new Date() : undefined,
         endedAt: isRecording ? null : new Date(),
@@ -62,7 +62,7 @@ export async function PATCH(req: NextRequest, { params }: { params: any }) {
       artifactId: randomUUID(),
       sessionId: liveSessionId,
       tutorId: session.user.id,
-      recordingUrl: isRecording ? null : recordingUrl,
+      recordingUrl: isRecording ? recordingUrl : null,
       status: isRecording ? 'processing' : 'pending',
       startedAt: isRecording ? new Date() : null,
       endedAt: isRecording ? null : new Date(),

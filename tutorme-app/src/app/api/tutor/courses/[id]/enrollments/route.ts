@@ -7,7 +7,7 @@ import { courseEnrollment, user, profile } from '@/lib/db/schema'
 export const GET = withAuth(
   async (_req, session, context) => {
     const tutorId = session.user.id
-    
+
     const safeUrl = _req.nextUrl?.href || _req.url || ''
     const match = safeUrl.match(/\/courses\/([^/]+)\/enrollments/)
     const courseId = match ? match[1] : ''

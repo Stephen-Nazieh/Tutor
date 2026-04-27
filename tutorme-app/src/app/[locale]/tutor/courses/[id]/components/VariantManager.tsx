@@ -268,7 +268,7 @@ export function VariantManager({
         <p className="text-sm text-slate-500">
           Set default price, currency, and language for all variants.
         </p>
-        <div className="grid gap-6 sm:grid-cols-4 pt-2">
+        <div className="grid gap-6 pt-2 sm:grid-cols-4">
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-slate-700">Price</Label>
             <div className="flex items-center gap-2">
@@ -279,14 +279,14 @@ export function VariantManager({
                 value={globalPrice}
                 onChange={e => setGlobalPrice(e.target.value)}
                 placeholder="0.00"
-                className="bg-transparent border-slate-200"
+                className="border-slate-200 bg-transparent"
               />
             </div>
           </div>
           <div className="space-y-2">
             <Label className="text-sm font-semibold text-slate-700">Currency</Label>
             <Select value={globalCurrency} onValueChange={setGlobalCurrency}>
-              <SelectTrigger className="bg-transparent border-slate-200">
+              <SelectTrigger className="border-slate-200 bg-transparent">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -306,7 +306,7 @@ export function VariantManager({
                 value={globalLanguage}
                 onChange={e => setGlobalLanguage(e.target.value)}
                 placeholder="e.g. English"
-                className="bg-transparent border-slate-200"
+                className="border-slate-200 bg-transparent"
               />
             </div>
           </div>
@@ -315,7 +315,7 @@ export function VariantManager({
               type="button"
               variant="outline"
               onClick={applyGlobalsToAll}
-              className="w-full bg-transparent border-slate-200 hover:bg-slate-50"
+              className="w-full border-slate-200 bg-transparent hover:bg-slate-50"
             >
               Apply to all
             </Button>
@@ -330,8 +330,15 @@ export function VariantManager({
         <div className="flex items-center justify-between">
           <h3 className="text-base font-semibold text-slate-800">Generated Variants</h3>
           <div className="flex items-center gap-2 text-sm text-slate-500">
-            <Badge variant="outline" className="border-slate-200 text-slate-600">{variants.length} total</Badge>
-            <Badge variant="default" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-50 border-0">{publishedCount} published</Badge>
+            <Badge variant="outline" className="border-slate-200 text-slate-600">
+              {variants.length} total
+            </Badge>
+            <Badge
+              variant="default"
+              className="border-0 bg-indigo-50 text-indigo-700 hover:bg-indigo-50"
+            >
+              {publishedCount} published
+            </Badge>
           </div>
         </div>
 
@@ -343,18 +350,23 @@ export function VariantManager({
 
         <div className="space-y-6">
           {variants.map((variant, index) => (
-            <div key={`${variant.category}|${variant.nationality}`} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+            <div
+              key={`${variant.category}|${variant.nationality}`}
+              className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+            >
               <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-5 py-4">
                 <div className="flex items-center gap-3">
                   <h4 className="text-sm font-semibold text-slate-800">
                     {variant.category} - {variant.nationality}
                   </h4>
                   {variant.isPublished ? (
-                    <Badge className="bg-emerald-500 text-white hover:bg-emerald-600 border-0">
+                    <Badge className="border-0 bg-emerald-500 text-white hover:bg-emerald-600">
                       Published
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-0">Draft</Badge>
+                    <Badge variant="secondary" className="border-0 bg-slate-100 text-slate-600">
+                      Draft
+                    </Badge>
                   )}
                 </div>
                 <div className="flex items-center gap-3">
@@ -387,7 +399,7 @@ export function VariantManager({
                           }))
                         }}
                         placeholder="0.00"
-                        className="bg-transparent border-slate-200"
+                        className="border-slate-200 bg-transparent"
                       />
                     </div>
                   </div>
@@ -395,11 +407,9 @@ export function VariantManager({
                     <Label className="text-xs font-semibold text-slate-700">Currency</Label>
                     <Select
                       value={variant.currency}
-                      onValueChange={val =>
-                        updateVariant(index, v => ({ ...v, currency: val }))
-                      }
+                      onValueChange={val => updateVariant(index, v => ({ ...v, currency: val }))}
                     >
-                      <SelectTrigger className="bg-transparent border-slate-200">
+                      <SelectTrigger className="border-slate-200 bg-transparent">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -424,7 +434,7 @@ export function VariantManager({
                           }))
                         }
                         placeholder="e.g. English"
-                        className="bg-transparent border-slate-200"
+                        className="border-slate-200 bg-transparent"
                       />
                     </div>
                   </div>
@@ -435,14 +445,19 @@ export function VariantManager({
                     <Calendar className="h-5 w-5 text-indigo-500" />
                     <div>
                       <p className="text-sm font-semibold text-slate-800">Schedule</p>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="mt-0.5 text-xs text-slate-500">
                         {Array.isArray(variant.schedule) && variant.schedule.length > 0
                           ? `${variant.schedule.length} slot${variant.schedule.length === 1 ? '' : 's'} configured`
                           : 'No slots configured'}
                       </p>
                     </div>
                   </div>
-                  <Button type="button" variant="outline" className="border-slate-200 bg-transparent" onClick={() => openScheduleDialog(index)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-slate-200 bg-transparent"
+                    onClick={() => openScheduleDialog(index)}
+                  >
                     {Array.isArray(variant.schedule) && variant.schedule.length > 0
                       ? 'Edit Schedule'
                       : 'Add Class Slot'}
@@ -460,7 +475,7 @@ export function VariantManager({
           type="button"
           onClick={handleSave}
           disabled={saving || variants.length === 0}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-6 shadow-sm transition-all duration-300"
+          className="rounded-full bg-indigo-600 px-6 text-white shadow-sm transition-all duration-300 hover:bg-indigo-700"
         >
           {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           {saving ? 'Saving…' : `Publish (${publishedCount})`}

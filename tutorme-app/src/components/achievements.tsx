@@ -22,26 +22,9 @@ export function Achievements({ compact }: AchievementsProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Fetch achievements
-    fetch('/api/achievements')
-      .then(res => res.json())
-      .then(data => {
-        setAchievements(data.achievements || [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-
-    // Check for new achievements
-    fetch('/api/achievements', { method: 'POST' })
-      .then(res => res.json())
-      .then(data => {
-        if (data.newAchievements?.length > 0) {
-          // Refresh to get new achievements
-          fetch('/api/achievements')
-            .then(res => res.json())
-            .then(data => setAchievements(data.achievements || []))
-        }
-      })
+    // Legacy endpoint removed; show empty state
+    setAchievements([])
+    setLoading(false)
   }, [])
 
   if (loading) {

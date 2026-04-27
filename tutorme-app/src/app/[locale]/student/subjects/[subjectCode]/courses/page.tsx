@@ -179,45 +179,55 @@ export default function SubjectCoursesPage() {
                         'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
                       )}
                       style={{
-                        backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
+                        backgroundImage:
+                          'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
                       }}
                     >
                       <div className="flex flex-col p-5">
                         <h3 className="text-xl font-semibold text-slate-100">{c.name}</h3>
                         {c.difficulty && (
                           <div className="mt-2 flex flex-wrap gap-2">
-                            <span className="px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider text-slate-200 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)]">
+                            <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wider text-slate-200">
                               {c.difficulty}
                             </span>
                           </div>
                         )}
-                        
+
                         {c.description && (
-                          <p className="mt-4 text-sm text-slate-300 line-clamp-2">
+                          <p className="mt-4 line-clamp-2 text-sm text-slate-300">
                             {c.description}
                           </p>
                         )}
-                        
+
                         <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-slate-400">
-                          <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {c.estimatedHours}h estimated</span>
-                          <span className="flex items-center gap-1.5"><BookOpen className="h-3.5 w-3.5" /> {c.modulesCount} modules · {c.lessonsCount} lessons</span>
-                          {c.studentCount > 0 && <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> {c.studentCount} students</span>}
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5" /> {c.estimatedHours}h estimated
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <BookOpen className="h-3.5 w-3.5" /> {c.modulesCount} modules ·{' '}
+                            {c.lessonsCount} lessons
+                          </span>
+                          {c.studentCount > 0 && (
+                            <span className="flex items-center gap-1.5">
+                              <Users className="h-3.5 w-3.5" /> {c.studentCount} students
+                            </span>
+                          )}
                           <span className="ml-auto text-sm font-semibold text-emerald-400">
                             {formatPrice(c.price, c.currency)}
                           </span>
                         </div>
                       </div>
-                      
-                      <div className="flex flex-wrap gap-3 border-t border-[rgba(255,255,255,0.1)] p-4 bg-[rgba(0,0,0,0.1)]">
+
+                      <div className="flex flex-wrap gap-3 border-t border-[rgba(255,255,255,0.1)] bg-[rgba(0,0,0,0.1)] p-4">
                         <Link
                           href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}`}
-                          className="flex-1 inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-full transition-colors"
+                          className="inline-flex flex-1 items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500"
                         >
                           Select Course
                         </Link>
                         <Link
                           href={`/student/subjects/${encodeURIComponent(subjectCode)}/courses/${encodeURIComponent(c.id)}/details`}
-                          className="flex-1 inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-slate-100 bg-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.15)] border border-[rgba(255,255,255,0.2)] rounded-full transition-colors"
+                          className="inline-flex flex-1 items-center justify-center rounded-full border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] px-4 py-2 text-sm font-medium text-slate-100 transition-colors hover:bg-[rgba(255,255,255,0.15)]"
                         >
                           <FileText className="mr-2 h-4 w-4 text-[rgba(255,255,255,0.7)]" />
                           View Details

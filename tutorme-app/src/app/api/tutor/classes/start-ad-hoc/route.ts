@@ -6,6 +6,7 @@ import { liveSession, user, course } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { notify } from '@/lib/notifications/notify'
+import { dailyProvider } from '@/lib/video/daily-provider'
 
 const SPECIAL_TOKENS = ['kim.kon#26', 'stephen#26'] // fallback token, should match the one in landing page
 
@@ -23,17 +24,32 @@ export const POST = withAuth(
 
         const sessionId = randomUUID()
 
+        let room
+        try {
+          room = await dailyProvider.createRoom(currentUser.id, {
+            maxParticipants: 10,
+            durationMinutes: 120,
+          })
+        } catch (error) {
+          console.error('[Start Ad Hoc] Daily.co createRoom error:', error)
+          return NextResponse.json(
+            { error: 'Video service unavailable. Please try again later.' },
+            { status: 503 }
+          )
+        }
+
         await drizzleDb.insert(liveSession).values({
           sessionId,
           tutorId: currentUser.id,
-          courseId: null, // Training sessions aren't tied to a specific course
+          courseId: null,
           title: title || 'Live Training Session',
           category: 'Training',
           description: 'Tutor training session',
           status: 'active',
           startedAt: new Date(),
           scheduledAt: new Date(),
-          roomId: randomUUID(), // This will be created in daily.co when accessed
+          roomId: room.id,
+          roomUrl: room.url,
         })
 
         // Notify tutors based on target audience
@@ -135,6 +151,20 @@ export const POST = withAuth(
         const sessionId = randomUUID()
         const isPublished = courseRecord.isPublished
 
+        let room
+        try {
+          room = await dailyProvider.createRoom(currentUser.id, {
+            maxParticipants: 10,
+            durationMinutes: 120,
+          })
+        } catch (error) {
+          console.error('[Start Ad Hoc] Daily.co createRoom error:', error)
+          return NextResponse.json(
+            { error: 'Video service unavailable. Please try again later.' },
+            { status: 503 }
+          )
+        }
+
         await drizzleDb.insert(liveSession).values({
           sessionId,
           tutorId: currentUser.id,
@@ -146,7 +176,8 @@ export const POST = withAuth(
           status: 'active',
           startedAt: new Date(),
           scheduledAt: new Date(),
-          roomId: randomUUID(),
+          roomId: room.id,
+          roomUrl: room.url,
         })
 
         if (isPublished) {

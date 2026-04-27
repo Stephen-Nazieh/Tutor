@@ -119,7 +119,10 @@ export function AssessmentBuilderModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent theme="default" className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md">
+        <DialogContent
+          theme="default"
+          className="max-h-[90vh] max-w-3xl overflow-y-auto rounded-2xl border border-slate-400 bg-white/95 shadow-2xl backdrop-blur-md"
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {isTask ? (
@@ -564,9 +567,11 @@ export function AssessmentBuilderModal({
                     {data.sourceDocument.mimeType === 'application/pdf' ? (
                       <div className="overflow-hidden rounded border">
                         <iframe
-                          src={data.sourceDocument.fileUrl.includes('#') 
-                            ? `${data.sourceDocument.fileUrl}&toolbar=0&navpanes=0` 
-                            : `${data.sourceDocument.fileUrl}#toolbar=0&navpanes=0`}
+                          src={
+                            data.sourceDocument.fileUrl.includes('#')
+                              ? `${data.sourceDocument.fileUrl}&toolbar=0&navpanes=0`
+                              : `${data.sourceDocument.fileUrl}#toolbar=0&navpanes=0`
+                          }
                           title={data.sourceDocument.fileName}
                           className="h-64 w-full"
                         />

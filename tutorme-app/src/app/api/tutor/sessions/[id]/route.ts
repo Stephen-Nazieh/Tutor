@@ -13,7 +13,7 @@ import { notifyMany } from '@/lib/notifications/notify'
 export const PATCH = withAuth(
   async (req, session, context) => {
     const tutorId = session.user.id
-    
+
     const safeUrl = req.nextUrl?.href || req.url || ''
     const match = safeUrl.match(/\/sessions\/([^/]+)$/)
     const sessionId = match ? match[1] : ''

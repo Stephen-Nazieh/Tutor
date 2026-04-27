@@ -194,7 +194,7 @@ export default function CommunicationCenterPage() {
                 placeholder="Search messages..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="pl-9 text-sm bg-slate-50/50 border-slate-200"
+                className="border-slate-200 bg-slate-50/50 pl-9 text-sm"
               />
             </div>
           </div>
@@ -212,12 +212,12 @@ export default function CommunicationCenterPage() {
                       key={conv.id}
                       onClick={() => setSelectedConversation(conv)}
                       className={cn(
-                        "flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-slate-50",
-                        selectedConversation?.id === conv.id && "bg-slate-50"
+                        'flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-slate-50',
+                        selectedConversation?.id === conv.id && 'bg-slate-50'
                       )}
                     >
                       <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-indigo-50 text-indigo-600 font-medium">
+                        <AvatarFallback className="bg-indigo-50 font-medium text-indigo-600">
                           {conv.otherParticipant.name.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -227,10 +227,12 @@ export default function CommunicationCenterPage() {
                             {conv.otherParticipant.name}
                           </span>
                           {conv.unreadCount > 0 && (
-                            <Badge className="ml-2 bg-red-500 text-[10px]">{conv.unreadCount}</Badge>
+                            <Badge className="ml-2 bg-red-500 text-[10px]">
+                              {conv.unreadCount}
+                            </Badge>
                           )}
                         </div>
-                        <p className="truncate text-xs text-slate-500 mt-0.5">
+                        <p className="mt-0.5 truncate text-xs text-slate-500">
                           {conv.lastMessage?.content || 'No messages yet'}
                         </p>
                       </div>
@@ -250,7 +252,7 @@ export default function CommunicationCenterPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-indigo-50 text-indigo-600 font-medium">
+                      <AvatarFallback className="bg-indigo-50 font-medium text-indigo-600">
                         {selectedConversation.otherParticipant.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -258,11 +260,15 @@ export default function CommunicationCenterPage() {
                       <h2 className="text-base font-bold text-slate-800">
                         {selectedConversation.otherParticipant.name}
                       </h2>
-                      <p className="text-xs text-slate-500 font-medium">Student</p>
+                      <p className="text-xs font-medium text-slate-500">Student</p>
                     </div>
                   </div>
                   <Link href={`/tutor/reports/${selectedConversation.otherParticipant.id}`}>
-                    <Button variant="outline" size="sm" className="border-slate-200 text-slate-600 hover:bg-slate-50">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-slate-200 text-slate-600 hover:bg-slate-50"
+                    >
                       View Profile
                       <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
@@ -270,14 +276,14 @@ export default function CommunicationCenterPage() {
                 </div>
               </div>
 
-              <div className="flex flex-1 flex-col p-0 bg-slate-50/30">
+              <div className="flex flex-1 flex-col bg-slate-50/30 p-0">
                 <ScrollArea className="flex-1 p-4">
                   <div className="space-y-4">
                     {messages.length === 0 ? (
                       <div className="py-12 text-center text-slate-500">
                         <MessageSquare className="mx-auto mb-3 h-12 w-12 text-slate-300" />
                         <p className="font-medium text-slate-700">No messages yet</p>
-                        <p className="text-sm mt-1">Start the conversation!</p>
+                        <p className="mt-1 text-sm">Start the conversation!</p>
                       </div>
                     ) : (
                       messages.map(msg => {
@@ -285,16 +291,15 @@ export default function CommunicationCenterPage() {
                         return (
                           <div
                             key={msg.id}
-                            className={cn(
-                              "flex gap-3",
-                              isMe ? "flex-row-reverse" : "flex-row"
-                            )}
+                            className={cn('flex gap-3', isMe ? 'flex-row-reverse' : 'flex-row')}
                           >
                             <Avatar className="h-8 w-8 shrink-0">
                               <AvatarFallback
                                 className={cn(
-                                  "text-xs font-medium",
-                                  isMe ? "bg-indigo-600 text-white" : "bg-white border border-slate-200 text-slate-600"
+                                  'text-xs font-medium',
+                                  isMe
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'border border-slate-200 bg-white text-slate-600'
                                 )}
                               >
                                 {(msg.sender.profile?.name || 'U').charAt(0).toUpperCase()}
@@ -302,17 +307,17 @@ export default function CommunicationCenterPage() {
                             </Avatar>
                             <div
                               className={cn(
-                                "max-w-[70%] rounded-2xl p-3.5 text-sm shadow-sm",
-                                isMe 
-                                  ? "bg-indigo-600 text-white rounded-tr-sm" 
-                                  : "bg-white border border-slate-100 text-slate-800 rounded-tl-sm"
+                                'max-w-[70%] rounded-2xl p-3.5 text-sm shadow-sm',
+                                isMe
+                                  ? 'rounded-tr-sm bg-indigo-600 text-white'
+                                  : 'rounded-tl-sm border border-slate-100 bg-white text-slate-800'
                               )}
                             >
                               <p className="leading-relaxed">{renderMentions(msg.content)}</p>
                               <span
                                 className={cn(
-                                  "mt-1.5 block text-[10px] font-medium",
-                                  isMe ? "text-indigo-200" : "text-slate-400"
+                                  'mt-1.5 block text-[10px] font-medium',
+                                  isMe ? 'text-indigo-200' : 'text-slate-400'
                                 )}
                               >
                                 {new Date(msg.createdAt).toLocaleTimeString([], {
@@ -331,7 +336,7 @@ export default function CommunicationCenterPage() {
                 </ScrollArea>
 
                 <div className="border-t border-slate-100 bg-white p-4">
-                  <div className="flex gap-2 items-center">
+                  <div className="flex items-center gap-2">
                     <MentionInput
                       placeholder="Type a message..."
                       value={inputMessage}
@@ -343,17 +348,17 @@ export default function CommunicationCenterPage() {
                         }
                       }}
                       disabled={sending}
-                      className="flex-1 bg-slate-50/50 border-slate-200 rounded-xl"
+                      className="flex-1 rounded-xl border-slate-200 bg-slate-50/50"
                     />
-                    <Button 
-                      onClick={sendMessage} 
+                    <Button
+                      onClick={sendMessage}
                       disabled={sending || !inputMessage.trim()}
-                      className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white h-10 w-10 p-0 shrink-0"
+                      className="h-10 w-10 shrink-0 rounded-xl bg-indigo-600 p-0 text-white hover:bg-indigo-700"
                     >
                       {sending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
-                        <Send className="h-4 w-4 ml-0.5" />
+                        <Send className="ml-0.5 h-4 w-4" />
                       )}
                     </Button>
                   </div>
@@ -361,10 +366,10 @@ export default function CommunicationCenterPage() {
               </div>
             </>
           ) : (
-            <div className="flex flex-1 flex-col items-center justify-center text-slate-500 bg-slate-50/30">
+            <div className="flex flex-1 flex-col items-center justify-center bg-slate-50/30 text-slate-500">
               <MessageSquare className="mb-4 h-16 w-16 text-slate-300" />
               <p className="text-lg font-bold text-slate-700">Select a conversation</p>
-              <p className="text-sm mt-1">Choose a conversation from the list to start messaging</p>
+              <p className="mt-1 text-sm">Choose a conversation from the list to start messaging</p>
             </div>
           )}
         </div>

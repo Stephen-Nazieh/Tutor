@@ -94,7 +94,7 @@ export default function StudentMessagesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 bg-[#FFFFFF] min-h-screen">
+    <div className="mx-auto min-h-screen max-w-7xl bg-[#FFFFFF] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 min-h-[52px] shrink-0">
         <div className="flex h-full w-full items-center justify-between gap-2 rounded-2xl border border-[#E5E7EB] bg-white p-1.5 px-4 shadow-[0_8px_20px_rgba(0,0,0,0.08)]">
           <div className="flex items-center gap-2">
@@ -102,7 +102,7 @@ export default function StudentMessagesPage() {
           </div>
         </div>
         {waitingForResponse && (
-          <div className="mt-4 flex w-fit items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-600 border border-amber-200">
+          <div className="mt-4 flex w-fit items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-600">
             <Lock className="h-4 w-4" />
             <span>You have sent a message. Please wait for the tutor to respond.</span>
           </div>
@@ -115,7 +115,10 @@ export default function StudentMessagesPage() {
           <div className="p-4 pb-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input placeholder="Search messages..." className="pl-9 text-sm bg-slate-50/50 border-slate-200" />
+              <Input
+                placeholder="Search messages..."
+                className="border-slate-200 bg-slate-50/50 pl-9 text-sm"
+              />
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-0">
@@ -138,7 +141,7 @@ export default function StudentMessagesPage() {
                       <h4 className="truncate text-sm font-semibold text-slate-800">{conv.name}</h4>
                       <span className="text-[10px] text-slate-400">{conv.timestamp}</span>
                     </div>
-                    <p className="truncate text-xs text-slate-500 mt-0.5">{conv.lastMessage}</p>
+                    <p className="mt-0.5 truncate text-xs text-slate-500">{conv.lastMessage}</p>
                   </div>
                   {conv.unread > 0 && (
                     <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-medium text-white">
@@ -160,13 +163,17 @@ export default function StudentMessagesPage() {
                   <UserCircle className="h-6 w-6 text-indigo-600" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 text-base">Mr. Smith (Math Tutor)</h3>
+                  <h3 className="text-base font-bold text-slate-800">Mr. Smith (Math Tutor)</h3>
                   <p className="text-xs font-medium text-emerald-500">Online</p>
                 </div>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-slate-500 hover:text-slate-800 hover:bg-slate-50">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                  >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -177,8 +184,8 @@ export default function StudentMessagesPage() {
               </DropdownMenu>
             </div>
           </div>
-          
-          <div className="flex flex-1 flex-col p-0 bg-slate-50/30">
+
+          <div className="flex flex-1 flex-col bg-slate-50/30 p-0">
             <div className="flex-1 space-y-4 overflow-y-auto p-4">
               {messages.map(msg => (
                 <div
@@ -186,7 +193,7 @@ export default function StudentMessagesPage() {
                   className={`flex ${msg.sender === 'student' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`${msg.sender === 'student' ? 'bg-indigo-600 text-white rounded-tr-sm shadow-sm' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm shadow-sm'} max-w-[70%] rounded-2xl px-4 py-3`}
+                    className={`${msg.sender === 'student' ? 'rounded-tr-sm bg-indigo-600 text-white shadow-sm' : 'rounded-tl-sm border border-slate-100 bg-white text-slate-800 shadow-sm'} max-w-[70%] rounded-2xl px-4 py-3`}
                   >
                     <p className="text-sm leading-relaxed">{msg.content}</p>
                     <span
@@ -203,7 +210,7 @@ export default function StudentMessagesPage() {
                 placeholder={
                   waitingForResponse ? 'Waiting for tutor response...' : 'Type a message...'
                 }
-                className="flex-1 bg-slate-50/50 border-slate-200 rounded-xl"
+                className="flex-1 rounded-xl border-slate-200 bg-slate-50/50"
                 value={inputMessage}
                 onChange={e => setInputMessage(e.target.value)}
                 onKeyDown={e => {
@@ -218,9 +225,9 @@ export default function StudentMessagesPage() {
                 size="icon"
                 onClick={handleSendMessage}
                 disabled={waitingForResponse || !inputMessage.trim()}
-                className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white h-10 w-10 p-0 shrink-0"
+                className="h-10 w-10 shrink-0 rounded-xl bg-indigo-600 p-0 text-white hover:bg-indigo-700"
               >
-                <Send className="h-4 w-4 ml-0.5" />
+                <Send className="ml-0.5 h-4 w-4" />
               </Button>
             </div>
           </div>
