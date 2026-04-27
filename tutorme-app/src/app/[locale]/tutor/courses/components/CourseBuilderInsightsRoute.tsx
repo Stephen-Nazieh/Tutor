@@ -401,9 +401,9 @@ function CourseBuilderInsightsRouteInner({
       data-tutor-route="insights-builder"
       style={model.themeStyle}
     >
-      <div className="sticky top-0 z-10 w-full bg-[#fafafc] px-4 pb-2 pt-4 sm:px-6">
+      <div className="sticky top-0 z-10 w-full bg-[#fafafc] px-4 pb-0 pt-4 sm:px-6">
         <div className="flex w-full flex-col gap-4">
-          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 pt-4 pb-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <Link href="/tutor/dashboard">
                 <Button variant="ghost" size="icon">
@@ -651,7 +651,7 @@ function CourseBuilderInsightsRouteInner({
           </div>
 
           {/* The outer container for Course Builder Tabs */}
-          <div id="course-builder-tabs-portal" className="mt-2 w-full"></div>
+          <div id="course-builder-tabs-portal" className="mt-4 mb-4 w-full"></div>
         </div>
       </div>
 

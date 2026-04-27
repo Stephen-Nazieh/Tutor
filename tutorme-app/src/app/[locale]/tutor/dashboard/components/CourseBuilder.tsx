@@ -4877,10 +4877,12 @@ FEEDBACK: [your explanation]`
                                               <DropdownMenuItem
                                                 onSelect={() => {
                                                   const newName = window.prompt(
-                                                    'Rename Lesson',
+                                                    'Rename Lesson (Max 25 chars)',
                                                     node.title
                                                   )
                                                   if (newName && newName.trim()) {
+                                                    const sanitizedName = newName.replace(/[@;'"]/g, '').substring(0, 25).trim()
+                                                    if (!sanitizedName) return
                                                     setCourseBuilderNodes(prev =>
                                                       prev.map(n => {
                                                         if (n.id === node.id) {
@@ -4888,12 +4890,12 @@ FEEDBACK: [your explanation]`
                                                           if (lessons.length > 0) {
                                                             lessons[0] = {
                                                               ...lessons[0],
-                                                              title: newName.trim(),
+                                                              title: sanitizedName,
                                                             }
                                                           }
                                                           return {
                                                             ...n,
-                                                            title: newName.trim(),
+                                                            title: sanitizedName,
                                                             lessons,
                                                           }
                                                         }
@@ -7085,18 +7087,19 @@ FEEDBACK: [your explanation]`
                                       : taskBuilder.title || ''
                                   }
                                   onChange={e => {
+                                    const sanitized = e.target.value.replace(/[@;'"]/g, '').substring(0, 25)
                                     setTaskBuilder(prev => {
                                       if (prev.activeExtensionId) {
                                         return {
                                           ...prev,
                                           extensions: prev.extensions.map(x =>
                                             x.id === prev.activeExtensionId
-                                              ? { ...x, name: e.target.value }
+                                              ? { ...x, name: sanitized }
                                               : x
                                           ),
                                         }
                                       }
-                                      return { ...prev, title: e.target.value }
+                                      return { ...prev, title: sanitized }
                                     })
                                   }}
                                 />
@@ -7127,12 +7130,13 @@ FEEDBACK: [your explanation]`
                                   className="w-full truncate bg-transparent text-right outline-none placeholder:text-gray-400 focus:border-b focus:border-purple-300"
                                   placeholder="Select or name an Assessment"
                                   value={assessmentBuilder.title || ''}
-                                  onChange={e =>
+                                  onChange={e => {
+                                    const sanitized = e.target.value.replace(/[@;'"]/g, '').substring(0, 25)
                                     setAssessmentBuilder(prev => ({
                                       ...prev,
-                                      title: e.target.value,
+                                      title: sanitized,
                                     }))
-                                  }
+                                  }}
                                 />
                               )}
                             </div>
@@ -7165,7 +7169,7 @@ FEEDBACK: [your explanation]`
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="pci"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <Brain className="mr-2 h-4 w-4 shrink-0" />
                                         PCI
@@ -7736,61 +7740,6 @@ FEEDBACK: [your explanation]`
                                           )
                                         }}
                                       >
-                                        {/* Centered Pill for Test, Generate DMI, and Version History */}
-                                        <div className="pointer-events-none absolute left-1/2 top-0 z-20 flex -translate-x-1/2 items-center justify-center">
-                                          <div className="pointer-events-auto flex h-11 items-center gap-1 rounded-b-xl border-x border-b border-[#E5E7EB] bg-white/90 px-2 shadow-sm backdrop-blur-sm">
-                                            <span className="text-xs font-light text-gray-400">
-                                              (
-                                            </span>
-
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
-                                              disabled={dmiGenerating}
-                                              onClick={() => {
-                                                const content = assessmentBuilder.taskContent
-                                                const hasPdf =
-                                                  assessmentSourceDocument?.mimeType ===
-                                                  'application/pdf'
-                                                if (!content.trim() && !hasPdf) {
-                                                  toast.error(
-                                                    'Please add content to the Assessment tab or load a PDF first'
-                                                  )
-                                                  return
-                                                }
-                                                handleGenerateDMI('assessment')
-                                              }}
-                                            >
-                                              {dmiGenerating ? (
-                                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                              ) : null}
-                                              Generate DMI
-                                            </Button>
-
-                                            <div className="h-3 w-px bg-gray-300" />
-
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
-                                              onClick={() => setShowDmiVersionList(true)}
-                                              title="View DMI Versions"
-                                            >
-                                              <History className="h-3 w-3" />
-                                              {assessmentDmiVersions.length > 0 && (
-                                                <span className="ml-1">
-                                                  ({assessmentDmiVersions.length})
-                                                </span>
-                                              )}
-                                            </Button>
-
-                                            <span className="text-xs font-light text-gray-400">
-                                              )
-                                            </span>
-                                          </div>
-                                        </div>
-
                                         {/* Left Panel (Text) */}
                                         {assessmentTextVisible && (
                                           <div
@@ -7979,8 +7928,63 @@ FEEDBACK: [your explanation]`
                                       value="pci"
                                       className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      <div className="flex h-full min-h-0 flex-col rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
-                                        <div className="flex-1 space-y-4 overflow-y-auto p-1">
+                                      <div className="relative flex h-full min-h-0 flex-col rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
+                                        {/* Centered Pill for Test, Generate DMI, and Version History */}
+                                        <div className="pointer-events-none absolute left-1/2 top-0 z-20 flex -translate-x-1/2 items-center justify-center">
+                                          <div className="pointer-events-auto flex h-11 items-center gap-1 rounded-b-xl border-x border-b border-[#E5E7EB] bg-white/90 px-2 shadow-sm backdrop-blur-sm">
+                                            <span className="text-xs font-light text-gray-400">
+                                              (
+                                            </span>
+
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              disabled={dmiGenerating}
+                                              onClick={() => {
+                                                const content = assessmentBuilder.taskContent
+                                                const hasPdf =
+                                                  assessmentSourceDocument?.mimeType ===
+                                                  'application/pdf'
+                                                if (!content.trim() && !hasPdf) {
+                                                  toast.error(
+                                                    'Please add content to the Assessment tab or load a PDF first'
+                                                  )
+                                                  return
+                                                }
+                                                handleGenerateDMI('assessment')
+                                              }}
+                                            >
+                                              {dmiGenerating ? (
+                                                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                                              ) : null}
+                                              Generate DMI
+                                            </Button>
+
+                                            <div className="h-3 w-px bg-gray-300" />
+
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                              onClick={() => setShowDmiVersionList(true)}
+                                              title="View DMI Versions"
+                                            >
+                                              <History className="h-3 w-3" />
+                                              {assessmentDmiVersions.length > 0 && (
+                                                <span className="ml-1">
+                                                  ({assessmentDmiVersions.length})
+                                                </span>
+                                              )}
+                                            </Button>
+
+                                            <span className="text-xs font-light text-gray-400">
+                                              )
+                                            </span>
+                                          </div>
+                                        </div>
+
+                                        <div className="flex-1 space-y-4 overflow-y-auto p-1 mt-6">
                                           {(
                                             assessmentPciMessagesMap[loadedAssessmentId || ''] || []
                                           ).length === 0 && (

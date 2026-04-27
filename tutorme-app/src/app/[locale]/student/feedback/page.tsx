@@ -582,43 +582,6 @@ function StudentFeedbackContent() {
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-gray-50">
         <div className="flex h-full w-full min-w-0 flex-1 flex-col bg-gray-50/50">
-          <div className="flex flex-col bg-white">
-            <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
-                  <div className="flex flex-col justify-center">
-                    <div className="flex items-center gap-2">
-                      <h1 className="text-xl font-bold tracking-tight">
-                        {sessionContext?.courseName || 'Live Classroom'}
-                      </h1>
-                    </div>
-                  </div>
-                </div>
-  
-                <div className="flex flex-col items-end justify-between gap-4">
-                  <div className="mt-0 flex shrink-0 items-center gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowTasksPanel(true)}
-                      className="gap-2 font-medium text-slate-700 hover:text-slate-900"
-                    >
-                      <ListTodo className="h-4 w-4" />
-                      Lessons
-                      {unseenTaskIds.length > 0 && (
-                        <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
-                          {unseenTaskIds.length}
-                        </span>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-  
           {/* Content Wrapper */}
           <div className="flex w-full flex-1 items-start overflow-hidden">
             {/* Floating collapsed/expanded pill */}
@@ -1115,7 +1078,7 @@ function StudentFeedbackContent() {
               )}
             </div>
           )}
-          <div id="student-live-tabs-portal" className="mt-2 w-full" />
+          <div id="student-live-tabs-portal" className="mt-4 mb-4 w-full" />
         </div>
 
         {sessionContext?.roomUrl && (
@@ -1315,7 +1278,7 @@ function StudentFeedbackContent() {
         </div>
         
         {/* Persistent Right Panel */}
-        <div className="relative ml-4 flex h-full w-[340px] shrink-0 flex-col overflow-hidden rounded-tl-2xl border-l border-t border-gray-200 bg-white shadow-[-8px_0_24px_rgba(0,0,0,0.12)] transition-all sm:w-[380px] lg:w-[400px]">
+        <div className="relative flex h-full w-[340px] shrink-0 flex-col overflow-hidden border-l border-gray-200 bg-white shadow-[-8px_0_24px_rgba(0,0,0,0.05)] transition-all sm:w-[380px] lg:w-[400px]">
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
             <div className="flex w-full items-center gap-2 rounded-lg bg-gray-100 p-1">
               <Button
