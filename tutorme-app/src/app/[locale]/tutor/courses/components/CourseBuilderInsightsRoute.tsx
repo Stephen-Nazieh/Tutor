@@ -544,13 +544,13 @@ function CourseBuilderInsightsRouteInner({
                       <SelectItem value="live">
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-green-500" />
-                          Editing: Published
+                          Live
                         </div>
                       </SelectItem>
                       <SelectItem value="draft">
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-amber-500" />
-                          Editing: Draft
+                          Editing
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -573,8 +573,8 @@ function CourseBuilderInsightsRouteInner({
                   </Button>
                 )}
 
-                {/* Always show Go Live if a real course is selected */}
-                {courseId && courseId !== 'insights-draft' && (
+                {/* Show Go Live only in Draft mode */}
+                {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
                   <Button
                     variant="default"
                     className={cn(
@@ -586,7 +586,7 @@ function CourseBuilderInsightsRouteInner({
                     onClick={handleStartSessionClick}
                   >
                     <VideoIcon className="h-4 w-4" />
-                    {insightsProps.sessionId ? 'Session Active' : 'Go Live'}
+                    Go Live
                   </Button>
                 )}
 

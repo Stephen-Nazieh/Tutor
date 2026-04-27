@@ -580,26 +580,67 @@ function StudentFeedbackContent() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-gray-50">
-      {/* Floating collapsed/expanded pill */}
-      <div
-        className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
-        style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
-        onClick={() => setLeftPanelHidden(!leftPanelHidden)}
-        title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
-      >
-        {leftPanelHidden ? (
-          <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
-        ) : (
-          <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
-        )}
-      </div>
+    <div className="relative flex h-screen w-full flex-col overflow-hidden bg-gray-50">
+        <div className="flex h-full w-full min-w-0 flex-1 flex-col bg-gray-50/50">
+          <div className="flex flex-col bg-white">
+            <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  <div className="flex flex-col justify-center">
+                    <div className="flex items-center gap-2">
+                      <h1 className="text-xl font-bold tracking-tight">
+                        {sessionContext?.courseName || 'Live Classroom'}
+                      </h1>
+                    </div>
+                  </div>
+                </div>
+  
+                <div className="flex flex-col items-end justify-between gap-4">
+                  <div className="mt-0 flex shrink-0 items-center gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowTasksPanel(true)}
+                      className="gap-2 font-medium text-slate-700 hover:text-slate-900"
+                    >
+                      <ListTodo className="h-4 w-4" />
+                      Lessons
+                      {unseenTaskIds.length > 0 && (
+                        <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
+                          {unseenTaskIds.length}
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          {/* Content Wrapper */}
+          <div className="flex w-full flex-1 items-start overflow-hidden">
+            {/* Floating collapsed/expanded pill */}
+            <div
+              className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
+              style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
+              onClick={() => setLeftPanelHidden(!leftPanelHidden)}
+              title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
+            >
+              {leftPanelHidden ? (
+                <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
+              ) : (
+                <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
+              )}
+            </div>
 
-      {!leftPanelHidden && (
-        <div
-          className="absolute inset-y-0 left-0 z-40 flex h-full flex-col border-r border-[#E5E7EB] bg-white shadow-2xl transition-all"
-          style={{ width: leftPanelWidth }}
-        >
+            {/* Left Panel */}
+            {!leftPanelHidden && (
+              <div
+                className="relative z-40 flex h-full shrink-0 flex-col border-r border-gray-200 bg-white"
+                style={{ width: leftPanelWidth }}
+              >
           <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-[#E5E7EB] px-4">
             <h2 className="text-sm font-semibold text-[#1F2933]">Directory</h2>
           </div>
@@ -712,10 +753,10 @@ function StudentFeedbackContent() {
                                               key={task.id}
                                               onClick={() => handleSelectDirectoryItem(task)}
                                               className={cn(
-                                                'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
                                                 activeTaskId === (task.itemId || task.id)
                                                   ? 'bg-blue-50 font-medium text-blue-700'
-                                                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                                  : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
                                               )}
                                             >
                                               <FileText className="h-3.5 w-3.5 shrink-0" />
@@ -765,10 +806,10 @@ function StudentFeedbackContent() {
                                               key={task.id}
                                               onClick={() => handleSelectDirectoryItem(task)}
                                               className={cn(
-                                                'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
                                                 activeTaskId === (task.itemId || task.id)
                                                   ? 'bg-purple-50 font-medium text-purple-700'
-                                                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                                  : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
                                               )}
                                             >
                                               <FileText className="h-3.5 w-3.5 shrink-0 text-purple-400" />
@@ -815,10 +856,10 @@ function StudentFeedbackContent() {
                                               key={task.id}
                                               onClick={() => handleSelectDirectoryItem(task)}
                                               className={cn(
-                                                'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
                                                 activeTaskId === (task.itemId || task.id)
                                                   ? 'bg-emerald-50 font-medium text-emerald-700'
-                                                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                                  : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
                                               )}
                                             >
                                               <FileText className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
@@ -1017,10 +1058,9 @@ function StudentFeedbackContent() {
         </div>
       )}
 
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex flex-1 flex-col overflow-y-auto">
-          <div className="bg-[#fafafc] px-4 pb-2 pt-4 sm:px-6">
-          <div className="flex w-full flex-col gap-4">
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="flex flex-1 flex-col overflow-y-auto bg-gray-50/50">
+            <div className="px-4 pb-2 pt-4 sm:px-6">
             <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
@@ -1273,10 +1313,9 @@ function StudentFeedbackContent() {
             </Tabs>
           </div>
         </div>
-      </div>
         
-      {/* Persistent Right Panel */}
-        <div className="relative flex w-[340px] sm:w-[380px] lg:w-[400px] shrink-0 flex-col rounded-l-2xl border-l border-gray-200 bg-white shadow-[-8px_0_24px_rgba(0,0,0,0.12)] overflow-hidden h-full z-10 transition-all">
+        {/* Persistent Right Panel */}
+        <div className="relative ml-4 flex h-full w-[340px] shrink-0 flex-col overflow-hidden rounded-tl-2xl border-l border-t border-gray-200 bg-white shadow-[-8px_0_24px_rgba(0,0,0,0.12)] transition-all sm:w-[380px] lg:w-[400px]">
           <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
             <div className="flex w-full items-center gap-2 rounded-lg bg-gray-100 p-1">
               <Button
@@ -1290,7 +1329,7 @@ function StudentFeedbackContent() {
                     : 'text-gray-500 hover:text-gray-900'
                 )}
               >
-                Interactions
+                Interact
               </Button>
               <Button
                 variant="ghost"
@@ -1415,7 +1454,7 @@ function StudentFeedbackContent() {
           </div>
         </div>
       </div>
-
+      
       <Sheet open={showTasksPanel} onOpenChange={setShowTasksPanel}>
         <SheetContent side="right" className="w-[340px] sm:w-[380px]">
           <SheetHeader>
@@ -1523,6 +1562,8 @@ function StudentFeedbackContent() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+    </div>
     </div>
   )
 }

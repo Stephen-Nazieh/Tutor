@@ -4730,9 +4730,9 @@ FEEDBACK: [your explanation]`
               >
                 <div className="flex h-full min-h-0 flex-col pr-4">
                   <Card className="flex h-full min-h-0 flex-1 flex-col rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]">
-                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-4">
+                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-2">
                       {/* Header with Hide, Import, and +Lesson buttons */}
-                      <div className="mb-4 flex min-h-[58px] items-center justify-between">
+                      <div className="mb-4 flex min-h-[58px] items-center justify-between px-2 pt-2">
                         <div className="flex flex-col justify-center gap-1">
                           <div className="flex items-center gap-2">
                             <div className="text-sm font-semibold text-[#1F2933]">Directory</div>
@@ -4827,7 +4827,7 @@ FEEDBACK: [your explanation]`
                                     depth={0}
                                     isLast={nodeIdx === nodes.length - 1}
                                     inlineDragHandle
-                                    className="lesson-card mb-0 ml-0 overflow-hidden rounded-[24px] border border-[#E7ECF3] bg-white pl-0 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition-[transform,box-shadow,border-color] duration-[160ms] ease-[ease] hover:-translate-y-[3px] hover:border-[rgba(37,99,235,0.35)] hover:shadow-[0_14px_32px_rgba(0,0,0,0.16),0_4px_10px_rgba(37,99,235,0.10)]"
+                                    className="lesson-card mb-2 ml-0 overflow-hidden rounded-[24px] border border-[rgba(37,99,235,0.35)] bg-white pl-0 shadow-[0_14px_32px_rgba(0,0,0,0.16),0_4px_10px_rgba(37,99,235,0.10)] transition-[box-shadow,border-color] duration-[160ms] ease-[ease]"
                                   >
                                     <div className="group">
                                       <div
@@ -4922,7 +4922,7 @@ FEEDBACK: [your explanation]`
                                       </div>
 
                                       {expandedCourseBuilderNodes.has(node.id) && (
-                                        <div className="mt-1 flex flex-col gap-3 px-3 pb-3">
+                                        <div className="mt-1 flex flex-col gap-2 px-3 pb-3">
                                           {/* Tasks - droppable so homework can be moved here */}
                                           <TreeItem
                                             depth={0}
@@ -4932,7 +4932,7 @@ FEEDBACK: [your explanation]`
                                             <DroppableTaskZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex items-center justify-between gap-3 rounded-2xl border border-[#D5E5FF] bg-[#EEF4FF] px-3 py-2.5"
+                                              className="flex items-center justify-between gap-3 rounded-2xl border border-[#D5E5FF] bg-[#EEF4FF] px-3 py-1.5"
                                             >
                                               <div className="flex min-w-0 items-center gap-3">
                                                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#DCEAFF] text-[#2B5FB8]">
@@ -5628,12 +5628,12 @@ FEEDBACK: [your explanation]`
                                           <TreeItem
                                             depth={0}
                                             isLast={false}
-                                            className="ml-0 mt-1 border-l-0 pl-0"
+                                            className="ml-0 border-l-0 pl-0"
                                           >
                                             <DroppableAssessmentZone
                                               nodeId={node.id}
                                               lessonId={primaryLesson.id}
-                                              className="flex items-center justify-between gap-3 rounded-2xl border border-[#E2D8FF] bg-[#F3EEFF] px-3 py-2.5"
+                                              className="flex items-center justify-between gap-3 rounded-2xl border border-[#E2D8FF] bg-[#F3EEFF] px-3 py-1.5"
                                             >
                                               <div className="flex min-w-0 items-center gap-3">
                                                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#E7DEFF] text-[#6D59D8]">
@@ -5976,12 +5976,12 @@ FEEDBACK: [your explanation]`
                                                 <TreeItem
                                                   depth={0}
                                                   isLast={false}
-                                                  className="ml-0 mt-1 border-l-0 pl-0"
+                                                  className="ml-0 border-l-0 pl-0"
                                                 >
                                                   <DroppableHomeworkZone
                                                     nodeId={node.id}
                                                     lessonId={primaryLesson.id}
-                                                    className="flex items-center justify-between gap-3 rounded-2xl border border-[#D2F3E3] bg-[#ECFBF4] px-3 py-2.5"
+                                                    className="flex items-center justify-between gap-3 rounded-2xl border border-[#D2F3E3] bg-[#ECFBF4] px-3 py-1.5"
                                                   >
                                                     <div className="flex min-w-0 items-center gap-3">
                                                       <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#D7F6E8] text-[#1E9E72]">
@@ -7063,7 +7063,7 @@ FEEDBACK: [your explanation]`
                   <div className="h-full w-full flex-1">
                     {/* COMBINED BUILDER: Task & Assessment Tabs */}
                     <Card className="flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
-                      <CardContent className="flex h-full flex-col overflow-hidden p-4">
+                      <CardContent className="flex h-full flex-col overflow-hidden p-2">
                         <Tabs
                           value={mainBuilderTab}
                           onValueChange={v => setMainBuilderTab(v as 'task' | 'assessment')}
@@ -7073,15 +7073,34 @@ FEEDBACK: [your explanation]`
                           <div className="mb-4 flex w-full items-center justify-between gap-4">
                             {/* Left: current task name */}
                             <div className="flex min-w-0 flex-1 items-center gap-2 px-3 text-sm font-semibold text-[#1F2933]">
-                              <span className="truncate">
-                                {mainBuilderTab === 'task'
-                                  ? taskBuilder.activeExtensionId
-                                    ? taskBuilder.extensions.find(
-                                        x => x.id === taskBuilder.activeExtensionId
-                                      )?.name || 'Extension'
-                                    : taskBuilder.title || 'Select a Task'
-                                  : ''}
-                              </span>
+                              {mainBuilderTab === 'task' && (
+                                <input
+                                  className="w-full truncate bg-transparent outline-none placeholder:text-gray-400 focus:border-b focus:border-blue-300"
+                                  placeholder="Select or name a Task"
+                                  value={
+                                    taskBuilder.activeExtensionId
+                                      ? taskBuilder.extensions.find(
+                                          x => x.id === taskBuilder.activeExtensionId
+                                        )?.name || ''
+                                      : taskBuilder.title || ''
+                                  }
+                                  onChange={e => {
+                                    setTaskBuilder(prev => {
+                                      if (prev.activeExtensionId) {
+                                        return {
+                                          ...prev,
+                                          extensions: prev.extensions.map(x =>
+                                            x.id === prev.activeExtensionId
+                                              ? { ...x, name: e.target.value }
+                                              : x
+                                          ),
+                                        }
+                                      }
+                                      return { ...prev, title: e.target.value }
+                                    })
+                                  }}
+                                />
+                              )}
                             </div>
 
                             <TabsList className="grid h-[46px] w-[400px] shrink-0 grid-cols-2 gap-2 bg-transparent p-0 shadow-none">
@@ -7103,11 +7122,19 @@ FEEDBACK: [your explanation]`
 
                             {/* Right: current assessment name */}
                             <div className="flex min-w-0 flex-1 items-center justify-end gap-2 px-3 text-sm font-semibold text-[#1F2933]">
-                              <span className="truncate">
-                                {mainBuilderTab === 'assessment'
-                                  ? assessmentBuilder.title || 'Select an Assessment'
-                                  : ''}
-                              </span>
+                              {mainBuilderTab === 'assessment' && (
+                                <input
+                                  className="w-full truncate bg-transparent text-right outline-none placeholder:text-gray-400 focus:border-b focus:border-purple-300"
+                                  placeholder="Select or name an Assessment"
+                                  value={assessmentBuilder.title || ''}
+                                  onChange={e =>
+                                    setAssessmentBuilder(prev => ({
+                                      ...prev,
+                                      title: e.target.value,
+                                    }))
+                                  }
+                                />
+                              )}
                             </div>
                           </div>
 
@@ -7673,14 +7700,14 @@ FEEDBACK: [your explanation]`
                                     <TabsList className="mb-px grid h-[46px] w-full grid-cols-2 gap-2 rounded-xl bg-transparent p-0 shadow-none">
                                       <TabsTrigger
                                         value="content"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <LayoutPanelTop className="mr-2 h-4 w-4 shrink-0" />
                                         Assessment
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="pci"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#CFE0FF] data-[state=active]:bg-[#EEF4FF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#2B5FB8] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <Brain className="mr-2 h-4 w-4 shrink-0" />
                                         PCI
