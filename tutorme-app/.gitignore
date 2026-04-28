@@ -43,3 +43,4 @@ ts_errors.log
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+server-production.js
