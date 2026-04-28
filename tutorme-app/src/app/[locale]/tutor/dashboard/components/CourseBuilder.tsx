@@ -9359,7 +9359,7 @@ FEEDBACK: [your explanation]`
 
         {/* Daily.co Video Frame for Tutor */}
         {insightsProps && sessionContext?.roomUrl && (
-          <div className="fixed bottom-4 right-4 z-50 hidden w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:w-80">
+          <div className="fixed bottom-4 right-4 z-50 hidden w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:block sm:w-80">
             <div className="absolute right-2 top-2 z-10">
               <Button
                 variant={isMirroringToStudents ? 'default' : 'secondary'}
