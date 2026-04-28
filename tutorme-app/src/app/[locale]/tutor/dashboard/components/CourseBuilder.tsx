@@ -793,6 +793,10 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [isMirroringToStudents, setIsMirroringToStudents] = useState(true)
+    const [monitorSelectedStudent, setMonitorSelectedStudent] = useState<{
+      id: string
+      name: string
+    } | null>(null)
 
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
     const [comingSoonDialog, setComingSoonDialog] = useState(false)
@@ -3005,54 +3009,76 @@ FEEDBACK: [your explanation]`
       toast.success('Exam saved')
     }
 
+    const saveNodesIfPossible = (nextNodes: CourseBuilderNode[]) => {
+      if (isStudentView) return
+      if (!onSave) return
+      if (!courseName && !coursePropsModal.name) {
+        setCoursePropsModal(prev => ({ ...prev, isOpen: true }))
+        return
+      }
+
+      onSave(
+        nextNodes.map(n => n.lessons[0] || ({} as any)),
+        {
+          developmentMode: devMode,
+          previewDifficulty,
+          courseName: coursePropsModal.name || courseName,
+          courseDescription: coursePropsModal.description,
+          isLive: coursePropsModal.isLive,
+        }
+      )
+    }
+
     const deleteCourseBuilderNode = (nodeId: string) => {
-      setCourseBuilderNodes(nodes.filter(m => m.id !== nodeId))
+      const nextNodes = nodes.filter(m => m.id !== nodeId)
+      setCourseBuilderNodes(nextNodes)
+      if (mainTab === 'builder') saveNodesIfPossible(nextNodes)
       toast.success('Lesson deleted')
     }
 
     const deleteLesson = (nodeId: string, lessonId: string) => {
-      setCourseBuilderNodes(
-        nodes.map(m =>
-          m.id === nodeId ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) } : m
-        )
+      const nextNodes = nodes.map(m =>
+        m.id === nodeId ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) } : m
       )
+      setCourseBuilderNodes(nextNodes)
+      if (mainTab === 'builder') saveNodesIfPossible(nextNodes)
       toast.success('Lesson deleted')
     }
 
     const deleteTask = (nodeId: string, lessonId: string, taskId: string) => {
-      setCourseBuilderNodes(
-        nodes.map(m =>
-          m.id === nodeId
-            ? {
-                ...m,
-                lessons: m.lessons.map(l =>
-                  l.id === lessonId
-                    ? { ...l, tasks: (l.tasks || []).filter(t => t.id !== taskId) }
-                    : l
-                ),
-              }
-            : m
-        )
+      const nextNodes = nodes.map(m =>
+        m.id === nodeId
+          ? {
+              ...m,
+              lessons: m.lessons.map(l =>
+                l.id === lessonId
+                  ? { ...l, tasks: (l.tasks || []).filter(t => t.id !== taskId) }
+                  : l
+              ),
+            }
+          : m
       )
+      setCourseBuilderNodes(nextNodes)
+      if (mainTab === 'builder') saveNodesIfPossible(nextNodes)
       setSelectedItem(null)
       toast.success('Task removed')
     }
 
     const deleteAssessment = (nodeId: string, lessonId: string, hwId: string) => {
-      setCourseBuilderNodes(
-        nodes.map(m =>
-          m.id === nodeId
-            ? {
-                ...m,
-                lessons: m.lessons.map(l =>
-                  l.id === lessonId
-                    ? { ...l, homework: (l.homework || []).filter(h => h.id !== hwId) }
-                    : l
-                ),
-              }
-            : m
-        )
+      const nextNodes = nodes.map(m =>
+        m.id === nodeId
+          ? {
+              ...m,
+              lessons: m.lessons.map(l =>
+                l.id === lessonId
+                  ? { ...l, homework: (l.homework || []).filter(h => h.id !== hwId) }
+                  : l
+              ),
+            }
+          : m
       )
+      setCourseBuilderNodes(nextNodes)
+      if (mainTab === 'builder') saveNodesIfPossible(nextNodes)
       setSelectedItem(null)
       toast.success('Assessment removed')
     }
@@ -6955,7 +6981,24 @@ FEEDBACK: [your explanation]`
                                         {(() => {
                                           if (mainTab === 'live' && tab.id === 'student1') {
                                             return (
-                                              <div className="h-full w-full">
+                                              <div className="flex h-full w-full flex-col">
+                                                {monitorSelectedStudent && (
+                                                  <div className="flex items-center justify-between border-b bg-white px-4 py-2 text-sm">
+                                                    <div className="font-medium text-slate-800">
+                                                      Viewing: {monitorSelectedStudent.name}
+                                                    </div>
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      className="h-8 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                                      onClick={() =>
+                                                        setMonitorSelectedStudent(null)
+                                                      }
+                                                    >
+                                                      Clear
+                                                    </Button>
+                                                  </div>
+                                                )}
                                                 <EnhancedWhiteboard videoOverlay={false} />
                                               </div>
                                             )
@@ -6977,6 +7020,19 @@ FEEDBACK: [your explanation]`
                                                 <MonitoringPanel
                                                   socket={insightsProps.socket}
                                                   sessionId={insightsProps.sessionId}
+                                                  selectedStudentId={
+                                                    monitorSelectedStudent?.id ?? null
+                                                  }
+                                                  onNavigateToWhiteboard={(
+                                                    studentId,
+                                                    studentName
+                                                  ) => {
+                                                    setMonitorSelectedStudent({
+                                                      id: studentId,
+                                                      name: studentName,
+                                                    })
+                                                    setTestPciActiveTab('student1')
+                                                  }}
                                                 />
                                               </div>
                                             )
