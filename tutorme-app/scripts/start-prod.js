@@ -4,6 +4,10 @@ const { spawn } = require('node:child_process')
 const { runMigrations } = require('./run-migrations')
 
 async function start() {
+  // Override port explicitly with process.env.PORT to satisfy Cloud Run
+  const port = process.env.PORT || '3003'
+  process.env.PORT = port
+  
   const skipMigrations = process.env.SKIP_MIGRATIONS === 'true'
   const migrationsRequired = process.env.MIGRATIONS_REQUIRED !== 'false'
 
@@ -27,8 +31,11 @@ async function start() {
   const command = hasServerJs ? 'node' : './node_modules/.bin/tsx'
   const args = hasServerJs ? ['server.js'] : ['server.ts']
 
-  console.log(`[Startup] Launching server: ${command} ${args.join(' ')}`)
-  const child = spawn(command, args, { stdio: 'inherit' })
+  console.log(`[Startup] Launching server: ${command} ${args.join(' ')} on port ${port}`)
+  const child = spawn(command, args, { 
+    stdio: 'inherit',
+    env: { ...process.env, PORT: port }
+  })
 
   const forwardSignal = signal => {
     if (!child.killed) {
