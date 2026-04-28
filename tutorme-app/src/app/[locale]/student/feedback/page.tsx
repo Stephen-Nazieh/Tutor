@@ -99,6 +99,7 @@ function StudentFeedbackContent() {
   const searchParams = useSearchParams()
   const sessionIdFromQuery = searchParams.get('sessionId')
   const courseNameFromQuery = searchParams.get('courseName')
+  const tutorHandleFromQuery = searchParams.get('tutorHandle')
 
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
@@ -122,8 +123,13 @@ function StudentFeedbackContent() {
     courseCategory: string
     courseId: string | null
     courseName: string | null
+    status: string | null
+    startedAt: string | null
+    scheduledAt: string | null
+    endedAt: string | null
   } | null>(null)
   const [activeCourseName, setActiveCourseName] = useState<string | null>(null)
+  const [sessionTimer, setSessionTimer] = useState<string>('')
   const [myBoardPages, setMyBoardPages] = useState<WhiteboardPage[]>(createDefaultWhiteboardPages)
   const [myBoardPageIndex, setMyBoardPageIndex] = useState(0)
   const [tutorBoardPages, setTutorBoardPages] = useState<WhiteboardPage[]>(
@@ -322,6 +328,45 @@ function StudentFeedbackContent() {
     }
   }, [sessionIdFromQuery])
 
+  // Session timer
+  useEffect(() => {
+    if (!sessionContext) {
+      setSessionTimer('')
+      return
+    }
+    const updateTimer = () => {
+      const now = Date.now()
+      if (sessionContext.status === 'active' && sessionContext.startedAt) {
+        const started = new Date(sessionContext.startedAt).getTime()
+        const elapsed = Math.max(0, now - started)
+        const mins = Math.floor(elapsed / 60000)
+        const secs = Math.floor((elapsed % 60000) / 1000)
+        setSessionTimer(`${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`)
+      } else if (sessionContext.status === 'scheduled' && sessionContext.scheduledAt) {
+        const scheduled = new Date(sessionContext.scheduledAt).getTime()
+        const diff = scheduled - now
+        if (diff > 0) {
+          const mins = Math.floor(diff / 60000)
+          const secs = Math.floor((diff % 60000) / 1000)
+          setSessionTimer(`Starts in ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`)
+        } else {
+          setSessionTimer('Starting soon')
+        }
+      } else if (sessionContext.status === 'ended' && sessionContext.endedAt) {
+        const ended = new Date(sessionContext.endedAt).getTime()
+        const elapsed = Math.max(0, now - ended)
+        const mins = Math.floor(elapsed / 60000)
+        const secs = Math.floor((elapsed % 60000) / 1000)
+        setSessionTimer(`Ended ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')} ago`)
+      } else {
+        setSessionTimer(sessionContext.status || '')
+      }
+    }
+    updateTimer()
+    const interval = setInterval(updateTimer, 1000)
+    return () => clearInterval(interval)
+  }, [sessionContext])
+
   const socketOptions = useMemo(() => {
     if (!selectedSessionId || !session?.user?.id) return undefined
     return {
@@ -381,6 +426,10 @@ function StudentFeedbackContent() {
           courseCategory: data?.session?.category || 'General',
           courseId: data?.session?.courseId ?? null,
           courseName: data?.session?.course?.name ?? null,
+          status: data?.session?.status ?? null,
+          startedAt: data?.session?.startedAt ?? null,
+          scheduledAt: data?.session?.scheduledAt ?? null,
+          endedAt: data?.session?.endedAt ?? null,
         })
       } catch (err: any) {
         console.error('Join request failed:', err)
@@ -652,8 +701,40 @@ function StudentFeedbackContent() {
                 <div className="flex items-center gap-2">
                   <h1 className="text-base font-semibold tracking-tight">
                     {pageTitle}
+                    {tutorHandleFromQuery && (
+                      <span className="ml-1.5 text-sm font-normal text-slate-500">
+                        (Tutor: @{tutorHandleFromQuery})
+                      </span>
+                    )}
                   </h1>
                 </div>
+                {sessionContext && (
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <span
+                      className={cn(
+                        'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium',
+                        sessionContext.status === 'active'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : sessionContext.status === 'scheduled'
+                            ? 'bg-amber-100 text-amber-700'
+                            : sessionContext.status === 'ended'
+                              ? 'bg-slate-100 text-slate-600'
+                              : 'bg-gray-100 text-gray-600'
+                      )}
+                    >
+                      {sessionContext.status === 'active'
+                        ? '● Live'
+                        : sessionContext.status === 'scheduled'
+                          ? '⏳ Scheduled'
+                          : sessionContext.status === 'ended'
+                            ? '■ Ended'
+                            : sessionContext.status || 'Unknown'}
+                    </span>
+                    {sessionTimer && (
+                      <span className="text-xs font-mono text-slate-500">{sessionTimer}</span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

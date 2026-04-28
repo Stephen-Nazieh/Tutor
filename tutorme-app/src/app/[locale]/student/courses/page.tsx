@@ -102,6 +102,7 @@ function CoursePageInner() {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
   const [sessionsCourseId, setSessionsCourseId] = useState<string | null>(null)
   const [sessionsCourseName, setSessionsCourseName] = useState<string>('')
+  const [sessionsTutorHandle, setSessionsTutorHandle] = useState<string>('')
   const [courseSessions, setCourseSessions] = useState<any[]>([])
   const [isLoadingSessions, setIsLoadingSessions] = useState(false)
   const [sessionLoadError, setSessionLoadError] = useState<string | null>(null)
@@ -267,6 +268,7 @@ function CoursePageInner() {
     setSessionsCourseId(courseId)
     const course = myCourses.find(c => c.id === courseId)
     setSessionsCourseName(course?.name || '')
+    setSessionsTutorHandle(course?.tutorHandle || '')
     setSessionLoadError(null)
     setCourseSessions([])
     setIsLoadingSessions(true)
@@ -791,7 +793,12 @@ function CoursePageInner() {
                             const nameParam = sessionsCourseName
                               ? `&courseName=${encodeURIComponent(sessionsCourseName)}`
                               : ''
-                            router.push(`/student/feedback?sessionId=${session.id}${nameParam}`)
+                            const tutorParam = sessionsTutorHandle
+                              ? `&tutorHandle=${encodeURIComponent(sessionsTutorHandle)}`
+                              : ''
+                            router.push(
+                              `/student/feedback?sessionId=${session.id}${nameParam}${tutorParam}`
+                            )
                           }}
                           variant={canEnterLive ? 'default' : 'outline'}
                           className={
