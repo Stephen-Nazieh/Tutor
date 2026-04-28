@@ -36,6 +36,8 @@ setInterval(() => {
 
 // 4. Initialization (NEXT.JS + SOCKET.IO)
 const dev = process.env.NODE_ENV !== 'production'
+const port = parseInt(process.env.PORT || '3003', 10)
+const hostname = process.env.HOSTNAME || '0.0.0.0'
 
 /**
  * PRODUCTION PATH RESOLUTION:
@@ -99,9 +101,6 @@ const server = createServer(async (req, res) => {
 })
 
 // BIND PORT IMMEDIATELY
-const port = parseInt(process.env.PORT || '3003', 10)
-const hostname = process.env.HOSTNAME || '0.0.0.0'
-
 server
   .once('error', err => {
     console.error('❌ [Server] Fatal port binding error:', err)
