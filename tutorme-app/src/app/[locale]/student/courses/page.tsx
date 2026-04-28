@@ -721,8 +721,36 @@ function CoursePageInner() {
                 </Button>
               </div>
             ) : courseSessions.length === 0 ? (
-              <div className="rounded-lg bg-gray-50 py-8 text-center text-gray-500">
-                No sessions found for this course.
+              <div className="rounded-lg bg-gray-50 py-6 text-center">
+                <p className="text-sm font-medium text-gray-700">
+                  No live sessions have been created yet.
+                </p>
+                <p className="mt-1 text-xs text-gray-500">
+                  Your tutor will start a session based on the course schedule.
+                </p>
+                {(() => {
+                  const course = myCourses.find(c => c.id === sessionsCourseId)
+                  const slots = course?.availability?.slots || []
+                  if (slots.length > 0) {
+                    return (
+                      <div className="mt-3 space-y-1.5">
+                        <p className="text-xs font-medium text-gray-600">Upcoming schedule:</p>
+                        {slots.map((slot: any, idx: number) => (
+                          <div
+                            key={idx}
+                            className="mx-auto flex max-w-xs items-center justify-between rounded-md border bg-white px-3 py-1.5 text-xs"
+                          >
+                            <span className="font-medium text-gray-700">{slot.day}</span>
+                            <span className="text-gray-500">
+                              {slot.time} ({slot.durationMinutes || 60} mins)
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
               </div>
             ) : (
               <div className="space-y-4">
