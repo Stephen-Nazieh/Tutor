@@ -9362,27 +9362,29 @@ FEEDBACK: [your explanation]`
           </DialogContent>
         </Dialog>
 
-        {/* Daily.co Video Frame for Tutor */}
-        {insightsProps && sessionContext?.roomUrl && (
-          <div className="fixed bottom-4 right-4 z-50 hidden w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:block sm:w-80">
-            <div className="absolute right-2 top-2 z-10">
-              <Button
-                variant={isMirroringToStudents ? 'default' : 'secondary'}
-                size="sm"
-                onClick={() => setIsMirroringToStudents(!isMirroringToStudents)}
-                className="h-7 gap-1.5 px-2 text-[10px] opacity-90 shadow-lg hover:opacity-100"
-              >
-                <div
-                  className={`h-1.5 w-1.5 rounded-full ${isMirroringToStudents ? 'animate-pulse bg-green-400' : 'bg-red-400'}`}
+        {insightsProps && mainTab === 'live' && !isStudentView && (
+          <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
+            <Button
+              variant={isMirroringToStudents ? 'default' : 'secondary'}
+              size="sm"
+              onClick={() => setIsMirroringToStudents(!isMirroringToStudents)}
+              className="h-8 gap-2 px-3 text-xs shadow-lg"
+            >
+              <div
+                className={`h-2 w-2 rounded-full ${isMirroringToStudents ? 'animate-pulse bg-green-400' : 'bg-red-400'}`}
+              />
+              {isMirroringToStudents ? 'Syncing to Students' : 'Sync Paused'}
+            </Button>
+
+            {sessionContext?.roomUrl && (
+              <div className="hidden w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:block sm:w-80">
+                <DailyVideoFrame
+                  roomUrl={sessionContext.roomUrl}
+                  token={sessionContext.token}
+                  autoRecord={!isStudentView}
                 />
-                {isMirroringToStudents ? 'Syncing to Students' : 'Sync Paused'}
-              </Button>
-            </div>
-            <DailyVideoFrame
-              roomUrl={sessionContext.roomUrl}
-              token={sessionContext.token}
-              autoRecord={!isStudentView}
-            />
+              </div>
+            )}
           </div>
         )}
       </div>
