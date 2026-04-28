@@ -20,14 +20,13 @@ export const GET = withAuth(async (req, session, context) => {
     const [enrollment] = await drizzleDb
       .select()
       .from(courseEnrollment)
-      .where(and(eq(courseEnrollment.courseId, courseId), eq(courseEnrollment.studentId, studentId)))
+      .where(
+        and(eq(courseEnrollment.courseId, courseId), eq(courseEnrollment.studentId, studentId))
+      )
       .limit(1)
 
     if (!enrollment) {
-      return NextResponse.json(
-        { error: 'Not enrolled in this course' },
-        { status: 403 }
-      )
+      return NextResponse.json({ error: 'Not enrolled in this course' }, { status: 403 })
     }
 
     const sessions = await drizzleDb.query.liveSession.findMany({

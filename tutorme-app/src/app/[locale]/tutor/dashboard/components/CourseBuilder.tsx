@@ -684,7 +684,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         uploadedAt: string
         extractedText?: string
       }
-      extensions: { id: string; name: string; description?: string; content: string; pci: string }[]
+      extensions: {
+        id: string
+        name: string
+        description?: string
+        content: string
+        pci: string
+        sourceDocument?: any
+      }[]
       activeExtensionId: string | null
     }>({
       title: '',
@@ -707,6 +714,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         description?: string
         content: string
         pci: string
+        sourceDocument?: any
       }[],
       activeExtensionId: null as string | null,
     })
@@ -1750,12 +1758,15 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           : assessmentId
             ? `pci-assessment:${assessmentId}`
             : undefined
-        const extensionName =
+        const activeExt =
           isTask && taskBuilder.activeExtensionId
-            ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)?.name
-            : undefined
+            ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)
+            : null
+        const extensionName = activeExt ? activeExt.name : undefined
 
-        const sourceDocData = isTask ? taskSourceDocument : assessmentSourceDocument
+        const sourceDocData = isTask
+          ? activeExt?.sourceDocument || taskSourceDocument
+          : assessmentSourceDocument
         const sourceDocument = sourceDocData
           ? {
               fileName: sourceDocData.fileName,
@@ -2035,8 +2046,14 @@ FEEDBACK: [your explanation]`
     const handleGenerateDMI = async (type: 'task' | 'assessment') => {
       const isTask = type === 'task'
       const builder = isTask ? taskBuilder : assessmentBuilder
-      const content = builder.taskContent
-      const sourceDoc = isTask ? taskSourceDocument : assessmentSourceDocument
+      const activeExt =
+        isTask && taskBuilder.activeExtensionId
+          ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)
+          : null
+      const content = activeExt ? activeExt.content : builder.taskContent
+      const sourceDoc = isTask
+        ? activeExt?.sourceDocument || taskSourceDocument
+        : assessmentSourceDocument
 
       const hasContent = content.trim().length > 0
       const hasPdf = sourceDoc?.mimeType === 'application/pdf' && sourceDoc.fileUrl
@@ -4577,6 +4594,11 @@ FEEDBACK: [your explanation]`
     const activeTaskExtension = taskBuilder.activeExtensionId
       ? taskBuilder.extensions.find(ext => ext.id === taskBuilder.activeExtensionId)
       : null
+
+    // Check if the active extension has a document, otherwise fallback to task document
+    const currentTaskDocument = activeTaskExtension?.sourceDocument || taskSourceDocument
+    const hasTaskDocument = !!currentTaskDocument
+
     const activeTaskPciMessages = taskBuilder.activeExtensionId
       ? taskExtensionPciMessages[taskBuilder.activeExtensionId] || []
       : taskPciMessages
@@ -4600,7 +4622,7 @@ FEEDBACK: [your explanation]`
       {}
     )
 
-    const hasTaskDocument = !!taskSourceDocument
+    // We already defined hasTaskDocument above, so we don't redefine it here
     const taskTextVisible = loadedTaskId
       ? (taskTextVisibleMap[loadedTaskId] ?? !hasTaskDocument)
       : !hasTaskDocument
@@ -6930,22 +6952,8 @@ FEEDBACK: [your explanation]`
 
                                           const doc =
                                             testPciSource === 'task'
-                                              ? taskSourceDocument ||
-                                                (taskBuilder as any).sourceDocument ||
-                                                (taskBuilder.activeExtensionId
-                                                  ? taskBuilder.extensions.find(
-                                                      (e: any) =>
-                                                        e.id === taskBuilder.activeExtensionId &&
-                                                        (e as any).sourceDocument
-                                                    )
-                                                    ? (
-                                                        taskBuilder.extensions.find(
-                                                          (e: any) =>
-                                                            e.id === taskBuilder.activeExtensionId
-                                                        ) as any
-                                                      ).sourceDocument
-                                                    : undefined
-                                                  : undefined)
+                                              ? currentTaskDocument ||
+                                                (taskBuilder as any).sourceDocument
                                               : assessmentSourceDocument ||
                                                 (assessmentBuilder as any).sourceDocument
                                           const versionId = testPciViewMode.startsWith('dmi_')
@@ -7601,11 +7609,11 @@ FEEDBACK: [your explanation]`
                                             )}
 
                                             <div className="relative min-h-0 flex-1 overflow-hidden">
-                                              {!taskBuilder.activeExtensionId &&
-                                              taskSourceDocument?.mimeType === 'application/pdf' ? (
+                                              {currentTaskDocument?.mimeType ===
+                                              'application/pdf' ? (
                                                 <PDFViewer
-                                                  key={taskSourceDocument.fileUrl}
-                                                  fileUrl={taskSourceDocument.fileUrl}
+                                                  key={currentTaskDocument.fileUrl}
+                                                  fileUrl={currentTaskDocument.fileUrl}
                                                   className="absolute inset-0 h-full w-full"
                                                   defaultScale={0.75}
                                                   hidePageNavigation
@@ -7614,10 +7622,12 @@ FEEDBACK: [your explanation]`
                                                     setTaskPdfVisible(false)
                                                   }}
                                                 />
-                                              ) : !taskBuilder.activeExtensionId &&
-                                                taskSourceDocument &&
-                                                taskSourceDocument.mimeType !== 'application/pdf' &&
-                                                taskSourceDocument.mimeType.startsWith('image/') ? (
+                                              ) : currentTaskDocument &&
+                                                currentTaskDocument.mimeType !==
+                                                  'application/pdf' &&
+                                                currentTaskDocument.mimeType.startsWith(
+                                                  'image/'
+                                                ) ? (
                                                 <div className="absolute inset-0 flex items-center justify-center bg-white p-4">
                                                   <div className="absolute left-0 top-0 flex h-11 w-full shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white p-1">
                                                     <div />
@@ -7637,15 +7647,15 @@ FEEDBACK: [your explanation]`
                                                   </div>
                                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                                   <img
-                                                    src={taskSourceDocument.fileUrl}
-                                                    alt={taskSourceDocument.fileName}
+                                                    src={currentTaskDocument.fileUrl}
+                                                    alt={currentTaskDocument.fileName}
                                                     className="max-h-full max-w-full object-contain"
                                                   />
                                                 </div>
-                                              ) : !taskBuilder.activeExtensionId &&
-                                                taskSourceDocument &&
-                                                taskSourceDocument.mimeType !== 'application/pdf' &&
-                                                !taskSourceDocument.mimeType.startsWith(
+                                              ) : currentTaskDocument &&
+                                                currentTaskDocument.mimeType !==
+                                                  'application/pdf' &&
+                                                !currentTaskDocument.mimeType.startsWith(
                                                   'image/'
                                                 ) ? (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-6">
@@ -7667,12 +7677,12 @@ FEEDBACK: [your explanation]`
                                                   </div>
                                                   <FileText className="mb-4 h-16 w-16 text-blue-500" />
                                                   <a
-                                                    href={taskSourceDocument.fileUrl}
+                                                    href={currentTaskDocument.fileUrl}
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="text-center text-sm font-medium text-blue-600 hover:underline"
                                                   >
-                                                    Open {taskSourceDocument.fileName} in new tab
+                                                    Open {currentTaskDocument.fileName} in new tab
                                                   </a>
                                                 </div>
                                               ) : (
@@ -7817,24 +7827,8 @@ FEEDBACK: [your explanation]`
                                                         )
                                                       } else {
                                                         const hasDoc = !!(
-                                                          taskSourceDocument ||
-                                                          (taskBuilder as any).sourceDocument ||
-                                                          (taskBuilder.activeExtensionId
-                                                            ? taskBuilder.extensions.find(
-                                                                (e: any) =>
-                                                                  e.id ===
-                                                                    taskBuilder.activeExtensionId &&
-                                                                  (e as any).sourceDocument
-                                                              )
-                                                              ? (
-                                                                  taskBuilder.extensions.find(
-                                                                    (e: any) =>
-                                                                      e.id ===
-                                                                      taskBuilder.activeExtensionId
-                                                                  ) as any
-                                                                ).sourceDocument
-                                                              : undefined
-                                                            : undefined)
+                                                          currentTaskDocument ||
+                                                          (taskBuilder as any).sourceDocument
                                                         )
                                                         setTestPciViewMode(hasDoc ? 'pdf' : 'text')
                                                       }
