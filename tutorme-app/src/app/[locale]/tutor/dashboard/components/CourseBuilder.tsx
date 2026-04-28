@@ -4953,9 +4953,9 @@ FEEDBACK: [your explanation]`
               >
                 <div className="flex h-full min-h-0 flex-col pr-4">
                   <Card className="flex h-full min-h-0 flex-1 flex-col rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]">
-                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-2">
+                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-1.5">
                       {/* Header with Hide, Import, and +Lesson buttons */}
-                      <div className="mb-4 flex min-h-[58px] items-center justify-between px-2 pt-2">
+                      <div className="mb-4 flex min-h-[58px] items-center justify-between px-1.5 pt-1.5">
                         <div className="flex flex-col justify-center gap-1">
                           <div className="flex items-center gap-2">
                             <div className="text-sm font-semibold text-[#1F2933]">Directory</div>
@@ -5023,7 +5023,7 @@ FEEDBACK: [your explanation]`
                         </div>
                       )}
 
-                      <ScrollArea className="min-h-0 flex-1 pr-2">
+                      <ScrollArea className="min-h-0 flex-1 pr-1.5">
                         <DndContext
                           sensors={sensors}
                           collisionDetection={closestCenter}
