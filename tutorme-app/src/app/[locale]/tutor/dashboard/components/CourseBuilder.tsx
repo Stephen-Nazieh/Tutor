@@ -3077,7 +3077,7 @@ FEEDBACK: [your explanation]`
       toast.success('Exam saved')
     }
 
-    const saveNodesIfPossible = (nextNodes: CourseBuilderNode[]) => {
+    const saveNodesIfPossible = async (nextNodes: CourseBuilderNode[]) => {
       if (isStudentView) return
       if (!onSave) return
       if (!courseName && !coursePropsModal.name) {
@@ -3085,7 +3085,7 @@ FEEDBACK: [your explanation]`
         return
       }
 
-      onSave(
+      await onSave(
         nextNodes.map(n => n.lessons[0] || ({} as any)),
         {
           developmentMode: devMode,
@@ -3097,23 +3097,23 @@ FEEDBACK: [your explanation]`
       )
     }
 
-    const deleteCourseBuilderNode = (nodeId: string) => {
+    const deleteCourseBuilderNode = async (nodeId: string) => {
       const nextNodes = nodes.filter(m => m.id !== nodeId)
       setCourseBuilderNodes(nextNodes)
-      if (mainTab === 'builder') saveNodesIfPossible(nextNodes)
+      if (mainTab !== 'live') await saveNodesIfPossible(nextNodes)
       toast.success('Lesson deleted')
     }
 
-    const deleteLesson = (nodeId: string, lessonId: string) => {
+    const deleteLesson = async (nodeId: string, lessonId: string) => {
       const nextNodes = nodes.map(m =>
         m.id === nodeId ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) } : m
       )
       setCourseBuilderNodes(nextNodes)
-      if (mainTab === 'builder') saveNodesIfPossible(nextNodes)
+      if (mainTab !== 'live') await saveNodesIfPossible(nextNodes)
       toast.success('Lesson deleted')
     }
 
-    const deleteTask = (nodeId: string, lessonId: string, taskId: string) => {
+    const deleteTask = async (nodeId: string, lessonId: string, taskId: string) => {
       const nextNodes = nodes.map(m =>
         m.id === nodeId
           ? {
@@ -3127,12 +3127,12 @@ FEEDBACK: [your explanation]`
           : m
       )
       setCourseBuilderNodes(nextNodes)
-      if (mainTab === 'builder') saveNodesIfPossible(nextNodes)
+      if (mainTab !== 'live') await saveNodesIfPossible(nextNodes)
       setSelectedItem(null)
       toast.success('Task removed')
     }
 
-    const deleteAssessment = (nodeId: string, lessonId: string, hwId: string) => {
+    const deleteAssessment = async (nodeId: string, lessonId: string, hwId: string) => {
       const nextNodes = nodes.map(m =>
         m.id === nodeId
           ? {
@@ -3146,17 +3146,17 @@ FEEDBACK: [your explanation]`
           : m
       )
       setCourseBuilderNodes(nextNodes)
-      if (mainTab === 'builder') saveNodesIfPossible(nextNodes)
+      if (mainTab !== 'live') await saveNodesIfPossible(nextNodes)
       setSelectedItem(null)
       toast.success('Assessment removed')
     }
 
-    const deleteCourseBuilderNodeQuiz = (nodeId: string, quizId: string) => {
-      setCourseBuilderNodes(
-        nodes.map(m =>
-          m.id === nodeId ? { ...m, quizzes: (m.quizzes || []).filter(q => q.id !== quizId) } : m
-        )
+    const deleteCourseBuilderNodeQuiz = async (nodeId: string, quizId: string) => {
+      const nextNodes = nodes.map(m =>
+        m.id === nodeId ? { ...m, quizzes: (m.quizzes || []).filter(q => q.id !== quizId) } : m
       )
+      setCourseBuilderNodes(nextNodes)
+      if (mainTab !== 'live') await saveNodesIfPossible(nextNodes)
       setSelectedItem(null)
       toast.success('Exam removed')
     }
