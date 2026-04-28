@@ -277,7 +277,7 @@ function CoursePageInner() {
       } else {
         const errorData = await res.json().catch(() => ({}))
         console.error('Session load failed:', errorData, res.status)
-        const msg = errorData.error || res.statusText || `HTTP ${res.status}`
+        const msg = errorData.detail || errorData.error || res.statusText || `HTTP ${res.status}`
         setSessionLoadError(msg)
       }
     } catch (e) {
