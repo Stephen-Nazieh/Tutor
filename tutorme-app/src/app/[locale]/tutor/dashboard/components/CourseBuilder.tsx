@@ -519,6 +519,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [builderNodes, setBuilderNodes] = useState<CourseBuilderNode[]>([])
     const [liveNodes, setLiveNodes] = useState<CourseBuilderNode[]>([])
 
+    const cloneNodes = useCallback((value: CourseBuilderNode[]) => {
+      if (typeof structuredClone === 'function') {
+        return structuredClone(value)
+      }
+      return JSON.parse(JSON.stringify(value)) as CourseBuilderNode[]
+    }, [])
+
     const nodes = useMemo(
       () => (mainTab === 'live' ? liveNodes : builderNodes),
       [mainTab, liveNodes, builderNodes]
@@ -1481,7 +1488,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       return {
         save: doSave,
         saveAll: doSave,
-        syncToLive: () => setLiveNodes(builderNodes),
+        syncToLive: () => setLiveNodes(cloneNodes(builderNodes)),
         getLessons: () => nodes.map(n => n.lessons[0]),
       }
     }, [
@@ -1493,6 +1500,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       previewDifficulty,
       onSave,
       builderNodes,
+      cloneNodes,
     ])
 
     const trackObjectUrl = useCallback((url: string) => {
@@ -2241,7 +2249,7 @@ FEEDBACK: [your explanation]`
         resolvedInitialCourseBuilderNodes
       )
       setBuilderNodes(normalized)
-      setLiveNodes(normalized)
+      setLiveNodes(isStudentView || saveMode !== 'draft' ? cloneNodes(normalized) : [])
     }, [initialCourseBuilderNodesKey, resolvedInitialCourseBuilderNodes])
 
     // Helper to get effective value based on difficulty mode and preview
