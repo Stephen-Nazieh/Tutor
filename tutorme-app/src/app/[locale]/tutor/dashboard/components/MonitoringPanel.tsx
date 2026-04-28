@@ -30,6 +30,7 @@ type MonitoringPanelProps = {
 export function MonitoringPanel({
   socket,
   sessionId,
+  students,
   selectedStudentId,
   onNavigateToWhiteboard,
 }: MonitoringPanelProps) {
@@ -118,8 +119,24 @@ export function MonitoringPanel({
   }
 
   const activeStudents = Object.values(studentStates)
+  const rosterStudents: { id: string; name: string; status: string | null }[] = (students || [])
+    .map((s: any) => ({
+      id: (s as any)?.id ?? (s as any)?.studentId ?? (s as any)?.userId,
+      name: (s as any)?.name ?? (s as any)?.studentName ?? 'Student',
+      status: (s as any)?.status ?? null,
+    }))
+    .filter((s: any) => !!s.id)
 
-  if (activeStudents.length === 0) {
+  const displayStudents =
+    rosterStudents.length > 0
+      ? rosterStudents
+      : activeStudents.map(s => ({
+          id: s.studentId,
+          name: s.studentName,
+          status: null as string | null,
+        }))
+
+  if (displayStudents.length === 0) {
     return (
       <div className="animate-in fade-in zoom-in-95 flex h-full flex-col items-center justify-center space-y-4 p-8 text-center duration-300">
         <div className="rounded-full bg-slate-100 p-4">
@@ -144,46 +161,60 @@ export function MonitoringPanel({
           </div>
           <ScrollArea className="h-full pr-1">
             <div className="flex flex-col gap-1">
-              {activeStudents.map(student => (
-                <button
-                  key={student.studentId}
-                  type="button"
-                  onClick={() => onNavigateToWhiteboard?.(student.studentId, student.studentName)}
-                  className={cn(
-                    'flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm transition-colors',
-                    selectedStudentId === student.studentId
-                      ? 'bg-indigo-50 text-indigo-700'
-                      : 'hover:bg-slate-50'
-                  )}
-                >
-                  <span className="truncate font-medium">{student.studentName}</span>
-                  <span className="ml-2 flex h-2 w-2 shrink-0 animate-pulse rounded-full bg-green-500" />
-                </button>
-              ))}
+              {displayStudents.map((student: any) => {
+                const stateUpdate = studentStates[student.id]
+                const isOnline = !!stateUpdate || student.status === 'online'
+                return (
+                  <button
+                    key={student.id}
+                    type="button"
+                    onClick={() => onNavigateToWhiteboard?.(student.id, student.name)}
+                    className={cn(
+                      'flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm transition-colors',
+                      selectedStudentId === student.id
+                        ? 'bg-indigo-50 text-indigo-700'
+                        : 'hover:bg-slate-50'
+                    )}
+                  >
+                    <span className="truncate font-medium">{student.name}</span>
+                    <span
+                      className={cn(
+                        'ml-2 flex h-2 w-2 shrink-0 rounded-full',
+                        isOnline ? 'animate-pulse bg-green-500' : 'bg-slate-300'
+                      )}
+                    />
+                  </button>
+                )
+              })}
             </div>
           </ScrollArea>
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {activeStudents.map(student => {
-              const isWhiteboard =
-                student.payload.activeTab === 'my-board' ||
-                student.payload.activeTab === 'tutor-board'
+            {displayStudents.map((student: any) => {
+              const stateUpdate = studentStates[student.id]
+              const activeTab = stateUpdate?.payload?.activeTab
+              const activeTaskId = stateUpdate?.payload?.activeTaskId
+              const isWhiteboard = activeTab === 'my-board' || activeTab === 'tutor-board'
+              const isOnline = !!stateUpdate || student.status === 'online'
 
               return (
                 <Card
-                  key={student.studentId}
+                  key={student.id}
                   className={cn(
                     'overflow-hidden border-slate-200 bg-white/50 backdrop-blur-sm transition-all hover:shadow-md',
-                    selectedStudentId === student.studentId && 'ring-2 ring-indigo-200'
+                    selectedStudentId === student.id && 'ring-2 ring-indigo-200'
                   )}
                 >
                   <CardHeader className="border-b bg-slate-50/50 px-4 py-3">
                     <CardTitle className="flex items-center justify-between text-base">
-                      <span className="font-semibold text-slate-800">{student.studentName}</span>
+                      <span className="font-semibold text-slate-800">{student.name}</span>
                       <span
-                        className="flex h-2 w-2 animate-pulse rounded-full bg-green-500"
+                        className={cn(
+                          'flex h-2 w-2 rounded-full',
+                          isOnline ? 'animate-pulse bg-green-500' : 'bg-slate-300'
+                        )}
                         title="Live"
                       />
                     </CardTitle>
@@ -194,29 +225,29 @@ export function MonitoringPanel({
                         <div className="mb-1 flex items-center justify-between">
                           <span className="text-slate-500">Current View:</span>
                           <span className="font-medium capitalize text-indigo-600">
-                            {student.payload.activeTab?.replace('-', ' ') || 'Unknown'}
+                            {activeTab?.replace('-', ' ') || 'No data yet'}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-slate-500">Activity:</span>
                           <span
                             className="max-w-[120px] truncate font-medium text-slate-700"
-                            title={student.payload.activeTaskId || 'None'}
+                            title={activeTaskId || 'None'}
                           >
                             {isWhiteboard
                               ? 'Drawing'
-                              : student.payload.activeTaskId
+                              : activeTaskId
                                 ? 'Reading Task'
-                                : 'Idle'}
+                                : isOnline
+                                  ? 'Idle'
+                                  : 'Offline'}
                           </span>
                         </div>
                       </div>
 
                       <div className="flex gap-2">
                         <Button
-                          onClick={() =>
-                            onNavigateToWhiteboard?.(student.studentId, student.studentName)
-                          }
+                          onClick={() => onNavigateToWhiteboard?.(student.id, student.name)}
                           variant="outline"
                           className="flex-1 gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                         >
@@ -224,7 +255,7 @@ export function MonitoringPanel({
                           Whiteboard
                         </Button>
                         <Button
-                          onClick={() => handleSendHelp(student.studentId, student.studentName)}
+                          onClick={() => handleSendHelp(student.id, student.name)}
                           variant="outline"
                           className="flex-1 gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
                         >
