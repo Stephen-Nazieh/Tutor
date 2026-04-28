@@ -263,36 +263,39 @@ function CoursePageInner() {
   const [enteringClass, setEnteringClass] = useState<string | null>(null)
   const router = useRouter()
 
-  const handleEnterClass = useCallback(async (courseId: string) => {
-    setEnteringClass(courseId)
-    setSessionsCourseId(courseId)
-    const course = myCourses.find(c => c.id === courseId)
-    setSessionsCourseName(course?.name || '')
-    setSessionsTutorHandle(course?.tutorHandle || '')
-    setSessionLoadError(null)
-    setCourseSessions([])
-    setIsLoadingSessions(true)
-    try {
-      const res = await fetch(`/api/student/courses/${courseId}/sessions`, {
-        credentials: 'include',
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setCourseSessions(data.sessions || [])
-      } else {
-        const errorData = await res.json().catch(() => ({}))
-        console.error('Session load failed:', errorData, res.status)
-        const msg = errorData.detail || errorData.error || res.statusText || `HTTP ${res.status}`
-        setSessionLoadError(msg)
+  const handleEnterClass = useCallback(
+    async (courseId: string) => {
+      setEnteringClass(courseId)
+      setSessionsCourseId(courseId)
+      const course = myCourses.find(c => c.id === courseId)
+      setSessionsCourseName(course?.name || '')
+      setSessionsTutorHandle(course?.tutorHandle || '')
+      setSessionLoadError(null)
+      setCourseSessions([])
+      setIsLoadingSessions(true)
+      try {
+        const res = await fetch(`/api/student/courses/${courseId}/sessions`, {
+          credentials: 'include',
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setCourseSessions(data.sessions || [])
+        } else {
+          const errorData = await res.json().catch(() => ({}))
+          console.error('Session load failed:', errorData, res.status)
+          const msg = errorData.detail || errorData.error || res.statusText || `HTTP ${res.status}`
+          setSessionLoadError(msg)
+        }
+      } catch (e) {
+        console.error('Session load exception:', e)
+        setSessionLoadError('Network error while loading sessions')
+      } finally {
+        setEnteringClass(null)
+        setIsLoadingSessions(false)
       }
-    } catch (e) {
-      console.error('Session load exception:', e)
-      setSessionLoadError('Network error while loading sessions')
-    } finally {
-      setEnteringClass(null)
-      setIsLoadingSessions(false)
-    }
-  }, [myCourses])
+    },
+    [myCourses]
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">

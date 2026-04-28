@@ -74,15 +74,19 @@ export const POST = withCsrf(
       })
     }
 
-    if (!classSessionRow.roomId) {
-      throw new ValidationError('Room not created yet')
+    let token = null
+    if (classSessionRow.roomId) {
+      const isOwner = session.user.id === classSessionRow.tutorId
+      try {
+        token = await dailyProvider.createMeetingToken(classSessionRow.roomId, session.user.id, {
+          isOwner,
+          durationMinutes: 120,
+        })
+      } catch (err: any) {
+        console.error('[Join] Daily.co token creation failed:', err?.message)
+        // Continue without video token — student can still use directory / chat / whiteboard
+      }
     }
-
-    const isOwner = session.user.id === classSessionRow.tutorId
-    const token = await dailyProvider.createMeetingToken(classSessionRow.roomId, session.user.id, {
-      isOwner,
-      durationMinutes: 120,
-    })
 
     const [tutorRow] = await drizzleDb
       .select()

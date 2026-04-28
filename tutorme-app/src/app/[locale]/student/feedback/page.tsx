@@ -179,7 +179,13 @@ function StudentFeedbackContent() {
       if (courses.length === 1) return courses[0]
     }
     return 'Live Classroom'
-  }, [sessionContext?.courseName, courseNameFromQuery, activeCourseName, activeTaskId, studentDirectory])
+  }, [
+    sessionContext?.courseName,
+    courseNameFromQuery,
+    activeCourseName,
+    activeTaskId,
+    studentDirectory,
+  ])
 
   const [directoryLoading, setDirectoryLoading] = useState(true)
   const [directoryError, setDirectoryError] = useState<string | null>(null)
@@ -348,7 +354,9 @@ function StudentFeedbackContent() {
         if (diff > 0) {
           const mins = Math.floor(diff / 60000)
           const secs = Math.floor((diff % 60000) / 1000)
-          setSessionTimer(`Starts in ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`)
+          setSessionTimer(
+            `Starts in ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+          )
         } else {
           setSessionTimer('Starting soon')
         }
@@ -357,7 +365,9 @@ function StudentFeedbackContent() {
         const elapsed = Math.max(0, now - ended)
         const mins = Math.floor(elapsed / 60000)
         const secs = Math.floor((elapsed % 60000) / 1000)
-        setSessionTimer(`Ended ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')} ago`)
+        setSessionTimer(
+          `Ended ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')} ago`
+        )
       } else {
         setSessionTimer(sessionContext.status || '')
       }
@@ -655,7 +665,12 @@ function StudentFeedbackContent() {
   }
 
   const handleSelectDirectoryItem = useCallback((item: any) => {
-    if (item.type === 'task' || item.type === 'assessment' || item.type === 'homework' || item.type === 'recording') {
+    if (
+      item.type === 'task' ||
+      item.type === 'assessment' ||
+      item.type === 'homework' ||
+      item.type === 'recording'
+    ) {
       try {
         const parsed = typeof item.content === 'string' ? JSON.parse(item.content) : item.content
         parsed.title = item.title
@@ -746,7 +761,7 @@ function StudentFeedbackContent() {
                             : sessionContext.status || 'Unknown'}
                     </span>
                     {sessionTimer && (
-                      <span className="text-xs font-mono text-slate-500">{sessionTimer}</span>
+                      <span className="font-mono text-xs text-slate-500">{sessionTimer}</span>
                     )}
                   </div>
                 )}
