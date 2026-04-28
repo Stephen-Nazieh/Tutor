@@ -60,30 +60,20 @@ export async function GET(request: NextRequest) {
     )
 
   // Build the directory tree
-  // Structure: Tutor@username -> Category -> Folders (tasks, assessments, homework, etc) -> items
-  const directory: Record<string, Record<string, Record<string, any[]>>> = {}
+  // Structure: Tutor@username -> CourseName -> Folders (tasks, assessments, homework, etc) -> items
+  const directory: Record<string, Record<string, any>> = {}
 
   enrollments.forEach(en => {
     const tutorUsername = en.tutorName
-      ? `Tutor@${en.tutorName.replace(/\\s+/g, '')}`
+      ? `Tutor@${en.tutorName.replace(/\s+/g, '')}`
       : 'Tutor@Unknown'
 
-    let category = 'General'
-    if (Array.isArray(en.courseCategory) && en.courseCategory.length > 0) {
-      category = en.courseCategory[0]
-    } else if (en.courseCategory && typeof en.courseCategory === 'string') {
-      try {
-        const parsed = JSON.parse(en.courseCategory)
-        if (Array.isArray(parsed) && parsed.length > 0) category = parsed[0]
-        else category = String(en.courseCategory)
-      } catch {
-        category = String(en.courseCategory)
-      }
-    }
+    const courseName = en.courseName || 'Unnamed Course'
 
     if (!directory[tutorUsername]) directory[tutorUsername] = {}
-    if (!directory[tutorUsername][category]) {
-      directory[tutorUsername][category] = {
+    if (!directory[tutorUsername][courseName]) {
+      directory[tutorUsername][courseName] = {
+        courseId: en.courseId,
         tasks: [],
         assessments: [],
         homework: [],
@@ -109,13 +99,9 @@ export async function GET(request: NextRequest) {
       ? `Tutor@${en.tutorName.replace(/\s+/g, '')}`
       : 'Tutor@Unknown'
 
-    let category = 'General'
-    if (Array.isArray(en.courseCategory) && en.courseCategory.length > 0)
-      category = en.courseCategory[0]
-    else if (en.courseCategory && typeof en.courseCategory === 'string')
-      category = String(en.courseCategory)
+    const courseName = en.courseName || 'Unnamed Course'
 
-    if (!directory[tutorUsername]?.[category]) return
+    if (!directory[tutorUsername]?.[courseName]) return
 
     const item = {
       id: report.reportId,
@@ -134,7 +120,7 @@ export async function GET(request: NextRequest) {
       courseName: en.courseName,
     }
 
-    directory[tutorUsername][category].reports.push(item)
+    directory[tutorUsername][courseName].reports.push(item)
   })
 
   sortedMaterials.forEach(material => {
@@ -143,16 +129,12 @@ export async function GET(request: NextRequest) {
     if (!en) return
 
     const tutorUsername = en.tutorName
-      ? `Tutor@${en.tutorName.replace(/\\s+/g, '')}`
+      ? `Tutor@${en.tutorName.replace(/\s+/g, '')}`
       : 'Tutor@Unknown'
-    let category = 'General'
-    if (Array.isArray(en.courseCategory) && en.courseCategory.length > 0)
-      category = en.courseCategory[0]
-    else if (en.courseCategory && typeof en.courseCategory === 'string')
-      category = String(en.courseCategory)
+    const courseName = en.courseName || 'Unnamed Course'
 
     // Ensure the structure exists
-    if (!directory[tutorUsername]?.[category]) return
+    if (!directory[tutorUsername]?.[courseName]) return
 
     // Format title with session sequence (e.g. "Task Title (s1)")
     const formattedTitle = `${material.title} (s${material.sessionSequence})`
@@ -171,19 +153,19 @@ export async function GET(request: NextRequest) {
 
     switch (material.type) {
       case 'task':
-        directory[tutorUsername][category].tasks.push(item)
+        directory[tutorUsername][courseName].tasks.push(item)
         break
       case 'assessment':
-        directory[tutorUsername][category].assessments.push(item)
+        directory[tutorUsername][courseName].assessments.push(item)
         break
       case 'homework':
-        directory[tutorUsername][category].homework.push(item)
+        directory[tutorUsername][courseName].homework.push(item)
         break
       case 'recording':
-        directory[tutorUsername][category].recordedSessions.push(item)
+        directory[tutorUsername][courseName].recordedSessions.push(item)
         break
       case 'report':
-        directory[tutorUsername][category].reports.push(item)
+        directory[tutorUsername][courseName].reports.push(item)
         break
     }
   })

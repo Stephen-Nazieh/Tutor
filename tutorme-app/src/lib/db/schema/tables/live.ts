@@ -121,10 +121,9 @@ export const poll = pgTable(
     allowMultiple: boolean('allowMultiple').notNull(),
     timeLimit: integer('timeLimit'),
     showResults: boolean('showResults').notNull(),
-    correctOptionId: text('correctOptionId').references(
-      (): any => pollOption.optionId,
-      { onDelete: 'set null' }
-    ),
+    correctOptionId: text('correctOptionId').references((): any => pollOption.optionId, {
+      onDelete: 'set null',
+    }),
     status: enums.pollStatusEnum('status').notNull(),
     startedAt: timestamp('startedAt', { withTimezone: true }),
     endedAt: timestamp('endedAt', { withTimezone: true }),
@@ -311,10 +310,9 @@ export const directMessage = pgTable(
     ),
     DirectMessage_senderId_idx: index('DirectMessage_senderId_idx').on(table.senderId),
     DirectMessage_createdAt_idx: index('DirectMessage_createdAt_idx').on(table.createdAt),
-    DirectMessage_conversationId_createdAt_idx: index('DirectMessage_conversationId_createdAt_idx').on(
-      table.conversationId,
-      table.createdAt
-    ),
+    DirectMessage_conversationId_createdAt_idx: index(
+      'DirectMessage_conversationId_createdAt_idx'
+    ).on(table.conversationId, table.createdAt),
   })
 )
 

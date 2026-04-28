@@ -174,7 +174,8 @@ export const GET = withAuth(
     const tutorId = searchParams.get('tutorId')
     const courseId = searchParams.get('courseId')
     const includeScheduled =
-      searchParams.get('includeScheduled') === '1' || searchParams.get('includeScheduled') === 'true'
+      searchParams.get('includeScheduled') === '1' ||
+      searchParams.get('includeScheduled') === 'true'
 
     // Build filter
     const filtersOfRequest: SQL[] = [

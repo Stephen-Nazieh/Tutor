@@ -110,78 +110,81 @@ export const GET = withAuth(async (req: NextRequest) => {
 })
 
 // POST /api/polls - Create a new poll
-export const POST = withAuth(async (req: NextRequest, session) => {
-  try {
-    const body = await req.json()
-    const validated = CreatePollSchema.parse(body)
+export const POST = withAuth(
+  async (req: NextRequest, session) => {
+    try {
+      const body = await req.json()
+      const validated = CreatePollSchema.parse(body)
 
-    const pollId = crypto.randomUUID()
-    const typeUpper = validated.type.toUpperCase() as
-      | 'MULTIPLE_CHOICE'
-      | 'TRUE_FALSE'
-      | 'RATING'
-      | 'SHORT_ANSWER'
-      | 'WORD_CLOUD'
+      const pollId = crypto.randomUUID()
+      const typeUpper = validated.type.toUpperCase() as
+        | 'MULTIPLE_CHOICE'
+        | 'TRUE_FALSE'
+        | 'RATING'
+        | 'SHORT_ANSWER'
+        | 'WORD_CLOUD'
 
-    await drizzleDb.insert(poll).values({
-      pollId,
-      sessionId: validated.sessionId,
-      tutorId: session.user.id,
-      question: validated.question,
-      type: typeUpper,
-      isAnonymous: validated.isAnonymous,
-      allowMultiple: validated.allowMultiple,
-      showResults: validated.showResults,
-      timeLimit: validated.timeLimit ?? null,
-      correctOptionId: validated.correctOptionId ?? null,
-      status: 'DRAFT',
-      totalResponses: 0,
-    })
+      await drizzleDb.insert(poll).values({
+        pollId,
+        sessionId: validated.sessionId,
+        tutorId: session.user.id,
+        question: validated.question,
+        type: typeUpper,
+        isAnonymous: validated.isAnonymous,
+        allowMultiple: validated.allowMultiple,
+        showResults: validated.showResults,
+        timeLimit: validated.timeLimit ?? null,
+        correctOptionId: validated.correctOptionId ?? null,
+        status: 'DRAFT',
+        totalResponses: 0,
+      })
 
-    const options = validated.options?.map((opt, index) => ({
-      optionId: crypto.randomUUID(),
-      pollId,
-      label: opt.label || String.fromCharCode(65 + index),
-      text: opt.text,
-      color: getOptionColor(index),
-      responseCount: 0,
-      percentage: 0,
-    }))
-    if (options && options.length > 0) {
-      await drizzleDb.insert(pollOption).values(options)
-    }
+      const options = validated.options?.map((opt, index) => ({
+        optionId: crypto.randomUUID(),
+        pollId,
+        label: opt.label || String.fromCharCode(65 + index),
+        text: opt.text,
+        color: getOptionColor(index),
+        responseCount: 0,
+        percentage: 0,
+      }))
+      if (options && options.length > 0) {
+        await drizzleDb.insert(pollOption).values(options)
+      }
 
-    const [created] = await drizzleDb.select().from(poll).where(eq(poll.pollId, pollId)).limit(1)
-    const optionsList = await drizzleDb
-      .select()
-      .from(pollOption)
-      .where(eq(pollOption.pollId, pollId))
-    const responses = await drizzleDb
-      .select()
-      .from(pollResponse)
-      .where(eq(pollResponse.pollId, pollId))
+      const [created] = await drizzleDb.select().from(poll).where(eq(poll.pollId, pollId)).limit(1)
+      const optionsList = await drizzleDb
+        .select()
+        .from(pollOption)
+        .where(eq(pollOption.pollId, pollId))
+      const responses = await drizzleDb
+        .select()
+        .from(pollResponse)
+        .where(eq(pollResponse.pollId, pollId))
 
-    return NextResponse.json(
-      {
-        poll: {
-          ...created,
-          options: optionsList,
-          responses,
-        },
-      },
-      { status: 201 }
-    )
-  } catch (error) {
-    if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
-          error: 'Invalid input',
-          details: error.issues,
+          poll: {
+            ...created,
+            options: optionsList,
+            responses,
+          },
         },
-        { status: 400 }
+        { status: 201 }
       )
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: 'Invalid input',
+            details: error.issues,
+          },
+          { status: 400 }
+        )
+      }
+      console.error('Failed to create poll:', error)
+      return handleApiError(error, 'Failed to create poll', 'api/polls/route.ts')
     }
-    console.error('Failed to create poll:', error)
-    return handleApiError(error, 'Failed to create poll', 'api/polls/route.ts')
-  }
-}, { role: 'TUTOR' })
+  },
+  { role: 'TUTOR' }
+)

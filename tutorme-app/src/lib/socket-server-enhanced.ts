@@ -9,7 +9,14 @@ import Redis from 'ioredis'
 import * as Sentry from '@sentry/nextjs'
 import { eq, and, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession, poll, pollOption, pollResponse, courseEnrollment, sessionParticipant } from '@/lib/db/schema'
+import {
+  liveSession,
+  poll,
+  pollOption,
+  pollResponse,
+  courseEnrollment,
+  sessionParticipant,
+} from '@/lib/db/schema'
 import { initFeedbackHandlers, initPollHandlers } from './socket-server'
 import { activePolls, sessionPolls, cleanupStaleSocketState } from '@/lib/socket'
 import type { PollState } from '@/lib/socket'
@@ -785,7 +792,6 @@ export async function initEnhancedSocketServer(server: NetServer) {
       socket.leave(`poll:${data.sessionId}`)
       delete socket.data.pollSessionId
     })
-
 
     // Helper: check if a session is currently in a state where tutors can deploy content
     async function canDeployToSession(

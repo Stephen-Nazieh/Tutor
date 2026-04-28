@@ -12,10 +12,7 @@ export const GET = withAuth(async (req, session, context) => {
   const courseId = match ? match[1] : ''
 
   if (!courseId || courseId === 'undefined' || courseId === 'null') {
-    return NextResponse.json(
-      { error: 'Course ID is required' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Course ID is required' }, { status: 400 })
   }
 
   // Verify enrollment

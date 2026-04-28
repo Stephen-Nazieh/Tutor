@@ -685,7 +685,7 @@ function StudentFeedbackContent() {
                       No enrolled courses found.
                     </div>
                   ) : (
-                    Object.entries(studentDirectory).map(([tutorUsername, categories]) => {
+                    Object.entries(studentDirectory).map(([tutorUsername, coursesDict]) => {
                       const tutorKey = `tutor_${tutorUsername}`
                       const isTutorOpen = foldersOpen[tutorKey]
 
@@ -713,20 +713,17 @@ function StudentFeedbackContent() {
 
                           {isTutorOpen && (
                             <div className="mt-1 flex flex-col gap-1 pl-4">
-                              {Object.entries(categories).map(([categoryName, courses]) => {
-                                const catKey = `cat_${tutorUsername}_${categoryName}`
+                              {Object.entries(coursesDict).map(([courseName, courseData]) => {
+                                const catKey = `cat_${tutorUsername}_${courseName}`
                                 const isCatOpen = foldersOpen[catKey]
-                                // We only highlight tasks from the *current* session's category, but here we just show all
-                                // For a truly robust system, we would associate tasks with the specific courseId
-                                // But for now, we just map the current session's tasks if it matches the current category
                                 const isCurrentCategory =
-                                  sessionContext?.courseCategory === categoryName &&
+                                  sessionContext?.courseName === courseName &&
                                   sessionContext?.tutorUsername &&
                                   tutorUsername ===
-                                    `Tutor@${sessionContext.tutorUsername.replace(/\\s+/g, '')}`
+                                    `Tutor@${sessionContext.tutorUsername.replace(/\s+/g, '')}`
 
                                 return (
-                                  <div key={categoryName}>
+                                  <div key={courseName}>
                                     <button
                                       className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
                                       onClick={() =>
@@ -746,7 +743,7 @@ function StudentFeedbackContent() {
                                         fill="currentColor"
                                       />
                                       <span className="truncate text-sm font-medium text-slate-700">
-                                        {categoryName}
+                                        {courseName}
                                       </span>
                                     </button>
 
@@ -783,13 +780,14 @@ function StudentFeedbackContent() {
                                           </button>
                                           {foldersOpen.tasks && (
                                             <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                              {(!courses.tasks || courses.tasks.length === 0) && (
+                                              {(!courseData.tasks ||
+                                                courseData.tasks.length === 0) && (
                                                 <span className="px-2 py-1 text-xs text-slate-500">
                                                   Empty folder
                                                 </span>
                                               )}
-                                              {courses.tasks &&
-                                                [...courses.tasks].reverse().map(task => (
+                                              {courseData.tasks &&
+                                                [...courseData.tasks].reverse().map(task => (
                                                   <button
                                                     key={task.id}
                                                     onClick={() => handleSelectDirectoryItem(task)}
@@ -839,14 +837,14 @@ function StudentFeedbackContent() {
                                           </button>
                                           {foldersOpen.assessments && (
                                             <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                              {(!courses.assessments ||
-                                                courses.assessments.length === 0) && (
+                                              {(!courseData.assessments ||
+                                                courseData.assessments.length === 0) && (
                                                 <span className="px-2 py-1 text-xs text-slate-500">
                                                   Empty folder
                                                 </span>
                                               )}
-                                              {courses.assessments &&
-                                                [...courses.assessments].reverse().map(task => (
+                                              {courseData.assessments &&
+                                                [...courseData.assessments].reverse().map(task => (
                                                   <button
                                                     key={task.id}
                                                     onClick={() => handleSelectDirectoryItem(task)}
@@ -891,14 +889,14 @@ function StudentFeedbackContent() {
                                           </button>
                                           {foldersOpen.homework && (
                                             <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                              {(!courses.homework ||
-                                                courses.homework.length === 0) && (
+                                              {(!courseData.homework ||
+                                                courseData.homework.length === 0) && (
                                                 <span className="px-2 py-1 text-xs text-slate-500">
                                                   Empty folder
                                                 </span>
                                               )}
-                                              {courses.homework &&
-                                                [...courses.homework].reverse().map(task => (
+                                              {courseData.homework &&
+                                                [...courseData.homework].reverse().map(task => (
                                                   <button
                                                     key={task.id}
                                                     onClick={() => handleSelectDirectoryItem(task)}
@@ -943,8 +941,8 @@ function StudentFeedbackContent() {
                                           </button>
                                           {foldersOpen.reports && (
                                             <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                              {(!courses.reports ||
-                                                courses.reports.length === 0) && (
+                                              {(!courseData.reports ||
+                                                courseData.reports.length === 0) && (
                                                 <div className="flex flex-col gap-2 px-2 py-2">
                                                   <span className="text-xs text-slate-500">
                                                     No reports yet.
@@ -957,8 +955,8 @@ function StudentFeedbackContent() {
                                                       const cId =
                                                         sessionContext?.courseId ||
                                                         searchParams?.get('courseId') ||
-                                                        courses.tasks?.[0]?.courseId ||
-                                                        courses.recordedSessions?.[0]?.courseId
+                                                        courseData.tasks?.[0]?.courseId ||
+                                                        courseData.recordedSessions?.[0]?.courseId
                                                       if (!cId) {
                                                         toast.error(
                                                           'Could not determine course. Please try again.'
@@ -993,8 +991,8 @@ function StudentFeedbackContent() {
                                                   </Button>
                                                 </div>
                                               )}
-                                              {courses.reports &&
-                                                [...courses.reports]
+                                              {courseData.reports &&
+                                                [...courseData.reports]
                                                   .reverse()
                                                   .map(
                                                     (report: {
