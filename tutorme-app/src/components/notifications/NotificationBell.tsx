@@ -58,8 +58,8 @@ export function NotificationBell() {
       const data = await res.json()
       setNotifications(data.notifications || [])
       setUnreadCount(data.unreadCount || 0)
-    } catch {
-      // Silently fail — bell still shows
+    } catch (error) {
+      console.error('[NotificationBell] Failed to fetch notifications:', error)
     }
   }, [])
 
@@ -75,8 +75,8 @@ export function NotificationBell() {
         const notification = JSON.parse(event.data) as NotificationItem
         setNotifications(prev => [notification, ...prev].slice(0, 10))
         setUnreadCount(prev => prev + 1)
-      } catch {
-        // Ignore parse errors
+      } catch (error) {
+        console.error('[NotificationBell] Failed to parse SSE notification:', error)
       }
     })
 
@@ -112,8 +112,8 @@ export function NotificationBell() {
       })
       setNotifications(prev => prev.map(n => ({ ...n, read: true })))
       setUnreadCount(0)
-    } catch {
-      /* ignore */
+    } catch (error) {
+      console.error('[NotificationBell] Failed to mark all as read:', error)
     }
     setLoading(false)
   }
@@ -128,8 +128,8 @@ export function NotificationBell() {
       })
       setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)))
       setUnreadCount(prev => Math.max(0, prev - 1))
-    } catch {
-      /* ignore */
+    } catch (error) {
+      console.error('[NotificationBell] Failed to mark as read:', error)
     }
   }
 
@@ -183,7 +183,8 @@ export function NotificationBell() {
   const formatTime = (dateStr: string) => {
     try {
       return formatDistanceToNow(new Date(dateStr), { addSuffix: true })
-    } catch {
+    } catch (error) {
+      console.error('[NotificationBell] Failed to format time:', error)
       return ''
     }
   }

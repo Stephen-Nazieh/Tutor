@@ -14,13 +14,13 @@ export interface Student {
   id: string
   name: string
   email: string
-  grade: string
+  grade?: string
   subjects: string[]
   learningStyle: 'visual' | 'auditory' | 'kinesthetic' | 'mixed'
-  currentLevel: 'beginner' | 'intermediate' | 'advanced'
-  xp: number
-  streak: number
-  achievements: string[]
+  currentLevel?: 'beginner' | 'intermediate' | 'advanced'
+  xp?: number
+  streak?: number
+  achievements?: string[]
   lastActive: Date
 }
 
@@ -51,7 +51,7 @@ export interface Message {
 export interface Course {
   id: string
   subject: string
-  grade: string
+  grade?: string
   modules: Module[]
   learningObjectives: string[]
 }
@@ -68,9 +68,9 @@ export interface Lesson {
   id: string
   title: string
   content: string
-  difficulty: 'easy' | 'medium' | 'hard'
-  estimatedTime: number // minutes
-  prerequisites: string[]
+  difficulty?: 'easy' | 'medium' | 'hard'
+  estimatedTime?: number // minutes
+  prerequisites?: string[]
 }
 
 // Quiz/Assessment data - Content Generator WRITE, Grading Agent READ/WRITE (scores)
@@ -212,13 +212,8 @@ export async function getStudent(studentId: string): Promise<Student | null> {
     id: userRow.userId,
     name: userRow.profile?.name || 'Student',
     email: userRow.email,
-    grade: 'unknown',
     subjects: userRow.profile?.subjectsOfInterest || [],
     learningStyle: (learningStyle as Student['learningStyle']) || 'mixed',
-    currentLevel: 'intermediate',
-    xp: 0,
-    streak: 0,
-    achievements: [],
     lastActive: userRow.updatedAt,
   }
 }
@@ -278,7 +273,7 @@ export async function saveMessage(conversationId: string, message: Message): Pro
   await cache.set(key, updated, CONVERSATION_TTL_SECONDS)
 }
 
-export async function getCourse(subject: string, grade: string): Promise<Course | null> {
+export async function getCourse(subject: string, grade?: string): Promise<Course | null> {
   const db = await getDb()
   const courseRow = await db
     .select()
@@ -309,9 +304,6 @@ export async function getCourse(subject: string, grade: string): Promise<Course 
           id: lesson.lessonId,
           title: lesson.title,
           content: lesson.description || '',
-          difficulty: 'medium' as Lesson['difficulty'],
-          estimatedTime: 30,
-          prerequisites: [],
         })),
       },
     ],

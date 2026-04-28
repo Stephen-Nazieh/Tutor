@@ -164,7 +164,7 @@ export async function explainConcept(concept: string, studentId: string): Promis
   const student = await getStudent(studentId)
   if (!student) throw new Error('Student not found')
 
-  const prompt = buildExplanationPrompt(concept, student.currentLevel)
+  const prompt = buildExplanationPrompt(concept, student.currentLevel || 'beginner')
 
   const result = await generateWithFallback(prompt, {
     temperature: 0.6,

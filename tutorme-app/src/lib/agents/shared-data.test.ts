@@ -67,9 +67,9 @@ describe('shared-data', () => {
     expect(student).not.toBeNull()
     expect(student?.id).toBe('u1')
     expect(student?.learningStyle).toBe('visual')
-    // Gamification tables removed - now returns hardcoded defaults
-    expect(student?.xp).toBe(0)
-    expect(student?.achievements).toEqual([])
+    // Gamification tables removed - fields are undefined
+    expect(student?.xp).toBeUndefined()
+    expect(student?.achievements).toBeUndefined()
   })
 
   it('creates a conversation when none exists', async () => {

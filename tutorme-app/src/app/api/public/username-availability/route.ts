@@ -55,11 +55,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ available: true, username: normalized })
     } catch (dbError) {
       console.error('Database error checking username:', dbError)
-      // Return a graceful fallback - assume taken with suggestion
-      return NextResponse.json({
-        available: false,
-        suggestion: await generateSuggestion(normalized),
-      })
+      return NextResponse.json(
+        { error: 'Unable to check username availability. Please try again.' },
+        { status: 500 }
+      )
     }
   } catch (error) {
     console.error('Username availability check failed:', error)
