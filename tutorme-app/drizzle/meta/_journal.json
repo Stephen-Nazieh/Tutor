@@ -302,6 +302,13 @@
       "when": 1772066000000,
       "tag": "0042_fix_live_session_schema",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1775778000000,
+      "tag": "0043_create_missing_directory_tables",
+      "breakpoints": true
     }
   ]
 }
