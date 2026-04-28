@@ -103,6 +103,7 @@ function CoursePageInner() {
   const [sessionsCourseId, setSessionsCourseId] = useState<string | null>(null)
   const [courseSessions, setCourseSessions] = useState<any[]>([])
   const [isLoadingSessions, setIsLoadingSessions] = useState(false)
+  const [sessionLoadError, setSessionLoadError] = useState<string | null>(null)
   const [requestingSessionId, setRequestingSessionId] = useState<string | null>(null)
 
   const handleRequestMaterials = async (sessionId: string) => {
@@ -263,6 +264,8 @@ function CoursePageInner() {
   const handleEnterClass = useCallback(async (courseId: string) => {
     setEnteringClass(courseId)
     setSessionsCourseId(courseId)
+    setSessionLoadError(null)
+    setCourseSessions([])
     setIsLoadingSessions(true)
     try {
       const res = await fetch(`/api/student/courses/${courseId}/sessions`, {
@@ -274,13 +277,12 @@ function CoursePageInner() {
       } else {
         const errorData = await res.json().catch(() => ({}))
         console.error('Session load failed:', errorData, res.status)
-        toast.error(`Failed to load sessions: ${errorData.error || res.statusText}`)
-        setSessionsCourseId(null)
+        const msg = errorData.error || res.statusText || `HTTP ${res.status}`
+        setSessionLoadError(msg)
       }
     } catch (e) {
       console.error('Session load exception:', e)
-      toast.error('Failed to load sessions')
-      setSessionsCourseId(null)
+      setSessionLoadError('Network error while loading sessions')
     } finally {
       setEnteringClass(null)
       setIsLoadingSessions(false)
@@ -694,6 +696,21 @@ function CoursePageInner() {
             {isLoadingSessions ? (
               <div className="flex justify-center p-8">
                 <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+              </div>
+            ) : sessionLoadError ? (
+              <div className="rounded-lg bg-red-50 py-8 text-center">
+                <p className="text-sm font-medium text-red-700">Failed to load sessions</p>
+                <p className="mt-1 text-xs text-red-600">{sessionLoadError}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => {
+                    if (sessionsCourseId) handleEnterClass(sessionsCourseId)
+                  }}
+                >
+                  Retry
+                </Button>
               </div>
             ) : courseSessions.length === 0 ? (
               <div className="rounded-lg bg-gray-50 py-8 text-center text-gray-500">
