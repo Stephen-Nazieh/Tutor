@@ -89,6 +89,178 @@ const SUBJECT_ICONS: Record<string, React.ComponentType<{ className?: string }>>
   default: BookOpen,
 }
 
+// --- Upcoming session list component (real + virtual) ---
+
+interface SessionItem {
+  id: string
+  title: string
+  scheduledAt: string
+  status: 'scheduled' | 'active' | 'ended' | 'upcoming' | 'opening_soon'
+  durationMinutes?: number
+  tutorName?: string
+}
+
+function getSessionStatus(
+  scheduledAt: string,
+  existingStatus?: string
+): SessionItem['status'] {
+  if (existingStatus === 'active' || existingStatus === 'live' || existingStatus === 'preparing') return 'active'
+  if (existingStatus === 'ended' || existingStatus === 'paused') return 'ended'
+  if (existingStatus === 'scheduled') return 'opening_soon'
+  const start = new Date(scheduledAt).getTime()
+  const now = Date.now()
+  const diff = start - now
+  if (diff <= 0) return 'active'
+  if (diff <= 60 * 60 * 1000) return 'opening_soon'
+  return 'upcoming'
+}
+
+function formatCountdown(ms: number): string {
+  if (ms <= 0) return 'Starting now'
+  const h = Math.floor(ms / 3600000)
+  const m = Math.floor((ms % 3600000) / 60000)
+  const s = Math.floor((ms % 60000) / 1000)
+  if (h > 0) return `${h}h ${m}m ${s}s`
+  if (m > 0) return `${m}m ${s}s`
+  return `${s}s`
+}
+
+function SessionList({
+  sessions,
+  sessionsCourseName: _sessionsCourseName,
+  sessionsTutorHandle: _sessionsTutorHandle,
+  showAll,
+  onToggleShowAll,
+  onEnterSession,
+  onRequestMaterials,
+  requestingSessionId,
+}: {
+  sessions: any[]
+  sessionsCourseName: string
+  sessionsTutorHandle: string
+  showAll: boolean
+  onToggleShowAll: () => void
+  onEnterSession: (sessionId: string) => void
+  onRequestMaterials: (sessionId: string) => void
+  requestingSessionId: string | null
+}) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  const displayed = showAll ? sessions : sessions.slice(0, 3)
+
+  return (
+    <div className="space-y-3">
+      {displayed.map(session => {
+        const scheduledTime = session.scheduledAt
+          ? new Date(session.scheduledAt).getTime()
+          : now
+        const status =
+          session.status === 'active' || session.status === 'ended'
+            ? session.status
+            : getSessionStatus(session.scheduledAt, session.status)
+        const diff = scheduledTime - now
+        const isPassedSession =
+          status !== 'ended' &&
+          status !== 'active' &&
+          scheduledTime + 2 * 60 * 60 * 1000 < now
+        const canEnterLive = status === 'active' || status === 'opening_soon'
+
+        const badgeClass =
+          status === 'active'
+            ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+            : status === 'ended'
+              ? 'bg-slate-100 text-slate-600 border-slate-200'
+              : status === 'opening_soon'
+                ? 'bg-amber-100 text-amber-700 border-amber-200'
+                : 'bg-sky-100 text-sky-700 border-sky-200'
+
+        return (
+          <div
+            key={session.id}
+            className="flex flex-col justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
+          >
+            <div className="flex-1 space-y-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <h4 className="font-semibold text-gray-900 truncate">{session.title}</h4>
+                <span
+                  className={cn(
+                    'text-[10px] px-1.5 py-0.5 rounded-full border uppercase tracking-wide',
+                    badgeClass
+                  )}
+                >
+                  {status.replace('_', ' ')}
+                </span>
+              </div>
+              {session.scheduledAt && (
+                <div className="flex items-center text-sm text-gray-500">
+                  <Clock className="mr-1.5 h-4 w-4 shrink-0" />
+                  <span>
+                    {new Date(session.scheduledAt).toLocaleString(undefined, {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
+                    {session.durationMinutes ? ` · ${session.durationMinutes} min` : ''}
+                    {(status === 'upcoming' || status === 'opening_soon') && diff > 0
+                      ? ` · ${formatCountdown(diff)}`
+                      : ''}
+                  </span>
+                </div>
+              )}
+              {isPassedSession && (
+                <p className="text-xs text-amber-600">
+                  This session has passed. If it was recorded, content will load
+                  automatically. Otherwise, contact your tutor for materials.
+                </p>
+              )}
+            </div>
+            <div className="flex min-w-[140px] flex-col gap-2 shrink-0">
+              <Button
+                onClick={() => onEnterSession(session.id)}
+                variant={canEnterLive ? 'default' : 'outline'}
+                className={
+                  canEnterLive ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''
+                }
+              >
+                {status === 'active'
+                  ? 'Join'
+                  : status === 'ended'
+                    ? 'Replay'
+                    : canEnterLive
+                      ? 'Enter Session'
+                      : 'Enter'}
+              </Button>
+              {isPassedSession && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={requestingSessionId === session.id}
+                  onClick={() => onRequestMaterials(session.id)}
+                >
+                  {requestingSessionId === session.id
+                    ? 'Sending...'
+                    : 'Request Materials'}
+                </Button>
+              )}
+            </div>
+          </div>
+        )
+      })}
+      {sessions.length > 3 && (
+        <Button variant="ghost" className="w-full text-sm" onClick={onToggleShowAll}>
+          {showAll ? 'Show less' : `Show all ${sessions.length} sessions`}
+        </Button>
+      )}
+    </div>
+  )
+}
+
 function CoursePageInner() {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
@@ -107,6 +279,7 @@ function CoursePageInner() {
   const [isLoadingSessions, setIsLoadingSessions] = useState(false)
   const [sessionLoadError, setSessionLoadError] = useState<string | null>(null)
   const [requestingSessionId, setRequestingSessionId] = useState<string | null>(null)
+  const [showAllSessions, setShowAllSessions] = useState(false)
 
   const handleRequestMaterials = async (sessionId: string) => {
     setRequestingSessionId(sessionId)
@@ -753,108 +926,27 @@ function CoursePageInner() {
                 })()}
               </div>
             ) : (
-              <div className="space-y-4">
-                {courseSessions.map(session => {
-                  const isScheduled = session.status === 'scheduled'
-                  const isActive = session.status === 'active'
-                  const isEnded = session.status === 'ended'
-
-                  // Logic for upcoming (within 15 mins) and passed
-                  const now = Date.now()
-                  const scheduledTime = session.scheduledAt
-                    ? new Date(session.scheduledAt).getTime()
-                    : now
-                  const isUpcomingClose = isScheduled && scheduledTime - now <= 15 * 60 * 1000
-                  const isPassedSession = isScheduled && scheduledTime + 2 * 60 * 60 * 1000 < now
-
-                  const canEnterLive = isActive || isUpcomingClose
-
-                  return (
-                    <div
-                      key={session.id}
-                      className="flex flex-col justify-between gap-4 rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
-                    >
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold text-gray-900">{session.title}</h4>
-                          <Badge
-                            variant={isEnded ? 'secondary' : isActive ? 'default' : 'outline'}
-                            className={
-                              isActive && isPassedSession
-                                ? 'bg-amber-100 text-amber-800 hover:bg-amber-100'
-                                : isActive
-                                  ? 'bg-green-100 text-green-700 hover:bg-green-100'
-                                  : isEnded
-                                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    : ''
-                            }
-                          >
-                            {isEnded
-                              ? 'Ended'
-                              : isActive
-                                ? isPassedSession
-                                  ? 'Passed (Open)'
-                                  : 'Active'
-                                : 'Scheduled'}
-                          </Badge>
-                        </div>
-                        {session.scheduledAt && (
-                          <div className="flex items-center text-sm text-gray-500">
-                            <Clock className="mr-1.5 h-4 w-4" />
-                            {new Date(session.scheduledAt).toLocaleString(undefined, {
-                              weekday: 'short',
-                              month: 'short',
-                              day: 'numeric',
-                              hour: 'numeric',
-                              minute: '2-digit',
-                            })}
-                          </div>
-                        )}
-                        {isPassedSession && !isEnded && (
-                          <p className="mt-1 text-xs text-amber-600">
-                            This session has passed. If it was recorded, content will load
-                            automatically. Otherwise, contact your tutor for materials.
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex min-w-[140px] flex-col gap-2">
-                        <Button
-                          onClick={() => {
-                            setSessionsCourseId(null)
-                            const nameParam = sessionsCourseName
-                              ? `&courseName=${encodeURIComponent(sessionsCourseName)}`
-                              : ''
-                            const tutorParam = sessionsTutorHandle
-                              ? `&tutorHandle=${encodeURIComponent(sessionsTutorHandle)}`
-                              : ''
-                            router.push(
-                              `/student/feedback?sessionId=${session.id}${nameParam}${tutorParam}`
-                            )
-                          }}
-                          variant={canEnterLive ? 'default' : 'outline'}
-                          className={
-                            canEnterLive ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''
-                          }
-                        >
-                          Enter Session
-                        </Button>
-                        {isPassedSession && !isEnded && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            disabled={requestingSessionId === session.id}
-                            onClick={() => handleRequestMaterials(session.id)}
-                          >
-                            {requestingSessionId === session.id
-                              ? 'Sending...'
-                              : 'Request Materials'}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+              <SessionList
+                sessions={courseSessions}
+                sessionsCourseName={sessionsCourseName}
+                sessionsTutorHandle={sessionsTutorHandle}
+                showAll={showAllSessions}
+                onToggleShowAll={() => setShowAllSessions(!showAllSessions)}
+                onEnterSession={(sessionId: string) => {
+                  setSessionsCourseId(null)
+                  const nameParam = sessionsCourseName
+                    ? `&courseName=${encodeURIComponent(sessionsCourseName)}`
+                    : ''
+                  const tutorParam = sessionsTutorHandle
+                    ? `&tutorHandle=${encodeURIComponent(sessionsTutorHandle)}`
+                    : ''
+                  router.push(
+                    `/student/feedback?sessionId=${sessionId}${nameParam}${tutorParam}`
                   )
-                })}
-              </div>
+                }}
+                onRequestMaterials={handleRequestMaterials}
+                requestingSessionId={requestingSessionId}
+              />
             )}
           </div>
           <CardFooter className="px-0 pb-0 pt-2">

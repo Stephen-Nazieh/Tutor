@@ -1,13 +1,15 @@
 /**
  * GET /api/tutor/courses/[id]/sessions
- * Returns all sessions (live classes) for a specific course
+ * Returns all sessions (live classes) for a specific course,
+ * merged with upcoming virtual sessions from the course schedule.
  */
 
 import { NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { eq, and, asc, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession as liveSessionTable } from '@/lib/db/schema'
+import { liveSession as liveSessionTable, course } from '@/lib/db/schema'
+import { generateUpcomingSessions, mergeSessions } from '@/lib/schedule-sessions'
 
 export const GET = withAuth(
   async (req, session) => {
@@ -32,6 +34,13 @@ export const GET = withAuth(
       : ['scheduled', 'active']
 
     try {
+      // Get course schedule
+      const [courseRow] = await drizzleDb
+        .select({ name: course.name, category: course.categories, schedule: course.schedule })
+        .from(course)
+        .where(eq(course.courseId, courseId))
+        .limit(1)
+
       const conditions = [
         eq(liveSessionTable.tutorId, tutorId),
         eq(liveSessionTable.courseId, courseId),
@@ -53,7 +62,7 @@ export const GET = withAuth(
         orderBy: asc(liveSessionTable.scheduledAt),
       })
 
-      const formattedSessions = sessions.map(s => ({
+      const formattedReal = sessions.map(s => ({
         id: s.sessionId,
         title: s.title,
         category: s.category,
@@ -65,9 +74,27 @@ export const GET = withAuth(
         enrolledStudents: s.participants?.length || 0,
         status: s.status,
         roomUrl: s.roomUrl,
+        isVirtual: false,
+        durationMinutes: s.durationMinutes ?? 120,
       }))
 
-      return NextResponse.json({ sessions: formattedSessions })
+      // Generate virtual sessions from schedule
+      const schedule = (courseRow?.schedule || []) as Array<{
+        dayOfWeek: string
+        startTime: string
+        durationMinutes: number
+      }>
+
+      const virtualSessions = generateUpcomingSessions(
+        schedule,
+        courseRow?.name || 'Class',
+        courseRow?.category?.[0] || 'General',
+        { count: 12, maxStudents: 50 }
+      )
+
+      const merged = mergeSessions(formattedReal, virtualSessions)
+
+      return NextResponse.json({ sessions: merged })
     } catch (err) {
       // Log full error details for debugging
       const errObj = err as any

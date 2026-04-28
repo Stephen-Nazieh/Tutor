@@ -810,7 +810,7 @@ function TutorInsightsPageInner() {
     )
   }
 
-  const dataMode = sessionId ? 'default' : 'detached'
+  const dataMode = saveMode === 'draft' && !sessionId ? 'detached' : 'default'
 
   return (
     <div className="flex min-h-screen w-full flex-col items-stretch bg-gray-50">
@@ -831,6 +831,13 @@ function TutorInsightsPageInner() {
           })),
           onCourseChange: value => {
             setCourseId(value)
+            const isLiveCourse = courses.some(course => course.id === value)
+            const isDraftCourse = draftCourses.some(course => course.id === value)
+            if (!sessionId) {
+              if (isLiveCourse) setSaveMode('live')
+              else if (isDraftCourse) setSaveMode('draft')
+            }
+
             const match = [...courses, ...draftCourses].find(course => course.id === value)
             if (match) {
               setDetachedCourseName(match.name)

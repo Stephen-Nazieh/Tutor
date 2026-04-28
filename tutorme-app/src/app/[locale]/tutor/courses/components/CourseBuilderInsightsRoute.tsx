@@ -413,56 +413,46 @@ function CourseBuilderInsightsRouteInner({
 
               <div className="flex flex-col justify-center">
                 <div className="flex items-center gap-2">
-                  {activeMainTab !== 'live' &&
-                    saveMode === 'draft' &&
-                    insightsProps.onCourseChange && (
-                      <Select
-                        value={courseId ?? ''}
-                        onValueChange={v => insightsProps.onCourseChange?.(v)}
-                      >
-                        <SelectTrigger className="h-9 w-[160px] border-none bg-transparent text-sm font-semibold shadow-none transition-colors hover:bg-slate-100 focus:ring-0">
-                          <SelectValue placeholder="Select course">
-                            {saveMode === 'draft'
-                              ? draftCourses?.find(c => c.id === courseId)?.name ||
-                                courseName ||
-                                'Select course'
-                              : courses?.find(c => c.id === courseId)?.name ||
-                                courseName ||
-                                'Select course'}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {courses && courses.length > 0 && (
-                            <SelectItem
-                              value="__live-header__"
-                              disabled
-                              className="text-muted-foreground text-xs font-semibold"
-                            >
-                              Live Courses
-                            </SelectItem>
-                          )}
-                          {courses?.map(c => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.name}
-                            </SelectItem>
-                          ))}
-                          {draftCourses && draftCourses.length > 0 && (
-                            <SelectItem
-                              value="__draft-header__"
-                              disabled
-                              className="text-muted-foreground text-xs font-semibold"
-                            >
-                              Draft Courses
-                            </SelectItem>
-                          )}
-                          {draftCourses?.map(c => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                  {activeMainTab !== 'live' && insightsProps.onCourseChange && (
+                    <Select
+                      value={courseId ?? ''}
+                      onValueChange={v => insightsProps.onCourseChange?.(v)}
+                    >
+                      <SelectTrigger className="h-9 w-[160px] border-none bg-transparent text-sm font-semibold shadow-none transition-colors hover:bg-slate-100 focus:ring-0">
+                        <SelectValue placeholder="Select course" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courses && courses.length > 0 && (
+                          <SelectItem
+                            value="__live-header__"
+                            disabled
+                            className="text-muted-foreground text-xs font-semibold"
+                          >
+                            Live Courses
+                          </SelectItem>
+                        )}
+                        {courses?.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                        {draftCourses && draftCourses.length > 0 && (
+                          <SelectItem
+                            value="__draft-header__"
+                            disabled
+                            className="text-muted-foreground text-xs font-semibold"
+                          >
+                            Draft Courses
+                          </SelectItem>
+                        )}
+                        {draftCourses?.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
 
                   {activeMainTab === 'builder' && saveMode === 'draft' && onCreateCourse && (
                     <Button

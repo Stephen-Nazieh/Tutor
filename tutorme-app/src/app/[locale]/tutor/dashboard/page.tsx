@@ -88,6 +88,12 @@ const defaultStats = {
   currency: 'SGD' as string,
 }
 
+type ScheduleSlot = {
+  dayOfWeek: string
+  startTime: string
+  durationMinutes: number
+}
+
 type EnrolledCourse = {
   id: string
   name: string
@@ -97,6 +103,7 @@ type EnrolledCourse = {
   currency?: string | null
   enrollmentCount: number
   sessionCount?: number
+  schedule?: ScheduleSlot[] | null
 }
 
 type CourseSession = {
@@ -111,6 +118,8 @@ type CourseSession = {
   enrolledStudents: number
   status: string
   roomUrl?: string | null
+  isVirtual?: boolean
+  durationMinutes?: number
 }
 
 type OneOnOneRequest = {
@@ -401,7 +410,7 @@ function TutorDashboardContent() {
   }, [])
 
   const handleEnterCourseClassroom = useCallback(
-    async (course: EnrolledCourse) => {
+    async (course: EnrolledCourse, scheduledAt?: string | null) => {
       if (launchingCourseId) return
       setLaunchingCourseId(course.id)
       try {
@@ -421,7 +430,10 @@ function TutorDashboardContent() {
             title: course.name,
             subject: (course.categories || [])[0] || course.name || 'General',
             maxStudents: 50,
-            durationMinutes: 60,
+            durationMinutes: scheduledAt
+              ? (course.schedule?.find(() => true)?.durationMinutes ?? 60)
+              : 60,
+            scheduledAt,
           }),
         })
 
@@ -878,13 +890,33 @@ function TutorDashboardContent() {
                 <ScrollArea className="max-h-[400px]">
                   <div className="space-y-3 pr-4">
                     {courseSessions.map(session => {
-                      const isPassedSession =
+                      const isVirtual = session.isVirtual === true
+                      const _isPassedSession =
+                        !isVirtual &&
                         session.scheduledAt &&
                         new Date(session.scheduledAt).getTime() + 2 * 60 * 60 * 1000 < Date.now()
                       const isScheduled = session.status === 'scheduled'
                       const isActive = session.status === 'active'
                       const isEnded = session.status === 'ended'
-                      const canCancel = isScheduled || isActive
+                      const canCancel = !isVirtual && (isScheduled || isActive)
+
+                      // For virtual sessions, compute dynamic status
+                      let displayStatus = session.status
+                      if (isVirtual && session.scheduledAt) {
+                        const diff = new Date(session.scheduledAt).getTime() - Date.now()
+                        if (diff <= 0) displayStatus = 'opening_soon'
+                        else if (diff <= 60 * 60 * 1000) displayStatus = 'opening_soon'
+                        else displayStatus = 'upcoming'
+                      }
+
+                      const badgeClass =
+                        isActive || displayStatus === 'active'
+                          ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                          : isEnded
+                            ? 'bg-slate-100 text-slate-600 border-slate-200'
+                            : displayStatus === 'opening_soon'
+                              ? 'bg-amber-100 text-amber-700 border-amber-200'
+                              : 'bg-sky-100 text-sky-700 border-sky-200'
 
                       return (
                         <div
@@ -895,16 +927,10 @@ function TutorDashboardContent() {
                             <div className="flex items-center gap-2">
                               <p className="truncate font-medium">{session.title}</p>
                               <Badge
-                                variant={isEnded ? 'secondary' : isActive ? 'default' : 'outline'}
-                                className={
-                                  isActive && isPassedSession
-                                    ? 'bg-amber-100 text-amber-800 hover:bg-amber-100'
-                                    : isActive
-                                      ? 'bg-green-100 text-green-700 hover:bg-green-100'
-                                      : ''
-                                }
+                                variant="outline"
+                                className={cn('text-[10px] uppercase tracking-wide', badgeClass)}
                               >
-                                {session.status}
+                                {displayStatus}
                               </Badge>
                             </div>
                             <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
@@ -928,10 +954,15 @@ function TutorDashboardContent() {
                                   })}
                                 </span>
                               )}
-                              <span className="flex items-center gap-1">
-                                <Users className="h-3 w-3" />
-                                {session.enrolledStudents} / {session.maxStudents}
-                              </span>
+                              {!isVirtual && (
+                                <span className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  {session.enrolledStudents ?? 0} / {session.maxStudents ?? 50}
+                                </span>
+                              )}
+                              {isVirtual && session.durationMinutes && (
+                                <span>{session.durationMinutes} min</span>
+                              )}
                             </div>
                             {session.description && (
                               <p className="truncate text-xs text-gray-500">
@@ -963,7 +994,26 @@ function TutorDashboardContent() {
                                 )}
                               </Button>
                             )}
-                            {isActive || isScheduled ? (
+                            {isVirtual ? (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                disabled={launchingCourseId === selectedCourseForCancel?.id}
+                                onClick={() =>
+                                  handleEnterCourseClassroom(
+                                    selectedCourseForCancel!,
+                                    session.scheduledAt
+                                  )
+                                }
+                              >
+                                {launchingCourseId === selectedCourseForCancel?.id ? (
+                                  <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                ) : (
+                                  <Video className="mr-1 h-3 w-3" />
+                                )}
+                                Start Class
+                              </Button>
+                            ) : isActive || isScheduled ? (
                               <Button
                                 variant="default"
                                 size="sm"
