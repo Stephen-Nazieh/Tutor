@@ -157,7 +157,10 @@ function StudentFeedbackContent() {
   useEffect(() => {
     const loadDirectory = async () => {
       try {
-        const res = await fetch('/api/student/directory', { credentials: 'include' })
+        const res = await fetch('/api/student/directory', {
+          credentials: 'include',
+          cache: 'no-store',
+        })
         if (res.ok) {
           const data = await res.json()
           setStudentDirectory(data.directory || {})
