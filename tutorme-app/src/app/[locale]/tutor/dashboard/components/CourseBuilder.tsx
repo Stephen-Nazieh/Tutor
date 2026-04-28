@@ -3995,6 +3995,8 @@ FEEDBACK: [your explanation]`
 
                   let nodeIndex = -1
                   let lessonIndex = -1
+                  let existingTaskIndex = -1
+                  let existingTask: Task | null = null
 
                   if (loadedTaskId) {
                     for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
@@ -4005,6 +4007,10 @@ FEEDBACK: [your explanation]`
                         if (t) {
                           nodeIndex = nIdx
                           lessonIndex = lIdx
+                          existingTaskIndex = nodes[nIdx].lessons[lIdx].tasks.findIndex(
+                            task => task.id === loadedTaskId
+                          )
+                          existingTask = t
                           break
                         }
                       }
@@ -4035,7 +4041,12 @@ FEEDBACK: [your explanation]`
                   const newCourseBuilderNodes = [...nodes]
                   const startIndex =
                     newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.length
-                  const groupNumber = startIndex + 1
+                  const groupNumber =
+                    existingTaskIndex !== -1 ? existingTaskIndex + 1 : startIndex + 1
+                  const updatedTasks = [
+                    ...newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks,
+                  ]
+                  let updatedExistingTask: Task | null = null
 
                   try {
                     const isPdf =
@@ -4079,41 +4090,83 @@ FEEDBACK: [your explanation]`
                         if (!uploadRes.ok)
                           throw new Error(uploadData.error || 'Failed to upload split page')
 
-                        const newTask = DEFAULT_TASK(startIndex + i)
-                        newTask.title = `Task ${groupNumber}.${i + 1}`
-                        newTask.description = pages[i] || `Page ${i + 1} from ${assetToLoad.name}`
-                        newTask.sourceDocument = {
-                          fileName: `${assetToLoad.name} (Page ${i + 1})`,
-                          fileUrl: uploadData.url,
-                          mimeType: 'application/pdf',
-                          uploadedAt: new Date().toISOString(),
+                        if (existingTask && existingTaskIndex !== -1 && i === 0) {
+                          updatedExistingTask = {
+                            ...existingTask,
+                            description: pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
+                            sourceDocument: {
+                              fileName: `${assetToLoad.name} (Page ${i + 1})`,
+                              fileUrl: uploadData.url,
+                              mimeType: 'application/pdf',
+                              uploadedAt: new Date().toISOString(),
+                            },
+                          }
+                          updatedTasks[existingTaskIndex] = updatedExistingTask
+                        } else {
+                          const newTask = DEFAULT_TASK(startIndex + i)
+                          newTask.title = `Task ${groupNumber}.${existingTask ? i + 1 : i + 1}`
+                          newTask.description = pages[i] || `Page ${i + 1} from ${assetToLoad.name}`
+                          newTask.sourceDocument = {
+                            fileName: `${assetToLoad.name} (Page ${i + 1})`,
+                            fileUrl: uploadData.url,
+                            mimeType: 'application/pdf',
+                            uploadedAt: new Date().toISOString(),
+                          }
+                          newTasks.push(newTask)
                         }
-                        newTasks.push(newTask)
                       }
                     } else {
                       // Standard non-PDF handling
                       pages.forEach((pageContent, idx) => {
-                        const newTask = DEFAULT_TASK(startIndex + idx)
-                        newTask.title = `Task ${groupNumber}.${idx + 1}`
-                        newTask.description = pageContent
-                        if (assetToLoad.url && assetToLoad.mimeType) {
-                          newTask.sourceDocument = {
-                            fileName: assetToLoad.name,
-                            fileUrl: assetToLoad.url,
-                            mimeType: assetToLoad.mimeType,
-                            uploadedAt: new Date().toISOString(),
+                        if (existingTask && existingTaskIndex !== -1 && idx === 0) {
+                          updatedExistingTask = {
+                            ...existingTask,
+                            description: pageContent,
+                            sourceDocument:
+                              assetToLoad.url && assetToLoad.mimeType
+                                ? {
+                                    fileName: assetToLoad.name,
+                                    fileUrl: assetToLoad.url,
+                                    mimeType: assetToLoad.mimeType,
+                                    uploadedAt: new Date().toISOString(),
+                                  }
+                                : existingTask.sourceDocument,
                           }
+                          updatedTasks[existingTaskIndex] = updatedExistingTask
+                        } else {
+                          const newTask = DEFAULT_TASK(startIndex + idx)
+                          newTask.title = `Task ${groupNumber}.${existingTask ? idx + 1 : idx + 1}`
+                          newTask.description = pageContent
+                          if (assetToLoad.url && assetToLoad.mimeType) {
+                            newTask.sourceDocument = {
+                              fileName: assetToLoad.name,
+                              fileUrl: assetToLoad.url,
+                              mimeType: assetToLoad.mimeType,
+                              uploadedAt: new Date().toISOString(),
+                            }
+                          }
+                          newTasks.push(newTask)
                         }
-                        newTasks.push(newTask)
                       })
                     }
 
-                    newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(...newTasks)
+                    if (existingTask && existingTaskIndex !== -1) {
+                      updatedTasks.splice(existingTaskIndex + 1, 0, ...newTasks)
+                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks = updatedTasks
+                    } else {
+                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(...newTasks)
+                    }
 
                     setCourseBuilderNodes(newCourseBuilderNodes)
                     setMainBuilderTab('task')
 
-                    if (newTasks.length > 0) {
+                    if (updatedExistingTask) {
+                      const taskId = updatedExistingTask.id
+                      setSelectedItem({ type: 'task', id: updatedExistingTask.id })
+                      loadTaskIntoBuilder(updatedExistingTask)
+                      setTaskPdfVisibleMap(prev => ({ ...prev, [taskId]: true }))
+                      setTaskTextVisibleMap(prev => ({ ...prev, [taskId]: false }))
+                    } else if (newTasks.length > 0) {
                       const firstNew = newTasks[0]
                       setSelectedItem({ type: 'task', id: firstNew.id })
                       loadTaskIntoBuilder(firstNew)
@@ -4129,7 +4182,11 @@ FEEDBACK: [your explanation]`
                       }, 500)
                     }
 
-                    toast.success(`Created ${newTasks.length} Task(s) from '${assetToLoad?.name}'`)
+                    toast.success(
+                      updatedExistingTask
+                        ? `Updated Task and created ${newTasks.length} Task(s) from '${assetToLoad?.name}'`
+                        : `Created ${newTasks.length} Task(s) from '${assetToLoad?.name}'`
+                    )
                     setLoadAsModalOpen(false)
                     setAssetToLoad(null)
                   } catch (err: any) {
@@ -4229,11 +4286,42 @@ FEEDBACK: [your explanation]`
                       }
                     }
 
-                    const { nodeId, lessonId } = ensureFirstLessonContext()
-                    const nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                    const lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                    let nodeIndex = -1
+                    let lessonIndex = -1
+                    let existingTaskIndex = -1
+                    let existingTask: Task | null = null
 
-                    const newTask = DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
+                    if (loadedTaskId) {
+                      for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
+                        for (let lIdx = 0; lIdx < nodes[nIdx].lessons.length; lIdx++) {
+                          const t = nodes[nIdx].lessons[lIdx].tasks.find(
+                            task => task.id === loadedTaskId
+                          )
+                          if (t) {
+                            nodeIndex = nIdx
+                            lessonIndex = lIdx
+                            existingTaskIndex = nodes[nIdx].lessons[lIdx].tasks.findIndex(
+                              task => task.id === loadedTaskId
+                            )
+                            existingTask = t
+                            break
+                          }
+                        }
+                        if (nodeIndex !== -1) break
+                      }
+                    }
+
+                    if (nodeIndex === -1 || lessonIndex === -1) {
+                      const { nodeId, lessonId } = ensureFirstLessonContext()
+                      nodeIndex = nodes.findIndex(m => m.id === nodeId)
+                      lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+                    }
+
+                    const newTask =
+                      existingTask && existingTaskIndex !== -1
+                        ? ({ ...existingTask } as Task)
+                        : DEFAULT_TASK(nodes[nodeIndex].lessons[lessonIndex].tasks.length)
+
                     newTask.description = pages[0] || textToInsert
 
                     if (isPdf && pdfPagesUrls.length > 0) {
@@ -4276,39 +4364,28 @@ FEEDBACK: [your explanation]`
                     newTask.extensions = extensions
 
                     const newCourseBuilderNodes = [...nodes]
-                    newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(newTask)
+                    if (existingTask && existingTaskIndex !== -1) {
+                      const updatedTasks = [
+                        ...newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks,
+                      ]
+                      updatedTasks[existingTaskIndex] = newTask
+                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks = updatedTasks
+                    } else {
+                      newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].tasks.push(newTask)
+                    }
                     setCourseBuilderNodes(newCourseBuilderNodes)
                     setMainBuilderTab('task')
                     setSelectedItem({ type: 'task', id: newTask.id })
-
-                    setTaskBuilder({
-                      title: newTask.title,
-                      taskContent: newTask.description,
-                      taskPci: '',
-                      details: '',
-                      extensions: extensions,
-                      activeExtensionId: null,
-                    })
-                    setLoadedTaskId(newTask.id)
-
-                    const extPciMessages: Record<
-                      string,
-                      { role: 'user' | 'assistant'; content: string }[]
-                    > = {}
-                    extensions.forEach(ext => {
-                      extPciMessages[ext.id] = []
-                    })
-                    setTaskExtensionPciMessages(extPciMessages)
-                    setTaskExtensionPciInputs(
-                      extensions.reduce((acc, ext) => ({ ...acc, [ext.id]: '' }), {})
-                    )
+                    loadTaskIntoBuilder(newTask)
 
                     // Show PDF by default, hide text
                     setTaskPdfVisibleMap(prev => ({ ...prev, [newTask.id]: true }))
                     setTaskTextVisibleMap(prev => ({ ...prev, [newTask.id]: false }))
 
                     toast.success(
-                      `Created Task with ${extensions.length} extension(s) from '${assetToLoad?.name}'`
+                      existingTask && existingTaskIndex !== -1
+                        ? `Loaded into existing task with ${extensions.length} extension(s) from '${assetToLoad?.name}'`
+                        : `Created Task with ${extensions.length} extension(s) from '${assetToLoad?.name}'`
                     )
                     setLoadAsModalOpen(false)
                     setAssetToLoad(null)
