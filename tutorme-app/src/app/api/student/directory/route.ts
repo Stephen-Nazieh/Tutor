@@ -16,6 +16,64 @@ export const GET = withAuth(async (request, session) => {
   const studentId = session.user.id
   const errors: string[] = []
 
+  // Self-heal: ensure directory tables exist (handles schema drift / missing migrations)
+  try {
+    await drizzleDb.execute(
+      `CREATE TABLE IF NOT EXISTS "DeployedMaterial" (
+        "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+        "sessionId" text NOT NULL REFERENCES "LiveSession"("id") ON DELETE CASCADE,
+        "courseId" text NOT NULL REFERENCES "Course"("id") ON DELETE CASCADE,
+        "type" text NOT NULL,
+        "itemId" text NOT NULL,
+        "title" text NOT NULL,
+        "content" jsonb,
+        "sessionSequence" integer NOT NULL,
+        "deployedAt" timestamp with time zone NOT NULL DEFAULT now()
+      )`
+    )
+    await drizzleDb.execute(
+      `CREATE INDEX IF NOT EXISTS "DeployedMaterial_sessionId_idx" ON "DeployedMaterial"("sessionId")`
+    )
+    await drizzleDb.execute(
+      `CREATE INDEX IF NOT EXISTS "DeployedMaterial_courseId_idx" ON "DeployedMaterial"("courseId")`
+    )
+    await drizzleDb.execute(
+      `CREATE INDEX IF NOT EXISTS "DeployedMaterial_type_idx" ON "DeployedMaterial"("type")`
+    )
+    await drizzleDb.execute(
+      `CREATE INDEX IF NOT EXISTS "DeployedMaterial_deployedAt_idx" ON "DeployedMaterial"("deployedAt")`
+    )
+    await drizzleDb.execute(
+      `CREATE INDEX IF NOT EXISTS "DeployedMaterial_sessionId_sessionSequence_idx" ON "DeployedMaterial"("sessionId", "sessionSequence")`
+    )
+  } catch (err: any) {
+    console.error('Self-heal DeployedMaterial failed:', err?.message)
+  }
+
+  try {
+    await drizzleDb.execute(
+      `CREATE TABLE IF NOT EXISTS "StudentTaskReport" (
+        "id" text PRIMARY KEY NOT NULL,
+        "studentId" text NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+        "tutorId" text NOT NULL REFERENCES "User"("id") ON DELETE CASCADE,
+        "courseId" text,
+        "taskId" text,
+        "type" text NOT NULL,
+        "title" text NOT NULL,
+        "status" text NOT NULL DEFAULT 'requested',
+        "strengths" jsonb,
+        "weaknesses" jsonb,
+        "overallComments" text,
+        "score" double precision,
+        "createdAt" timestamp with time zone NOT NULL DEFAULT now(),
+        "updatedAt" timestamp with time zone NOT NULL DEFAULT now(),
+        "sentAt" timestamp with time zone
+      )`
+    )
+  } catch (err: any) {
+    console.error('Self-heal StudentTaskReport failed:', err?.message)
+  }
+
   // --- 1. Fetch enrollments ---
   let enrollments: {
     studentId: string | null
@@ -47,9 +105,7 @@ export const GET = withAuth(async (request, session) => {
     return NextResponse.json({ directory: {}, errors })
   }
 
-  const courseIds = enrollments
-    .map(e => e.courseId)
-    .filter((id): id is string => id != null)
+  const courseIds = enrollments.map(e => e.courseId).filter((id): id is string => id != null)
 
   // --- 2. Fetch deployed materials ---
   let deployedMaterials: any[] = []
@@ -84,9 +140,7 @@ export const GET = withAuth(async (request, session) => {
   const directory: Record<string, Record<string, any>> = {}
 
   enrollments.forEach(en => {
-    const tutorKey = en.tutorName
-      ? `Tutor@${en.tutorName.replace(/\s+/g, '')}`
-      : 'Tutor@Unknown'
+    const tutorKey = en.tutorName ? `Tutor@${en.tutorName.replace(/\s+/g, '')}` : 'Tutor@Unknown'
     const courseKey = en.courseName || 'Unnamed Course'
 
     if (!directory[tutorKey]) directory[tutorKey] = {}
@@ -108,9 +162,7 @@ export const GET = withAuth(async (request, session) => {
     const en = enrollments.find(e => e.courseId === report.courseId)
     if (!en) return
 
-    const tutorKey = en.tutorName
-      ? `Tutor@${en.tutorName.replace(/\s+/g, '')}`
-      : 'Tutor@Unknown'
+    const tutorKey = en.tutorName ? `Tutor@${en.tutorName.replace(/\s+/g, '')}` : 'Tutor@Unknown'
     const courseKey = en.courseName || 'Unnamed Course'
 
     if (!directory[tutorKey]?.[courseKey]) return
@@ -147,9 +199,7 @@ export const GET = withAuth(async (request, session) => {
     const en = enrollments.find(e => e.courseId === material.courseId)
     if (!en) return
 
-    const tutorKey = en.tutorName
-      ? `Tutor@${en.tutorName.replace(/\s+/g, '')}`
-      : 'Tutor@Unknown'
+    const tutorKey = en.tutorName ? `Tutor@${en.tutorName.replace(/\s+/g, '')}` : 'Tutor@Unknown'
     const courseKey = en.courseName || 'Unnamed Course'
 
     if (!directory[tutorKey]?.[courseKey]) return
