@@ -101,6 +101,7 @@ function CoursePageInner() {
   const [selectedEnrollment, setSelectedEnrollment] = useState<Course | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
   const [sessionsCourseId, setSessionsCourseId] = useState<string | null>(null)
+  const [sessionsCourseName, setSessionsCourseName] = useState<string>('')
   const [courseSessions, setCourseSessions] = useState<any[]>([])
   const [isLoadingSessions, setIsLoadingSessions] = useState(false)
   const [sessionLoadError, setSessionLoadError] = useState<string | null>(null)
@@ -264,6 +265,8 @@ function CoursePageInner() {
   const handleEnterClass = useCallback(async (courseId: string) => {
     setEnteringClass(courseId)
     setSessionsCourseId(courseId)
+    const course = myCourses.find(c => c.id === courseId)
+    setSessionsCourseName(course?.name || '')
     setSessionLoadError(null)
     setCourseSessions([])
     setIsLoadingSessions(true)
@@ -287,7 +290,7 @@ function CoursePageInner() {
       setEnteringClass(null)
       setIsLoadingSessions(false)
     }
-  }, [])
+  }, [myCourses])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -785,7 +788,10 @@ function CoursePageInner() {
                         <Button
                           onClick={() => {
                             setSessionsCourseId(null)
-                            router.push(`/student/feedback?sessionId=${session.id}`)
+                            const nameParam = sessionsCourseName
+                              ? `&courseName=${encodeURIComponent(sessionsCourseName)}`
+                              : ''
+                            router.push(`/student/feedback?sessionId=${session.id}${nameParam}`)
                           }}
                           variant={canEnterLive ? 'default' : 'outline'}
                           className={

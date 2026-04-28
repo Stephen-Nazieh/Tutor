@@ -98,6 +98,7 @@ function StudentFeedbackContent() {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const sessionIdFromQuery = searchParams.get('sessionId')
+  const courseNameFromQuery = searchParams.get('courseName')
 
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
@@ -148,6 +149,7 @@ function StudentFeedbackContent() {
   // Derive the page title from session context, selected item, or directory
   const pageTitle = useMemo(() => {
     if (sessionContext?.courseName) return sessionContext.courseName
+    if (courseNameFromQuery) return courseNameFromQuery
     if (activeCourseName) return activeCourseName
     // Try to find course name from directory based on activeTaskId
     if (activeTaskId && studentDirectory) {
@@ -171,7 +173,7 @@ function StudentFeedbackContent() {
       if (courses.length === 1) return courses[0]
     }
     return 'Live Classroom'
-  }, [sessionContext?.courseName, activeCourseName, activeTaskId, studentDirectory])
+  }, [sessionContext?.courseName, courseNameFromQuery, activeCourseName, activeTaskId, studentDirectory])
 
   const [directoryLoading, setDirectoryLoading] = useState(true)
   const [directoryError, setDirectoryError] = useState<string | null>(null)
@@ -313,27 +315,12 @@ function StudentFeedbackContent() {
     loadAssets()
   }, [])
 
+  // Students don't call /api/class/rooms (tutor-only); sessionId comes from URL or socket
   useEffect(() => {
-    const loadSessions = async () => {
-      setSessionsLoading(true)
-      try {
-        const res = await fetch('/api/class/rooms', { credentials: 'include' })
-        if (!res.ok) throw new Error('Failed to load sessions')
-        const data = await res.json()
-        const nextSessions = (data.sessions || []) as SessionSummary[]
-        setSessions(nextSessions)
-        if (nextSessions.length > 0) {
-          setSelectedSessionId(prev => prev ?? sessionIdFromQuery ?? nextSessions[0].id)
-        }
-      } catch (error) {
-        toast.error('Unable to load live classes')
-      } finally {
-        setSessionsLoading(false)
-      }
+    if (sessionIdFromQuery) {
+      setSelectedSessionId(sessionIdFromQuery)
     }
-
-    loadSessions()
-  }, [])
+  }, [sessionIdFromQuery])
 
   const socketOptions = useMemo(() => {
     if (!selectedSessionId || !session?.user?.id) return undefined
@@ -373,7 +360,12 @@ function StudentFeedbackContent() {
           method: 'POST',
           credentials: 'include',
         })
-        if (!res.ok) return
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          console.error('Join API error:', res.status, err)
+          toast.error(err.error || `Failed to join session (${res.status})`)
+          return
+        }
         const data = await res.json()
         if (cancelled) return
         setSessionContext({
@@ -390,8 +382,9 @@ function StudentFeedbackContent() {
           courseId: data?.session?.courseId ?? null,
           courseName: data?.session?.course?.name ?? null,
         })
-      } catch {
-        // ignore
+      } catch (err: any) {
+        console.error('Join request failed:', err)
+        toast.error(err?.message || 'Failed to load live session')
       }
     }
     loadSession()
