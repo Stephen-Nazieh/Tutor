@@ -36,15 +36,13 @@ setInterval(() => {
 
 // 4. Initialization (NEXT.JS + SOCKET.IO)
 const dev = process.env.NODE_ENV !== 'production'
-const hostname = process.env.HOSTNAME || '0.0.0.0'
-const port = parseInt(process.env.PORT || '3003', 10)
 
 /**
  * PRODUCTION PATH RESOLUTION:
  * In monorepos, standalone output is nested. We ensure 'dir' points to where .next is.
  */
 const appDir = resolve(__dirname)
-console.log(`[Server] Environment: ${process.env.NODE_ENV}, Port: ${port}, App Dir: ${appDir}`)
+console.log(`[Server] Environment: ${process.env.NODE_ENV}, Port: ${port}, Hostname: ${hostname}, App Dir: ${appDir}`)
 
 const app = next({
   dev,
@@ -101,13 +99,16 @@ const server = createServer(async (req, res) => {
 })
 
 // BIND PORT IMMEDIATELY
+const port = parseInt(process.env.PORT || '3003', 10)
+const hostname = process.env.HOSTNAME || '0.0.0.0'
+
 server
   .once('error', err => {
     console.error('❌ [Server] Fatal port binding error:', err)
     process.exit(1)
   })
-  .listen(port, () => {
-    console.log(`✅ [Server] Listener active on port ${port}`)
+  .listen(port, hostname, () => {
+    console.log(`✅ [Server] Listener active on ${hostname}:${port}`)
 
     const initialize = async () => {
       // Step 1: Validate Environment (Non-blocking for renderer)
