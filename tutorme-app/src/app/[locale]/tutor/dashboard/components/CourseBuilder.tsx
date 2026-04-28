@@ -7133,24 +7133,23 @@ FEEDBACK: [your explanation]`
                                       <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto bg-white p-0">
                                         {(() => {
                                           if (mainTab === 'live' && tab.id === 'student1') {
-                                            return (
-                                              <Dialog
-                                                open
-                                                onOpenChange={open => {
-                                                  if (!open) {
-                                                    setTestPciActiveTab('student-monitor')
-                                                  }
-                                                }}
-                                              >
-                                                <DialogContent className="h-[90vh] w-[90vw] max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-white p-0">
-                                                  <div className="flex h-full w-full flex-col">
-                                                    <div className="flex items-center justify-between border-b bg-white px-4 py-2 text-sm">
-                                                      <div className="font-medium text-slate-800">
-                                                        {monitorSelectedStudent
-                                                          ? `Viewing: ${monitorSelectedStudent.name}`
-                                                          : 'Whiteboard'}
-                                                      </div>
-                                                      {monitorSelectedStudent && (
+                                            if (monitorSelectedStudent) {
+                                              return (
+                                                <Dialog
+                                                  open
+                                                  onOpenChange={open => {
+                                                    if (!open) {
+                                                      setMonitorSelectedStudent(null)
+                                                      setTestPciActiveTab('student-monitor')
+                                                    }
+                                                  }}
+                                                >
+                                                  <DialogContent className="h-[90vh] w-[90vw] max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-white p-0">
+                                                    <div className="flex h-full w-full flex-col">
+                                                      <div className="flex items-center justify-between border-b bg-white px-4 py-2 text-sm">
+                                                        <div className="font-medium text-slate-800">
+                                                          Viewing: {monitorSelectedStudent.name}
+                                                        </div>
                                                         <Button
                                                           variant="ghost"
                                                           size="sm"
@@ -7161,14 +7160,20 @@ FEEDBACK: [your explanation]`
                                                         >
                                                           Clear
                                                         </Button>
-                                                      )}
+                                                      </div>
+                                                      <div className="min-h-0 flex-1">
+                                                        <EnhancedWhiteboard videoOverlay={false} />
+                                                      </div>
                                                     </div>
-                                                    <div className="min-h-0 flex-1">
-                                                      <EnhancedWhiteboard videoOverlay={false} />
-                                                    </div>
-                                                  </div>
-                                                </DialogContent>
-                                              </Dialog>
+                                                  </DialogContent>
+                                                </Dialog>
+                                              )
+                                            }
+
+                                            return (
+                                              <div className="flex h-full w-full flex-col">
+                                                <EnhancedWhiteboard videoOverlay={false} />
+                                              </div>
                                             )
                                           }
 
