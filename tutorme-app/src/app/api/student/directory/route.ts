@@ -14,45 +14,71 @@ export const dynamic = 'force-dynamic'
 
 export const GET = withAuth(async (request, session) => {
   const studentId = session.user.id
+  const errors: string[] = []
 
-  // Fetch all courses the student is enrolled in, along with the tutor's profile
-  const enrollments = await drizzleDb
-    .select({
-      studentId: courseEnrollment.studentId,
-      courseId: course.courseId,
-      courseName: course.name,
-      tutorId: course.creatorId,
-      tutorName: profile.name,
-    })
-    .from(courseEnrollment)
-    .innerJoin(course, eq(courseEnrollment.courseId, course.courseId))
-    .leftJoin(profile, eq(course.creatorId, profile.userId))
-    .where(eq(courseEnrollment.studentId, studentId))
-
-  if (enrollments.length === 0) {
-    return NextResponse.json({ directory: {} })
+  // --- 1. Fetch enrollments ---
+  let enrollments: {
+    studentId: string | null
+    courseId: string | null
+    courseName: string | null
+    tutorId: string | null
+    tutorName: string | null
+  }[] = []
+  try {
+    enrollments = await drizzleDb
+      .select({
+        studentId: courseEnrollment.studentId,
+        courseId: course.courseId,
+        courseName: course.name,
+        tutorId: course.creatorId,
+        tutorName: profile.name,
+      })
+      .from(courseEnrollment)
+      .innerJoin(course, eq(courseEnrollment.courseId, course.courseId))
+      .leftJoin(profile, eq(course.creatorId, profile.userId))
+      .where(eq(courseEnrollment.studentId, studentId))
+  } catch (err: any) {
+    errors.push(`enrollments query failed: ${err?.message || String(err)}`)
+    // Return early with empty directory but show the error
+    return NextResponse.json({ directory: {}, errors }, { status: 200 })
   }
 
-  const courseIds = enrollments.map(e => e.courseId)
+  if (enrollments.length === 0) {
+    return NextResponse.json({ directory: {}, errors })
+  }
 
-  // Fetch all deployed materials for these courses
-  const deployedMaterials = await drizzleDb
-    .select()
-    .from(deployedMaterial)
-    .where(inArray(deployedMaterial.courseId, courseIds))
-    .orderBy(deployedMaterial.deployedAt)
+  const courseIds = enrollments
+    .map(e => e.courseId)
+    .filter((id): id is string => id != null)
 
-  // Fetch individual student reports
-  const studentReports = await drizzleDb
-    .select()
-    .from(studentTaskReport)
-    .where(
-      and(
-        eq(studentTaskReport.studentId, studentId),
-        eq(studentTaskReport.status, 'sent'),
-        inArray(studentTaskReport.courseId, courseIds)
+  // --- 2. Fetch deployed materials ---
+  let deployedMaterials: any[] = []
+  try {
+    deployedMaterials = await drizzleDb
+      .select()
+      .from(deployedMaterial)
+      .where(inArray(deployedMaterial.courseId, courseIds))
+      .orderBy(deployedMaterial.deployedAt)
+  } catch (err: any) {
+    errors.push(`deployedMaterials query failed: ${err?.message || String(err)}`)
+  }
+
+  // --- 3. Fetch student reports ---
+  let studentReports: any[] = []
+  try {
+    studentReports = await drizzleDb
+      .select()
+      .from(studentTaskReport)
+      .where(
+        and(
+          eq(studentTaskReport.studentId, studentId),
+          eq(studentTaskReport.status, 'sent'),
+          inArray(studentTaskReport.courseId, courseIds)
+        )
       )
-    )
+  } catch (err: any) {
+    errors.push(`studentReports query failed: ${err?.message || String(err)}`)
+  }
 
   // Build the directory tree using courseId as keys to avoid name collisions
   const directory: Record<string, Record<string, any>> = {}
@@ -74,14 +100,6 @@ export const GET = withAuth(async (request, session) => {
         recordedSessions: [],
       }
     }
-  })
-
-  // Populate materials into their respective folders
-  // Sort descending so the last is on top — safely handle null deployedAt
-  const sortedMaterials = [...deployedMaterials].sort((a, b) => {
-    const aTime = a.deployedAt ? new Date(a.deployedAt).getTime() : 0
-    const bTime = b.deployedAt ? new Date(b.deployedAt).getTime() : 0
-    return bTime - aTime
   })
 
   // Populate individual reports
@@ -115,6 +133,14 @@ export const GET = withAuth(async (request, session) => {
     }
 
     directory[tutorKey][courseKey].reports.push(item)
+  })
+
+  // Populate materials into their respective folders
+  // Sort descending so the last is on top — safely handle null deployedAt
+  const sortedMaterials = [...deployedMaterials].sort((a, b) => {
+    const aTime = a?.deployedAt ? new Date(a.deployedAt).getTime() : 0
+    const bTime = b?.deployedAt ? new Date(b.deployedAt).getTime() : 0
+    return bTime - aTime
   })
 
   sortedMaterials.forEach(material => {
@@ -162,5 +188,5 @@ export const GET = withAuth(async (request, session) => {
     }
   })
 
-  return NextResponse.json({ directory })
+  return NextResponse.json({ directory, errors })
 })

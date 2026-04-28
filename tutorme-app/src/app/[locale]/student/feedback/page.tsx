@@ -170,6 +170,12 @@ function StudentFeedbackContent() {
           const data = await res.json()
           setStudentDirectory(data.directory || {})
 
+          // Surface partial backend errors
+          if (data.errors && data.errors.length > 0) {
+            console.error('Directory partial errors:', data.errors)
+            setDirectoryError(data.errors.join('\n'))
+          }
+
           // Open all top-level and second-level folders by default
           const newFoldersOpen: Record<string, boolean> = {
             tasks: true,
