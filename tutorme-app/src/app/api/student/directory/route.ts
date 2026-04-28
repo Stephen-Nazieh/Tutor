@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
   // Fetch all courses the student is enrolled in, along with the tutor's profile
   const enrollments = await drizzleDb
     .select({
+      studentId: courseEnrollment.studentId,
       courseId: course.courseId,
       courseName: course.name,
       courseCategory: course.categories, // This is a string[] or string depending on schema
