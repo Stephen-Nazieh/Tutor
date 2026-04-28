@@ -24,8 +24,8 @@ async function start() {
   const serverJs = path.join(process.cwd(), 'server.js')
   const hasServerJs = fs.existsSync(serverJs)
 
-  const command = hasServerJs ? 'node' : 'npx'
-  const args = hasServerJs ? ['server.js'] : ['tsx', 'server.ts']
+  const command = hasServerJs ? 'node' : './node_modules/.bin/tsx'
+  const args = hasServerJs ? ['server.js'] : ['server.ts']
 
   console.log(`[Startup] Launching server: ${command} ${args.join(' ')}`)
   const child = spawn(command, args, { stdio: 'inherit' })
