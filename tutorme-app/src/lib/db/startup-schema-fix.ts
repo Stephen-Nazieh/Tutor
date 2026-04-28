@@ -83,6 +83,9 @@ ALTER TABLE "LiveSession" DROP COLUMN IF EXISTS "gradeLevel";
 -- LiveSession maxStudents
 ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "maxStudents" integer DEFAULT 50 NOT NULL;
 
+-- LiveSession durationMinutes
+ALTER TABLE "LiveSession" ADD COLUMN IF NOT EXISTS "durationMinutes" integer DEFAULT 120 NOT NULL;
+
 -- PayoutStatus enum
 DO $$
 BEGIN
@@ -155,13 +158,13 @@ export async function applyStartupSchemaFixes(): Promise<void> {
   try {
     console.log('[SchemaFix] Checking for schema drift...')
 
-    // Quick check: does LiveSession.category exist?
+    // Quick check: do required LiveSession columns exist?
     const check = await drizzleDb.execute(sql`
-      SELECT 1 FROM information_schema.columns
-      WHERE table_name = 'LiveSession' AND column_name = 'category'
+      SELECT column_name FROM information_schema.columns
+      WHERE table_name = 'LiveSession' AND column_name IN ('category', 'durationMinutes')
     `)
 
-    if (check.rows.length > 0) {
+    if (check.rows.length >= 2) {
       console.log('[SchemaFix] LiveSession schema looks OK. Skipping.')
       return
     }
