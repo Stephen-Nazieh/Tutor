@@ -449,7 +449,7 @@ export function CommunicationCenter() {
                 Filter
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80">
+            <PopoverContent className="w-80" variant="panel">
               <div className="space-y-4">
                 <h4 className="font-medium">Filter Messages</h4>
                 <div className="space-y-2">
