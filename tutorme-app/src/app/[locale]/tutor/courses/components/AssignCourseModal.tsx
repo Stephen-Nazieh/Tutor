@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogPanel,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,7 +21,6 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import {
   BookOpen,
   Users,
@@ -127,10 +127,10 @@ export function AssignCourseModal({
         </DialogHeader>
 
         {step === 'select' ? (
-          <div className="space-y-6 overflow-y-auto py-4">
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-4">
             {/* Course Selection */}
-            <div className="space-y-2">
-              <Label>Select Course</Label>
+            <DialogPanel className="space-y-2">
+              <Label className="text-gray-900">Select Course</Label>
               <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choose a course..." />
@@ -156,19 +156,19 @@ export function AssignCourseModal({
 
               {selectedCourse && (
                 <div className="rounded-lg bg-gray-50 p-3 text-sm">
-                  <p className="text-muted-foreground">{selectedCourse.description}</p>
-                  <div className="text-muted-foreground mt-2 flex gap-4 text-xs">
+                  <p className="text-gray-600">{selectedCourse.description}</p>
+                  <div className="mt-2 flex gap-4 text-xs text-gray-600">
                     <span>{selectedCourse.stats.moduleCount} modules</span>
                     <span>{selectedCourse.stats.lessonCount} lessons</span>
                     <span>{selectedCourse.stats.quizCount} quizzes</span>
                   </div>
                 </div>
               )}
-            </div>
+            </DialogPanel>
 
             {/* Group Selection */}
-            <div className="space-y-2">
-              <Label>Select Group</Label>
+            <DialogPanel className="space-y-2">
+              <Label className="text-gray-900">Select Group</Label>
               <Select value={selectedBatchId} onValueChange={setSelectedBatchId}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Choose a group..." />
@@ -193,107 +193,119 @@ export function AssignCourseModal({
               {selectedBatch && (
                 <div className="rounded-lg bg-gray-50 p-3">
                   <div className="mb-2 flex items-center gap-2">
-                    <Users className="text-muted-foreground h-4 w-4" />
-                    <span className="text-sm">
+                    <Users className="h-4 w-4 text-gray-600" />
+                    <span className="text-sm text-gray-900">
                       {selectedBatch.enrollmentCount} students enrolled
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <BarChart3 className="text-muted-foreground h-4 w-4" />
-                    <span className="text-sm">Difficulty: </span>
+                    <BarChart3 className="h-4 w-4 text-gray-600" />
+                    <span className="text-sm text-gray-900">Difficulty: </span>
                     <Badge className={cn('text-xs', DIFFICULTY_COLORS[selectedBatch.difficulty])}>
                       {DIFFICULTY_LABELS[selectedBatch.difficulty]}
                     </Badge>
                   </div>
                 </div>
               )}
-            </div>
+            </DialogPanel>
 
             {/* Mismatch Warning */}
             {mismatchWarning && (
-              <Alert className="border-amber-200 bg-amber-50">
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-sm text-amber-700">
-                  {mismatchWarning}
-                </AlertDescription>
-              </Alert>
+              <DialogPanel>
+                <Alert className="border-amber-200 bg-amber-50">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-sm text-amber-700">
+                    {mismatchWarning}
+                  </AlertDescription>
+                </Alert>
+              </DialogPanel>
             )}
           </div>
         ) : (
-          <div className="space-y-4 overflow-y-auto py-4">
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-4">
             {/* Assignment Summary */}
-            <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 p-3">
-              <div className="flex items-center gap-4">
-                <div>
-                  <p className="text-sm font-medium">{selectedCourse?.name}</p>
-                  <p className="text-muted-foreground text-xs">Course</p>
+            <DialogPanel>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{selectedCourse?.name}</p>
+                    <p className="text-xs text-gray-600">Course</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-gray-600" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{selectedBatch?.name}</p>
+                    <p className="text-xs text-gray-600">
+                      {DIFFICULTY_LABELS[selectedBatch?.difficulty || 'beginner']} Group
+                    </p>
+                  </div>
                 </div>
-                <ArrowRight className="text-muted-foreground h-4 w-4" />
-                <div>
-                  <p className="text-sm font-medium">{selectedBatch?.name}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {DIFFICULTY_LABELS[selectedBatch?.difficulty || 'beginner']} Group
-                  </p>
-                </div>
+                <Button variant="ghost" size="sm" onClick={() => setStep('select')}>
+                  Change
+                </Button>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => setStep('select')}>
-                Change
-              </Button>
-            </div>
+            </DialogPanel>
 
             {/* Preview Content */}
             {previewLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-                <span className="text-muted-foreground ml-2">Generating preview...</span>
-              </div>
+              <DialogPanel>
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                  <span className="ml-2 text-gray-600">Generating preview...</span>
+                </div>
+              </DialogPanel>
             ) : preview ? (
               <>
                 {/* Resolution Stats */}
-                <div className="grid grid-cols-4 gap-3">
-                  <div className="rounded-lg bg-gray-50 p-3 text-center">
-                    <p className="text-2xl font-bold">{preview.resolution.totalModules}</p>
-                    <p className="text-muted-foreground text-xs">Total Modules</p>
+                <DialogPanel>
+                  <div className="grid grid-cols-4 gap-3">
+                    <div className="rounded-lg bg-gray-50 p-3 text-center">
+                      <p className="text-2xl font-bold text-gray-900">
+                        {preview.resolution.totalModules}
+                      </p>
+                      <p className="text-xs text-gray-600">Total Modules</p>
+                    </div>
+                    <div className="rounded-lg bg-green-50 p-3 text-center">
+                      <p className="text-2xl font-bold text-green-600">
+                        {preview.resolution.visibleModules}
+                      </p>
+                      <p className="text-xs text-gray-600">Visible</p>
+                    </div>
+                    <div className="rounded-lg bg-amber-50 p-3 text-center">
+                      <p className="text-2xl font-bold text-amber-600">
+                        {preview.resolution.adaptedContent}
+                      </p>
+                      <p className="text-xs text-gray-600">Adapted</p>
+                    </div>
+                    <div className="rounded-lg bg-red-50 p-3 text-center">
+                      <p className="text-2xl font-bold text-red-600">
+                        {preview.resolution.hiddenModules}
+                      </p>
+                      <p className="text-xs text-gray-600">Hidden</p>
+                    </div>
                   </div>
-                  <div className="rounded-lg bg-green-50 p-3 text-center">
-                    <p className="text-2xl font-bold text-green-600">
-                      {preview.resolution.visibleModules}
-                    </p>
-                    <p className="text-muted-foreground text-xs">Visible</p>
-                  </div>
-                  <div className="rounded-lg bg-amber-50 p-3 text-center">
-                    <p className="text-2xl font-bold text-amber-600">
-                      {preview.resolution.adaptedContent}
-                    </p>
-                    <p className="text-muted-foreground text-xs">Adapted</p>
-                  </div>
-                  <div className="rounded-lg bg-red-50 p-3 text-center">
-                    <p className="text-2xl font-bold text-red-600">
-                      {preview.resolution.hiddenModules}
-                    </p>
-                    <p className="text-muted-foreground text-xs">Hidden</p>
-                  </div>
-                </div>
+                </DialogPanel>
 
                 {/* Hidden Items Warning */}
                 {preview.hiddenItems.length > 0 && (
-                  <Alert variant="destructive" className="border-red-200 bg-red-50">
-                    <EyeOff className="h-4 w-4 text-red-600" />
-                    <AlertDescription>
-                      <p className="mb-1 font-medium text-red-700">
-                        {preview.hiddenItems.length} items will be hidden
-                      </p>
-                      <p className="text-sm text-red-600">
-                        These items are fixed to difficulty levels that don&apos;t match this group.
-                      </p>
-                    </AlertDescription>
-                  </Alert>
+                  <DialogPanel>
+                    <Alert variant="destructive" className="border-red-200 bg-red-50">
+                      <EyeOff className="h-4 w-4 text-red-600" />
+                      <AlertDescription>
+                        <p className="mb-1 font-medium text-red-700">
+                          {preview.hiddenItems.length} items will be hidden
+                        </p>
+                        <p className="text-sm text-red-600">
+                          These items are fixed to difficulty levels that don&apos;t match this group.
+                        </p>
+                      </AlertDescription>
+                    </Alert>
+                  </DialogPanel>
                 )}
 
                 {/* Adapted Items */}
                 {preview.adaptedItems.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="flex items-center gap-2 text-sm font-medium">
+                  <DialogPanel className="space-y-2">
+                    <h4 className="flex items-center gap-2 text-sm font-medium text-gray-900">
                       <Info className="h-4 w-4" />
                       Content Adaptations
                     </h4>
@@ -301,47 +313,59 @@ export function AssignCourseModal({
                       <div className="space-y-2">
                         {preview.adaptedItems.map((item, idx) => (
                           <div key={idx} className="rounded bg-gray-50 p-2 text-sm">
-                            <p className="font-medium">{item.title}</p>
-                            <p className="text-muted-foreground text-xs">
+                            <p className="font-medium text-gray-900">{item.title}</p>
+                            <p className="text-xs text-gray-600">
                               {item.field}: {item.originalValue} → {item.adaptedValue}
                             </p>
                           </div>
                         ))}
                       </div>
                     </ScrollArea>
-                  </div>
+                  </DialogPanel>
                 )}
 
                 {/* Success Note */}
-                <Alert className="border-green-200 bg-green-50">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-sm text-green-700">
-                    Course content will automatically adapt to match the group&apos;s
-                    <strong> {selectedBatch?.difficulty}</strong> difficulty level.
-                  </AlertDescription>
-                </Alert>
+                <DialogPanel>
+                  <Alert className="border-green-200 bg-green-50">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-sm text-green-700">
+                      Course content will automatically adapt to match the group&apos;s
+                      <strong> {selectedBatch?.difficulty}</strong> difficulty level.
+                    </AlertDescription>
+                  </Alert>
+                </DialogPanel>
               </>
             ) : null}
           </div>
         )}
 
-        <DialogFooter className="border-t pt-4">
+        <DialogFooter className="gap-3">
           {step === 'select' ? (
             <>
-              <Button variant="outline" onClick={onClose}>
+              <Button variant="modal-secondary" onClick={onClose}>
                 Cancel
               </Button>
-              <Button onClick={() => setStep('preview')} disabled={!canProceed} className="gap-2">
+              <Button
+                variant="modal-primary"
+                onClick={() => setStep('preview')}
+                disabled={!canProceed}
+                className="gap-2"
+              >
                 <Eye className="h-4 w-4" />
                 Preview Assignment
               </Button>
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={() => setStep('select')}>
+              <Button variant="modal-secondary" onClick={() => setStep('select')}>
                 Back
               </Button>
-              <Button onClick={handleAssign} disabled={assigning} className="gap-2">
+              <Button
+                variant="modal-primary"
+                onClick={handleAssign}
+                disabled={assigning}
+                className="gap-2"
+              >
                 {assigning ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />

@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogPanel,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -97,67 +98,67 @@ export function GoLiveDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-4 px-6 py-4">
           {step === 1 && (
             <RadioGroup
               value={sessionType}
               onValueChange={v => setSessionType(v as 'teaching' | 'training')}
-              className="flex flex-col space-y-2"
+              className="flex flex-col space-y-4"
             >
-              <div
-                className="flex cursor-pointer items-center space-x-2 rounded-[14px] border border-slate-200 bg-white p-4 shadow-[0_8px_20px_rgba(0,0,0,0.12)] hover:bg-slate-50"
+              <DialogPanel
+                className="flex cursor-pointer items-center space-x-2 hover:bg-gray-50"
                 onClick={() => setSessionType('teaching')}
               >
                 <RadioGroupItem value="teaching" id="teaching" />
                 <Label htmlFor="teaching" className="flex-1 cursor-pointer">
-                  <div className="text-base font-semibold">Start a Teaching Session</div>
-                  <div className="mt-1 text-sm font-normal text-gray-500">
+                  <div className="text-base font-semibold text-gray-900">Start a Teaching Session</div>
+                  <div className="mt-1 text-sm font-normal text-gray-600">
                     Deliver lessons to your enrolled students. Only enrolled students will be
                     notified.
                   </div>
                 </Label>
-              </div>
-              <div
-                className="flex cursor-pointer items-center space-x-2 rounded-[14px] border border-slate-200 bg-white p-4 shadow-[0_8px_20px_rgba(0,0,0,0.12)] hover:bg-slate-50"
+              </DialogPanel>
+              <DialogPanel
+                className="flex cursor-pointer items-center space-x-2 hover:bg-gray-50"
                 onClick={() => setSessionType('training')}
               >
                 <RadioGroupItem value="training" id="training" />
                 <Label htmlFor="training" className="flex-1 cursor-pointer">
-                  <div className="text-base font-semibold">Start a Training Session</div>
-                  <div className="mt-1 text-sm font-normal text-gray-500">
+                  <div className="text-base font-semibold text-gray-900">Start a Training Session</div>
+                  <div className="mt-1 text-sm font-normal text-gray-600">
                     Host a session for other tutors on the platform. Share your screen and
                     interface.
                   </div>
                 </Label>
-              </div>
+              </DialogPanel>
             </RadioGroup>
           )}
 
           {step === 2 && sessionType === 'teaching' && (
             <div className="animate-in fade-in slide-in-from-right-2 space-y-4">
-              <div className="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
-                <h4 className="mb-2 flex items-center gap-2 font-semibold text-indigo-900">
+              <DialogPanel className="space-y-3">
+                <h4 className="flex items-center gap-2 font-semibold text-gray-900">
                   <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
                   Auto-Recording Enabled
                 </h4>
-                <p className="text-sm leading-relaxed text-indigo-800">
+                <p className="text-sm leading-relaxed text-gray-600">
                   Your teaching session will be recorded automatically from the beginning. This
                   ensures high-quality replays are available immediately after the session ends.
                 </p>
-                <p className="mt-3 text-sm font-medium leading-relaxed text-indigo-800">
+                <p className="text-sm font-medium leading-relaxed text-gray-600">
                   💡 Monetization Opportunity: Future students who enroll in this course later will
                   still be able to access and learn from this recorded session, helping you generate
                   passive value over time!
                 </p>
-              </div>
+              </DialogPanel>
             </div>
           )}
 
           {step === 2 && sessionType === 'training' && (
             <div className="animate-in fade-in slide-in-from-right-2 space-y-4">
-              <div className="space-y-4 rounded-[14px] bg-white p-4 shadow-[0_8px_20px_rgba(0,0,0,0.12)]">
+              <DialogPanel className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Special Access Token</Label>
+                  <Label className="text-gray-900">Special Access Token</Label>
                   <Input
                     type="password"
                     placeholder="Enter the landing page token"
@@ -167,7 +168,7 @@ export function GoLiveDialog({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Target Audience</Label>
+                  <Label className="text-gray-900">Target Audience</Label>
                   <Select value={targetAudience} onValueChange={setTargetAudience}>
                     <SelectTrigger>
                       <SelectValue />
@@ -183,7 +184,7 @@ export function GoLiveDialog({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Training Category</Label>
+                  <Label className="text-gray-900">Training Category</Label>
                   <Select value={category} onValueChange={setCategory}>
                     <SelectTrigger>
                       <SelectValue />
@@ -196,28 +197,28 @@ export function GoLiveDialog({
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
+              </DialogPanel>
             </div>
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-3">
           {step === 1 ? (
             <>
-              <Button variant="dialog-secondary" onClick={() => onOpenChange(false)}>
+              <Button variant="modal-secondary" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button variant="dialog-primary" onClick={handleNext}>
+              <Button variant="modal-primary" onClick={handleNext}>
                 Next
               </Button>
             </>
           ) : (
             <>
-              <Button variant="dialog-secondary" onClick={handleBack} disabled={loading}>
+              <Button variant="modal-secondary" onClick={handleBack} disabled={loading}>
                 Back
               </Button>
               <Button
-                variant="dialog-primary"
+                variant="modal-primary"
                 onClick={handleConfirm}
                 disabled={loading || (sessionType === 'training' && !token)}
               >

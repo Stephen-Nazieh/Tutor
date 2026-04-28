@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { X } from 'lucide-react'
+import { X, Loader2 } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
@@ -368,6 +368,132 @@ const DialogBody = React.forwardRef<
 DialogBody.displayName = 'DialogBody'
 
 // ============================================
+// DIALOG PANEL (White content panel for universal modal architecture)
+// ============================================
+
+const DialogPanel = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      'rounded-xl border border-gray-200 bg-white p-4',
+      'text-gray-900',
+      className
+    )}
+    {...props}
+  />
+))
+DialogPanel.displayName = 'DialogPanel'
+
+// ============================================
+// MODAL LAYOUT (Pre-composed universal modal wrapper)
+// ============================================
+
+interface ModalAction {
+  label: string
+  onClick: () => void
+  loading?: boolean
+  variant?: 'primary' | 'secondary' | 'destructive'
+}
+
+interface ModalLayoutProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title: string
+  description?: string
+  icon?: React.ReactNode
+  children: React.ReactNode
+  primaryAction?: ModalAction
+  secondaryAction?: ModalAction
+  theme?: DialogTheme
+  size?: 'sm' | 'default' | 'lg' | 'xl' | '2xl' | 'full'
+  showCloseButton?: boolean
+  className?: string
+}
+
+function ModalLayout({
+  open,
+  onOpenChange,
+  title,
+  description,
+  icon,
+  children,
+  primaryAction,
+  secondaryAction,
+  theme = 'metallic',
+  size = 'default',
+  showCloseButton = true,
+  className,
+}: ModalLayoutProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        size={size}
+        theme={theme}
+        showCloseButton={showCloseButton}
+        className={cn('overflow-hidden', className)}
+      >
+        <DialogHeader className="space-y-2">
+          <div className="flex items-center gap-3">
+            {icon && <span className="text-gray-500">{icon}</span>}
+            <DialogTitle
+              className={theme === 'metallic' ? 'text-white' : 'text-gray-900'}
+            >
+              {title}
+            </DialogTitle>
+          </div>
+          {description && (
+            <DialogDescription
+              className={
+                theme === 'metallic' ? 'text-gray-300' : 'text-gray-500'
+              }
+            >
+              {description}
+            </DialogDescription>
+          )}
+        </DialogHeader>
+        <DialogBody spacing="default" className="space-y-4">
+          {children}
+        </DialogBody>
+        {(primaryAction || secondaryAction) && (
+          <DialogFooter className="gap-3">
+            {secondaryAction && (
+              <DialogClose asChild>
+                <Button
+                  variant="modal-secondary"
+                  onClick={secondaryAction.onClick}
+                  disabled={secondaryAction.loading}
+                >
+                  {secondaryAction.label}
+                </Button>
+              </DialogClose>
+            )}
+            {primaryAction && (
+              <Button
+                variant={
+                  primaryAction.variant === 'destructive'
+                    ? 'destructive'
+                    : 'modal-primary'
+                }
+                onClick={primaryAction.onClick}
+                disabled={primaryAction.loading}
+              >
+                {primaryAction.loading && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {primaryAction.label}
+              </Button>
+            )}
+          </DialogFooter>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ============================================
 // ALERT DIALOG (Simplified Dialog for confirmations)
 // ============================================
 
@@ -432,7 +558,9 @@ export {
   DialogTitle,
   DialogDescription,
   DialogBody,
+  DialogPanel,
+  ModalLayout,
   AlertDialog,
   dialogContentVariants,
 }
-export type { DialogContentProps, AlertDialogProps }
+export type { DialogContentProps, AlertDialogProps, ModalLayoutProps, ModalAction }

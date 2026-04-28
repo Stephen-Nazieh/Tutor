@@ -24,6 +24,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogPanel,
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
@@ -290,10 +291,12 @@ function Book1on1Dialog({
             <DialogTitle>Book 1 on 1 Session</DialogTitle>
             <DialogDescription>Please log in to book a session with {tutor.name}</DialogDescription>
           </DialogHeader>
-          <div className="py-6 text-center">
-            <Button asChild>
-              <Link href={`/${locale}/login`}>Log In</Link>
-            </Button>
+          <div className="p-6 pt-0 space-y-4">
+            <DialogPanel className="py-8 text-center">
+              <Button variant="modal-primary" asChild className="h-10">
+                <Link href={`/${locale}/login`}>Log In</Link>
+              </Button>
+            </DialogPanel>
           </div>
         </DialogContent>
       </Dialog>
@@ -310,17 +313,19 @@ function Book1on1Dialog({
               You already have a pending booking request with {tutor.name}.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-6">
-            <div className="rounded-lg bg-amber-50 p-4 text-amber-800">
-              <p className="font-medium">Status: {activeRequest.status}</p>
-              <p className="mt-2 text-sm">
+          <div className="p-6 pt-0 space-y-4">
+            <DialogPanel>
+              <p className="font-medium text-gray-900">Status: {activeRequest.status}</p>
+              <p className="mt-2 text-sm text-gray-600">
                 Please wait for the tutor to respond. You will receive a notification once they
                 accept or reject your request.
               </p>
-            </div>
+            </DialogPanel>
           </div>
-          <DialogFooter>
-            <Button onClick={() => onOpenChange(false)}>Close</Button>
+          <DialogFooter className="gap-3">
+            <Button variant="modal-secondary" onClick={() => onOpenChange(false)} className="h-10">
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -340,106 +345,113 @@ function Book1on1Dialog({
           </DialogDescription>
         </DialogHeader>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-          </div>
-        ) : availabilityError ? (
-          <div className="py-6 text-center">
-            {availabilityError === 'Pricing not set' ? (
-              <div className="space-y-2">
-                <p className="font-medium text-amber-700">
-                  This tutor is available for one-on-one sessions but has not set a price yet.
-                </p>
-                <p className="text-sm text-amber-600">
-                  Please check back later or contact the tutor directly.
-                </p>
+        <div className="space-y-4 overflow-auto p-6 pt-0">
+          {loading ? (
+            <DialogPanel>
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
               </div>
-            ) : (
-              <p className="text-muted-foreground">
-                {availability?.reason === 'disabled'
-                  ? 'This tutor is not currently offering one-on-one sessions.'
-                  : availabilityError}
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Price info */}
-            <div className="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-blue-800">
-              <DollarSign className="h-5 w-5" />
-              <span className="font-medium">
-                {availability?.currency} {availability?.hourlyRate} per session (1 hour)
-              </span>
-            </div>
+            </DialogPanel>
+          ) : availabilityError ? (
+            <DialogPanel className="py-6 text-center">
+              {availabilityError === 'Pricing not set' ? (
+                <div className="space-y-2">
+                  <p className="font-medium text-gray-900">
+                    This tutor is available for one-on-one sessions but has not set a price yet.
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Please check back later or contact the tutor directly.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-gray-600">
+                  {availability?.reason === 'disabled'
+                    ? 'This tutor is not currently offering one-on-one sessions.'
+                    : availabilityError}
+                </p>
+              )}
+            </DialogPanel>
+          ) : (
+            <>
+              {/* Price info */}
+              <DialogPanel className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-blue-600" />
+                <span className="font-medium text-gray-900">
+                  {availability?.currency} {availability?.hourlyRate} per session (1 hour)
+                </span>
+              </DialogPanel>
 
-            {/* Timezone info */}
-            <div className="text-muted-foreground flex items-center gap-2 text-sm">
-              <Clock className="h-4 w-4" />
-              <span>Times shown in: {availability?.timezone}</span>
-            </div>
+              {/* Timezone info */}
+              <DialogPanel className="flex items-center gap-2 text-sm text-gray-600">
+                <Clock className="h-4 w-4" />
+                <span>Times shown in: {availability?.timezone}</span>
+              </DialogPanel>
 
-            {/* Calendar slots */}
-            <ScrollArea className="max-h-[400px]">
-              <div className="space-y-4 pr-4">
-                {dates.length === 0 ? (
-                  <div className="text-muted-foreground py-6 text-center">
-                    No available slots in the next 3 weeks.
-                  </div>
-                ) : (
-                  dates.map(date => {
-                    const dateObj = parseISO(date)
-                    const daySlots = slotsByDate[date]
-                    return (
-                      <div key={date} className="space-y-2">
-                        <h4 className="flex items-center gap-2 font-medium">
-                          <Calendar className="h-4 w-4 text-blue-500" />
-                          {format(dateObj, 'EEEE, MMMM d, yyyy')}
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {daySlots.map((slot, idx) => (
-                            <Button
-                              key={`${slot.date}-${slot.startTime}-${idx}`}
-                              variant={
-                                selectedSlot?.date === slot.date &&
-                                selectedSlot?.startTime === slot.startTime
-                                  ? 'default'
-                                  : 'outline'
-                              }
-                              size="sm"
-                              onClick={() => setSelectedSlot(slot)}
-                            >
-                              {slot.startTime} - {slot.endTime}
-                            </Button>
-                          ))}
-                        </div>
+              {/* Calendar slots */}
+              <DialogPanel>
+                <ScrollArea className="max-h-[400px]">
+                  <div className="space-y-4 pr-4">
+                    {dates.length === 0 ? (
+                      <div className="py-6 text-center text-gray-600">
+                        No available slots in the next 3 weeks.
                       </div>
-                    )
-                  })
-                )}
-              </div>
-            </ScrollArea>
+                    ) : (
+                      dates.map(date => {
+                        const dateObj = parseISO(date)
+                        const daySlots = slotsByDate[date]
+                        return (
+                          <div key={date} className="space-y-2">
+                            <h4 className="flex items-center gap-2 font-medium text-gray-900">
+                              <Calendar className="h-4 w-4 text-blue-500" />
+                              {format(dateObj, 'EEEE, MMMM d, yyyy')}
+                            </h4>
+                            <div className="flex flex-wrap gap-2">
+                              {daySlots.map((slot, idx) => (
+                                <Button
+                                  key={`${slot.date}-${slot.startTime}-${idx}`}
+                                  variant={
+                                    selectedSlot?.date === slot.date &&
+                                    selectedSlot?.startTime === slot.startTime
+                                      ? 'default'
+                                      : 'outline'
+                                  }
+                                  size="sm"
+                                  onClick={() => setSelectedSlot(slot)}
+                                >
+                                  {slot.startTime} - {slot.endTime}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                </ScrollArea>
+              </DialogPanel>
 
-            {selectedSlot && (
-              <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-green-800">
-                <p className="font-medium">Selected:</p>
-                <p className="text-sm">
-                  {format(parseISO(selectedSlot.date), 'EEEE, MMMM d, yyyy')} at{' '}
-                  {selectedSlot.startTime} - {selectedSlot.endTime}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+              {selectedSlot && (
+                <DialogPanel>
+                  <p className="font-medium text-gray-900">Selected:</p>
+                  <p className="text-sm text-gray-600">
+                    {format(parseISO(selectedSlot.date), 'EEEE, MMMM d, yyyy')} at{' '}
+                    {selectedSlot.startTime} - {selectedSlot.endTime}
+                  </p>
+                </DialogPanel>
+              )}
+            </>
+          )}
+        </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-3">
+          <Button variant="modal-secondary" onClick={() => onOpenChange(false)} className="h-10">
             Cancel
           </Button>
           <Button
+            variant="modal-primary"
             onClick={handleSubmit}
             disabled={!selectedSlot || submitting || loading}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="h-10"
           >
             {submitting ? (
               <>
@@ -1510,56 +1522,58 @@ export default function PublicTutorPage() {
       />
 
       <Dialog open={!!detailsCourse} onOpenChange={open => !open && setDetailsCourse(null)}>
-        <DialogContent className="flex h-[80vh] w-[80vw] max-w-4xl flex-col overflow-hidden p-0">
-          <div className="border-b bg-slate-50 p-6">
-            <DialogHeader>
-              <DialogTitle className="text-2xl">{detailsCourse?.name}</DialogTitle>
-              <DialogDescription className="mt-2 text-base">
-                {detailsCourse?.description || 'No description provided.'}
-              </DialogDescription>
-            </DialogHeader>
-          </div>
-          <div className="flex-1 overflow-auto bg-white p-6">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="space-y-1 rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <div className="text-sm font-medium text-slate-500">Category</div>
-                <div className="text-base font-semibold text-slate-900">
-                  {detailsCourse?.categories?.[0] || 'general'}
+        <DialogContent className="flex h-[80vh] w-[80vw] max-w-4xl flex-col overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">{detailsCourse?.name}</DialogTitle>
+            <DialogDescription className="mt-2 text-base">
+              {detailsCourse?.description || 'No description provided.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 space-y-4 overflow-auto p-6 pt-0">
+            <DialogPanel>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-gray-600">Category</div>
+                  <div className="text-base font-semibold text-gray-900">
+                    {detailsCourse?.categories?.[0] || 'general'}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-gray-600">Sessions</div>
+                  <div className="text-base font-semibold text-gray-900">
+                    {detailsCourse?.lessonCount} lessons
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-gray-600">Price</div>
+                  <div className="text-base font-semibold text-gray-900">
+                    {detailsCourse?.isFree
+                      ? 'Free'
+                      : detailsCourse?.price != null
+                        ? `$${detailsCourse.price} / 1h session`
+                        : 'Free'}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-gray-600">Schedule</div>
+                  <div className="text-base font-semibold text-gray-900">
+                    {detailsCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
+                  </div>
                 </div>
               </div>
-              <div className="space-y-1 rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <div className="text-sm font-medium text-slate-500">Sessions</div>
-                <div className="text-base font-semibold text-slate-900">
-                  {detailsCourse?.lessonCount} lessons
-                </div>
-              </div>
-              <div className="space-y-1 rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <div className="text-sm font-medium text-slate-500">Price</div>
-                <div className="text-base font-semibold text-slate-900">
-                  {detailsCourse?.isFree
-                    ? 'Free'
-                    : detailsCourse?.price != null
-                      ? `$${detailsCourse.price} / 1h session`
-                      : 'Free'}
-                </div>
-              </div>
-              <div className="space-y-1 rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <div className="text-sm font-medium text-slate-500">Schedule</div>
-                <div className="text-base font-semibold text-slate-900">
-                  {detailsCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
-                </div>
-              </div>
-            </div>
-            <div className="mt-8">
-              <h3 className="mb-4 text-lg font-semibold text-slate-900">About this course</h3>
-              <p className="whitespace-pre-wrap leading-relaxed text-slate-700">
+            </DialogPanel>
+            <DialogPanel>
+              <h3 className="mb-4 text-lg font-semibold text-gray-900">About this course</h3>
+              <p className="whitespace-pre-wrap leading-relaxed text-gray-600">
                 {detailsCourse?.description || 'More details will be available soon.'}
               </p>
-            </div>
+            </DialogPanel>
           </div>
-          <div className="flex justify-end border-t bg-slate-50 p-4">
-            <Button onClick={() => setDetailsCourse(null)}>Close</Button>
-          </div>
+          <DialogFooter className="gap-3">
+            <Button variant="modal-secondary" onClick={() => setDetailsCourse(null)} className="h-10">
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1569,29 +1583,33 @@ export default function PublicTutorPage() {
             <DialogTitle>{scheduleCourse?.name}</DialogTitle>
             <DialogDescription>{scheduleCourse?.description}</DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <h4 className="mb-2 text-sm font-semibold">Weekly Schedule</h4>
-            {scheduleCourse?.schedule && scheduleCourse.schedule.length > 0 ? (
-              <div className="space-y-2">
-                {scheduleCourse.schedule.map((slot: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between rounded-lg border bg-gray-50 p-2 text-sm"
-                  >
-                    <span className="font-medium">{slot.dayOfWeek}</span>
-                    <span>
-                      {slot.startTime} ({slot.durationMinutes} mins)
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500">No fixed schedule for this course.</p>
-            )}
+          <div className="p-6 pt-0 space-y-4">
+            <DialogPanel>
+              <h4 className="mb-2 text-sm font-semibold text-gray-900">Weekly Schedule</h4>
+              {scheduleCourse?.schedule && scheduleCourse.schedule.length > 0 ? (
+                <div className="space-y-2">
+                  {scheduleCourse.schedule.map((slot: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between rounded-lg border border-gray-200 p-2 text-sm"
+                    >
+                      <span className="font-medium text-gray-900">{slot.dayOfWeek}</span>
+                      <span className="text-gray-600">
+                        {slot.startTime} ({slot.durationMinutes} mins)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">No fixed schedule for this course.</p>
+              )}
+            </DialogPanel>
           </div>
-          <div className="flex justify-end">
-            <Button onClick={() => setScheduleCourse(null)}>Close</Button>
-          </div>
+          <DialogFooter className="gap-3">
+            <Button variant="modal-secondary" onClick={() => setScheduleCourse(null)} className="h-10">
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1609,7 +1627,7 @@ export default function PublicTutorPage() {
             <DialogTitle>Choose a session</DialogTitle>
             <DialogDescription>{classroomPickerCourse?.name}</DialogDescription>
           </DialogHeader>
-          <div className="space-y-2 py-2">
+          <div className="p-6 pt-0 space-y-4">
             {sortedClassroomPickerSessions.map(s => {
               const id = (s.id || s.sessionId) as string
               const scheduledAtMs = new Date(s.scheduledAt ?? 0).getTime()
@@ -1617,13 +1635,13 @@ export default function PublicTutorPage() {
               const nowMs = Date.now()
               const canEnter = nowMs >= enterOpensAtMs
               return (
-                <div
+                <DialogPanel
                   key={id}
-                  className="flex flex-col gap-2 rounded-lg border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <div className="text-sm font-semibold text-slate-900">
+                      <div className="text-sm font-semibold text-gray-900">
                         {new Date(scheduledAtMs).toLocaleString()}
                       </div>
                       <Badge variant={s.status === 'active' ? 'default' : 'secondary'}>
@@ -1631,14 +1649,16 @@ export default function PublicTutorPage() {
                       </Badge>
                     </div>
                     {!canEnter && (
-                      <div className="mt-1 text-xs text-slate-500">
+                      <div className="mt-1 text-xs text-gray-600">
                         You can enter 20 minutes before start. Please come back at{' '}
                         {new Date(enterOpensAtMs).toLocaleTimeString()}.
                       </div>
                     )}
                   </div>
                   <Button
+                    variant="modal-primary"
                     size="sm"
+                    className="h-10"
                     onClick={() => {
                       if (!canEnter) {
                         toast.info(
@@ -1654,7 +1674,7 @@ export default function PublicTutorPage() {
                   >
                     Enter
                   </Button>
-                </div>
+                </DialogPanel>
               )
             })}
           </div>

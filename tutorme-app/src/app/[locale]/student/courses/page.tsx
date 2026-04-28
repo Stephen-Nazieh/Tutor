@@ -16,7 +16,6 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -45,8 +44,10 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogPanel,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
@@ -512,44 +513,46 @@ function CoursePageInner() {
             {detailCourse?.tutorHandle && (
               <p className="text-sm font-medium text-indigo-600">@{detailCourse.tutorHandle}</p>
             )}
-            <DialogDescription className="mt-4 text-base leading-relaxed">
-              {detailCourse?.description || 'No description provided.'}
-            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg bg-gray-50 p-4">
-                <p className="text-sm text-gray-500">Subject</p>
-                <p className="font-medium capitalize">{detailCourse?.subject}</p>
+          <div className="space-y-4 p-6">
+            <DialogPanel className="space-y-4 p-6">
+              <p className="text-base leading-relaxed text-gray-600">
+                {detailCourse?.description || 'No description provided.'}
+              </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-lg bg-gray-50 p-4">
+                  <p className="text-sm text-gray-600">Subject</p>
+                  <p className="font-medium text-gray-900 capitalize">{detailCourse?.subject}</p>
+                </div>
+                <div className="rounded-lg bg-gray-50 p-4">
+                  <p className="text-sm text-gray-600">Difficulty</p>
+                  <p className="font-medium text-gray-900">{detailCourse?.difficulty}</p>
+                </div>
+                <div className="rounded-lg bg-gray-50 p-4">
+                  <p className="text-sm text-gray-600">Total Lessons</p>
+                  <p className="font-medium text-gray-900">{detailCourse?._count?.lessons || 0}</p>
+                </div>
+                <div className="rounded-lg bg-gray-50 p-4">
+                  <p className="text-sm text-gray-600">Estimated Hours</p>
+                  <p className="font-medium text-gray-900">{detailCourse?.estimatedHours || 0}</p>
+                </div>
               </div>
-              <div className="rounded-lg bg-gray-50 p-4">
-                <p className="text-sm text-gray-500">Difficulty</p>
-                <p className="font-medium">{detailCourse?.difficulty}</p>
-              </div>
-              <div className="rounded-lg bg-gray-50 p-4">
-                <p className="text-sm text-gray-500">Total Lessons</p>
-                <p className="font-medium">{detailCourse?._count?.lessons || 0}</p>
-              </div>
-              <div className="rounded-lg bg-gray-50 p-4">
-                <p className="text-sm text-gray-500">Estimated Hours</p>
-                <p className="font-medium">{detailCourse?.estimatedHours || 0}</p>
-              </div>
-            </div>
 
-            {detailCourse?.enrollment?.startDate && (
-              <div className="mt-4 rounded-lg bg-blue-50 p-4">
-                <p className="text-sm text-blue-700">
-                  <span className="font-semibold">Commencement Date:</span>{' '}
-                  {new Date(detailCourse.enrollment.startDate).toLocaleDateString()}
-                </p>
-              </div>
-            )}
+              {detailCourse?.enrollment?.startDate && (
+                <div className="rounded-lg bg-blue-50 p-4">
+                  <p className="text-sm text-blue-700">
+                    <span className="font-semibold">Commencement Date:</span>{' '}
+                    {new Date(detailCourse.enrollment.startDate).toLocaleDateString()}
+                  </p>
+                </div>
+              )}
+            </DialogPanel>
           </div>
-          <CardFooter className="px-0 pb-0 pt-4">
-            <Button className="w-full" onClick={() => setDetailCourse(null)}>
+          <DialogFooter align="end" className="gap-3">
+            <Button variant="modal-secondary" className="h-10" onClick={() => setDetailCourse(null)}>
               Close Details
             </Button>
-          </CardFooter>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -563,33 +566,35 @@ function CoursePageInner() {
               {scheduleCourse?.availability?.summary && ` - ${scheduleCourse.availability.summary}`}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <h4 className="mb-2 text-sm font-semibold">Weekly Classes</h4>
-            {scheduleCourse?.availability?.slots && scheduleCourse.availability.slots.length > 0 ? (
-              <div className="space-y-2">
-                {scheduleCourse.availability.slots.map((slot, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between rounded-lg border bg-gray-50 p-3 text-sm"
-                  >
-                    <span className="font-medium">{slot.dayOfWeek}</span>
-                    <span>
-                      {slot.startTime} ({slot.durationMinutes} mins)
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-lg bg-gray-50 p-4 text-center">
-                <p className="text-sm text-gray-500">Flexible schedule (TBD with tutor)</p>
-              </div>
-            )}
+          <div className="p-6">
+            <DialogPanel className="space-y-4 p-6">
+              <h4 className="text-sm font-semibold text-gray-900">Weekly Classes</h4>
+              {scheduleCourse?.availability?.slots && scheduleCourse.availability.slots.length > 0 ? (
+                <div className="space-y-2">
+                  {scheduleCourse.availability.slots.map((slot, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between rounded-lg border bg-gray-50 p-3 text-sm"
+                    >
+                      <span className="font-medium text-gray-900">{slot.dayOfWeek}</span>
+                      <span className="text-gray-600">
+                        {slot.startTime} ({slot.durationMinutes} mins)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-lg bg-gray-50 p-4 text-center">
+                  <p className="text-sm text-gray-600">Flexible schedule (TBD with tutor)</p>
+                </div>
+              )}
+            </DialogPanel>
           </div>
-          <CardFooter className="px-0 pb-0 pt-4">
-            <Button className="w-full" onClick={() => setScheduleCourse(null)}>
+          <DialogFooter align="end" className="gap-3">
+            <Button variant="modal-secondary" className="h-10" onClick={() => setScheduleCourse(null)}>
               Close Schedule
             </Button>
-          </CardFooter>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -873,58 +878,64 @@ function CoursePageInner() {
             </DialogTitle>
             <DialogDescription>Select a session to enter.</DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="p-6">
             {isLoadingSessions ? (
-              <div className="flex justify-center p-8">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
-              </div>
+              <DialogPanel className="p-6">
+                <div className="flex justify-center p-8">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+                </div>
+              </DialogPanel>
             ) : sessionLoadError ? (
-              <div className="rounded-lg bg-red-50 py-8 text-center">
-                <p className="text-sm font-medium text-red-700">Failed to load sessions</p>
-                <p className="mt-1 text-xs text-red-600">{sessionLoadError}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-3"
-                  onClick={() => {
-                    if (sessionsCourseId) handleEnterClass(sessionsCourseId)
-                  }}
-                >
-                  Retry
-                </Button>
-              </div>
+              <DialogPanel className="p-6">
+                <div className="py-8 text-center">
+                  <p className="text-sm font-medium text-red-700">Failed to load sessions</p>
+                  <p className="mt-1 text-xs text-red-600">{sessionLoadError}</p>
+                  <Button
+                    variant="modal-secondary"
+                    size="sm"
+                    className="mt-3 h-10"
+                    onClick={() => {
+                      if (sessionsCourseId) handleEnterClass(sessionsCourseId)
+                    }}
+                  >
+                    Retry
+                  </Button>
+                </div>
+              </DialogPanel>
             ) : courseSessions.length === 0 ? (
-              <div className="rounded-lg bg-gray-50 py-6 text-center">
-                <p className="text-sm font-medium text-gray-700">
-                  No live sessions have been created yet.
-                </p>
-                <p className="mt-1 text-xs text-gray-500">
-                  Your tutor will start a session based on the course schedule.
-                </p>
-                {(() => {
-                  const course = myCourses.find(c => c.id === sessionsCourseId)
-                  const slots = course?.availability?.slots || []
-                  if (slots.length > 0) {
-                    return (
-                      <div className="mt-3 space-y-1.5">
-                        <p className="text-xs font-medium text-gray-600">Upcoming schedule:</p>
-                        {slots.map((slot: any, idx: number) => (
-                          <div
-                            key={idx}
-                            className="mx-auto flex max-w-xs items-center justify-between rounded-md border bg-white px-3 py-1.5 text-xs"
-                          >
-                            <span className="font-medium text-gray-700">{slot.day}</span>
-                            <span className="text-gray-500">
-                              {slot.time} ({slot.durationMinutes || 60} mins)
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  }
-                  return null
-                })()}
-              </div>
+              <DialogPanel className="p-6">
+                <div className="py-6 text-center">
+                  <p className="text-sm font-medium text-gray-700">
+                    No live sessions have been created yet.
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Your tutor will start a session based on the course schedule.
+                  </p>
+                  {(() => {
+                    const course = myCourses.find(c => c.id === sessionsCourseId)
+                    const slots = course?.availability?.slots || []
+                    if (slots.length > 0) {
+                      return (
+                        <div className="mt-3 space-y-1.5">
+                          <p className="text-xs font-medium text-gray-600">Upcoming schedule:</p>
+                          {slots.map((slot: any, idx: number) => (
+                            <div
+                              key={idx}
+                              className="mx-auto flex max-w-xs items-center justify-between rounded-md border bg-white px-3 py-1.5 text-xs"
+                            >
+                              <span className="font-medium text-gray-700">{slot.day}</span>
+                              <span className="text-gray-500">
+                                {slot.time} ({slot.durationMinutes || 60} mins)
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    }
+                    return null
+                  })()}
+                </div>
+              </DialogPanel>
             ) : (
               <SessionList
                 sessions={courseSessions}
@@ -949,11 +960,11 @@ function CoursePageInner() {
               />
             )}
           </div>
-          <CardFooter className="px-0 pb-0 pt-2">
-            <Button variant="outline" className="w-full" onClick={() => setSessionsCourseId(null)}>
+          <DialogFooter align="end" className="gap-3">
+            <Button variant="modal-secondary" className="h-10" onClick={() => setSessionsCourseId(null)}>
               Close
             </Button>
-          </CardFooter>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

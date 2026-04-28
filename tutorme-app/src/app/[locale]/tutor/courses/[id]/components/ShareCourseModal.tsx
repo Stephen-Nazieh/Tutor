@@ -8,6 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogPanel,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -117,62 +118,74 @@ export function ShareCourseModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="emails">Parent emails (comma or newline separated)</Label>
-            <Textarea
-              id="emails"
-              placeholder="parent1@example.com, parent2@example.com"
-              value={emails}
-              onChange={e => setEmails(e.target.value)}
-              rows={3}
-              className="resize-none"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="message">Message to parents</Label>
-            <Textarea
-              id="message"
-              placeholder="e.g. I recommend this course for your child. Please review the outline and let me know if you have questions."
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              rows={2}
-              className="resize-none"
-            />
-          </div>
+        <div className="space-y-4 px-6 py-4">
+          <DialogPanel className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="emails" className="text-gray-900">
+                Parent emails (comma or newline separated)
+              </Label>
+              <Textarea
+                id="emails"
+                placeholder="parent1@example.com, parent2@example.com"
+                value={emails}
+                onChange={e => setEmails(e.target.value)}
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="message" className="text-gray-900">
+                Message to parents
+              </Label>
+              <Textarea
+                id="message"
+                placeholder="e.g. I recommend this course for your child. Please review the outline and let me know if you have questions."
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                rows={2}
+                className="resize-none"
+              />
+            </div>
+          </DialogPanel>
 
           {results && results.length > 0 && (
-            <div className="max-h-32 space-y-2 overflow-y-auto rounded-lg border p-3">
-              <p className="text-sm font-medium">Results</p>
-              {results.map(r => (
-                <div key={r.email} className="flex justify-between gap-2 text-xs">
-                  <span className="truncate">{r.email}</span>
-                  <span
-                    className={
-                      r.status === 'sent'
-                        ? 'text-green-600'
-                        : r.status === 'already_shared'
-                          ? 'text-amber-600'
-                          : 'text-red-600'
-                    }
-                  >
-                    {r.status === 'sent' && 'Sent'}
-                    {r.status === 'already_shared' && 'Already shared'}
-                    {r.status === 'not_found' && 'Not found'}
-                    {r.status === 'not_parent' && 'Not a parent'}
-                    {r.status === 'failed' && (r.error ?? 'Failed')}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <DialogPanel>
+              <p className="mb-2 text-sm font-medium text-gray-900">Results</p>
+              <div className="max-h-32 space-y-2 overflow-y-auto">
+                {results.map(r => (
+                  <div key={r.email} className="flex justify-between gap-2 text-xs">
+                    <span className="truncate text-gray-900">{r.email}</span>
+                    <span
+                      className={
+                        r.status === 'sent'
+                          ? 'text-green-600'
+                          : r.status === 'already_shared'
+                            ? 'text-amber-600'
+                            : 'text-red-600'
+                      }
+                    >
+                      {r.status === 'sent' && 'Sent'}
+                      {r.status === 'already_shared' && 'Already shared'}
+                      {r.status === 'not_found' && 'Not found'}
+                      {r.status === 'not_parent' && 'Not a parent'}
+                      {r.status === 'failed' && (r.error ?? 'Failed')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </DialogPanel>
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={handleClose} disabled={sharing}>
+        <DialogFooter className="gap-3">
+          <Button variant="modal-secondary" onClick={handleClose} disabled={sharing}>
             Cancel
           </Button>
-          <Button onClick={handleShare} disabled={sharing || !emails.trim() || !message.trim()}>
+          <Button
+            variant="modal-primary"
+            onClick={handleShare}
+            disabled={sharing || !emails.trim() || !message.trim()}
+          >
             {sharing ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

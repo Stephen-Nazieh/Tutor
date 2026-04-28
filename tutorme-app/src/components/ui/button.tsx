@@ -131,6 +131,28 @@ const buttonVariants = cva(
           'active:bg-white/10',
         ],
 
+        // Modal Primary - Universal popup primary action (works on white panels)
+        'modal-primary': [
+          'bg-blue-700 text-white',
+          'rounded-md',
+          'h-10 px-6',
+          'shadow-sm',
+          'hover:bg-blue-800',
+          'active:bg-blue-900',
+          'disabled:opacity-50',
+        ],
+
+        // Modal Secondary - Universal popup secondary action (works on white panels)
+        'modal-secondary': [
+          'bg-transparent text-gray-700',
+          'border border-gray-300',
+          'rounded-md',
+          'h-10 px-6',
+          'hover:bg-gray-50',
+          'active:bg-gray-100',
+          'disabled:opacity-50',
+        ],
+
         // Glass - Translucent effect
         glass: [
           'bg-background/80 backdrop-blur-md',

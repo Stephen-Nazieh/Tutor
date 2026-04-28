@@ -8,6 +8,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogPanel,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
@@ -208,162 +209,164 @@ export function CreateCourseDialog({
             lessons after creation.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          {apiError && (
-            <p
-              id="create-course-api-error"
-              className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
-              role="alert"
-            >
-              {apiError}
-            </p>
-          )}
+        <div className="px-6 py-4">
+          <DialogPanel className="space-y-4">
+            {apiError && (
+              <p
+                id="create-course-api-error"
+                className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
+                role="alert"
+              >
+                {apiError}
+              </p>
+            )}
 
-          <div className="space-y-3">
-            <Label>Categories (from your tutor registration)</Label>
-            <div className="flex flex-wrap gap-2">
-              {selectedCategories.length === 0 && (
-                <p className="text-sm text-gray-500">No categories selected yet.</p>
-              )}
-              {selectedCategories.map(category => (
-                <span
-                  key={category}
-                  className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700"
-                >
-                  {category}
-                  <button
-                    type="button"
-                    onClick={() => setCategories(prev => prev.filter(c => c !== category))}
-                    className="text-blue-400 hover:text-blue-700"
+            <div className="space-y-3">
+              <Label className="text-gray-900">Categories (from your tutor registration)</Label>
+              <div className="flex flex-wrap gap-2">
+                {selectedCategories.length === 0 && (
+                  <p className="text-sm text-gray-600">No categories selected yet.</p>
+                )}
+                {selectedCategories.map(category => (
+                  <span
+                    key={category}
+                    className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-700"
                   >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                value={categoryInput}
-                onChange={e => setCategoryInput(e.target.value)}
-                placeholder="Add a category"
-                disabled={creating}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAddCategory}
-                disabled={creating}
-              >
-                <Plus className="mr-1 h-4 w-4" />
-                Add
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Subject *</Label>
-            <Select value={form.subject} onValueChange={v => setForm({ ...form, subject: v })}>
-              <SelectTrigger disabled={creating}>
-                <SelectValue placeholder="Select subject" />
-              </SelectTrigger>
-              <SelectContent>
-                {allSubjects.map(subject => (
-                  <SelectItem key={subject} value={subject}>
-                    {subject}
-                  </SelectItem>
+                    {category}
+                    <button
+                      type="button"
+                      onClick={() => setCategories(prev => prev.filter(c => c !== category))}
+                      className="text-blue-400 hover:text-blue-700"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
                 ))}
-              </SelectContent>
-            </Select>
-            <div className="flex gap-2">
-              <Input
-                value={subjectInput}
-                onChange={e => setSubjectInput(e.target.value)}
-                placeholder="Add a subject"
-                disabled={creating}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleAddSubject}
-                disabled={creating}
-              >
-                <Plus className="mr-1 h-4 w-4" />
-                Add
-              </Button>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={categoryInput}
+                  onChange={e => setCategoryInput(e.target.value)}
+                  placeholder="Add a category"
+                  disabled={creating}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddCategory}
+                  disabled={creating}
+                >
+                  <Plus className="mr-1 h-4 w-4" />
+                  Add
+                </Button>
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">
-              Subjects are suggested from your categories. You can add more.
-            </p>
-          </div>
 
-          <div>
-            <Label>Description</Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={creating || generatingDescription || !form.subject}
-                onClick={async () => {
-                  setGeneratingDescription(true)
-                  try {
-                    const res = await fetch('/api/courses/generate-description', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      credentials: 'include',
-                      body: JSON.stringify({
-                        subject: form.subject,
-                      }),
-                    })
-                    const data = await res.json()
-                    if (res.ok && data.description) {
-                      setForm(f => ({ ...f, description: data.description }))
-                      toast.success('Description generated')
-                    } else {
-                      toast.error(data.error ?? 'Failed to generate description')
+            <div className="space-y-2">
+              <Label className="text-gray-900">Subject *</Label>
+              <Select value={form.subject} onValueChange={v => setForm({ ...form, subject: v })}>
+                <SelectTrigger disabled={creating}>
+                  <SelectValue placeholder="Select subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allSubjects.map(subject => (
+                    <SelectItem key={subject} value={subject}>
+                      {subject}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex gap-2">
+                <Input
+                  value={subjectInput}
+                  onChange={e => setSubjectInput(e.target.value)}
+                  placeholder="Add a subject"
+                  disabled={creating}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddSubject}
+                  disabled={creating}
+                >
+                  <Plus className="mr-1 h-4 w-4" />
+                  Add
+                </Button>
+              </div>
+              <p className="text-xs text-gray-600">
+                Subjects are suggested from your categories. You can add more.
+              </p>
+            </div>
+
+            <div>
+              <Label className="text-gray-900">Description</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={creating || generatingDescription || !form.subject}
+                  onClick={async () => {
+                    setGeneratingDescription(true)
+                    try {
+                      const res = await fetch('/api/courses/generate-description', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          subject: form.subject,
+                        }),
+                      })
+                      const data = await res.json()
+                      if (res.ok && data.description) {
+                        setForm(f => ({ ...f, description: data.description }))
+                        toast.success('Description generated')
+                      } else {
+                        toast.error(data.error ?? 'Failed to generate description')
+                      }
+                    } catch {
+                      toast.error('Failed to generate description')
+                    } finally {
+                      setGeneratingDescription(false)
                     }
-                  } catch {
-                    toast.error('Failed to generate description')
-                  } finally {
-                    setGeneratingDescription(false)
-                  }
-                }}
-              >
-                {generatingDescription && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
-                Generate description
-              </Button>
+                  }}
+                >
+                  {generatingDescription && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+                  Generate description
+                </Button>
+              </div>
+              <Textarea
+                value={form.description}
+                onChange={e => setForm({ ...form, description: e.target.value })}
+                placeholder="AI-generated or write your own. What will students learn?"
+                disabled={creating}
+                rows={3}
+                className="mt-2"
+              />
             </div>
-            <Textarea
-              value={form.description}
-              onChange={e => setForm({ ...form, description: e.target.value })}
-              placeholder="AI-generated or write your own. What will students learn?"
-              disabled={creating}
-              rows={3}
-              className="mt-2"
-            />
-          </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isLiveOnline"
-              checked={form.isLiveOnline}
-              onChange={e => setForm({ ...form, isLiveOnline: e.target.checked })}
-              disabled={creating}
-              className="rounded"
-            />
-            <Label htmlFor="isLiveOnline">
-              Make course live/online so students can join now (uncheck to keep offline for later)
-            </Label>
-          </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isLiveOnline"
+                checked={form.isLiveOnline}
+                onChange={e => setForm({ ...form, isLiveOnline: e.target.checked })}
+                disabled={creating}
+                className="rounded"
+              />
+              <Label htmlFor="isLiveOnline" className="text-gray-900">
+                Make course live/online so students can join now (uncheck to keep offline for later)
+              </Label>
+            </div>
+          </DialogPanel>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={creating}>
+        <DialogFooter className="gap-3">
+          <Button variant="modal-secondary" onClick={() => handleOpenChange(false)} disabled={creating}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={creating} aria-busy={creating}>
+          <Button variant="modal-primary" onClick={handleSubmit} disabled={creating} aria-busy={creating}>
             {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Continue
           </Button>

@@ -15,6 +15,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogPanel,
 } from '@/components/ui/dialog'
 import { toast } from 'sonner'
 import {
@@ -877,27 +878,30 @@ export default function StudentAccount() {
               <AlertTriangle className="h-5 w-5" />
               Delete Account
             </DialogTitle>
-            <DialogDescription>
-              This action is permanent and cannot be undone. All your data will be permanently
-              deleted.
-            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              To confirm deletion, type <strong>DELETE</strong> below:
-            </p>
-            <Input
-              value={deleteConfirmation}
-              onChange={e => setDeleteConfirmation(e.target.value)}
-              placeholder="Type DELETE"
-            />
+          <div className="p-6">
+            <DialogPanel className="space-y-4 p-6">
+              <p className="text-sm text-gray-600">
+                This action is permanent and cannot be undone. All your data will be permanently
+                deleted.
+              </p>
+              <p className="text-sm text-gray-600">
+                To confirm deletion, type <strong>DELETE</strong> below:
+              </p>
+              <Input
+                value={deleteConfirmation}
+                onChange={e => setDeleteConfirmation(e.target.value)}
+                placeholder="Type DELETE"
+              />
+            </DialogPanel>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+          <DialogFooter align="end" className="gap-3">
+            <Button variant="modal-secondary" className="h-10" onClick={() => setShowDeleteDialog(false)}>
               Cancel
             </Button>
             <Button
               variant="destructive"
+              className="h-10"
               onClick={handleDeleteAccount}
               disabled={deleteConfirmation !== 'DELETE'}
             >
@@ -915,22 +919,26 @@ export default function StudentAccount() {
               <Power className="h-5 w-5" />
               Deactivate Account
             </DialogTitle>
-            <DialogDescription>
-              Your account will be temporarily disabled. You can reactivate it by logging in again.
-            </DialogDescription>
           </DialogHeader>
-          <p className="text-sm text-gray-600">While deactivated:</p>
-          <ul className="list-disc pl-5 text-sm text-gray-600">
-            <li>You won&apos;t receive any notifications</li>
-            <li>Your profile will be hidden</li>
-            <li>Your data will be preserved</li>
-            <li>You can reactivate anytime by logging in</li>
-          </ul>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeactivateDialog(false)}>
+          <div className="p-6">
+            <DialogPanel className="space-y-4 p-6">
+              <p className="text-sm text-gray-600">
+                Your account will be temporarily disabled. You can reactivate it by logging in again.
+              </p>
+              <p className="text-sm text-gray-600">While deactivated:</p>
+              <ul className="list-disc pl-5 text-sm text-gray-600">
+                <li>You won&apos;t receive any notifications</li>
+                <li>Your profile will be hidden</li>
+                <li>Your data will be preserved</li>
+                <li>You can reactivate anytime by logging in</li>
+              </ul>
+            </DialogPanel>
+          </div>
+          <DialogFooter align="end" className="gap-3">
+            <Button variant="modal-secondary" className="h-10" onClick={() => setShowDeactivateDialog(false)}>
               Cancel
             </Button>
-            <Button variant="default" onClick={handleDeactivateAccount}>
+            <Button variant="modal-primary" className="h-10" onClick={handleDeactivateAccount}>
               Deactivate
             </Button>
           </DialogFooter>
