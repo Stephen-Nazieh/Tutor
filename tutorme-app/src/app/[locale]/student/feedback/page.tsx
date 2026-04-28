@@ -396,14 +396,29 @@ function StudentFeedbackContent() {
     setChatMessages([])
   }, [selectedSessionId])
 
+  // Fetch CSRF token helper
+  const getCsrfToken = useCallback(async () => {
+    try {
+      const res = await fetch('/api/csrf', { credentials: 'include' })
+      const data = await res.json().catch(() => ({}))
+      return data?.token ?? null
+    } catch {
+      return null
+    }
+  }, [])
+
   useEffect(() => {
     if (!selectedSessionId) return
     let cancelled = false
     const loadSession = async () => {
       try {
+        const csrfToken = await getCsrfToken()
         const res = await fetch(`/api/class/rooms/${selectedSessionId}/join`, {
           method: 'POST',
           credentials: 'include',
+          headers: {
+            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+          },
         })
         if (!res.ok) {
           const err = await res.json().catch(() => ({}))
@@ -440,7 +455,7 @@ function StudentFeedbackContent() {
     return () => {
       cancelled = true
     }
-  }, [selectedSessionId])
+  }, [selectedSessionId, getCsrfToken])
 
   useEffect(() => {
     if (!socket) return
