@@ -771,6 +771,19 @@ function TutorDashboardContent() {
                                 </Badge>
                               </Link>
                             </div>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              disabled={launchingCourseId === course.id}
+                              onClick={() => handleEnterCourseClassroom(course)}
+                            >
+                              {launchingCourseId === course.id ? (
+                                <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                              ) : (
+                                <Video className="mr-1 h-3 w-3" />
+                              )}
+                              Launch
+                            </Button>
                             <Button asChild variant="outline" size="sm">
                               <Link
                                 href={withLocalePath(
@@ -845,6 +858,21 @@ function TutorDashboardContent() {
                 <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
                   <Calendar className="mx-auto mb-2 h-8 w-8 text-gray-300" />
                   <p>No sessions found for this course.</p>
+                  {selectedCourseForCancel && (
+                    <Button
+                      size="sm"
+                      className="mt-3"
+                      disabled={launchingCourseId === selectedCourseForCancel.id}
+                      onClick={() => handleEnterCourseClassroom(selectedCourseForCancel)}
+                    >
+                      {launchingCourseId === selectedCourseForCancel.id ? (
+                        <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      ) : (
+                        <Video className="mr-1 h-3 w-3" />
+                      )}
+                      Launch Classroom
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <ScrollArea className="max-h-[400px]">
