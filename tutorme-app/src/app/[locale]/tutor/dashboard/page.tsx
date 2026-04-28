@@ -103,6 +103,7 @@ type EnrolledCourse = {
   currency?: string | null
   enrollmentCount: number
   sessionCount?: number
+  upcomingSessionsCount?: number
   schedule?: ScheduleSlot[] | null
 }
 
@@ -770,7 +771,11 @@ function TutorDashboardContent() {
                                 )}
                                 onClick={() => handleOpenSessionsModal(course)}
                               >
-                                {course.sessionCount ?? 0} sessions
+                                {course.upcomingSessionsCount
+                                  ? `${course.upcomingSessionsCount} session${course.upcomingSessionsCount === 1 ? '' : 's'}`
+                                  : course.schedule && course.schedule.length > 0
+                                    ? `${course.schedule.length} slot${course.schedule.length === 1 ? '' : 's'}`
+                                    : '0 sessions'}
                               </Badge>
                               <Link
                                 href={withLocalePath(`/tutor/courses/${course.id}/enrollments`)}
@@ -898,7 +903,10 @@ function TutorDashboardContent() {
                       const isScheduled = session.status === 'scheduled'
                       const isActive = session.status === 'active'
                       const isEnded = session.status === 'ended'
-                      const canCancel = !isVirtual && (isScheduled || isActive)
+                      const isPast =
+                        session.scheduledAt &&
+                        new Date(session.scheduledAt).getTime() < Date.now() - 5 * 60 * 1000
+                      const canCancel = !isVirtual && (isScheduled || isActive) && !isPast
 
                       // For virtual sessions, compute dynamic status
                       let displayStatus = session.status

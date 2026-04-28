@@ -154,122 +154,83 @@ export function MonitoringPanel({
 
   return (
     <div className="animate-in fade-in relative h-full w-full duration-300">
-      <div className="flex h-full w-full gap-4">
-        <div className="w-52 shrink-0 rounded-xl border border-slate-200 bg-white/70 p-2 backdrop-blur-sm">
-          <div className="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
-            Students
-          </div>
-          <ScrollArea className="h-full pr-1">
-            <div className="flex flex-col gap-1">
-              {displayStudents.map((student: any) => {
-                const stateUpdate = studentStates[student.id]
-                const isOnline = !!stateUpdate || student.status === 'online'
-                return (
-                  <button
-                    key={student.id}
-                    type="button"
-                    onClick={() => onNavigateToWhiteboard?.(student.id, student.name)}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {displayStudents.map((student: any) => {
+          const stateUpdate = studentStates[student.id]
+          const activeTab = stateUpdate?.payload?.activeTab
+          const activeTaskId = stateUpdate?.payload?.activeTaskId
+          const isWhiteboard = activeTab === 'my-board' || activeTab === 'tutor-board'
+          const isOnline = !!stateUpdate || student.status === 'online'
+
+          return (
+            <Card
+              key={student.id}
+              className={cn(
+                'overflow-hidden border-slate-200 bg-white/50 backdrop-blur-sm transition-all hover:shadow-md',
+                selectedStudentId === student.id && 'ring-2 ring-indigo-200'
+              )}
+            >
+              <CardHeader className="border-b bg-slate-50/50 px-4 py-3">
+                <CardTitle className="flex items-center justify-between text-base">
+                  <span className="font-semibold text-slate-800">{student.name}</span>
+                  <span
                     className={cn(
-                      'flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm transition-colors',
-                      selectedStudentId === student.id
-                        ? 'bg-indigo-50 text-indigo-700'
-                        : 'hover:bg-slate-50'
+                      'flex h-2 w-2 rounded-full',
+                      isOnline ? 'animate-pulse bg-green-500' : 'bg-slate-300'
                     )}
-                  >
-                    <span className="truncate font-medium">{student.name}</span>
-                    <span
-                      className={cn(
-                        'ml-2 flex h-2 w-2 shrink-0 rounded-full',
-                        isOnline ? 'animate-pulse bg-green-500' : 'bg-slate-300'
-                      )}
-                    />
-                  </button>
-                )
-              })}
-            </div>
-          </ScrollArea>
-        </div>
-
-        <div className="min-w-0 flex-1">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {displayStudents.map((student: any) => {
-              const stateUpdate = studentStates[student.id]
-              const activeTab = stateUpdate?.payload?.activeTab
-              const activeTaskId = stateUpdate?.payload?.activeTaskId
-              const isWhiteboard = activeTab === 'my-board' || activeTab === 'tutor-board'
-              const isOnline = !!stateUpdate || student.status === 'online'
-
-              return (
-                <Card
-                  key={student.id}
-                  className={cn(
-                    'overflow-hidden border-slate-200 bg-white/50 backdrop-blur-sm transition-all hover:shadow-md',
-                    selectedStudentId === student.id && 'ring-2 ring-indigo-200'
-                  )}
-                >
-                  <CardHeader className="border-b bg-slate-50/50 px-4 py-3">
-                    <CardTitle className="flex items-center justify-between text-base">
-                      <span className="font-semibold text-slate-800">{student.name}</span>
-                      <span
-                        className={cn(
-                          'flex h-2 w-2 rounded-full',
-                          isOnline ? 'animate-pulse bg-green-500' : 'bg-slate-300'
-                        )}
-                        title="Live"
-                      />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4">
-                    <div className="space-y-4">
-                      <div className="rounded-lg bg-slate-50 p-3 text-sm">
-                        <div className="mb-1 flex items-center justify-between">
-                          <span className="text-slate-500">Current View:</span>
-                          <span className="font-medium capitalize text-indigo-600">
-                            {activeTab?.replace('-', ' ') || 'No data yet'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-500">Activity:</span>
-                          <span
-                            className="max-w-[120px] truncate font-medium text-slate-700"
-                            title={activeTaskId || 'None'}
-                          >
-                            {isWhiteboard
-                              ? 'Drawing'
-                              : activeTaskId
-                                ? 'Reading Task'
-                                : isOnline
-                                  ? 'Idle'
-                                  : 'Offline'}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button
-                          onClick={() => onNavigateToWhiteboard?.(student.id, student.name)}
-                          variant="outline"
-                          className="flex-1 gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                        >
-                          <MonitorPlay className="h-4 w-4" />
-                          Whiteboard
-                        </Button>
-                        <Button
-                          onClick={() => handleSendHelp(student.id, student.name)}
-                          variant="outline"
-                          className="flex-1 gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
-                        >
-                          <HandHeart className="h-4 w-4" />
-                          Help
-                        </Button>
-                      </div>
+                    title="Live"
+                  />
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="space-y-4">
+                  <div className="rounded-lg bg-slate-50 p-3 text-sm">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-slate-500">Current View:</span>
+                      <span className="font-medium capitalize text-indigo-600">
+                        {activeTab?.replace('-', ' ') || 'No data yet'}
+                      </span>
                     </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-500">Activity:</span>
+                      <span
+                        className="max-w-[120px] truncate font-medium text-slate-700"
+                        title={activeTaskId || 'None'}
+                      >
+                        {isWhiteboard
+                          ? 'Drawing'
+                          : activeTaskId
+                            ? 'Reading Task'
+                            : isOnline
+                              ? 'Idle'
+                              : 'Offline'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => onNavigateToWhiteboard?.(student.id, student.name)}
+                      variant="outline"
+                      className="flex-1 gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                    >
+                      <MonitorPlay className="h-4 w-4" />
+                      Whiteboard
+                    </Button>
+                    <Button
+                      onClick={() => handleSendHelp(student.id, student.name)}
+                      variant="outline"
+                      className="flex-1 gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
+                    >
+                      <HandHeart className="h-4 w-4" />
+                      Help
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       {/* Solocorn Assistant Floating Widget */}

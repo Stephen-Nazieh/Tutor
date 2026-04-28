@@ -797,6 +797,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       id: string
       name: string
     } | null>(null)
+    const [monitorRosterHidden, setMonitorRosterHidden] = useState(false)
+    const [monitorRosterWidth] = useState(240)
 
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
     const [comingSoonDialog, setComingSoonDialog] = useState(false)
@@ -6772,7 +6774,13 @@ FEEDBACK: [your explanation]`
                             <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden px-0">
                               <Tabs
                                 value={testPciActiveTab}
-                                onValueChange={setTestPciActiveTab}
+                                onValueChange={value => {
+                                  if (mainTab === 'live' && value === 'student1') {
+                                    setTestPciActiveTab(value)
+                                    return
+                                  }
+                                  setTestPciActiveTab(value)
+                                }}
                                 className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-stretch overflow-hidden"
                               >
                                 <TabsList className="mb-4 grid w-full grid-cols-4 gap-2 bg-transparent p-0 shadow-none">
@@ -7126,26 +7134,41 @@ FEEDBACK: [your explanation]`
                                         {(() => {
                                           if (mainTab === 'live' && tab.id === 'student1') {
                                             return (
-                                              <div className="flex h-full w-full flex-col">
-                                                {monitorSelectedStudent && (
-                                                  <div className="flex items-center justify-between border-b bg-white px-4 py-2 text-sm">
-                                                    <div className="font-medium text-slate-800">
-                                                      Viewing: {monitorSelectedStudent.name}
+                                              <Dialog
+                                                open
+                                                onOpenChange={open => {
+                                                  if (!open) {
+                                                    setTestPciActiveTab('student-monitor')
+                                                  }
+                                                }}
+                                              >
+                                                <DialogContent className="h-[90vh] w-[90vw] max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-white p-0">
+                                                  <div className="flex h-full w-full flex-col">
+                                                    <div className="flex items-center justify-between border-b bg-white px-4 py-2 text-sm">
+                                                      <div className="font-medium text-slate-800">
+                                                        {monitorSelectedStudent
+                                                          ? `Viewing: ${monitorSelectedStudent.name}`
+                                                          : 'Whiteboard'}
+                                                      </div>
+                                                      {monitorSelectedStudent && (
+                                                        <Button
+                                                          variant="ghost"
+                                                          size="sm"
+                                                          className="h-8 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                                          onClick={() =>
+                                                            setMonitorSelectedStudent(null)
+                                                          }
+                                                        >
+                                                          Clear
+                                                        </Button>
+                                                      )}
                                                     </div>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="sm"
-                                                      className="h-8 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                                                      onClick={() =>
-                                                        setMonitorSelectedStudent(null)
-                                                      }
-                                                    >
-                                                      Clear
-                                                    </Button>
+                                                    <div className="min-h-0 flex-1">
+                                                      <EnhancedWhiteboard videoOverlay={false} />
+                                                    </div>
                                                   </div>
-                                                )}
-                                                <EnhancedWhiteboard videoOverlay={false} />
-                                              </div>
+                                                </DialogContent>
+                                              </Dialog>
                                             )
                                           }
 
@@ -7161,25 +7184,110 @@ FEEDBACK: [your explanation]`
                                               )
                                             }
                                             return (
-                                              <div className="h-full w-full">
-                                                <MonitoringPanel
-                                                  socket={insightsProps.socket}
-                                                  sessionId={insightsProps.sessionId}
-                                                  students={sessionStudents}
-                                                  selectedStudentId={
-                                                    monitorSelectedStudent?.id ?? null
-                                                  }
-                                                  onNavigateToWhiteboard={(
-                                                    studentId,
-                                                    studentName
-                                                  ) => {
-                                                    setMonitorSelectedStudent({
-                                                      id: studentId,
-                                                      name: studentName,
-                                                    })
-                                                    setTestPciActiveTab('student1')
+                                              <div className="relative h-full w-full">
+                                                <div className="h-full w-full">
+                                                  <MonitoringPanel
+                                                    socket={insightsProps.socket}
+                                                    sessionId={insightsProps.sessionId}
+                                                    students={sessionStudents}
+                                                    selectedStudentId={
+                                                      monitorSelectedStudent?.id ?? null
+                                                    }
+                                                    onNavigateToWhiteboard={(
+                                                      studentId,
+                                                      studentName
+                                                    ) => {
+                                                      setMonitorSelectedStudent({
+                                                        id: studentId,
+                                                        name: studentName,
+                                                      })
+                                                      setTestPciActiveTab('student1')
+                                                    }}
+                                                  />
+                                                </div>
+
+                                                <div
+                                                  className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full border border-r-0 border-[#E5E7EB] bg-white shadow-[-2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
+                                                  style={{
+                                                    right: monitorRosterHidden
+                                                      ? 0
+                                                      : monitorRosterWidth - 16,
                                                   }}
-                                                />
+                                                  onClick={() =>
+                                                    setMonitorRosterHidden(!monitorRosterHidden)
+                                                  }
+                                                  title={
+                                                    monitorRosterHidden
+                                                      ? 'Show students'
+                                                      : 'Hide students'
+                                                  }
+                                                >
+                                                  {monitorRosterHidden ? (
+                                                    <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
+                                                  ) : (
+                                                    <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
+                                                  )}
+                                                </div>
+
+                                                {!monitorRosterHidden && (
+                                                  <div
+                                                    className="absolute right-0 top-0 z-40 flex h-full flex-col border-l border-[#E5E7EB] bg-white shadow-[-8px_0_20px_rgba(0,0,0,0.06)]"
+                                                    style={{ width: monitorRosterWidth }}
+                                                  >
+                                                    <div className="flex items-center justify-between border-b px-3 py-2">
+                                                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                                                        Students
+                                                      </div>
+                                                    </div>
+                                                    <ScrollArea className="min-h-0 flex-1 p-2">
+                                                      <div className="flex flex-col gap-1">
+                                                        {(sessionStudents || []).map((s: any) => {
+                                                          const studentId =
+                                                            s?.id ?? s?.userId ?? s?.studentId
+                                                          const studentName =
+                                                            s?.name ?? s?.studentName ?? 'Student'
+                                                          const isSelected =
+                                                            monitorSelectedStudent?.id === studentId
+                                                          const isOnline = s?.status === 'online'
+
+                                                          if (!studentId) return null
+
+                                                          return (
+                                                            <button
+                                                              key={studentId}
+                                                              type="button"
+                                                              onClick={() => {
+                                                                setMonitorSelectedStudent({
+                                                                  id: studentId,
+                                                                  name: studentName,
+                                                                })
+                                                                setTestPciActiveTab('student1')
+                                                              }}
+                                                              className={cn(
+                                                                'flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm transition-colors',
+                                                                isSelected
+                                                                  ? 'bg-indigo-50 text-indigo-700'
+                                                                  : 'hover:bg-slate-50'
+                                                              )}
+                                                            >
+                                                              <span className="truncate font-medium">
+                                                                {studentName}
+                                                              </span>
+                                                              <span
+                                                                className={cn(
+                                                                  'ml-2 flex h-2 w-2 shrink-0 rounded-full',
+                                                                  isOnline
+                                                                    ? 'animate-pulse bg-green-500'
+                                                                    : 'bg-slate-300'
+                                                                )}
+                                                              />
+                                                            </button>
+                                                          )
+                                                        })}
+                                                      </div>
+                                                    </ScrollArea>
+                                                  </div>
+                                                )}
                                               </div>
                                             )
                                           }
