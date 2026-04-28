@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, courseLesson, courseVariant, liveSession, tutorAsset } from '@/lib/db/schema'
+import { dailyProvider } from '@/lib/video/daily-provider'
 import { eq, and, inArray, gte, lte, sql } from 'drizzle-orm'
 import crypto from 'crypto'
 
@@ -93,6 +94,9 @@ async function insertLiveSessionRaw(
     scheduledAt: Date
     status: string
     maxStudents: number
+    durationMinutes?: number
+    roomId?: string | null
+    roomUrl?: string | null
   }
 ): Promise<void> {
   // Discover actual columns
@@ -123,6 +127,9 @@ async function insertLiveSessionRaw(
 
   const hasMaxStudents = columns.has('maxStudents')
   const hasDescription = columns.has('description')
+  const hasDurationMinutes = columns.has('durationMinutes')
+  const hasRoomId = columns.has('roomId')
+  const hasRoomUrl = columns.has('roomUrl')
 
   // Build column list and values
   const colNames = ['"id"', '"tutorId"', '"courseId"', '"title"', `"${categoryCol}"`]
@@ -145,6 +152,21 @@ async function insertLiveSessionRaw(
   if (hasMaxStudents) {
     colNames.push('"maxStudents"')
     values.push(data.maxStudents)
+  }
+
+  if (hasDurationMinutes && typeof data.durationMinutes === 'number') {
+    colNames.push('"durationMinutes"')
+    values.push(data.durationMinutes)
+  }
+
+  if (hasRoomId && data.roomId) {
+    colNames.push('"roomId"')
+    values.push(data.roomId)
+  }
+
+  if (hasRoomUrl && data.roomUrl) {
+    colNames.push('"roomUrl"')
+    values.push(data.roomUrl)
   }
 
   const colList = colNames.join(', ')
@@ -446,8 +468,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             if (existingDates.has(dateKey)) continue
 
             try {
+              const liveSessionId = crypto.randomUUID()
+              const room = await dailyProvider.createRoom(liveSessionId, {
+                maxParticipants: 10,
+                durationMinutes: session.durationMinutes,
+              })
               await insertLiveSessionRaw(tx, {
-                sessionId: crypto.randomUUID(),
+                sessionId: liveSessionId,
                 tutorId: userId,
                 courseId: publishedCourseId,
                 title: session.title,
@@ -456,6 +483,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                 scheduledAt: session.scheduledAt,
                 status: 'scheduled',
                 maxStudents: 50,
+                durationMinutes: session.durationMinutes,
+                roomId: room.id,
+                roomUrl: room.url,
               })
             } catch (insertError: any) {
               const pgError = insertError?.cause || insertError

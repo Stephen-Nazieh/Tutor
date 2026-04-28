@@ -81,31 +81,27 @@ export function DailyVideoFrame({ roomUrl, token, className, autoRecord }: Daily
     )
   }
 
-  // NOTE: Video feature is temporarily disabled as per design requirements.
-  // We return null to completely hide the "Joining video..." and black box.
-  return null
-
-  // return (
-  //   <div
-  //     className={`relative flex flex-col overflow-hidden rounded-lg bg-black ${className || ''}`}
-  //   >
-  //     <div ref={containerRef} className="flex-1" />
-  //     <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm">
-  //       <button
-  //         type="button"
-  //         onClick={toggleAudio}
-  //         className={`rounded-full px-2 py-1 text-xs font-medium ${isAudioEnabled ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
-  //       >
-  //         {isAudioEnabled ? 'Mic On' : 'Mic Off'}
-  //       </button>
-  //       <button
-  //         type="button"
-  //         onClick={toggleVideo}
-  //         className={`rounded-full px-2 py-1 text-xs font-medium ${isVideoEnabled ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
-  //       >
-  //         {isVideoEnabled ? 'Cam On' : 'Cam Off'}
-  //       </button>
-  //     </div>
-  //   </div>
-  // )
+  return (
+    <div
+      className={`relative flex flex-col overflow-hidden rounded-lg bg-black ${className || ''}`}
+    >
+      <div ref={containerRef} className="flex-1" />
+      <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-2 rounded-full bg-black/60 px-3 py-1.5 backdrop-blur-sm">
+        <button
+          type="button"
+          onClick={toggleAudio}
+          className={`rounded-full px-2 py-1 text-xs font-medium ${isAudioEnabled ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+        >
+          {isAudioEnabled ? 'Mic On' : 'Mic Off'}
+        </button>
+        <button
+          type="button"
+          onClick={toggleVideo}
+          className={`rounded-full px-2 py-1 text-xs font-medium ${isVideoEnabled ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}
+        >
+          {isVideoEnabled ? 'Cam On' : 'Cam Off'}
+        </button>
+      </div>
+    </div>
+  )
 }
