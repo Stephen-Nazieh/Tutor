@@ -373,7 +373,8 @@ export default function StudentTutorDirectoryPage() {
                 'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
                 'shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_12px_30px_rgba(0,0,0,0.35)]',
                 'hover:-translate-y-[2px] hover:brightness-105',
-                'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
+                'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]',
+                'h-full min-h-[420px]'
               )}
               style={{
                 backgroundImage:
@@ -381,8 +382,9 @@ export default function StudentTutorDirectoryPage() {
               }}
               onClick={() => router.push(`/${locale}/u/${tutor.username}`)}
             >
-              <div className="flex flex-col p-5">
-                <div className="flex items-start gap-4">
+              <div className="flex h-full flex-col p-5">
+                {/* Header Zone — fixed height */}
+                <div className="flex min-h-[96px] items-start gap-4">
                   <div className="h-20 w-20 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)] sm:h-24 sm:w-24">
                     <img
                       src={tutor.avatarUrl || undefined}
@@ -394,7 +396,7 @@ export default function StudentTutorDirectoryPage() {
                   <div className="flex min-w-0 flex-1 flex-col pt-1">
                     <div className="flex items-start justify-between">
                       <div className="min-w-0 flex-1 pr-2">
-                        <h3 className="truncate text-lg font-semibold text-slate-50">
+                        <h3 className="truncate text-lg font-semibold leading-tight text-slate-50">
                           {tutor.name}
                         </h3>
                         <p className="mt-1 text-xs font-medium text-slate-300">@{tutor.username}</p>
@@ -410,37 +412,36 @@ export default function StudentTutorDirectoryPage() {
                       </button>
                     </div>
 
-                    <p className="mt-2 line-clamp-2 text-xs text-slate-300">
+                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-300">
                       {tutor.bio || 'Experienced tutor ready to help you improve quickly.'}
                     </p>
                   </div>
                 </div>
 
-                <div className="mb-3 mt-4">
+                {/* Rating Zone */}
+                <div className="mt-3 min-h-[28px]">
                   <StarRating
                     rating={tutor.averageRating || 0}
                     count={tutor.totalReviewCount || 0}
                   />
                 </div>
 
-                <div className="mb-3 flex flex-wrap items-center gap-1.5">
-                  {tutor.categories.slice(0, 3).map(category => (
-                    <span
-                      key={`${tutor.id}:${category}`}
-                      className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-2.5 py-0.5 text-[11px] text-slate-200"
-                    >
-                      {category}
-                    </span>
-                  ))}
-                  {tutor.categories.length > 3 ? (
-                    <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-2.5 py-0.5 text-[11px] text-slate-200">
-                      +{tutor.categories.length - 3}
-                    </span>
-                  ) : null}
-                </div>
-
-                {(tutor.tutorNationalities || []).length > 0 && (
-                  <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                {/* Tags Zone — fixed height, overflow hidden */}
+                <div className="mt-3 min-h-[56px] max-h-[56px] overflow-hidden">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {tutor.categories.slice(0, 3).map(category => (
+                      <span
+                        key={`${tutor.id}:${category}`}
+                        className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-2.5 py-0.5 text-[11px] text-slate-200"
+                      >
+                        {category}
+                      </span>
+                    ))}
+                    {tutor.categories.length > 3 ? (
+                      <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-2.5 py-0.5 text-[11px] text-slate-200">
+                        +{tutor.categories.length - 3}
+                      </span>
+                    ) : null}
                     {(tutor.tutorNationalities || []).slice(0, 3).map(nat => (
                       <span
                         key={`${tutor.id}:nat:${nat}`}
@@ -455,12 +456,13 @@ export default function StudentTutorDirectoryPage() {
                       </span>
                     )}
                   </div>
-                )}
-                {!(tutor.tutorNationalities || []).length && <div className="mb-4" />}
+                </div>
 
-                <div className="mb-4 border-b border-[rgba(255,255,255,0.1)]" />
+                {/* Divider */}
+                <div className="my-3 border-b border-[rgba(255,255,255,0.1)]" />
 
-                <div className="mb-4 mt-auto grid grid-cols-2 gap-3">
+                {/* Stats Zone — fixed height */}
+                <div className="min-h-[72px] grid grid-cols-2 gap-3">
                   <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-2.5">
                     <p className="mb-0.5 text-[10px] text-slate-300">Courses</p>
                     <p className="text-base font-semibold text-slate-100">{tutor.courseCount}</p>
@@ -473,7 +475,11 @@ export default function StudentTutorDirectoryPage() {
                   </div>
                 </div>
 
-                <div className="pt-2">
+                {/* Spacer */}
+                <div className="flex-grow" />
+
+                {/* CTA Zone — bottom anchored */}
+                <div className="mt-auto pt-2">
                   <Link
                     href={`/${locale}/u/${tutor.username}?book=1`}
                     onClick={e => e.stopPropagation()}
