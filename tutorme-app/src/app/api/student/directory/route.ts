@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession, authOptions } from '@/lib/auth'
+import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   courseEnrollment,
@@ -12,12 +12,7 @@ import { eq, inArray, and } from 'drizzle-orm'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
-  const session = await getServerSession(authOptions, request)
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withAuth(async (request, session) => {
   const studentId = session.user.id
 
   // Fetch all courses the student is enrolled in, along with the tutor's profile
@@ -26,7 +21,6 @@ export async function GET(request: NextRequest) {
       studentId: courseEnrollment.studentId,
       courseId: course.courseId,
       courseName: course.name,
-      courseCategory: course.categories, // This is a string[] or string depending on schema
       tutorId: course.creatorId,
       tutorName: profile.name,
     })
@@ -60,20 +54,18 @@ export async function GET(request: NextRequest) {
       )
     )
 
-  // Build the directory tree
-  // Structure: Tutor@username -> CourseName -> Folders (tasks, assessments, homework, etc) -> items
+  // Build the directory tree using courseId as keys to avoid name collisions
   const directory: Record<string, Record<string, any>> = {}
 
   enrollments.forEach(en => {
-    const tutorUsername = en.tutorName
+    const tutorKey = en.tutorName
       ? `Tutor@${en.tutorName.replace(/\s+/g, '')}`
       : 'Tutor@Unknown'
+    const courseKey = en.courseName || 'Unnamed Course'
 
-    const courseName = en.courseName || 'Unnamed Course'
-
-    if (!directory[tutorUsername]) directory[tutorUsername] = {}
-    if (!directory[tutorUsername][courseName]) {
-      directory[tutorUsername][courseName] = {
+    if (!directory[tutorKey]) directory[tutorKey] = {}
+    if (!directory[tutorKey][courseKey]) {
+      directory[tutorKey][courseKey] = {
         courseId: en.courseId,
         tasks: [],
         assessments: [],
@@ -85,10 +77,12 @@ export async function GET(request: NextRequest) {
   })
 
   // Populate materials into their respective folders
-  // Sort descending so the last is on top
-  const sortedMaterials = [...deployedMaterials].sort(
-    (a, b) => b.deployedAt.getTime() - a.deployedAt.getTime()
-  )
+  // Sort descending so the last is on top — safely handle null deployedAt
+  const sortedMaterials = [...deployedMaterials].sort((a, b) => {
+    const aTime = a.deployedAt ? new Date(a.deployedAt).getTime() : 0
+    const bTime = b.deployedAt ? new Date(b.deployedAt).getTime() : 0
+    return bTime - aTime
+  })
 
   // Populate individual reports
   studentReports.forEach(report => {
@@ -96,13 +90,12 @@ export async function GET(request: NextRequest) {
     const en = enrollments.find(e => e.courseId === report.courseId)
     if (!en) return
 
-    const tutorUsername = en.tutorName
+    const tutorKey = en.tutorName
       ? `Tutor@${en.tutorName.replace(/\s+/g, '')}`
       : 'Tutor@Unknown'
+    const courseKey = en.courseName || 'Unnamed Course'
 
-    const courseName = en.courseName || 'Unnamed Course'
-
-    if (!directory[tutorUsername]?.[courseName]) return
+    if (!directory[tutorKey]?.[courseKey]) return
 
     const item = {
       id: report.reportId,
@@ -121,24 +114,22 @@ export async function GET(request: NextRequest) {
       courseName: en.courseName,
     }
 
-    directory[tutorUsername][courseName].reports.push(item)
+    directory[tutorKey][courseKey].reports.push(item)
   })
 
   sortedMaterials.forEach(material => {
-    // Find the enrollment to know the tutor and category
     const en = enrollments.find(e => e.courseId === material.courseId)
     if (!en) return
 
-    const tutorUsername = en.tutorName
+    const tutorKey = en.tutorName
       ? `Tutor@${en.tutorName.replace(/\s+/g, '')}`
       : 'Tutor@Unknown'
-    const courseName = en.courseName || 'Unnamed Course'
+    const courseKey = en.courseName || 'Unnamed Course'
 
-    // Ensure the structure exists
-    if (!directory[tutorUsername]?.[courseName]) return
+    if (!directory[tutorKey]?.[courseKey]) return
 
-    // Format title with session sequence (e.g. "Task Title (s1)")
-    const formattedTitle = `${material.title} (s${material.sessionSequence})`
+    const seqLabel = material.sessionSequence ? ` (s${material.sessionSequence})` : ''
+    const formattedTitle = `${material.title}${seqLabel}`
 
     const item = {
       id: material.id,
@@ -154,22 +145,22 @@ export async function GET(request: NextRequest) {
 
     switch (material.type) {
       case 'task':
-        directory[tutorUsername][courseName].tasks.push(item)
+        directory[tutorKey][courseKey].tasks.push(item)
         break
       case 'assessment':
-        directory[tutorUsername][courseName].assessments.push(item)
+        directory[tutorKey][courseKey].assessments.push(item)
         break
       case 'homework':
-        directory[tutorUsername][courseName].homework.push(item)
+        directory[tutorKey][courseKey].homework.push(item)
         break
       case 'recording':
-        directory[tutorUsername][courseName].recordedSessions.push(item)
+        directory[tutorKey][courseKey].recordedSessions.push(item)
         break
       case 'report':
-        directory[tutorUsername][courseName].reports.push(item)
+        directory[tutorKey][courseKey].reports.push(item)
         break
     }
   })
 
   return NextResponse.json({ directory })
-}
+})

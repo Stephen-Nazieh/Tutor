@@ -9,6 +9,7 @@ import {
   forwardRef,
   useImperativeHandle,
 } from 'react'
+import NextImage from 'next/image'
 import { createPortal } from 'react-dom'
 import {
   DndContext,
@@ -8070,7 +8071,8 @@ FEEDBACK: [your explanation]`
                                             )}
 
                                             <div className="relative min-h-0 flex-1 overflow-hidden">
-                                              {assessmentSourceDocument?.fileUrl ? (
+                                              {assessmentSourceDocument?.mimeType ===
+                                              'application/pdf' ? (
                                                 <PDFViewer
                                                   key={assessmentSourceDocument.fileUrl}
                                                   fileUrl={assessmentSourceDocument.fileUrl}
@@ -8083,6 +8085,69 @@ FEEDBACK: [your explanation]`
                                                     setAssessmentPdfVisible(false)
                                                   }}
                                                 />
+                                              ) : assessmentSourceDocument &&
+                                                assessmentSourceDocument.mimeType !==
+                                                  'application/pdf' &&
+                                                assessmentSourceDocument.mimeType.startsWith(
+                                                  'image/'
+                                                ) ? (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-white p-4">
+                                                  <div className="absolute left-0 top-0 flex h-11 w-full shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white p-1">
+                                                    <div />
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => {
+                                                        if (!assessmentTextVisible)
+                                                          setAssessmentTextVisible(true)
+                                                        setAssessmentPdfVisible(false)
+                                                      }}
+                                                      className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                                                      title="Hide Preview"
+                                                    >
+                                                      <ChevronRight className="h-5 w-5" />
+                                                    </Button>
+                                                  </div>
+                                                  <div className="relative h-full w-full pt-11">
+                                                    <NextImage
+                                                      src={assessmentSourceDocument.fileUrl}
+                                                      alt={assessmentSourceDocument.fileName}
+                                                      fill
+                                                      className="object-contain"
+                                                      unoptimized
+                                                    />
+                                                  </div>
+                                                </div>
+                                              ) : assessmentSourceDocument &&
+                                                assessmentSourceDocument.fileUrl ? (
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-6">
+                                                  <div className="absolute left-0 top-0 flex h-11 w-full shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white p-1">
+                                                    <div />
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      onClick={() => {
+                                                        if (!assessmentTextVisible)
+                                                          setAssessmentTextVisible(true)
+                                                        setAssessmentPdfVisible(false)
+                                                      }}
+                                                      className="h-8 w-8 rounded-lg p-0 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                                                      title="Hide Preview"
+                                                    >
+                                                      <ChevronRight className="h-5 w-5" />
+                                                    </Button>
+                                                  </div>
+                                                  <FileText className="mb-4 h-16 w-16 text-blue-500" />
+                                                  <a
+                                                    href={assessmentSourceDocument.fileUrl}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-center text-sm font-medium text-blue-600 hover:underline"
+                                                  >
+                                                    Open {assessmentSourceDocument.fileName} in new
+                                                    tab
+                                                  </a>
+                                                </div>
                                               ) : (
                                                 <div className="flex h-full flex-col items-center justify-center text-gray-400">
                                                   <div className="absolute left-0 top-0 flex h-11 w-full shrink-0 items-center justify-between border-b border-[#E5E7EB] bg-white p-1">

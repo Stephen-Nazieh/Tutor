@@ -17,6 +17,7 @@ const ALLOWED_MIME_PREFIXES = [
   'application/pdf',
   'image/',
   'application/msword',
+  'application/vnd.ms-powerpoint',
   'application/vnd.openxmlformats-officedocument.',
 ]
 
@@ -27,6 +28,39 @@ function isAllowedMimeType(type: string): boolean {
     }
     return type === prefix
   })
+}
+
+function guessMimeTypeFromFileName(fileName: string): string | null {
+  const ext = path.extname(fileName).toLowerCase()
+  switch (ext) {
+    case '.pdf':
+      return 'application/pdf'
+    case '.doc':
+      return 'application/msword'
+    case '.docx':
+      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    case '.ppt':
+      return 'application/vnd.ms-powerpoint'
+    case '.pptx':
+      return 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    case '.png':
+      return 'image/png'
+    case '.jpg':
+    case '.jpeg':
+      return 'image/jpeg'
+    case '.gif':
+      return 'image/gif'
+    default:
+      return null
+  }
+}
+
+function shouldConvertToPdf(mimeType: string): boolean {
+  return (
+    mimeType === 'application/msword' ||
+    mimeType === 'application/vnd.ms-powerpoint' ||
+    mimeType.startsWith('application/vnd.openxmlformats-officedocument.')
+  )
 }
 
 function sanitizeFileName(fileName: string): string {
@@ -79,12 +113,18 @@ export const POST = withCsrf(
         return NextResponse.json({ error: 'File too large (max 20MB)' }, { status: 400 })
       }
 
-      const fileType = fileObj.type || 'application/octet-stream'
+      const safeName = sanitizeFileName(fileObj.name || 'document')
+      const guessedType = guessMimeTypeFromFileName(safeName)
+      const providedType = fileObj.type || ''
+      const fileType =
+        providedType && providedType !== 'application/octet-stream'
+          ? providedType
+          : guessedType || 'application/octet-stream'
+
       if (!isAllowedMimeType(fileType)) {
         return NextResponse.json({ error: 'Disallowed file type' }, { status: 400 })
       }
 
-      const safeName = sanitizeFileName(fileObj.name || 'document')
       const timestamp = Date.now()
       const userId = session.user.id
       const relativeDir = path.posix.join('uploads', 'documents', userId)
@@ -103,7 +143,7 @@ export const POST = withCsrf(
       let convertedToPdf = false
 
       // If the file is not already a PDF, attempt to convert it to PDF.
-      if (fileType !== 'application/pdf') {
+      if (fileType !== 'application/pdf' && shouldConvertToPdf(fileType)) {
         const pdfAbsolutePath = await convertToPdf(absolutePath, absoluteDir)
         if (pdfAbsolutePath) {
           finalPath = pdfAbsolutePath

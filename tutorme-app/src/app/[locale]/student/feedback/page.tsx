@@ -42,6 +42,7 @@ import {
   ChevronLeft,
   ChevronDown,
   Folder,
+  Video,
 } from 'lucide-react'
 import {
   Dialog,
@@ -142,8 +143,10 @@ function StudentFeedbackContent() {
   const [courseAssets, setCourseAssets] = useState<any[]>([])
   const [assetsLoading, setAssetsLoading] = useState(false)
   const [studentDirectory, setStudentDirectory] = useState<
-    Record<string, Record<string, Record<string, any[]>>>
+    Record<string, Record<string, any>>
   >({})
+  const [directoryLoading, setDirectoryLoading] = useState(true)
+  const [directoryError, setDirectoryError] = useState<string | null>(null)
   const [foldersOpen, setFoldersOpen] = useState<Record<string, boolean>>({
     tasks: true,
     assessments: true,
@@ -156,6 +159,8 @@ function StudentFeedbackContent() {
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
   useEffect(() => {
     const loadDirectory = async () => {
+      setDirectoryLoading(true)
+      setDirectoryError(null)
       try {
         const res = await fetch('/api/student/directory', {
           credentials: 'include',
@@ -214,13 +219,22 @@ function StudentFeedbackContent() {
               return newTasks
             })
           }
+        } else {
+          const errorData = await res.json().catch(() => ({}))
+          const msg = errorData.detail || errorData.error || res.statusText || `HTTP ${res.status}`
+          console.error('Directory load failed:', msg)
+          setDirectoryError(msg)
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to load student directory:', err)
+        setDirectoryError(err?.message || 'Network error')
+      } finally {
+        setDirectoryLoading(false)
       }
     }
     loadDirectory()
-  }, [selectedSessionId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     const el = document.getElementById('student-live-tabs-portal')
@@ -683,7 +697,16 @@ function StudentFeedbackContent() {
               </div>
               <ScrollArea className="flex-1 p-3">
                 <div className="space-y-1">
-                  {Object.keys(studentDirectory).length === 0 ? (
+                  {directoryLoading ? (
+                    <div className="flex justify-center px-2 py-8">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                    </div>
+                  ) : directoryError ? (
+                    <div className="rounded-lg bg-red-50 px-2 py-4 text-center">
+                      <p className="text-xs font-medium text-red-700">Failed to load directory</p>
+                      <p className="mt-1 text-[11px] text-red-600">{directoryError}</p>
+                    </div>
+                  ) : Object.keys(studentDirectory).length === 0 ? (
                     <div className="px-2 py-4 text-center text-sm text-slate-500">
                       No enrolled courses found.
                     </div>
@@ -1051,9 +1074,35 @@ function StudentFeedbackContent() {
                                           </button>
                                           {foldersOpen.recordedSessions && (
                                             <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                              <span className="px-2 py-1 text-xs text-slate-500">
-                                                Empty folder
-                                              </span>
+                                              {(!courseData.recordedSessions ||
+                                                courseData.recordedSessions.length === 0) && (
+                                                <span className="px-2 py-1 text-xs text-slate-500">
+                                                  Empty folder
+                                                </span>
+                                              )}
+                                              {courseData.recordedSessions &&
+                                                [...courseData.recordedSessions]
+                                                  .reverse()
+                                                  .map(session => (
+                                                    <button
+                                                      key={session.id}
+                                                      onClick={() =>
+                                                        handleSelectDirectoryItem(session)
+                                                      }
+                                                      className={cn(
+                                                        'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                        activeTaskId ===
+                                                          (session.itemId || session.id)
+                                                          ? 'bg-rose-50 font-medium text-rose-700'
+                                                          : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+                                                      )}
+                                                    >
+                                                      <Video className="h-3.5 w-3.5 shrink-0 text-rose-400" />
+                                                      <span className="truncate">
+                                                        {session.title}
+                                                      </span>
+                                                    </button>
+                                                  ))}
                                             </div>
                                           )}
                                         </div>
