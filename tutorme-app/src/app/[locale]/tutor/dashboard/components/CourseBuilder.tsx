@@ -5256,71 +5256,89 @@ FEEDBACK: [your explanation]`
                                           <div className="flex h-7 min-w-[28px] items-center justify-center rounded-full bg-[#1D4ED8] px-2 text-xs font-semibold text-white">
                                             {totalItems}
                                           </div>
-                                          <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                              <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className={cn(
-                                                  'h-7 w-7 rounded-full transition-opacity hover:bg-[#F2F4F7]',
-                                                  directoryMenusAlwaysVisible
-                                                    ? 'opacity-80 hover:opacity-100'
-                                                    : 'opacity-0 group-hover:opacity-100'
-                                                )}
-                                              >
-                                                <MoreVertical className="h-4 w-4 text-[#98A2B3]" />
-                                              </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="z-[100]">
-                                              <DropdownMenuItem
-                                                onSelect={() => {
-                                                  const newName = window.prompt(
-                                                    'Rename Lesson (Max 25 chars)',
-                                                    node.title
-                                                  )
-                                                  if (newName && newName.trim()) {
-                                                    const sanitizedName = newName
-                                                      .replace(/[@;'"]/g, '')
-                                                      .substring(0, 25)
-                                                      .trim()
-                                                    if (!sanitizedName) return
-                                                    setCourseBuilderNodes(prev =>
-                                                      prev.map(n => {
-                                                        if (n.id === node.id) {
-                                                          const lessons = [...n.lessons]
-                                                          if (lessons.length > 0) {
-                                                            lessons[0] = {
-                                                              ...lessons[0],
+                                          {mainTab !== 'builder' ? (
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              disabled
+                                              className={cn(
+                                                'h-7 w-7 cursor-not-allowed rounded-full transition-opacity',
+                                                directoryMenusAlwaysVisible
+                                                  ? 'opacity-30'
+                                                  : 'opacity-0 group-hover:opacity-30'
+                                              )}
+                                              onClick={e => e.stopPropagation()}
+                                            >
+                                              <MoreVertical className="h-4 w-4 text-[#98A2B3]" />
+                                            </Button>
+                                          ) : (
+                                            <DropdownMenu>
+                                              <DropdownMenuTrigger asChild>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="icon"
+                                                  className={cn(
+                                                    'h-7 w-7 rounded-full transition-opacity hover:bg-[#F2F4F7]',
+                                                    directoryMenusAlwaysVisible
+                                                      ? 'opacity-80 hover:opacity-100'
+                                                      : 'opacity-0 group-hover:opacity-100'
+                                                  )}
+                                                  onClick={e => e.stopPropagation()}
+                                                >
+                                                  <MoreVertical className="h-4 w-4 text-[#98A2B3]" />
+                                                </Button>
+                                              </DropdownMenuTrigger>
+                                              <DropdownMenuContent align="end" className="z-[100]">
+                                                <DropdownMenuItem
+                                                  onSelect={() => {
+                                                    const newName = window.prompt(
+                                                      'Rename Lesson (Max 25 chars)',
+                                                      node.title
+                                                    )
+                                                    if (newName && newName.trim()) {
+                                                      const sanitizedName = newName
+                                                        .replace(/[@;'"]/g, '')
+                                                        .substring(0, 25)
+                                                        .trim()
+                                                      if (!sanitizedName) return
+                                                      setCourseBuilderNodes(prev =>
+                                                        prev.map(n => {
+                                                          if (n.id === node.id) {
+                                                            const lessons = [...n.lessons]
+                                                            if (lessons.length > 0) {
+                                                              lessons[0] = {
+                                                                ...lessons[0],
+                                                                title: sanitizedName,
+                                                              }
+                                                            }
+                                                            return {
+                                                              ...n,
                                                               title: sanitizedName,
+                                                              lessons,
                                                             }
                                                           }
-                                                          return {
-                                                            ...n,
-                                                            title: sanitizedName,
-                                                            lessons,
-                                                          }
-                                                        }
-                                                        return n
-                                                      })
-                                                    )
-                                                  }
-                                                }}
-                                              >
-                                                Rename
-                                              </DropdownMenuItem>
-                                              <DropdownMenuItem
-                                                onSelect={() => duplicateCourseBuilderNode(node)}
-                                              >
-                                                Duplicate
-                                              </DropdownMenuItem>
-                                              <DropdownMenuItem
-                                                className="text-red-600 focus:bg-red-50 focus:text-red-600"
-                                                onSelect={() => deleteCourseBuilderNode(node.id)}
-                                              >
-                                                Delete
-                                              </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                          </DropdownMenu>
+                                                          return n
+                                                        })
+                                                      )
+                                                    }
+                                                  }}
+                                                >
+                                                  Rename
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  onSelect={() => duplicateCourseBuilderNode(node)}
+                                                >
+                                                  Duplicate
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                  className="text-red-600 focus:bg-red-50 focus:text-red-600"
+                                                  onSelect={() => deleteCourseBuilderNode(node.id)}
+                                                >
+                                                  Delete
+                                                </DropdownMenuItem>
+                                              </DropdownMenuContent>
+                                            </DropdownMenu>
+                                          )}
                                         </div>
                                       </div>
 
@@ -5356,8 +5374,16 @@ FEEDBACK: [your explanation]`
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
-                                                  className="h-6 w-6 rounded-md bg-[#2B5FB8]/10 p-0 text-[#2B5FB8] hover:bg-[#2B5FB8]/20"
-                                                  onClick={() => addTask(node.id, primaryLesson.id)}
+                                                  disabled={mainTab !== 'builder'}
+                                                  className={cn(
+                                                    'h-6 w-6 rounded-md bg-[#2B5FB8]/10 p-0 text-[#2B5FB8] hover:bg-[#2B5FB8]/20',
+                                                    mainTab !== 'builder' &&
+                                                      'cursor-not-allowed opacity-40'
+                                                  )}
+                                                  onClick={() => {
+                                                    if (mainTab !== 'builder') return
+                                                    addTask(node.id, primaryLesson.id)
+                                                  }}
                                                 >
                                                   <Plus className="h-4 w-4" />
                                                 </Button>
@@ -5549,286 +5575,311 @@ FEEDBACK: [your explanation]`
                                                             )}
                                                           </div>
                                                         )}
-                                                        <DropdownMenu>
-                                                          <DropdownMenuTrigger asChild>
-                                                            <Button
-                                                              variant="ghost"
-                                                              size="icon"
-                                                              className={cn(
-                                                                'h-7 w-7 transition-opacity hover:bg-[#F2F4F7]',
-                                                                directoryMenusAlwaysVisible
-                                                                  ? 'opacity-80 hover:opacity-100'
-                                                                  : 'opacity-0 group-hover/item:opacity-100'
-                                                              )}
-                                                              onClick={e => e.stopPropagation()}
-                                                            >
-                                                              <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
-                                                            </Button>
-                                                          </DropdownMenuTrigger>
-                                                          <DropdownMenuContent align="end">
-                                                            {insightsProps?.onDeployTask && (
-                                                              <DropdownMenuItem
-                                                                className="font-medium text-emerald-600 focus:text-emerald-600"
-                                                                onClick={e => {
-                                                                  e.stopPropagation()
-                                                                  const dmiVersion =
-                                                                    (task.dmiVersions || []).find(
-                                                                      v =>
-                                                                        v.id ===
-                                                                        task.activeDmiVersionId
-                                                                    ) || (task.dmiVersions || [])[0]
-                                                                  insightsProps.onDeployTask({
-                                                                    id: task.id,
-                                                                    title: task.title,
-                                                                    content:
-                                                                      task.description ||
-                                                                      task.title,
-                                                                    source: 'task',
-                                                                    dmiItems:
-                                                                      dmiVersion?.items ||
-                                                                      task.dmiItems ||
-                                                                      [],
-                                                                    sourceDocument:
-                                                                      task.sourceDocument,
-                                                                    deployedAt: Date.now(),
-                                                                    polls: [],
-                                                                    questions: [],
-                                                                  })
-                                                                }}
-                                                              >
-                                                                <Send className="mr-2 h-4 w-4" />
-                                                                Deploy
-                                                              </DropdownMenuItem>
+                                                        {mainTab === 'test-pci' ? (
+                                                          <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            disabled
+                                                            className={cn(
+                                                              'h-7 w-7 cursor-not-allowed opacity-30',
+                                                              directoryMenusAlwaysVisible
+                                                                ? 'opacity-30'
+                                                                : 'opacity-0 group-hover/item:opacity-30'
                                                             )}
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                setSelectedItem({
-                                                                  type: 'task',
-                                                                  id: task.id,
-                                                                })
-                                                                loadTaskIntoBuilder(task)
-                                                                setMainBuilderTab('task')
-                                                                setAssetPickerTarget('task')
-                                                                setAssetsViewOpen(true)
-                                                                setLoadAsStep('task-options')
-                                                              }}
-                                                            >
-                                                              Load
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                setRenamingItemId(task.id)
-                                                              }}
-                                                            >
-                                                              Rename
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                moveToHomework(
-                                                                  node.id,
-                                                                  primaryLesson.id,
-                                                                  'task',
-                                                                  task
-                                                                )
-                                                              }}
-                                                            >
-                                                              Move to homework
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                setEditingData(task)
-                                                                setActiveModal({
-                                                                  type: 'task',
-                                                                  isOpen: true,
-                                                                  nodeId: node.id,
-                                                                  lessonId: primaryLesson.id,
-                                                                  itemId: task.id,
-                                                                })
-                                                              }}
-                                                            >
-                                                              Edit
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                // Auto-save current task if switching from another task
-                                                                if (
-                                                                  loadedTaskId &&
-                                                                  loadedTaskId !== task.id
-                                                                ) {
-                                                                  setCourseBuilderNodes(prev =>
-                                                                    prev.map(node => ({
-                                                                      ...node,
-                                                                      lessons: node.lessons.map(
-                                                                        lesson => ({
-                                                                          ...lesson,
-                                                                          tasks: lesson.tasks.map(
-                                                                            t =>
-                                                                              t.id === loadedTaskId
-                                                                                ? {
-                                                                                    ...t,
-                                                                                    title:
-                                                                                      taskBuilder.title,
-                                                                                    description:
-                                                                                      taskBuilder.taskContent,
-                                                                                    instructions:
-                                                                                      taskBuilder.taskPci,
-                                                                                    extensions:
-                                                                                      taskBuilder.extensions,
-                                                                                    dmiItems:
-                                                                                      taskDmiItems,
-                                                                                    sourceDocument:
-                                                                                      t.sourceDocument,
-                                                                                  }
-                                                                                : t
-                                                                          ),
-                                                                        })
-                                                                      ),
-                                                                    }))
-                                                                  )
-                                                                }
-                                                                // Auto-save current assessment if any is loaded
-                                                                if (loadedAssessmentId) {
-                                                                  setCourseBuilderNodes(prev =>
-                                                                    prev.map(mod => ({
-                                                                      ...mod,
-                                                                      lessons: mod.lessons.map(
-                                                                        lesson => ({
-                                                                          ...lesson,
-                                                                          homework:
-                                                                            lesson.homework.map(
-                                                                              h =>
-                                                                                h.id ===
-                                                                                loadedAssessmentId
-                                                                                  ? {
-                                                                                      ...h,
-                                                                                      title:
-                                                                                        assessmentBuilder.title,
-                                                                                      description:
-                                                                                        assessmentBuilder.taskContent,
-                                                                                      instructions:
-                                                                                        assessmentBuilder.taskPci,
-                                                                                      dmiItems:
-                                                                                        assessmentDmiItems,
-                                                                                      sourceDocument:
-                                                                                        h.sourceDocument,
-                                                                                    }
-                                                                                  : h
-                                                                            ),
-                                                                        })
-                                                                      ),
-                                                                    }))
-                                                                  )
-                                                                }
-                                                                // Load the target task if not already loaded
-                                                                if (loadedTaskId !== task.id) {
-                                                                  setSelectedItem({
-                                                                    type: 'task',
-                                                                    id: task.id,
-                                                                  })
-                                                                  loadTaskIntoBuilder(task)
-                                                                }
-                                                                setMainBuilderTab('task')
-                                                                // Create the extension
-                                                                const currentExtensions =
-                                                                  loadedTaskId === task.id
-                                                                    ? taskBuilder.extensions
-                                                                    : task.extensions || []
-                                                                const extNumber =
-                                                                  currentExtensions.length + 1
-                                                                const newExtension = {
-                                                                  id: `ext-${Date.now()}`,
-                                                                  name: `Extension ${extNumber}`,
-                                                                  description: '',
-                                                                  content: '',
-                                                                  pci: '',
-                                                                }
-                                                                setTaskExtensionPciMessages(
-                                                                  prev => ({
-                                                                    ...prev,
-                                                                    [newExtension.id]: [],
-                                                                  })
-                                                                )
-                                                                setTaskExtensionPciInputs(prev => ({
-                                                                  ...prev,
-                                                                  [newExtension.id]: '',
-                                                                }))
-                                                                setTaskBuilder(prev => ({
-                                                                  ...prev,
-                                                                  extensions: [
-                                                                    ...prev.extensions,
-                                                                    newExtension,
-                                                                  ],
-                                                                  activeExtensionId:
-                                                                    newExtension.id,
-                                                                }))
-                                                                setCourseBuilderNodes(prev =>
-                                                                  prev.map(mod => ({
-                                                                    ...mod,
-                                                                    lessons: mod.lessons.map(
-                                                                      lesson => ({
-                                                                        ...lesson,
-                                                                        tasks: lesson.tasks.map(
-                                                                          t =>
-                                                                            t.id === task.id
-                                                                              ? {
-                                                                                  ...t,
-                                                                                  extensions: [
-                                                                                    ...(t.extensions ||
-                                                                                      []),
-                                                                                    newExtension,
-                                                                                  ],
-                                                                                }
-                                                                              : t
-                                                                        ),
+                                                            onClick={e => e.stopPropagation()}
+                                                          >
+                                                            <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
+                                                          </Button>
+                                                        ) : (
+                                                          <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                              <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className={cn(
+                                                                  'h-7 w-7 transition-opacity hover:bg-[#F2F4F7]',
+                                                                  directoryMenusAlwaysVisible
+                                                                    ? 'opacity-80 hover:opacity-100'
+                                                                    : 'opacity-0 group-hover/item:opacity-100'
+                                                                )}
+                                                                onClick={e => e.stopPropagation()}
+                                                              >
+                                                                <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
+                                                              </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                              {mainTab === 'live' &&
+                                                                insightsProps?.onDeployTask && (
+                                                                  <DropdownMenuItem
+                                                                    className="font-medium text-emerald-600 focus:text-emerald-600"
+                                                                    onClick={e => {
+                                                                      e.stopPropagation()
+                                                                      const dmiVersion =
+                                                                        (
+                                                                          task.dmiVersions || []
+                                                                        ).find(
+                                                                          v =>
+                                                                            v.id ===
+                                                                            task.activeDmiVersionId
+                                                                        ) ||
+                                                                        (task.dmiVersions || [])[0]
+                                                                      insightsProps.onDeployTask({
+                                                                        id: task.id,
+                                                                        title: task.title,
+                                                                        content:
+                                                                          task.description ||
+                                                                          task.title,
+                                                                        source: 'task',
+                                                                        dmiItems:
+                                                                          dmiVersion?.items ||
+                                                                          task.dmiItems ||
+                                                                          [],
+                                                                        sourceDocument:
+                                                                          task.sourceDocument,
+                                                                        deployedAt: Date.now(),
+                                                                        polls: [],
+                                                                        questions: [],
                                                                       })
-                                                                    ),
-                                                                  }))
-                                                                )
-                                                                toast.success(
-                                                                  `Extension ${newExtension.name} added`
-                                                                )
-                                                              }}
-                                                            >
-                                                              Add Extension
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                duplicateTask(
-                                                                  node.id,
-                                                                  primaryLesson.id,
-                                                                  task
-                                                                )
-                                                              }}
-                                                            >
-                                                              Duplicate
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                              className="text-red-500"
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                if (
-                                                                  !confirm(
-                                                                    `Delete "${task.title}"?`
-                                                                  )
-                                                                )
-                                                                  return
-                                                                deleteTask(
-                                                                  node.id,
-                                                                  primaryLesson.id,
-                                                                  task.id
-                                                                )
-                                                              }}
-                                                            >
-                                                              Delete
-                                                            </DropdownMenuItem>
-                                                          </DropdownMenuContent>
-                                                        </DropdownMenu>
+                                                                    }}
+                                                                  >
+                                                                    <Send className="mr-2 h-4 w-4" />
+                                                                    Deploy
+                                                                  </DropdownMenuItem>
+                                                                )}
+
+                                                              {mainTab === 'live' && (
+                                                                <DropdownMenuItem
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    moveToHomework(
+                                                                      node.id,
+                                                                      primaryLesson.id,
+                                                                      'task',
+                                                                      task
+                                                                    )
+                                                                  }}
+                                                                >
+                                                                  Move to homework
+                                                                </DropdownMenuItem>
+                                                              )}
+
+                                                              {mainTab === 'builder' && (
+                                                                <>
+                                                                  <DropdownMenuItem
+                                                                    onClick={e => {
+                                                                      e.stopPropagation()
+                                                                      setSelectedItem({
+                                                                        type: 'task',
+                                                                        id: task.id,
+                                                                      })
+                                                                      loadTaskIntoBuilder(task)
+                                                                      setMainBuilderTab('task')
+                                                                      setAssetPickerTarget('task')
+                                                                      setAssetsViewOpen(true)
+                                                                      setLoadAsStep('task-options')
+                                                                    }}
+                                                                  >
+                                                                    Load
+                                                                  </DropdownMenuItem>
+                                                                  <DropdownMenuItem
+                                                                    onClick={e => {
+                                                                      e.stopPropagation()
+                                                                      setRenamingItemId(task.id)
+                                                                    }}
+                                                                  >
+                                                                    Rename
+                                                                  </DropdownMenuItem>
+                                                                  <DropdownMenuItem
+                                                                    onClick={e => {
+                                                                      e.stopPropagation()
+                                                                      // Auto-save current task if switching from another task
+                                                                      if (
+                                                                        loadedTaskId &&
+                                                                        loadedTaskId !== task.id
+                                                                      ) {
+                                                                        setCourseBuilderNodes(
+                                                                          prev =>
+                                                                            prev.map(node => ({
+                                                                              ...node,
+                                                                              lessons:
+                                                                                node.lessons.map(
+                                                                                  lesson => ({
+                                                                                    ...lesson,
+                                                                                    tasks:
+                                                                                      lesson.tasks.map(
+                                                                                        t =>
+                                                                                          t.id ===
+                                                                                          loadedTaskId
+                                                                                            ? {
+                                                                                                ...t,
+                                                                                                title:
+                                                                                                  taskBuilder.title,
+                                                                                                description:
+                                                                                                  taskBuilder.taskContent,
+                                                                                                instructions:
+                                                                                                  taskBuilder.taskPci,
+                                                                                                extensions:
+                                                                                                  taskBuilder.extensions,
+                                                                                                dmiItems:
+                                                                                                  taskDmiItems,
+                                                                                                sourceDocument:
+                                                                                                  t.sourceDocument,
+                                                                                              }
+                                                                                            : t
+                                                                                      ),
+                                                                                  })
+                                                                                ),
+                                                                            }))
+                                                                        )
+                                                                      }
+                                                                      // Auto-save current assessment if any is loaded
+                                                                      if (loadedAssessmentId) {
+                                                                        setCourseBuilderNodes(
+                                                                          prev =>
+                                                                            prev.map(mod => ({
+                                                                              ...mod,
+                                                                              lessons:
+                                                                                mod.lessons.map(
+                                                                                  lesson => ({
+                                                                                    ...lesson,
+                                                                                    homework:
+                                                                                      lesson.homework.map(
+                                                                                        h =>
+                                                                                          h.id ===
+                                                                                          loadedAssessmentId
+                                                                                            ? {
+                                                                                                ...h,
+                                                                                                title:
+                                                                                                  assessmentBuilder.title,
+                                                                                                description:
+                                                                                                  assessmentBuilder.taskContent,
+                                                                                                instructions:
+                                                                                                  assessmentBuilder.taskPci,
+                                                                                                dmiItems:
+                                                                                                  assessmentDmiItems,
+                                                                                                sourceDocument:
+                                                                                                  h.sourceDocument,
+                                                                                              }
+                                                                                            : h
+                                                                                      ),
+                                                                                  })
+                                                                                ),
+                                                                            }))
+                                                                        )
+                                                                      }
+                                                                      // Load the target task if not already loaded
+                                                                      if (
+                                                                        loadedTaskId !== task.id
+                                                                      ) {
+                                                                        setSelectedItem({
+                                                                          type: 'task',
+                                                                          id: task.id,
+                                                                        })
+                                                                        loadTaskIntoBuilder(task)
+                                                                      }
+                                                                      setMainBuilderTab('task')
+                                                                      const currentExtensions =
+                                                                        loadedTaskId === task.id
+                                                                          ? taskBuilder.extensions
+                                                                          : task.extensions || []
+                                                                      const extNumber =
+                                                                        currentExtensions.length + 1
+                                                                      const newExtension = {
+                                                                        id: `ext-${Date.now()}`,
+                                                                        name: `Extension ${extNumber}`,
+                                                                        description: '',
+                                                                        content: '',
+                                                                        pci: '',
+                                                                      }
+                                                                      setTaskExtensionPciMessages(
+                                                                        prev => ({
+                                                                          ...prev,
+                                                                          [newExtension.id]: [],
+                                                                        })
+                                                                      )
+                                                                      setTaskExtensionPciInputs(
+                                                                        prev => ({
+                                                                          ...prev,
+                                                                          [newExtension.id]: '',
+                                                                        })
+                                                                      )
+                                                                      setTaskBuilder(prev => ({
+                                                                        ...prev,
+                                                                        extensions: [
+                                                                          ...prev.extensions,
+                                                                          newExtension,
+                                                                        ],
+                                                                        activeExtensionId:
+                                                                          newExtension.id,
+                                                                      }))
+                                                                      setCourseBuilderNodes(prev =>
+                                                                        prev.map(mod => ({
+                                                                          ...mod,
+                                                                          lessons: mod.lessons.map(
+                                                                            lesson => ({
+                                                                              ...lesson,
+                                                                              tasks:
+                                                                                lesson.tasks.map(
+                                                                                  t =>
+                                                                                    t.id === task.id
+                                                                                      ? {
+                                                                                          ...t,
+                                                                                          extensions:
+                                                                                            [
+                                                                                              ...(t.extensions ||
+                                                                                                []),
+                                                                                              newExtension,
+                                                                                            ],
+                                                                                        }
+                                                                                      : t
+                                                                                ),
+                                                                            })
+                                                                          ),
+                                                                        }))
+                                                                      )
+                                                                      toast.success(
+                                                                        `Extension ${newExtension.name} added`
+                                                                      )
+                                                                    }}
+                                                                  >
+                                                                    Add Extension
+                                                                  </DropdownMenuItem>
+                                                                  <DropdownMenuItem
+                                                                    onClick={e => {
+                                                                      e.stopPropagation()
+                                                                      duplicateTask(
+                                                                        node.id,
+                                                                        primaryLesson.id,
+                                                                        task
+                                                                      )
+                                                                    }}
+                                                                  >
+                                                                    Duplicate
+                                                                  </DropdownMenuItem>
+                                                                  <DropdownMenuItem
+                                                                    className="text-red-500"
+                                                                    onClick={e => {
+                                                                      e.stopPropagation()
+                                                                      if (
+                                                                        !confirm(
+                                                                          `Delete "${task.title}"?`
+                                                                        )
+                                                                      )
+                                                                        return
+                                                                      deleteTask(
+                                                                        node.id,
+                                                                        primaryLesson.id,
+                                                                        task.id
+                                                                      )
+                                                                    }}
+                                                                  >
+                                                                    Delete
+                                                                  </DropdownMenuItem>
+                                                                </>
+                                                              )}
+                                                            </DropdownMenuContent>
+                                                          </DropdownMenu>
+                                                        )}
                                                       </div>
                                                     </SortableTreeItem>
                                                     {loadedTaskId === task.id &&
@@ -6057,10 +6108,16 @@ FEEDBACK: [your explanation]`
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
-                                                  className="h-6 w-6 rounded-md bg-[#6D59D8]/10 p-0 text-[#6D59D8] hover:bg-[#6D59D8]/20"
-                                                  onClick={() =>
+                                                  disabled={mainTab !== 'builder'}
+                                                  className={cn(
+                                                    'h-6 w-6 rounded-md bg-[#6D59D8]/10 p-0 text-[#6D59D8] hover:bg-[#6D59D8]/20',
+                                                    mainTab !== 'builder' &&
+                                                      'cursor-not-allowed opacity-40'
+                                                  )}
+                                                  onClick={() => {
+                                                    if (mainTab !== 'builder') return
                                                     addAssessment(node.id, primaryLesson.id)
-                                                  }
+                                                  }}
                                                 >
                                                   <Plus className="h-4 w-4" />
                                                 </Button>
@@ -6233,135 +6290,156 @@ FEEDBACK: [your explanation]`
                                                         </div>
                                                       )}
 
-                                                      <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                          <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className={cn(
-                                                              'h-7 w-7 transition-opacity hover:bg-[#F2F4F7]',
-                                                              directoryMenusAlwaysVisible
-                                                                ? 'opacity-80 hover:opacity-100'
-                                                                : 'opacity-0 group-hover/item:opacity-100'
-                                                            )}
-                                                            onClick={e => e.stopPropagation()}
-                                                          >
-                                                            <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
-                                                          </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                          {insightsProps?.onDeployTask && (
-                                                            <DropdownMenuItem
-                                                              className="font-medium text-emerald-600 focus:text-emerald-600"
-                                                              onClick={e => {
-                                                                e.stopPropagation()
-                                                                const dmiVersion =
-                                                                  (hw.dmiVersions || []).find(
-                                                                    v =>
-                                                                      v.id === hw.activeDmiVersionId
-                                                                  ) || (hw.dmiVersions || [])[0]
-                                                                insightsProps.onDeployTask({
-                                                                  id: hw.id,
-                                                                  title: hw.title,
-                                                                  content:
-                                                                    hw.description || hw.title,
-                                                                  source: 'assessment',
-                                                                  dmiItems:
-                                                                    dmiVersion?.items ||
-                                                                    hw.dmiItems ||
-                                                                    [],
-                                                                  sourceDocument: hw.sourceDocument,
-                                                                  deployedAt: Date.now(),
-                                                                  polls: [],
-                                                                  questions: [],
-                                                                })
-                                                              }}
-                                                            >
-                                                              <Send className="mr-2 h-4 w-4" />
-                                                              Deploy
-                                                            </DropdownMenuItem>
+                                                      {mainTab === 'test-pci' ? (
+                                                        <Button
+                                                          variant="ghost"
+                                                          size="icon"
+                                                          disabled
+                                                          className={cn(
+                                                            'h-7 w-7 cursor-not-allowed opacity-30',
+                                                            directoryMenusAlwaysVisible
+                                                              ? 'opacity-30'
+                                                              : 'opacity-0 group-hover/item:opacity-30'
                                                           )}
-                                                          <DropdownMenuItem
-                                                            onClick={e => {
-                                                              e.stopPropagation()
-                                                              setSelectedItem({
-                                                                type: 'assessment',
-                                                                id: hw.id,
-                                                              })
-                                                              loadAssessmentIntoBuilder(hw)
-                                                              setMainBuilderTab('assessment')
-                                                              setAssetPickerTarget('assessment')
-                                                              setAssetsViewOpen(true)
-                                                              setLoadAsStep('assessment-options')
-                                                            }}
-                                                          >
-                                                            Load
-                                                          </DropdownMenuItem>
-                                                          <DropdownMenuItem
-                                                            onClick={e => {
-                                                              e.stopPropagation()
-                                                              setRenamingItemId(hw.id)
-                                                            }}
-                                                          >
-                                                            Rename
-                                                          </DropdownMenuItem>
-                                                          <DropdownMenuItem
-                                                            onClick={e => {
-                                                              e.stopPropagation()
-                                                              moveToHomework(
-                                                                node.id,
-                                                                primaryLesson.id,
-                                                                'assessment',
-                                                                hw
-                                                              )
-                                                            }}
-                                                          >
-                                                            Move to homework
-                                                          </DropdownMenuItem>
-                                                          <DropdownMenuItem
-                                                            onClick={e => {
-                                                              e.stopPropagation()
-                                                              setEditingData(hw)
-                                                              setActiveModal({
-                                                                type: 'homework',
-                                                                isOpen: true,
-                                                                nodeId: node.id,
-                                                                lessonId: primaryLesson.id,
-                                                                itemId: hw.id,
-                                                              })
-                                                            }}
-                                                          >
-                                                            Edit
-                                                          </DropdownMenuItem>
-                                                          <DropdownMenuItem
-                                                            onClick={e => {
-                                                              e.stopPropagation()
-                                                              duplicateAssessment(
-                                                                node.id,
-                                                                primaryLesson.id,
-                                                                hw
-                                                              )
-                                                            }}
-                                                          >
-                                                            Duplicate
-                                                          </DropdownMenuItem>
-                                                          <DropdownMenuItem
-                                                            className="text-red-500"
-                                                            onClick={e => {
-                                                              e.stopPropagation()
-                                                              if (!confirm(`Delete "${hw.title}"?`))
-                                                                return
-                                                              deleteAssessment(
-                                                                node.id,
-                                                                primaryLesson.id,
-                                                                hw.id
-                                                              )
-                                                            }}
-                                                          >
-                                                            Delete
-                                                          </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                      </DropdownMenu>
+                                                          onClick={e => e.stopPropagation()}
+                                                        >
+                                                          <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
+                                                        </Button>
+                                                      ) : (
+                                                        <DropdownMenu>
+                                                          <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                              variant="ghost"
+                                                              size="icon"
+                                                              className={cn(
+                                                                'h-7 w-7 transition-opacity hover:bg-[#F2F4F7]',
+                                                                directoryMenusAlwaysVisible
+                                                                  ? 'opacity-80 hover:opacity-100'
+                                                                  : 'opacity-0 group-hover/item:opacity-100'
+                                                              )}
+                                                              onClick={e => e.stopPropagation()}
+                                                            >
+                                                              <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
+                                                            </Button>
+                                                          </DropdownMenuTrigger>
+                                                          <DropdownMenuContent align="end">
+                                                            {mainTab === 'live' &&
+                                                              insightsProps?.onDeployTask && (
+                                                                <DropdownMenuItem
+                                                                  className="font-medium text-emerald-600 focus:text-emerald-600"
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    const dmiVersion =
+                                                                      (hw.dmiVersions || []).find(
+                                                                        v =>
+                                                                          v.id ===
+                                                                          hw.activeDmiVersionId
+                                                                      ) || (hw.dmiVersions || [])[0]
+                                                                    insightsProps.onDeployTask({
+                                                                      id: hw.id,
+                                                                      title: hw.title,
+                                                                      content:
+                                                                        hw.description || hw.title,
+                                                                      source: 'assessment',
+                                                                      dmiItems:
+                                                                        dmiVersion?.items ||
+                                                                        hw.dmiItems ||
+                                                                        [],
+                                                                      sourceDocument:
+                                                                        hw.sourceDocument,
+                                                                      deployedAt: Date.now(),
+                                                                      polls: [],
+                                                                      questions: [],
+                                                                    })
+                                                                  }}
+                                                                >
+                                                                  <Send className="mr-2 h-4 w-4" />
+                                                                  Deploy
+                                                                </DropdownMenuItem>
+                                                              )}
+
+                                                            {mainTab === 'live' && (
+                                                              <DropdownMenuItem
+                                                                onClick={e => {
+                                                                  e.stopPropagation()
+                                                                  moveToHomework(
+                                                                    node.id,
+                                                                    primaryLesson.id,
+                                                                    'assessment',
+                                                                    hw
+                                                                  )
+                                                                }}
+                                                              >
+                                                                Move to homework
+                                                              </DropdownMenuItem>
+                                                            )}
+
+                                                            {mainTab === 'builder' && (
+                                                              <>
+                                                                <DropdownMenuItem
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    setSelectedItem({
+                                                                      type: 'assessment',
+                                                                      id: hw.id,
+                                                                    })
+                                                                    loadAssessmentIntoBuilder(hw)
+                                                                    setMainBuilderTab('assessment')
+                                                                    setAssetPickerTarget(
+                                                                      'assessment'
+                                                                    )
+                                                                    setAssetsViewOpen(true)
+                                                                    setLoadAsStep(
+                                                                      'assessment-options'
+                                                                    )
+                                                                  }}
+                                                                >
+                                                                  Load
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    setRenamingItemId(hw.id)
+                                                                  }}
+                                                                >
+                                                                  Rename
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    duplicateAssessment(
+                                                                      node.id,
+                                                                      primaryLesson.id,
+                                                                      hw
+                                                                    )
+                                                                  }}
+                                                                >
+                                                                  Duplicate
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                  className="text-red-500"
+                                                                  onClick={e => {
+                                                                    e.stopPropagation()
+                                                                    if (
+                                                                      !confirm(
+                                                                        `Delete "${hw.title}"?`
+                                                                      )
+                                                                    )
+                                                                      return
+                                                                    deleteAssessment(
+                                                                      node.id,
+                                                                      primaryLesson.id,
+                                                                      hw.id
+                                                                    )
+                                                                  }}
+                                                                >
+                                                                  Delete
+                                                                </DropdownMenuItem>
+                                                              </>
+                                                            )}
+                                                          </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                      )}
                                                     </div>
                                                   </SortableTreeItem>
                                                 ))}
@@ -6525,122 +6603,178 @@ FEEDBACK: [your explanation]`
                                                                 )}
                                                               </div>
                                                             )}
-                                                            <DropdownMenu>
-                                                              <DropdownMenuTrigger asChild>
-                                                                <Button
-                                                                  variant="ghost"
-                                                                  size="icon"
-                                                                  className={cn(
-                                                                    'h-7 w-7 transition-opacity hover:bg-[#F2F4F7]',
-                                                                    directoryMenusAlwaysVisible
-                                                                      ? 'opacity-80 hover:opacity-100'
-                                                                      : 'opacity-0 group-hover/item:opacity-100'
-                                                                  )}
-                                                                  onClick={e => e.stopPropagation()}
-                                                                >
-                                                                  <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
-                                                                </Button>
-                                                              </DropdownMenuTrigger>
-                                                              <DropdownMenuContent align="end">
-                                                                <DropdownMenuItem
-                                                                  onClick={e => {
-                                                                    e.stopPropagation()
-                                                                    setSelectedItem({
-                                                                      type: 'homework',
-                                                                      id: hw.id,
-                                                                    })
-                                                                    loadAssessmentIntoBuilder(hw)
-                                                                    setMainBuilderTab('assessment')
-                                                                    setAssetPickerTarget(
-                                                                      'assessment'
-                                                                    )
-                                                                    setAssetsViewOpen(true)
-                                                                    setLoadAsStep(
-                                                                      'assessment-options'
-                                                                    )
-                                                                  }}
-                                                                >
-                                                                  Load
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem
-                                                                  onClick={e => {
-                                                                    e.stopPropagation()
-                                                                    setRenamingItemId(hw.id)
-                                                                  }}
-                                                                >
-                                                                  Rename
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem
-                                                                  onClick={e => {
-                                                                    e.stopPropagation()
-                                                                    setEditingData(hw)
-                                                                    setActiveModal({
-                                                                      type: 'homework',
-                                                                      isOpen: true,
-                                                                      nodeId: node.id,
-                                                                      lessonId: primaryLesson.id,
-                                                                      itemId: hw.id,
-                                                                    })
-                                                                  }}
-                                                                >
-                                                                  Edit
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem
-                                                                  onClick={e => {
-                                                                    e.stopPropagation()
-                                                                    duplicateAssessment(
-                                                                      node.id,
-                                                                      primaryLesson.id,
-                                                                      hw
-                                                                    )
-                                                                  }}
-                                                                >
-                                                                  Duplicate
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuItem
-                                                                  className="text-red-500"
-                                                                  onClick={e => {
-                                                                    e.stopPropagation()
-                                                                    if (
-                                                                      !confirm(
-                                                                        `Delete "${hw.title}"?`
-                                                                      )
-                                                                    )
-                                                                      return
-                                                                    setCourseBuilderNodes(prev =>
-                                                                      prev.map(mod =>
-                                                                        mod.id !== node.id
-                                                                          ? mod
-                                                                          : {
-                                                                              ...mod,
-                                                                              lessons:
-                                                                                mod.lessons.map(
-                                                                                  les =>
-                                                                                    les.id !==
-                                                                                    primaryLesson.id
-                                                                                      ? les
-                                                                                      : {
-                                                                                          ...les,
-                                                                                          homework:
-                                                                                            (
-                                                                                              les.homework ||
-                                                                                              []
-                                                                                            ).filter(
-                                                                                              x =>
-                                                                                                x.id !==
-                                                                                                hw.id
-                                                                                            ),
-                                                                                        }
-                                                                                ),
+                                                            {mainTab === 'test-pci' ? (
+                                                              <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                disabled
+                                                                className={cn(
+                                                                  'h-7 w-7 cursor-not-allowed opacity-30',
+                                                                  directoryMenusAlwaysVisible
+                                                                    ? 'opacity-30'
+                                                                    : 'opacity-0 group-hover/item:opacity-30'
+                                                                )}
+                                                                onClick={e => e.stopPropagation()}
+                                                              >
+                                                                <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
+                                                              </Button>
+                                                            ) : (
+                                                              <DropdownMenu>
+                                                                <DropdownMenuTrigger asChild>
+                                                                  <Button
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className={cn(
+                                                                      'h-7 w-7 transition-opacity hover:bg-[#F2F4F7]',
+                                                                      directoryMenusAlwaysVisible
+                                                                        ? 'opacity-80 hover:opacity-100'
+                                                                        : 'opacity-0 group-hover/item:opacity-100'
+                                                                    )}
+                                                                    onClick={e =>
+                                                                      e.stopPropagation()
+                                                                    }
+                                                                  >
+                                                                    <MoreVertical className="h-5 w-5 text-[#98A2B3]" />
+                                                                  </Button>
+                                                                </DropdownMenuTrigger>
+                                                                <DropdownMenuContent align="end">
+                                                                  {mainTab === 'live' &&
+                                                                    insightsProps?.onDeployTask && (
+                                                                      <DropdownMenuItem
+                                                                        className="font-medium text-emerald-600 focus:text-emerald-600"
+                                                                        onClick={e => {
+                                                                          e.stopPropagation()
+                                                                          const dmiVersion =
+                                                                            (
+                                                                              hw.dmiVersions || []
+                                                                            ).find(
+                                                                              v =>
+                                                                                v.id ===
+                                                                                hw.activeDmiVersionId
+                                                                            ) ||
+                                                                            (hw.dmiVersions ||
+                                                                              [])[0]
+                                                                          insightsProps.onDeployTask(
+                                                                            {
+                                                                              id: hw.id,
+                                                                              title: hw.title,
+                                                                              content:
+                                                                                hw.description ||
+                                                                                hw.title,
+                                                                              source: 'assessment',
+                                                                              dmiItems:
+                                                                                dmiVersion?.items ||
+                                                                                hw.dmiItems ||
+                                                                                [],
+                                                                              sourceDocument:
+                                                                                hw.sourceDocument,
+                                                                              deployedAt:
+                                                                                Date.now(),
+                                                                              polls: [],
+                                                                              questions: [],
                                                                             }
-                                                                      )
-                                                                    )
-                                                                  }}
-                                                                >
-                                                                  Delete
-                                                                </DropdownMenuItem>
-                                                              </DropdownMenuContent>
-                                                            </DropdownMenu>
+                                                                          )
+                                                                        }}
+                                                                      >
+                                                                        <Send className="mr-2 h-4 w-4" />
+                                                                        Deploy
+                                                                      </DropdownMenuItem>
+                                                                    )}
+
+                                                                  {mainTab === 'builder' && (
+                                                                    <>
+                                                                      <DropdownMenuItem
+                                                                        onClick={e => {
+                                                                          e.stopPropagation()
+                                                                          setSelectedItem({
+                                                                            type: 'homework',
+                                                                            id: hw.id,
+                                                                          })
+                                                                          loadAssessmentIntoBuilder(
+                                                                            hw
+                                                                          )
+                                                                          setMainBuilderTab(
+                                                                            'assessment'
+                                                                          )
+                                                                          setAssetPickerTarget(
+                                                                            'assessment'
+                                                                          )
+                                                                          setAssetsViewOpen(true)
+                                                                          setLoadAsStep(
+                                                                            'assessment-options'
+                                                                          )
+                                                                        }}
+                                                                      >
+                                                                        Load
+                                                                      </DropdownMenuItem>
+                                                                      <DropdownMenuItem
+                                                                        onClick={e => {
+                                                                          e.stopPropagation()
+                                                                          setRenamingItemId(hw.id)
+                                                                        }}
+                                                                      >
+                                                                        Rename
+                                                                      </DropdownMenuItem>
+                                                                      <DropdownMenuItem
+                                                                        onClick={e => {
+                                                                          e.stopPropagation()
+                                                                          duplicateAssessment(
+                                                                            node.id,
+                                                                            primaryLesson.id,
+                                                                            hw
+                                                                          )
+                                                                        }}
+                                                                      >
+                                                                        Duplicate
+                                                                      </DropdownMenuItem>
+                                                                      <DropdownMenuItem
+                                                                        className="text-red-500"
+                                                                        onClick={e => {
+                                                                          e.stopPropagation()
+                                                                          if (
+                                                                            !confirm(
+                                                                              `Delete "${hw.title}"?`
+                                                                            )
+                                                                          )
+                                                                            return
+                                                                          setCourseBuilderNodes(
+                                                                            prev =>
+                                                                              prev.map(mod =>
+                                                                                mod.id !== node.id
+                                                                                  ? mod
+                                                                                  : {
+                                                                                      ...mod,
+                                                                                      lessons:
+                                                                                        mod.lessons.map(
+                                                                                          les =>
+                                                                                            les.id !==
+                                                                                            primaryLesson.id
+                                                                                              ? les
+                                                                                              : {
+                                                                                                  ...les,
+                                                                                                  homework:
+                                                                                                    (
+                                                                                                      les.homework ||
+                                                                                                      []
+                                                                                                    ).filter(
+                                                                                                      x =>
+                                                                                                        x.id !==
+                                                                                                        hw.id
+                                                                                                    ),
+                                                                                                }
+                                                                                        ),
+                                                                                    }
+                                                                              )
+                                                                          )
+                                                                        }}
+                                                                      >
+                                                                        Delete
+                                                                      </DropdownMenuItem>
+                                                                    </>
+                                                                  )}
+                                                                </DropdownMenuContent>
+                                                              </DropdownMenu>
+                                                            )}
                                                           </div>
                                                         </SortableTreeItem>
                                                       ))}
