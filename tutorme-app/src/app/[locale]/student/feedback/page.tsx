@@ -122,6 +122,7 @@ function StudentFeedbackContent() {
     courseId: string | null
     courseName: string | null
   } | null>(null)
+  const [activeCourseName, setActiveCourseName] = useState<string | null>(null)
   const [myBoardPages, setMyBoardPages] = useState<WhiteboardPage[]>(createDefaultWhiteboardPages)
   const [myBoardPageIndex, setMyBoardPageIndex] = useState(0)
   const [tutorBoardPages, setTutorBoardPages] = useState<WhiteboardPage[]>(
@@ -143,6 +144,35 @@ function StudentFeedbackContent() {
   const [courseAssets, setCourseAssets] = useState<any[]>([])
   const [assetsLoading, setAssetsLoading] = useState(false)
   const [studentDirectory, setStudentDirectory] = useState<Record<string, Record<string, any>>>({})
+
+  // Derive the page title from session context, selected item, or directory
+  const pageTitle = useMemo(() => {
+    if (sessionContext?.courseName) return sessionContext.courseName
+    if (activeCourseName) return activeCourseName
+    // Try to find course name from directory based on activeTaskId
+    if (activeTaskId && studentDirectory) {
+      for (const tutor of Object.values(studentDirectory)) {
+        for (const course of Object.values(tutor)) {
+          const allItems = [
+            ...(course.tasks || []),
+            ...(course.assessments || []),
+            ...(course.homework || []),
+            ...(course.recordedSessions || []),
+          ]
+          const item = allItems.find((i: any) => (i.itemId || i.id) === activeTaskId)
+          if (item?.courseName) return item.courseName
+        }
+      }
+    }
+    // If only one course exists, show it
+    const tutors = Object.values(studentDirectory || {})
+    if (tutors.length === 1) {
+      const courses = Object.keys(tutors[0] || {})
+      if (courses.length === 1) return courses[0]
+    }
+    return 'Live Classroom'
+  }, [sessionContext?.courseName, activeCourseName, activeTaskId, studentDirectory])
+
   const [directoryLoading, setDirectoryLoading] = useState(true)
   const [directoryError, setDirectoryError] = useState<string | null>(null)
   const [directoryWarnings, setDirectoryWarnings] = useState<string[]>([])
@@ -568,14 +598,16 @@ function StudentFeedbackContent() {
   }
 
   const handleSelectDirectoryItem = useCallback((item: any) => {
-    if (item.type === 'task' || item.type === 'assessment' || item.type === 'homework') {
+    if (item.type === 'task' || item.type === 'assessment' || item.type === 'homework' || item.type === 'recording') {
       try {
         const parsed = typeof item.content === 'string' ? JSON.parse(item.content) : item.content
         parsed.title = item.title
         parsed.id = item.itemId || item.id // Use itemId or fallback to id
+        parsed.courseName = item.courseName
 
         setSelectedDirectoryItem(parsed)
         setActiveTaskId(parsed.id)
+        setActiveCourseName(item.courseName || null)
         setUnseenTaskIds(prev => prev.filter(id => id !== parsed.id))
         setShowTasksPanel(false)
       } catch (e) {
@@ -625,8 +657,8 @@ function StudentFeedbackContent() {
               </Button>
               <div className="flex flex-col justify-center">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold tracking-tight">
-                    {sessionContext?.courseName || 'Live Classroom'}
+                  <h1 className="text-base font-semibold tracking-tight">
+                    {pageTitle}
                   </h1>
                 </div>
               </div>
