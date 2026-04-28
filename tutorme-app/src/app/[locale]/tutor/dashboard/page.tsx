@@ -410,6 +410,45 @@ function TutorDashboardContent() {
     }
   }, [])
 
+  const handleStartClass = useCallback(
+    async (sessionId: string) => {
+      if (launchingCourseId) return
+      setLaunchingCourseId(sessionId)
+      try {
+        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+        const csrfData = await csrfRes.json().catch(() => ({}))
+        const csrfToken = csrfData?.token ?? null
+
+        const res = await fetch(`/api/tutor/classes/${sessionId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+          },
+          credentials: 'include',
+        })
+
+        const result = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          toast.error(result?.error || 'Failed to start class')
+          return
+        }
+
+        const updatedSessionId = result?.session?.id
+        if (!updatedSessionId) {
+          toast.error('Class started but no session ID returned')
+          return
+        }
+        router.push(withLocalePath(`/tutor/insights?sessionId=${updatedSessionId}`))
+      } catch {
+        toast.error('Failed to start class')
+      } finally {
+        setLaunchingCourseId(null)
+      }
+    },
+    [launchingCourseId, router]
+  )
+
   const handleEnterCourseClassroom = useCallback(
     async (course: EnrolledCourse, scheduledAt?: string | null) => {
       if (launchingCourseId) return
@@ -1021,7 +1060,21 @@ function TutorDashboardContent() {
                                 )}
                                 Start Class
                               </Button>
-                            ) : isActive || isScheduled ? (
+                            ) : isScheduled ? (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                disabled={launchingCourseId === session.id}
+                                onClick={() => handleStartClass(session.id)}
+                              >
+                                {launchingCourseId === session.id ? (
+                                  <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                ) : (
+                                  <Video className="mr-1 h-3 w-3" />
+                                )}
+                                Start Class
+                              </Button>
+                            ) : isActive ? (
                               <Button
                                 variant="default"
                                 size="sm"
