@@ -1425,6 +1425,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Sync active builder content to classroom tab when in insights mode
     useEffect(() => {
       if (!insightsProps) return
+      if (mainTab !== 'test-pci') return
 
       if (mainBuilderTab === 'task' && loadedTaskId) {
         const activeTaskExtension = taskBuilder.activeExtensionId
@@ -1446,6 +1447,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       loadedAssessmentId,
       assessmentBuilder.taskContent,
       insightsProps,
+      mainTab,
     ])
 
     // Dev mode state for saving (declared early for ref access)
@@ -6959,19 +6961,55 @@ FEEDBACK: [your explanation]`
                                             )
                                           }
 
+                                          if (mainTab === 'live' && tab.id === 'student-monitor') {
+                                            if (
+                                              !insightsProps?.socket ||
+                                              !insightsProps?.sessionId
+                                            ) {
+                                              return (
+                                                <div className="flex h-full w-full items-center justify-center rounded-md border bg-white p-6 text-sm text-slate-500">
+                                                  Monitor is unavailable without an active session.
+                                                </div>
+                                              )
+                                            }
+                                            return (
+                                              <div className="h-full w-full">
+                                                <MonitoringPanel
+                                                  socket={insightsProps.socket}
+                                                  sessionId={insightsProps.sessionId}
+                                                />
+                                              </div>
+                                            )
+                                          }
+
+                                          const liveTask =
+                                            mainTab === 'live' && testPciSource === 'task'
+                                              ? findTaskById(loadedTaskId || '')
+                                              : null
+                                          const liveAssessment =
+                                            mainTab === 'live' && testPciSource === 'assessment'
+                                              ? findAssessmentById(loadedAssessmentId || '')
+                                              : null
+
                                           const doc =
-                                            testPciSource === 'task'
-                                              ? currentTaskDocument ||
-                                                (taskBuilder as any).sourceDocument
-                                              : assessmentSourceDocument ||
-                                                (assessmentBuilder as any).sourceDocument
+                                            mainTab === 'live'
+                                              ? testPciSource === 'task'
+                                                ? liveTask?.sourceDocument
+                                                : liveAssessment?.sourceDocument
+                                              : testPciSource === 'task'
+                                                ? currentTaskDocument ||
+                                                  (taskBuilder as any).sourceDocument
+                                                : assessmentSourceDocument ||
+                                                  (assessmentBuilder as any).sourceDocument
                                           const versionId = testPciViewMode.startsWith('dmi_')
                                             ? testPciViewMode.replace('dmi_', '')
                                             : null
                                           const versions =
-                                            testPciSource === 'task'
-                                              ? taskDmiVersions
-                                              : assessmentDmiVersions
+                                            mainTab === 'live'
+                                              ? []
+                                              : testPciSource === 'task'
+                                                ? taskDmiVersions
+                                                : assessmentDmiVersions
                                           const version = versionId
                                             ? versions.find(v => v.id === versionId)
                                             : versions[0]
@@ -7012,7 +7050,11 @@ FEEDBACK: [your explanation]`
                                                       />
                                                     ) : (
                                                       <p className="text-muted-foreground whitespace-pre-wrap p-2 text-sm">
-                                                        {doc?.extractedText}
+                                                        {mainTab === 'live'
+                                                          ? testPciSource === 'task'
+                                                            ? liveTask?.description
+                                                            : liveAssessment?.description
+                                                          : doc?.extractedText}
                                                       </p>
                                                     )}
                                                   </div>
