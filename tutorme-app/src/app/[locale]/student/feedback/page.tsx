@@ -147,6 +147,7 @@ function StudentFeedbackContent() {
   >({})
   const [directoryLoading, setDirectoryLoading] = useState(true)
   const [directoryError, setDirectoryError] = useState<string | null>(null)
+  const [directoryWarnings, setDirectoryWarnings] = useState<string[]>([])
   const [foldersOpen, setFoldersOpen] = useState<Record<string, boolean>>({
     tasks: true,
     assessments: true,
@@ -161,6 +162,7 @@ function StudentFeedbackContent() {
     const loadDirectory = async () => {
       setDirectoryLoading(true)
       setDirectoryError(null)
+      setDirectoryWarnings([])
       try {
         const res = await fetch('/api/student/directory', {
           credentials: 'include',
@@ -170,10 +172,10 @@ function StudentFeedbackContent() {
           const data = await res.json()
           setStudentDirectory(data.directory || {})
 
-          // Surface partial backend errors
+          // Surface partial backend errors as warnings, not fatal
           if (data.errors && data.errors.length > 0) {
             console.error('Directory partial errors:', data.errors)
-            setDirectoryError(data.errors.join('\n'))
+            setDirectoryWarnings(data.errors)
           }
 
           // Open all top-level and second-level folders by default
@@ -717,7 +719,20 @@ function StudentFeedbackContent() {
                       No enrolled courses found.
                     </div>
                   ) : (
-                    Object.entries(studentDirectory).map(([tutorUsername, coursesDict]) => {
+                    <>
+                      {directoryWarnings.length > 0 && (
+                        <div className="mb-2 rounded-md bg-amber-50 p-2">
+                          <p className="text-[11px] font-medium text-amber-800">
+                            Some items couldn&apos;t load:
+                          </p>
+                          {directoryWarnings.map((w, i) => (
+                            <p key={i} className="text-[10px] text-amber-700">
+                              {w}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                      {Object.entries(studentDirectory).map(([tutorUsername, coursesDict]) => {
                       const tutorKey = `tutor_${tutorUsername}`
                       const isTutorOpen = foldersOpen[tutorKey]
 
@@ -1121,7 +1136,8 @@ function StudentFeedbackContent() {
                           )}
                         </div>
                       )
-                    })
+                    })}
+                  </>
                   )}
                   {/* Legacy Assets Mapping - Fallback to Course Category root for now */}
                   {courseAssets.length > 0 && (
