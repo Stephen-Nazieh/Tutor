@@ -13,6 +13,8 @@ const execAsync = promisify(exec)
 
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024
 
+export const runtime = 'nodejs'
+
 const ALLOWED_MIME_PREFIXES = [
   'application/pdf',
   'image/',
@@ -82,9 +84,32 @@ async function fileExists(filePath: string): Promise<boolean> {
  */
 async function convertToPdf(inputPath: string, outputDir: string): Promise<string | null> {
   try {
-    await execAsync(`soffice --headless --convert-to pdf --outdir "${outputDir}" "${inputPath}"`, {
-      timeout: 30000,
-    })
+    const baseArgs = [
+      '--headless',
+      '--nologo',
+      '--nofirststartwizard',
+      '--norestore',
+      '--nolockcheck',
+      '--nodefault',
+      '--convert-to',
+      'pdf',
+      '--outdir',
+      outputDir,
+      inputPath,
+    ]
+
+    try {
+      await execAsync(`soffice ${baseArgs.map(a => `"${a}"`).join(' ')}`, {
+        timeout: 120000,
+        env: { ...process.env, HOME: outputDir },
+      })
+    } catch {
+      await execAsync(`libreoffice ${baseArgs.map(a => `"${a}"`).join(' ')}`, {
+        timeout: 120000,
+        env: { ...process.env, HOME: outputDir },
+      })
+    }
+
     const baseName = path.basename(inputPath, path.extname(inputPath))
     const pdfPath = path.join(outputDir, `${baseName}.pdf`)
     if (await fileExists(pdfPath)) {
