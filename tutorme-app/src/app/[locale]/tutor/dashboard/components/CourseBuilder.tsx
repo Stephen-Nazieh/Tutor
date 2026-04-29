@@ -7380,6 +7380,12 @@ FEEDBACK: [your explanation]`
                                                         id: studentId,
                                                         name: studentName,
                                                       })
+                                                    }}
+                                                    onOpenWhiteboard={(studentId, studentName) => {
+                                                      setMonitorSelectedStudent({
+                                                        id: studentId,
+                                                        name: studentName,
+                                                      })
                                                       setTestPciActiveTab('student1')
                                                     }}
                                                   />

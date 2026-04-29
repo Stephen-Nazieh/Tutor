@@ -25,6 +25,7 @@ type MonitoringPanelProps = {
   students?: any[] // Optional: pass the room's student list if available
   selectedStudentId?: string | null
   onNavigateToWhiteboard?: (studentId: string, studentName: string) => void
+  onOpenWhiteboard?: (studentId: string, studentName: string) => void
 }
 
 export function MonitoringPanel({
@@ -33,6 +34,7 @@ export function MonitoringPanel({
   students,
   selectedStudentId,
   onNavigateToWhiteboard,
+  onOpenWhiteboard,
 }: MonitoringPanelProps) {
   const [studentStates, setStudentStates] = useState<Record<string, StudentUpdate>>({})
 
@@ -165,8 +167,9 @@ export function MonitoringPanel({
           return (
             <Card
               key={student.id}
+              onClick={() => onNavigateToWhiteboard?.(student.id, student.name)}
               className={cn(
-                'overflow-hidden border-slate-200 bg-white/50 backdrop-blur-sm transition-all hover:shadow-md',
+                'cursor-pointer overflow-hidden border-slate-200 bg-white/50 backdrop-blur-sm transition-all hover:shadow-md',
                 selectedStudentId === student.id && 'ring-2 ring-indigo-200'
               )}
             >
@@ -210,7 +213,10 @@ export function MonitoringPanel({
 
                   <div className="flex gap-2">
                     <Button
-                      onClick={() => onNavigateToWhiteboard?.(student.id, student.name)}
+                      onClick={e => {
+                        e.stopPropagation()
+                        onOpenWhiteboard?.(student.id, student.name)
+                      }}
                       variant="outline"
                       className="flex-1 gap-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                     >
@@ -218,7 +224,10 @@ export function MonitoringPanel({
                       Whiteboard
                     </Button>
                     <Button
-                      onClick={() => handleSendHelp(student.id, student.name)}
+                      onClick={e => {
+                        e.stopPropagation()
+                        handleSendHelp(student.id, student.name)
+                      }}
                       variant="outline"
                       className="flex-1 gap-2 border-indigo-200 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
                     >
