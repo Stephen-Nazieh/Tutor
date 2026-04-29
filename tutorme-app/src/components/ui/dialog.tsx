@@ -371,20 +371,15 @@ DialogBody.displayName = 'DialogBody'
 // DIALOG PANEL (White content panel for universal modal architecture)
 // ============================================
 
-const DialogPanel = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      'rounded-xl border border-gray-200 bg-white p-4',
-      'text-gray-900',
-      className
-    )}
-    {...props}
-  />
-))
+const DialogPanel = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn('rounded-xl border border-gray-200 bg-white p-4', 'text-gray-900', className)}
+      {...props}
+    />
+  )
+)
 DialogPanel.displayName = 'DialogPanel'
 
 // ============================================
@@ -438,18 +433,12 @@ function ModalLayout({
         <DialogHeader className="space-y-2">
           <div className="flex items-center gap-3">
             {icon && <span className="text-gray-500">{icon}</span>}
-            <DialogTitle
-              className={theme === 'metallic' ? 'text-white' : 'text-gray-900'}
-            >
+            <DialogTitle className={theme === 'metallic' ? 'text-white' : 'text-gray-900'}>
               {title}
             </DialogTitle>
           </div>
           {description && (
-            <DialogDescription
-              className={
-                theme === 'metallic' ? 'text-gray-300' : 'text-gray-500'
-              }
-            >
+            <DialogDescription className={theme === 'metallic' ? 'text-gray-300' : 'text-gray-500'}>
               {description}
             </DialogDescription>
           )}
@@ -472,17 +461,11 @@ function ModalLayout({
             )}
             {primaryAction && (
               <Button
-                variant={
-                  primaryAction.variant === 'destructive'
-                    ? 'destructive'
-                    : 'modal-primary'
-                }
+                variant={primaryAction.variant === 'destructive' ? 'destructive' : 'modal-primary'}
                 onClick={primaryAction.onClick}
                 disabled={primaryAction.loading}
               >
-                {primaryAction.loading && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
+                {primaryAction.loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {primaryAction.label}
               </Button>
             )}

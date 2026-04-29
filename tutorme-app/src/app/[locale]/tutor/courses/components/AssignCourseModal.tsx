@@ -295,7 +295,8 @@ export function AssignCourseModal({
                           {preview.hiddenItems.length} items will be hidden
                         </p>
                         <p className="text-sm text-red-600">
-                          These items are fixed to difficulty levels that don&apos;t match this group.
+                          These items are fixed to difficulty levels that don&apos;t match this
+                          group.
                         </p>
                       </AlertDescription>
                     </Alert>

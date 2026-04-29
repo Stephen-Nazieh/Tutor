@@ -272,10 +272,19 @@ export function CreateClassDialog({
           </DialogPanel>
         </div>
         <DialogFooter className="gap-3">
-          <Button variant="modal-secondary" onClick={() => handleOpenChange(false)} disabled={creating}>
+          <Button
+            variant="modal-secondary"
+            onClick={() => handleOpenChange(false)}
+            disabled={creating}
+          >
             Cancel
           </Button>
-          <Button variant="modal-primary" onClick={handleSubmit} disabled={creating} aria-busy={creating}>
+          <Button
+            variant="modal-primary"
+            onClick={handleSubmit}
+            disabled={creating}
+            aria-busy={creating}
+          >
             {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create Class
           </Button>

@@ -88,13 +88,13 @@ export function FloatingVideoOverlay() {
   if (!canRender || !frame || !roomUrl) return null
 
   return (
-    <div className="fixed inset-0 z-[9999] pointer-events-none">
+    <div className="pointer-events-none fixed inset-0 z-[9999]">
       <div
         className="pointer-events-auto absolute overflow-hidden rounded-2xl border border-slate-200 bg-black shadow-2xl"
         style={{ left: frame.x, top: frame.y, width: frame.w, height: frame.h }}
       >
         <div
-          className="absolute left-0 right-0 top-0 z-30 flex h-10 cursor-move items-center justify-between gap-2 bg-black/70 px-2 text-xs font-semibold text-white backdrop-blur touch-none"
+          className="absolute left-0 right-0 top-0 z-30 flex h-10 cursor-move touch-none items-center justify-between gap-2 bg-black/70 px-2 text-xs font-semibold text-white backdrop-blur"
           onPointerDown={e => {
             dragRef.current = {
               pointerId: e.pointerId,

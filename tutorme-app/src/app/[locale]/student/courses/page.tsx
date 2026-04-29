@@ -10,13 +10,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -101,11 +95,9 @@ interface SessionItem {
   tutorName?: string
 }
 
-function getSessionStatus(
-  scheduledAt: string,
-  existingStatus?: string
-): SessionItem['status'] {
-  if (existingStatus === 'active' || existingStatus === 'live' || existingStatus === 'preparing') return 'active'
+function getSessionStatus(scheduledAt: string, existingStatus?: string): SessionItem['status'] {
+  if (existingStatus === 'active' || existingStatus === 'live' || existingStatus === 'preparing')
+    return 'active'
   if (existingStatus === 'ended' || existingStatus === 'paused') return 'ended'
   if (existingStatus === 'scheduled') return 'opening_soon'
   const start = new Date(scheduledAt).getTime()
@@ -156,18 +148,14 @@ function SessionList({
   return (
     <div className="space-y-3">
       {displayed.map(session => {
-        const scheduledTime = session.scheduledAt
-          ? new Date(session.scheduledAt).getTime()
-          : now
+        const scheduledTime = session.scheduledAt ? new Date(session.scheduledAt).getTime() : now
         const status =
           session.status === 'active' || session.status === 'ended'
             ? session.status
             : getSessionStatus(session.scheduledAt, session.status)
         const diff = scheduledTime - now
         const isPassedSession =
-          status !== 'ended' &&
-          status !== 'active' &&
-          scheduledTime + 2 * 60 * 60 * 1000 < now
+          status !== 'ended' && status !== 'active' && scheduledTime + 2 * 60 * 60 * 1000 < now
         const canEnterLive = status === 'active' || status === 'opening_soon'
 
         const badgeClass =
@@ -184,12 +172,12 @@ function SessionList({
             key={session.id}
             className="flex flex-col justify-between gap-3 rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center"
           >
-            <div className="flex-1 space-y-1 min-w-0">
+            <div className="min-w-0 flex-1 space-y-1">
               <div className="flex items-center gap-2">
-                <h4 className="font-semibold text-gray-900 truncate">{session.title}</h4>
+                <h4 className="truncate font-semibold text-gray-900">{session.title}</h4>
                 <span
                   className={cn(
-                    'text-[10px] px-1.5 py-0.5 rounded-full border uppercase tracking-wide',
+                    'rounded-full border px-1.5 py-0.5 text-[10px] uppercase tracking-wide',
                     badgeClass
                   )}
                 >
@@ -216,18 +204,16 @@ function SessionList({
               )}
               {isPassedSession && (
                 <p className="text-xs text-amber-600">
-                  This session has passed. If it was recorded, content will load
-                  automatically. Otherwise, contact your tutor for materials.
+                  This session has passed. If it was recorded, content will load automatically.
+                  Otherwise, contact your tutor for materials.
                 </p>
               )}
             </div>
-            <div className="flex min-w-[140px] flex-col gap-2 shrink-0">
+            <div className="flex min-w-[140px] shrink-0 flex-col gap-2">
               <Button
                 onClick={() => onEnterSession(session.id)}
                 variant={canEnterLive ? 'default' : 'outline'}
-                className={
-                  canEnterLive ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''
-                }
+                className={canEnterLive ? 'bg-indigo-600 text-white hover:bg-indigo-700' : ''}
               >
                 {status === 'active'
                   ? 'Join'
@@ -244,9 +230,7 @@ function SessionList({
                   disabled={requestingSessionId === session.id}
                   onClick={() => onRequestMaterials(session.id)}
                 >
-                  {requestingSessionId === session.id
-                    ? 'Sending...'
-                    : 'Request Materials'}
+                  {requestingSessionId === session.id ? 'Sending...' : 'Request Materials'}
                 </Button>
               )}
             </div>
@@ -522,7 +506,7 @@ function CoursePageInner() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-lg bg-gray-50 p-4">
                   <p className="text-sm text-gray-600">Subject</p>
-                  <p className="font-medium text-gray-900 capitalize">{detailCourse?.subject}</p>
+                  <p className="font-medium capitalize text-gray-900">{detailCourse?.subject}</p>
                 </div>
                 <div className="rounded-lg bg-gray-50 p-4">
                   <p className="text-sm text-gray-600">Difficulty</p>
@@ -549,7 +533,11 @@ function CoursePageInner() {
             </DialogPanel>
           </div>
           <DialogFooter align="end" className="gap-3">
-            <Button variant="modal-secondary" className="h-10" onClick={() => setDetailCourse(null)}>
+            <Button
+              variant="modal-secondary"
+              className="h-10"
+              onClick={() => setDetailCourse(null)}
+            >
               Close Details
             </Button>
           </DialogFooter>
@@ -569,7 +557,8 @@ function CoursePageInner() {
           <div className="p-6">
             <DialogPanel className="space-y-4 p-6">
               <h4 className="text-sm font-semibold text-gray-900">Weekly Classes</h4>
-              {scheduleCourse?.availability?.slots && scheduleCourse.availability.slots.length > 0 ? (
+              {scheduleCourse?.availability?.slots &&
+              scheduleCourse.availability.slots.length > 0 ? (
                 <div className="space-y-2">
                   {scheduleCourse.availability.slots.map((slot, idx) => (
                     <div
@@ -591,7 +580,11 @@ function CoursePageInner() {
             </DialogPanel>
           </div>
           <DialogFooter align="end" className="gap-3">
-            <Button variant="modal-secondary" className="h-10" onClick={() => setScheduleCourse(null)}>
+            <Button
+              variant="modal-secondary"
+              className="h-10"
+              onClick={() => setScheduleCourse(null)}
+            >
               Close Schedule
             </Button>
           </DialogFooter>
@@ -951,9 +944,7 @@ function CoursePageInner() {
                   const tutorParam = sessionsTutorHandle
                     ? `&tutorHandle=${encodeURIComponent(sessionsTutorHandle)}`
                     : ''
-                  router.push(
-                    `/student/feedback?sessionId=${sessionId}${nameParam}${tutorParam}`
-                  )
+                  router.push(`/student/feedback?sessionId=${sessionId}${nameParam}${tutorParam}`)
                 }}
                 onRequestMaterials={handleRequestMaterials}
                 requestingSessionId={requestingSessionId}
@@ -961,7 +952,11 @@ function CoursePageInner() {
             )}
           </div>
           <DialogFooter align="end" className="gap-3">
-            <Button variant="modal-secondary" className="h-10" onClick={() => setSessionsCourseId(null)}>
+            <Button
+              variant="modal-secondary"
+              className="h-10"
+              onClick={() => setSessionsCourseId(null)}
+            >
               Close
             </Button>
           </DialogFooter>

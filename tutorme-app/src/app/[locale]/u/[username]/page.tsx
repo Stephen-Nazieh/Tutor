@@ -291,7 +291,7 @@ function Book1on1Dialog({
             <DialogTitle>Book 1 on 1 Session</DialogTitle>
             <DialogDescription>Please log in to book a session with {tutor.name}</DialogDescription>
           </DialogHeader>
-          <div className="p-6 pt-0 space-y-4">
+          <div className="space-y-4 p-6 pt-0">
             <DialogPanel className="py-8 text-center">
               <Button variant="modal-primary" asChild className="h-10">
                 <Link href={`/${locale}/login`}>Log In</Link>
@@ -313,7 +313,7 @@ function Book1on1Dialog({
               You already have a pending booking request with {tutor.name}.
             </DialogDescription>
           </DialogHeader>
-          <div className="p-6 pt-0 space-y-4">
+          <div className="space-y-4 p-6 pt-0">
             <DialogPanel>
               <p className="font-medium text-gray-900">Status: {activeRequest.status}</p>
               <p className="mt-2 text-sm text-gray-600">
@@ -1570,7 +1570,11 @@ export default function PublicTutorPage() {
             </DialogPanel>
           </div>
           <DialogFooter className="gap-3">
-            <Button variant="modal-secondary" onClick={() => setDetailsCourse(null)} className="h-10">
+            <Button
+              variant="modal-secondary"
+              onClick={() => setDetailsCourse(null)}
+              className="h-10"
+            >
               Close
             </Button>
           </DialogFooter>
@@ -1583,7 +1587,7 @@ export default function PublicTutorPage() {
             <DialogTitle>{scheduleCourse?.name}</DialogTitle>
             <DialogDescription>{scheduleCourse?.description}</DialogDescription>
           </DialogHeader>
-          <div className="p-6 pt-0 space-y-4">
+          <div className="space-y-4 p-6 pt-0">
             <DialogPanel>
               <h4 className="mb-2 text-sm font-semibold text-gray-900">Weekly Schedule</h4>
               {scheduleCourse?.schedule && scheduleCourse.schedule.length > 0 ? (
@@ -1606,7 +1610,11 @@ export default function PublicTutorPage() {
             </DialogPanel>
           </div>
           <DialogFooter className="gap-3">
-            <Button variant="modal-secondary" onClick={() => setScheduleCourse(null)} className="h-10">
+            <Button
+              variant="modal-secondary"
+              onClick={() => setScheduleCourse(null)}
+              className="h-10"
+            >
               Close
             </Button>
           </DialogFooter>
@@ -1627,7 +1635,7 @@ export default function PublicTutorPage() {
             <DialogTitle>Choose a session</DialogTitle>
             <DialogDescription>{classroomPickerCourse?.name}</DialogDescription>
           </DialogHeader>
-          <div className="p-6 pt-0 space-y-4">
+          <div className="space-y-4 p-6 pt-0">
             {sortedClassroomPickerSessions.map(s => {
               const id = (s.id || s.sessionId) as string
               const scheduledAtMs = new Date(s.scheduledAt ?? 0).getTime()

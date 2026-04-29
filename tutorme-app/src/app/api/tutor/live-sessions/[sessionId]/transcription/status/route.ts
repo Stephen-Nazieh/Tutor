@@ -26,7 +26,8 @@ export async function GET(req: NextRequest) {
     .limit(1)
 
   if (!row) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
-  if (row.tutorId !== session.user.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  if (row.tutorId !== session.user.id)
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
   const [artifact] = await drizzleDb
     .select({
@@ -45,4 +46,3 @@ export async function GET(req: NextRequest) {
     artifact: artifact || null,
   })
 }
-

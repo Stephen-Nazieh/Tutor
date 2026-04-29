@@ -105,7 +105,9 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
           <div className="flex min-w-0 flex-1 flex-col pt-1">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="truncate text-xl font-semibold leading-tight text-slate-50">{tutor.name}</h3>
+                <h3 className="truncate text-xl font-semibold leading-tight text-slate-50">
+                  {tutor.name}
+                </h3>
                 <p className="mt-1 text-sm font-medium text-slate-300">
                   @{tutor.name.toLowerCase().replace(/\s+/g, '')}
                 </p>
@@ -124,7 +126,7 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
         <div className="mt-2 min-h-[28px]">{renderStars(tutor.rating)}</div>
 
         {/* Tags Zone — fixed height, overflow hidden */}
-        <div className="mt-3 min-h-[56px] max-h-[56px] overflow-hidden">
+        <div className="mt-3 max-h-[56px] min-h-[56px] overflow-hidden">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-sm text-slate-200">
               IGCSE Physics
@@ -157,7 +159,7 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
         <div className="my-3 border-b border-[rgba(255,255,255,0.1)]" />
 
         {/* Stats Zone — fixed height */}
-        <div className="min-h-[72px] grid grid-cols-2 gap-3">
+        <div className="grid min-h-[72px] grid-cols-2 gap-3">
           <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-3">
             <p className="mb-1 text-xs text-slate-300">Courses</p>
             <p className="text-lg font-semibold text-slate-100">{tutor.totalClasses}</p>

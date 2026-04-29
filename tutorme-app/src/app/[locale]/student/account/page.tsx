@@ -896,7 +896,11 @@ export default function StudentAccount() {
             </DialogPanel>
           </div>
           <DialogFooter align="end" className="gap-3">
-            <Button variant="modal-secondary" className="h-10" onClick={() => setShowDeleteDialog(false)}>
+            <Button
+              variant="modal-secondary"
+              className="h-10"
+              onClick={() => setShowDeleteDialog(false)}
+            >
               Cancel
             </Button>
             <Button
@@ -923,7 +927,8 @@ export default function StudentAccount() {
           <div className="p-6">
             <DialogPanel className="space-y-4 p-6">
               <p className="text-sm text-gray-600">
-                Your account will be temporarily disabled. You can reactivate it by logging in again.
+                Your account will be temporarily disabled. You can reactivate it by logging in
+                again.
               </p>
               <p className="text-sm text-gray-600">While deactivated:</p>
               <ul className="list-disc pl-5 text-sm text-gray-600">
@@ -935,7 +940,11 @@ export default function StudentAccount() {
             </DialogPanel>
           </div>
           <DialogFooter align="end" className="gap-3">
-            <Button variant="modal-secondary" className="h-10" onClick={() => setShowDeactivateDialog(false)}>
+            <Button
+              variant="modal-secondary"
+              className="h-10"
+              onClick={() => setShowDeactivateDialog(false)}
+            >
               Cancel
             </Button>
             <Button variant="modal-primary" className="h-10" onClick={handleDeactivateAccount}>

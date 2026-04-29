@@ -1157,7 +1157,7 @@ export default function TutorRegistrationPage() {
                 Please wait while we verify if @{formData.username} is available...
               </DialogDescription>
             </DialogHeader>
-            <div className="p-6 pt-0 space-y-4">
+            <div className="space-y-4 p-6 pt-0">
               <DialogPanel className="py-8 text-center">
                 <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-500" />
                 <p className="mt-3 text-sm text-gray-600">Verifying username...</p>

@@ -427,7 +427,7 @@ export default function StudentTutorDirectoryPage() {
                 </div>
 
                 {/* Tags Zone — fixed height, overflow hidden */}
-                <div className="mt-3 min-h-[56px] max-h-[56px] overflow-hidden">
+                <div className="mt-3 max-h-[56px] min-h-[56px] overflow-hidden">
                   <div className="flex flex-wrap items-center gap-1.5">
                     {tutor.categories.slice(0, 3).map(category => (
                       <span
@@ -462,7 +462,7 @@ export default function StudentTutorDirectoryPage() {
                 <div className="my-3 border-b border-[rgba(255,255,255,0.1)]" />
 
                 {/* Stats Zone — fixed height */}
-                <div className="min-h-[72px] grid grid-cols-2 gap-3">
+                <div className="grid min-h-[72px] grid-cols-2 gap-3">
                   <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-2.5">
                     <p className="mb-0.5 text-[10px] text-slate-300">Courses</p>
                     <p className="text-base font-semibold text-slate-100">{tutor.courseCount}</p>

@@ -66,7 +66,12 @@ function parseTime(timeStr: string): { hours: number; minutes: number } {
   return { hours: h || 0, minutes: m || 0 }
 }
 
-function getNextOccurrence(dayOfWeek: number, hours: number, minutes: number, fromDate: Date): Date {
+function getNextOccurrence(
+  dayOfWeek: number,
+  hours: number,
+  minutes: number,
+  fromDate: Date
+): Date {
   const result = new Date(fromDate)
   result.setSeconds(0, 0)
   result.setHours(hours, minutes)
@@ -142,7 +147,10 @@ export function generateUpcomingSessions(
         status,
         scheduledAt,
         startedAt: status === 'active' || status === 'ended' ? scheduledAt : null,
-        endedAt: status === 'ended' ? new Date(scheduledMs + slot.durationMinutes * 60000).toISOString() : null,
+        endedAt:
+          status === 'ended'
+            ? new Date(scheduledMs + slot.durationMinutes * 60000).toISOString()
+            : null,
         durationMinutes: slot.durationMinutes || 60,
         isVirtual: true,
         roomId: null,

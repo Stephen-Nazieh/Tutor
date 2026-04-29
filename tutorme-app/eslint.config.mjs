@@ -22,6 +22,7 @@ const config = [
       'package.json.tmp',
       'pkg_head.json',
       'pkg_head2.json',
+      'server-production.js',
     ],
   },
   {

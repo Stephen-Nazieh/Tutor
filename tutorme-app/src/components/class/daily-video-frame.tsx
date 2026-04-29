@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useDailyCall } from '@/hooks/use-daily-call'
 import {
   Loader2,
@@ -260,6 +260,19 @@ export function DailyVideoFrame({
     }
   }, [floating, frame])
 
+  const handleLeave = useCallback(() => {
+    leave()
+    joinedRef.current = false
+    recordingRef.current = false
+    setActiveSpeakerId(null)
+  }, [leave])
+
+  useEffect(() => {
+    const fn = () => handleLeave()
+    window.addEventListener('tutorme:daily-video-leave', fn)
+    return () => window.removeEventListener('tutorme:daily-video-leave', fn)
+  }, [handleLeave])
+
   const canSendVideo = localParticipant?.permissions?.canSendVideo !== false
 
   if (!roomUrl) {
@@ -278,19 +291,6 @@ export function DailyVideoFrame({
       </div>
     )
   }
-
-  const handleLeave = () => {
-    leave()
-    joinedRef.current = false
-    recordingRef.current = false
-    setActiveSpeakerId(null)
-  }
-
-  useEffect(() => {
-    const fn = () => handleLeave()
-    window.addEventListener('tutorme:daily-video-leave', fn)
-    return () => window.removeEventListener('tutorme:daily-video-leave', fn)
-  }, [handleLeave])
 
   return (
     <div
@@ -369,7 +369,9 @@ export function DailyVideoFrame({
               </div>
               <div className="h-full overflow-auto p-2">
                 <div className="grid grid-cols-1 gap-2">
-                  {localParticipant && <ParticipantRow participant={localParticipant} label="You" />}
+                  {localParticipant && (
+                    <ParticipantRow participant={localParticipant} label="You" />
+                  )}
                   {remoteParticipants.map((p: any) => (
                     <ParticipantRow key={p.session_id} participant={p} />
                   ))}
@@ -535,8 +537,8 @@ function ControlButton({
         disabled
           ? 'cursor-not-allowed bg-white/5 text-white/40'
           : active
-          ? 'bg-white text-slate-900 hover:bg-white/90'
-          : 'bg-white/10 text-white hover:bg-white/15'
+            ? 'bg-white text-slate-900 hover:bg-white/90'
+            : 'bg-white/10 text-white hover:bg-white/15'
       }`}
     >
       {active ? activeIcon : inactiveIcon}

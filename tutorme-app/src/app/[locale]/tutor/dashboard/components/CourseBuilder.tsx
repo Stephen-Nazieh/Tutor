@@ -5084,11 +5084,12 @@ FEEDBACK: [your explanation]`
 
                       {mainTab === 'live' && isSessionActive && (
                         <div className="flex items-center gap-2 pr-1">
-                          {insightsProps?.isRecording && insightsProps?.recordingDuration != null && (
-                            <span className="font-mono text-xs text-red-500">
-                              {formatDuration(insightsProps.recordingDuration)}
-                            </span>
-                          )}
+                          {insightsProps?.isRecording &&
+                            insightsProps?.recordingDuration != null && (
+                              <span className="font-mono text-xs text-red-500">
+                                {formatDuration(insightsProps.recordingDuration)}
+                              </span>
+                            )}
                           {insightsProps?.onToggleRecording && (
                             <Button
                               size="sm"
@@ -9513,7 +9514,6 @@ FEEDBACK: [your explanation]`
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
       </div>
     )
   }

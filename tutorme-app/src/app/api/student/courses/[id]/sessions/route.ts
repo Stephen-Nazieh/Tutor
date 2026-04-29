@@ -71,10 +71,15 @@ export const GET = withAuth(async (req, session, context) => {
       durationMinutes: number
     }>
 
-    const virtualSessions = generateUpcomingSessions(schedule, courseRow?.name || 'Class', courseRow?.category?.[0] || 'General', {
-      count: 12,
-      maxStudents: 50,
-    })
+    const virtualSessions = generateUpcomingSessions(
+      schedule,
+      courseRow?.name || 'Class',
+      courseRow?.category?.[0] || 'General',
+      {
+        count: 12,
+        maxStudents: 50,
+      }
+    )
 
     const merged = mergeSessions(formattedReal, virtualSessions)
 

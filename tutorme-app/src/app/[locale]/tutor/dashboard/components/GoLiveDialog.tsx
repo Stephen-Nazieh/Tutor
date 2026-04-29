@@ -111,7 +111,9 @@ export function GoLiveDialog({
               >
                 <RadioGroupItem value="teaching" id="teaching" />
                 <Label htmlFor="teaching" className="flex-1 cursor-pointer">
-                  <div className="text-base font-semibold text-gray-900">Start a Teaching Session</div>
+                  <div className="text-base font-semibold text-gray-900">
+                    Start a Teaching Session
+                  </div>
                   <div className="mt-1 text-sm font-normal text-gray-600">
                     Deliver lessons to your enrolled students. Only enrolled students will be
                     notified.
@@ -124,7 +126,9 @@ export function GoLiveDialog({
               >
                 <RadioGroupItem value="training" id="training" />
                 <Label htmlFor="training" className="flex-1 cursor-pointer">
-                  <div className="text-base font-semibold text-gray-900">Start a Training Session</div>
+                  <div className="text-base font-semibold text-gray-900">
+                    Start a Training Session
+                  </div>
                   <div className="mt-1 text-sm font-normal text-gray-600">
                     Host a session for other tutors on the platform. Share your screen and
                     interface.
