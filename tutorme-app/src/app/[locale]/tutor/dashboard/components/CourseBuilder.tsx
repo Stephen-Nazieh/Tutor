@@ -448,6 +448,8 @@ interface PreviewCardProps {
 // ============================================
 
 import { MonitoringPanel } from './MonitoringPanel'
+import { SubmissionsPanel } from './SubmissionsPanel'
+import { LiveSessionSubmissionsPanel } from './LiveSessionSubmissionsPanel'
 
 export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
   function CourseBuilder(
@@ -641,6 +643,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       [onLeftPanelHiddenChange]
     )
     const [rightPanelHidden, setRightPanelHidden] = useState(false)
+    const [rightPanelWidth] = useState(380)
     const [leftPanelWidth, setLeftPanelWidth] = useState(340)
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
     const leftPanelRef = useRef<HTMLDivElement>(null)
@@ -799,8 +802,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       id: string
       name: string
     } | null>(null)
-    const [monitorRosterHidden, setMonitorRosterHidden] = useState(false)
-    const [monitorRosterWidth] = useState(240)
+    const [liveSubmissionsPanelHidden, setLiveSubmissionsPanelHidden] = useState(false)
+    const [liveSubmissionsPanelWidth] = useState(320)
 
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
     const [comingSoonDialog, setComingSoonDialog] = useState(false)
@@ -6906,8 +6909,22 @@ FEEDBACK: [your explanation]`
               </div>
             )}
 
+            {!isStudentView && (
+              <SubmissionsPanel
+                courseId={courseId || ''}
+                width={rightPanelWidth}
+                hidden={rightPanelHidden}
+                onToggleHidden={setRightPanelHidden}
+              />
+            )}
+
             {/* CENTER PANEL - New Three-Section Design */}
-            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch pl-4">
+            <div
+              className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-stretch pl-4"
+              style={{
+                paddingRight: !isStudentView && !rightPanelHidden ? rightPanelWidth + 16 : 0,
+              }}
+            >
               <div className="flex min-h-0 w-full flex-1 grow flex-col items-stretch gap-4">
                 {mainTab !== 'builder' && (
                   <div className="h-full w-full flex-1">
@@ -7339,7 +7356,14 @@ FEEDBACK: [your explanation]`
                                               )
                                             }
                                             return (
-                                              <div className="relative h-full w-full">
+                                              <div
+                                                className="relative h-full w-full"
+                                                style={{
+                                                  paddingRight: liveSubmissionsPanelHidden
+                                                    ? 0
+                                                    : liveSubmissionsPanelWidth + 16,
+                                                }}
+                                              >
                                                 <div className="h-full w-full">
                                                   <MonitoringPanel
                                                     socket={insightsProps.socket}
@@ -7361,88 +7385,21 @@ FEEDBACK: [your explanation]`
                                                   />
                                                 </div>
 
-                                                <div
-                                                  className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full border border-r-0 border-[#E5E7EB] bg-white shadow-[-2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
-                                                  style={{
-                                                    right: monitorRosterHidden
-                                                      ? 0
-                                                      : monitorRosterWidth - 16,
+                                                <LiveSessionSubmissionsPanel
+                                                  sessionId={insightsProps.sessionId}
+                                                  width={liveSubmissionsPanelWidth}
+                                                  hidden={liveSubmissionsPanelHidden}
+                                                  onToggleHidden={setLiveSubmissionsPanelHidden}
+                                                  selectedStudentId={
+                                                    monitorSelectedStudent?.id ?? null
+                                                  }
+                                                  onSelectStudent={(studentId, studentName) => {
+                                                    setMonitorSelectedStudent({
+                                                      id: studentId,
+                                                      name: studentName,
+                                                    })
                                                   }}
-                                                  onClick={() =>
-                                                    setMonitorRosterHidden(!monitorRosterHidden)
-                                                  }
-                                                  title={
-                                                    monitorRosterHidden
-                                                      ? 'Show students'
-                                                      : 'Hide students'
-                                                  }
-                                                >
-                                                  {monitorRosterHidden ? (
-                                                    <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
-                                                  ) : (
-                                                    <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
-                                                  )}
-                                                </div>
-
-                                                {!monitorRosterHidden && (
-                                                  <div
-                                                    className="absolute right-0 top-0 z-40 flex h-full flex-col border-l border-[#E5E7EB] bg-white shadow-[-8px_0_20px_rgba(0,0,0,0.06)]"
-                                                    style={{ width: monitorRosterWidth }}
-                                                  >
-                                                    <div className="flex items-center justify-between border-b px-3 py-2">
-                                                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                                                        Students
-                                                      </div>
-                                                    </div>
-                                                    <ScrollArea className="min-h-0 flex-1 p-2">
-                                                      <div className="flex flex-col gap-1">
-                                                        {(sessionStudents || []).map((s: any) => {
-                                                          const studentId =
-                                                            s?.id ?? s?.userId ?? s?.studentId
-                                                          const studentName =
-                                                            s?.name ?? s?.studentName ?? 'Student'
-                                                          const isSelected =
-                                                            monitorSelectedStudent?.id === studentId
-                                                          const isOnline = s?.status === 'online'
-
-                                                          if (!studentId) return null
-
-                                                          return (
-                                                            <button
-                                                              key={studentId}
-                                                              type="button"
-                                                              onClick={() => {
-                                                                setMonitorSelectedStudent({
-                                                                  id: studentId,
-                                                                  name: studentName,
-                                                                })
-                                                                setTestPciActiveTab('student1')
-                                                              }}
-                                                              className={cn(
-                                                                'flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm transition-colors',
-                                                                isSelected
-                                                                  ? 'bg-indigo-50 text-indigo-700'
-                                                                  : 'hover:bg-slate-50'
-                                                              )}
-                                                            >
-                                                              <span className="truncate font-medium">
-                                                                {studentName}
-                                                              </span>
-                                                              <span
-                                                                className={cn(
-                                                                  'ml-2 flex h-2 w-2 shrink-0 rounded-full',
-                                                                  isOnline
-                                                                    ? 'animate-pulse bg-green-500'
-                                                                    : 'bg-slate-300'
-                                                                )}
-                                                              />
-                                                            </button>
-                                                          )
-                                                        })}
-                                                      </div>
-                                                    </ScrollArea>
-                                                  </div>
-                                                )}
+                                                />
                                               </div>
                                             )
                                           }
