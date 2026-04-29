@@ -1734,9 +1734,23 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           })
         }
 
+        // Also emit direct homework assignment event for real-time student notification
+        if (insightsProps?.socket && insightsProps?.sessionId) {
+          insightsProps.socket.emit('homework:assigned', {
+            roomId: insightsProps.sessionId,
+            homework: {
+              id: homeworkItem.id,
+              title: homeworkItem.title || 'Homework',
+              content: homeworkItem.description || '',
+              dmiItems: homeworkItem.dmiItems || [],
+              sourceDocument: homeworkItem.sourceDocument,
+            },
+          })
+        }
+
         toast.success('Moved to homework')
       },
-      [cloneAssessment, loadAssessmentIntoBuilder, nodes]
+      [cloneAssessment, loadAssessmentIntoBuilder, nodes, insightsProps]
     )
 
     const cloneLesson = (lesson: Lesson, order: number): Lesson => ({

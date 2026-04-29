@@ -90,6 +90,10 @@ export interface ClassRoom {
   whiteboardData?: unknown[]
   chatHistory: ChatMessage[]
   tasks?: LiveTask[]
+  polls?: any[]
+  codeEditorContent?: string
+  codeLanguage?: string
+  lastActivity?: number
   createdAt: Date
 }
 

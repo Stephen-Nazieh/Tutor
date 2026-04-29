@@ -105,12 +105,14 @@ function StudentFeedbackContent() {
   const [sessionsLoading, setSessionsLoading] = useState(true)
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(sessionIdFromQuery)
   const [tasks, setTasks] = useState<LiveTask[]>([])
+  const [liveHomework, setLiveHomework] = useState<LiveTask[]>([])
   const [selectedDirectoryItem, setSelectedDirectoryItem] = useState<LiveTask | null>(null)
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
   const [requestingSessionId, setRequestingSessionId] = useState<string | null>(null)
   const [showTasksPanel, setShowTasksPanel] = useState(false)
   const [rightPanelTab, setRightPanelTab] = useState<'dmi' | 'interactions'>('interactions')
   const [unseenTaskIds, setUnseenTaskIds] = useState<string[]>([])
+  const [unseenHomeworkIds, setUnseenHomeworkIds] = useState<string[]>([])
   const [questionDrafts, setQuestionDrafts] = useState<Record<string, string>>({})
   const [chatInput, setChatInput] = useState('')
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
@@ -537,15 +539,27 @@ function StudentFeedbackContent() {
     if (!socket) return
 
     const handleTaskDeployed = (task: LiveTask) => {
-      setTasks(prev => {
-        const exists = prev.some(item => item.id === task.id)
-        if (exists) {
-          return prev.map(item => (item.id === task.id ? { ...item, ...task } : item))
-        }
-        return [...prev, task]
-      })
-      setUnseenTaskIds(prev => (prev.includes(task.id) ? prev : [...prev, task.id]))
-      toast.success(`New task deployed: ${task.title}`)
+      if (task.source === 'homework') {
+        setLiveHomework(prev => {
+          const exists = prev.some(item => item.id === task.id)
+          if (exists) {
+            return prev.map(item => (item.id === task.id ? { ...item, ...task } : item))
+          }
+          return [...prev, task]
+        })
+        setUnseenHomeworkIds(prev => (prev.includes(task.id) ? prev : [...prev, task.id]))
+        toast.success(`New homework assigned: ${task.title}`)
+      } else {
+        setTasks(prev => {
+          const exists = prev.some(item => item.id === task.id)
+          if (exists) {
+            return prev.map(item => (item.id === task.id ? { ...item, ...task } : item))
+          }
+          return [...prev, task]
+        })
+        setUnseenTaskIds(prev => (prev.includes(task.id) ? prev : [...prev, task.id]))
+        toast.success(`New task deployed: ${task.title}`)
+      }
     }
 
     const handleTaskUpdated = (payload: { task: LiveTask }) => {
@@ -589,11 +603,24 @@ function StudentFeedbackContent() {
       }
     }
 
+    const handleHomeworkReceived = (hw: LiveTask) => {
+      setLiveHomework(prev => {
+        const exists = prev.some(item => item.id === hw.id)
+        if (exists) {
+          return prev.map(item => (item.id === hw.id ? { ...item, ...hw } : item))
+        }
+        return [...prev, hw]
+      })
+      setUnseenHomeworkIds(prev => (prev.includes(hw.id) ? prev : [...prev, hw.id]))
+      toast.success(`New homework assigned: ${hw.title}`)
+    }
+
     socket.on('task:deployed', handleTaskDeployed)
     socket.on('task:updated', handleTaskUpdated)
     socket.on('task:deployed:sequence', handleTaskSequence)
     socket.on('insight:receive', handleInsightReceived)
     socket.on('student:direct_message', handleStudentDirectMessage)
+    socket.on('homework:received', handleHomeworkReceived)
 
     return () => {
       socket.off('task:deployed', handleTaskDeployed)
@@ -601,6 +628,7 @@ function StudentFeedbackContent() {
       socket.off('task:deployed:sequence', handleTaskSequence)
       socket.off('insight:receive', handleInsightReceived)
       socket.off('student:direct_message', handleStudentDirectMessage)
+      socket.off('homework:received', handleHomeworkReceived)
     }
   }, [socket])
 
@@ -667,6 +695,16 @@ function StudentFeedbackContent() {
   }
 
   const handleSelectDirectoryItem = useCallback((item: any) => {
+    // Handle live tasks / homework (LiveTask objects from socket)
+    if (item.source === 'task' || item.source === 'assessment' || item.source === 'homework') {
+      setSelectedDirectoryItem(item)
+      setActiveTaskId(item.id)
+      setActiveCourseName(item.courseName || null)
+      setUnseenTaskIds(prev => prev.filter(id => id !== item.id))
+      setUnseenHomeworkIds(prev => prev.filter(id => id !== item.id))
+      setShowTasksPanel(false)
+      return
+    }
     if (
       item.type === 'task' ||
       item.type === 'assessment' ||
@@ -683,6 +721,7 @@ function StudentFeedbackContent() {
         setActiveTaskId(parsed.id)
         setActiveCourseName(item.courseName || null)
         setUnseenTaskIds(prev => prev.filter(id => id !== parsed.id))
+        setUnseenHomeworkIds(prev => prev.filter(id => id !== parsed.id))
         setShowTasksPanel(false)
       } catch (e) {
         console.error('Failed to parse task content', e)
@@ -1058,12 +1097,14 @@ function StudentFeedbackContent() {
                                           <div>
                                             <button
                                               className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                                              onClick={() =>
+                                              onClick={() => {
                                                 setFoldersOpen(prev => ({
                                                   ...prev,
                                                   homework: !prev.homework,
                                                 }))
-                                              }
+                                                // Mark homework as seen when folder is opened
+                                                setUnseenHomeworkIds([])
+                                              }}
                                             >
                                               {foldersOpen.homework ? (
                                                 <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
@@ -1077,15 +1118,22 @@ function StudentFeedbackContent() {
                                               <span className="text-sm font-medium text-slate-700">
                                                 Homework
                                               </span>
+                                              {unseenHomeworkIds.length > 0 && (
+                                                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1.5 text-[10px] font-bold text-white">
+                                                  {unseenHomeworkIds.length}
+                                                </span>
+                                              )}
                                             </button>
                                             {foldersOpen.homework && (
                                               <div className="mt-1 flex flex-col gap-0.5 pl-6">
                                                 {(!courseData.homework ||
-                                                  courseData.homework.length === 0) && (
-                                                  <span className="px-2 py-1 text-xs text-slate-500">
-                                                    Empty folder
-                                                  </span>
-                                                )}
+                                                  courseData.homework.length === 0) &&
+                                                  liveHomework.length === 0 && (
+                                                    <span className="px-2 py-1 text-xs text-slate-500">
+                                                      Empty folder
+                                                    </span>
+                                                  )}
+                                                {/* Directory homework */}
                                                 {courseData.homework &&
                                                   [...courseData.homework].reverse().map(task => (
                                                     <button
@@ -1104,6 +1152,25 @@ function StudentFeedbackContent() {
                                                       <span className="truncate">{task.title}</span>
                                                     </button>
                                                   ))}
+                                                {/* Live homework from socket */}
+                                                {liveHomework.map(hw => (
+                                                  <button
+                                                    key={hw.id}
+                                                    onClick={() => handleSelectDirectoryItem(hw)}
+                                                    className={cn(
+                                                      'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                      activeTaskId === hw.id
+                                                        ? 'bg-emerald-50 font-medium text-emerald-700'
+                                                        : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+                                                    )}
+                                                  >
+                                                    <FileText className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                                                    <span className="truncate">{hw.title}</span>
+                                                    {unseenHomeworkIds.includes(hw.id) && (
+                                                      <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                                                    )}
+                                                  </button>
+                                                ))}
                                               </div>
                                             )}
                                           </div>

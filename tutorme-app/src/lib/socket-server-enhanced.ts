@@ -44,6 +44,9 @@ export interface ClassRoom {
   whiteboardData?: Record<string, unknown>
   chatHistory: ChatMessage[]
   tasks: LiveTask[]
+  polls?: any[]
+  codeEditorContent?: string
+  codeLanguage?: string
   createdAt: Date
   lastActivity: number
 }
@@ -834,11 +837,34 @@ export async function initEnhancedSocketServer(server: NetServer) {
     }
 
     socket.on('task:deploy', async (data: { roomId: string; task: LiveTask }) => {
-      if (socket.data.role !== 'tutor') return
+      if (socket.data.role !== 'tutor') {
+        socket.emit('task:deploy:error', { error: 'Only tutors can deploy tasks' })
+        return
+      }
       const { roomId, task } = data
-      if (!roomId || !task?.id) return
-      const room = activeRooms.get(roomId)
-      if (!room) return
+      if (!roomId || !task?.id) {
+        socket.emit('task:deploy:error', { error: 'Invalid deploy data' })
+        return
+      }
+      let room = activeRooms.get(roomId)
+      if (!room) {
+        // Room may have been cleaned up — recreate it on demand
+        room = {
+          id: roomId,
+          tutorId: socket.data.userId || '',
+          students: new Map(),
+          chatHistory: [],
+          tasks: [],
+          polls: [],
+          whiteboardData: undefined,
+          codeEditorContent: '',
+          codeLanguage: 'javascript',
+          createdAt: new Date(),
+          lastActivity: Date.now(),
+        }
+        activeRooms.set(roomId, room)
+        console.log(`[task:deploy] Recreated room ${roomId} on demand`)
+      }
 
       const deployCheck = await canDeployToSession(roomId, task.source)
       if (!deployCheck.ok) {
@@ -858,20 +884,20 @@ export async function initEnhancedSocketServer(server: NetServer) {
         sourceDocument: task.sourceDocument,
       }
 
-      const existingIndex = room.tasks.findIndex(existing => existing.id === normalizedTask.id)
+      const existingIndex = room!.tasks.findIndex(existing => existing.id === normalizedTask.id)
       if (existingIndex >= 0) {
-        room.tasks[existingIndex] = {
-          ...room.tasks[existingIndex],
+        room!.tasks[existingIndex] = {
+          ...room!.tasks[existingIndex],
           ...normalizedTask,
-          polls: room.tasks[existingIndex].polls,
-          questions: room.tasks[existingIndex].questions,
+          polls: room!.tasks[existingIndex].polls,
+          questions: room!.tasks[existingIndex].questions,
         }
       } else {
-        room.tasks.push(normalizedTask)
+        room!.tasks.push(normalizedTask)
       }
 
-      room.lastActivity = Date.now()
-      void persistRoomToRedis(roomId, room)
+      room!.lastActivity = Date.now()
+      void persistRoomToRedis(roomId, room!)
       io.to(roomId).emit('task:deployed', normalizedTask)
       io.to(roomId).emit('task:updated', { task: normalizedTask })
 
@@ -882,8 +908,8 @@ export async function initEnhancedSocketServer(server: NetServer) {
         const { eq } = await import('drizzle-orm')
 
         const sessionRec = await drizzleDb.query.liveSession.findFirst({
-          where: eq(liveSession.roomId, roomId),
-          columns: { courseId: true },
+          where: eq(liveSession.sessionId, roomId),
+          columns: { courseId: true, sessionId: true },
         })
 
         if (sessionRec?.courseId) {
@@ -918,6 +944,70 @@ export async function initEnhancedSocketServer(server: NetServer) {
         console.error('Failed to persist deployed material to DB:', err)
       }
     })
+
+    // Tutor assigns homework during live class
+    socket.on(
+      'homework:assigned',
+      (data: {
+        roomId: string
+        homework: {
+          id: string
+          title: string
+          content: string
+          dmiItems?: any[]
+          sourceDocument?: any
+          lessonId?: string
+          lessonName?: string
+        }
+      }) => {
+        if (socket.data.role !== 'tutor') {
+          socket.emit('homework:error', { error: 'Only tutors can assign homework' })
+          return
+        }
+        const { roomId, homework } = data
+        if (!roomId || !homework?.id) {
+          socket.emit('homework:error', { error: 'Invalid homework data' })
+          return
+        }
+
+        let room = activeRooms.get(roomId)
+        if (!room) {
+          room = {
+            id: roomId,
+            tutorId: socket.data.userId || '',
+            students: new Map(),
+            chatHistory: [],
+            tasks: [],
+            polls: [],
+            whiteboardData: undefined,
+            codeEditorContent: '',
+            codeLanguage: 'javascript',
+            createdAt: new Date(),
+            lastActivity: Date.now(),
+          }
+          activeRooms.set(roomId, room)
+        }
+
+        room!.lastActivity = Date.now()
+        void persistRoomToRedis(roomId, room!)
+
+        // Broadcast to all students in the room
+        io.to(roomId).emit('homework:received', {
+          ...homework,
+          assignedAt: new Date().toISOString(),
+          tutorId: socket.data.userId,
+        })
+
+        // Also emit to individual student feedback channels
+        room!.students.forEach((_studentState, studentId) => {
+          io.to(`feedback:student:${studentId}`).emit('homework:received', {
+            ...homework,
+            assignedAt: new Date().toISOString(),
+            tutorId: socket.data.userId,
+          })
+        })
+      }
+    )
 
     socket.on(
       'insight:send',
