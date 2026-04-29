@@ -645,7 +645,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
             const [session] = await drizzleDb
               .select({ tutorId: liveSession.tutorId })
               .from(liveSession)
-              .where(eq(liveSession.roomId, roomId))
+              .where(eq(liveSession.sessionId, roomId))
               .limit(1)
             return session?.tutorId ?? null
           } catch {
@@ -659,7 +659,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
       if (effectiveRole === 'student') {
         const liveSessionRow = await drizzleDb.query.liveSession.findFirst({
-          where: eq(liveSession.roomId, roomId),
+          where: eq(liveSession.sessionId, roomId),
         })
         if (liveSessionRow?.courseId) {
           const enrolled = await drizzleDb.query.courseEnrollment.findFirst({
@@ -684,7 +684,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
                   const [session] = await drizzleDb
                     .select({ tutorId: liveSession.tutorId })
                     .from(liveSession)
-                    .where(eq(liveSession.roomId, roomId))
+                    .where(eq(liveSession.sessionId, roomId))
                     .limit(1)
                   return session?.tutorId ?? ''
                 } catch {
@@ -707,7 +707,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
       // Hydrate active polls from DB for late joiners
       try {
         const liveSessionRow = await drizzleDb.query.liveSession.findFirst({
-          where: eq(liveSession.roomId, roomId),
+          where: eq(liveSession.sessionId, roomId),
         })
         if (liveSessionRow) {
           const activeDbPolls = await drizzleDb.query.poll.findMany({
@@ -1184,7 +1184,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
           // Update sessionParticipant.leftAt in database
           try {
             const liveSessionRow = await drizzleDb.query.liveSession.findFirst({
-              where: eq(liveSession.roomId, roomId),
+              where: eq(liveSession.sessionId, roomId),
               columns: { sessionId: true },
             })
             if (liveSessionRow) {

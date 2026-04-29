@@ -342,6 +342,7 @@ export interface CourseBuilderProps {
   saveMode?: 'live' | 'draft'
   onSaveModeChange?: (mode: 'live' | 'draft') => void
   isStudentView?: boolean
+  onSyncToLiveSession?: () => void
 }
 
 export interface CourseBuilderRef {

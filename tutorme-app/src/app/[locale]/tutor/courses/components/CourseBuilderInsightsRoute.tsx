@@ -23,7 +23,6 @@ import {
   BookOpen,
   Edit3,
   MoreVertical,
-  RefreshCw,
   Plus,
   Timer,
   LayoutTemplate,
@@ -546,23 +545,6 @@ function CourseBuilderInsightsRouteInner({
                     </SelectContent>
                   </Select>
                 )}
-                {/* Sync Button is always available if a course is selected */}
-                {courseId && courseId !== 'insights-draft' && onSyncToLiveSession && (
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      const cb = (model.courseBuilderRef.current as any)?.saveAll
-                      if (typeof cb === 'function') await cb()
-                      const syncCb = (model.courseBuilderRef.current as any)?.syncToLive
-                      if (typeof syncCb === 'function') syncCb()
-                      onSyncToLiveSession()
-                    }}
-                  >
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Sync
-                  </Button>
-                )}
-
                 {/* Show Go Live only in Draft mode */}
                 {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
                   <Button
@@ -710,6 +692,7 @@ function CourseBuilderInsightsRouteInner({
             onLeftPanelHiddenChange={setLeftPanelHidden}
             saveMode={saveMode}
             onSaveModeChange={onSaveModeChange}
+            onSyncToLiveSession={onSyncToLiveSession}
           />
         )}
       </div>

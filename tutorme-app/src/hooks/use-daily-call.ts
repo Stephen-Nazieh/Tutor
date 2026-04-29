@@ -98,6 +98,14 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       optionsRef.current.onRecordingStopped?.()
     })
 
+    call.on('joined-meeting', () => {
+      setState(prev => ({ ...prev, isJoined: true, error: null }))
+    })
+
+    call.on('left-meeting', () => {
+      setState(prev => ({ ...prev, isJoined: false, participants: [] }))
+    })
+
     // Note: We don't destroy the call object on unmount
     // because we want it to persist for the session.
     // It's destroyed when the user explicitly leaves the call.
@@ -135,11 +143,15 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     }
   }, [])
 
-  const leave = useCallback(() => {
+  const leave = useCallback(async () => {
     const call = callRef.current
     if (!call) return
 
-    call.leave()
+    try {
+      await call.leave()
+    } catch {
+      // ignore leave errors
+    }
     call.destroy()
     globalCallInstance = null
     callRef.current = null
@@ -151,6 +163,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       isVideoEnabled: false,
       isScreenSharing: false,
       participants: [],
+      error: null,
     }))
   }, [])
 

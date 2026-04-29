@@ -242,6 +242,7 @@ import {
   LayoutPanelTop,
   Brain,
   ClipboardList,
+  RefreshCw,
 } from 'lucide-react'
 import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
@@ -472,6 +473,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       saveMode,
       onSaveModeChange,
       isStudentView = false,
+      onSyncToLiveSession,
     },
     ref
   ) {
@@ -1559,34 +1561,24 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       isLive: false,
     })
 
-    // Expose save method via ref
-    useImperativeHandle(ref, () => {
-      const doSave = () => {
-        // If courseName is missing (e.g. builder-draft), prompt for properties
-        if (!courseName && !coursePropsModal.name) {
-          setCoursePropsModal(prev => ({ ...prev, isOpen: true }))
-          return
-        }
-
-        if (onSave) {
-          return onSave(
-            nodes.map(n => n.lessons[0] || ({} as any)),
-            {
-              developmentMode: devMode,
-              previewDifficulty,
-              courseName: coursePropsModal.name || courseName,
-              courseDescription: coursePropsModal.description,
-              isLive: coursePropsModal.isLive,
-            }
-          )
-        }
+    const doSave = useCallback(() => {
+      // If courseName is missing (e.g. builder-draft), prompt for properties
+      if (!courseName && !coursePropsModal.name) {
+        setCoursePropsModal(prev => ({ ...prev, isOpen: true }))
+        return
       }
 
-      return {
-        save: doSave,
-        saveAll: doSave,
-        syncToLive: () => setLiveNodes(cloneNodes(builderNodes)),
-        getLessons: () => nodes.map(n => n.lessons[0]),
+      if (onSave) {
+        return onSave(
+          nodes.map(n => n.lessons[0] || ({} as any)),
+          {
+            developmentMode: devMode,
+            previewDifficulty,
+            courseName: coursePropsModal.name || courseName,
+            courseDescription: coursePropsModal.description,
+            isLive: coursePropsModal.isLive,
+          }
+        )
       }
     }, [
       nodes,
@@ -1596,9 +1588,19 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       devMode,
       previewDifficulty,
       onSave,
-      builderNodes,
-      cloneNodes,
     ])
+
+    const handleSyncToLive = useCallback(() => {
+      setLiveNodes(cloneNodes(builderNodes))
+    }, [builderNodes, cloneNodes, setLiveNodes])
+
+    // Expose save method via ref
+    useImperativeHandle(ref, () => ({
+      save: doSave,
+      saveAll: doSave,
+      syncToLive: handleSyncToLive,
+      getLessons: () => nodes.map(n => n.lessons[0]),
+    }), [doSave, handleSyncToLive, nodes])
 
     const trackObjectUrl = useCallback((url: string) => {
       if (url.startsWith('blob:')) {
@@ -5186,6 +5188,25 @@ FEEDBACK: [your explanation]`
                               {insightsProps.endingSession ? 'Ending…' : 'End'}
                             </Button>
                           )}
+                        </div>
+                      )}
+
+                      {onSyncToLiveSession && (
+                        <div className="flex items-center gap-2 pr-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              doSave()
+                              handleSyncToLive()
+                              onSyncToLiveSession()
+                            }}
+                            className="h-8 gap-2 rounded-full px-3 text-xs font-medium text-slate-600 hover:bg-slate-100"
+                            title="Sync course to live session"
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                            Sync
+                          </Button>
                         </div>
                       )}
                     </div>

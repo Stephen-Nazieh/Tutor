@@ -41,6 +41,7 @@ export function DailyVideoFrame({
   const {
     call,
     isJoined,
+    error: joinError,
     join,
     leave,
     toggleAudio,
@@ -55,17 +56,28 @@ export function DailyVideoFrame({
   } = useDailyCall()
   const joinedRef = useRef(false)
   const recordingRef = useRef(false)
+  const [joinAttempt, setJoinAttempt] = useState(0)
 
   useEffect(() => {
     if (!roomUrl || joinedRef.current) return
     joinedRef.current = true
-    join(roomUrl, token || undefined)
-
+    let cancelled = false
+    const doJoin = async () => {
+      try {
+        await join(roomUrl, token || undefined)
+      } catch {
+        if (!cancelled) {
+          joinedRef.current = false
+        }
+      }
+    }
+    doJoin()
     return () => {
+      cancelled = true
       joinedRef.current = false
       recordingRef.current = false
     }
-  }, [roomUrl, token, join, leave])
+  }, [roomUrl, token, join, leave, joinAttempt])
 
   useEffect(() => {
     if (isJoined && autoRecord && !recordingRef.current && call) {
@@ -285,9 +297,29 @@ export function DailyVideoFrame({
 
   if (!isJoined) {
     return (
-      <div className={`flex items-center justify-center bg-gray-900 text-white ${className || ''}`}>
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        <span className="text-sm">Connecting...</span>
+      <div
+        className={`flex flex-col items-center justify-center gap-3 bg-gray-900 text-white ${className || ''}`}
+      >
+        {joinError ? (
+          <>
+            <p className="text-sm text-red-400">{joinError}</p>
+            <button
+              type="button"
+              onClick={() => {
+                joinedRef.current = false
+                setJoinAttempt(v => v + 1)
+              }}
+              className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold text-white hover:bg-white/20"
+            >
+              Retry
+            </button>
+          </>
+        ) : (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <span className="text-sm">Connecting...</span>
+          </>
+        )}
       </div>
     )
   }

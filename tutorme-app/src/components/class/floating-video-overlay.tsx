@@ -32,7 +32,9 @@ export function FloatingVideoOverlay() {
     if (frame) return
     if (typeof window === 'undefined') return
     if (isTutor) {
-      setFrame({ x: 0, y: 0, w: 360, h: 240 })
+      const minW = 360
+      const minH = 240
+      setFrame({ x: 0, y: Math.max(0, window.innerHeight - minH), w: minW, h: minH })
       return
     }
     const w = Math.min(560, Math.max(360, Math.floor(window.innerWidth * 0.4)))
