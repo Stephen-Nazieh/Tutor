@@ -4,6 +4,7 @@ import { appendMessage, getConversation } from '../tools/conversations.js'
 import { logError } from '../observability/logging.js'
 import { pciMasterSchema } from '../validation/schemas.js'
 import { z } from 'zod'
+import { startLiveTranscriptionWorker, getLiveTranscriptionState } from '../live-transcription/runner.js'
 
 const router = Router()
 
@@ -28,6 +29,13 @@ const LlmChatSchema = z.object({
   ),
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.number().int().min(1).max(4096).optional(),
+})
+
+const LiveTranscriptStartedSchema = z.object({
+  sessionId: z.string().min(1),
+  tutorId: z.string().min(1),
+  roomName: z.string().min(1),
+  transcriptId: z.string().min(1),
 })
 
 async function generateWithKimi(
@@ -116,6 +124,38 @@ router.get('/v1/llm/smoke', async (_req, res) => {
       timestamp: new Date().toISOString()
     })
   }
+})
+
+router.post('/v1/live-transcription/transcript-started', async (req, res) => {
+  const parsed = LiveTranscriptStartedSchema.safeParse(req.body)
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Invalid request', details: parsed.error })
+  }
+
+  try {
+    await startLiveTranscriptionWorker(parsed.data)
+    return res.json({ ok: true })
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: (error as Error).message })
+  }
+})
+
+router.get('/v1/live-transcription/:sessionId/status', async (req, res) => {
+  const sessionId = req.params.sessionId
+  if (!sessionId) return res.status(400).json({ error: 'Session ID is required' })
+
+  const state = await getLiveTranscriptionState(sessionId)
+  return res.json({
+    ok: true,
+    state: state
+      ? {
+          sessionId: state.sessionId,
+          transcriptId: state.transcriptId,
+          transcriptChars: state.lastTranscriptChars,
+          lastSummary: state.lastSummary,
+        }
+      : null,
+  })
 })
 
 router.post('/v1/llm/generate', async (req, res) => {

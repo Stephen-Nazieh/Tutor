@@ -45,6 +45,9 @@ export function MonitoringPanel({
   )
   const [aiInput, setAiInput] = useState('')
   const [isAILoading, setIsAILoading] = useState(false)
+  const [isTranscriptionStarting, setIsTranscriptionStarting] = useState(false)
+  const [liveSummary, setLiveSummary] = useState<string | null>(null)
+  const [liveTranscriptStatus, setLiveTranscriptStatus] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -119,6 +122,52 @@ export function MonitoringPanel({
       }, 100)
     }
   }
+
+  const refreshLiveSummary = async () => {
+    if (!sessionId) return
+    try {
+      const res = await fetch(`/api/tutor/live-sessions/${sessionId}/transcription/status`, {
+        method: 'GET',
+        cache: 'no-store',
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      const artifact = data?.artifact
+      setLiveSummary(artifact?.summary || null)
+      setLiveTranscriptStatus(artifact?.status || null)
+    } catch {}
+  }
+
+  const startLiveTranscription = async () => {
+    if (!sessionId || isTranscriptionStarting) return
+    setIsTranscriptionStarting(true)
+    try {
+      const res = await fetch(`/api/tutor/live-sessions/${sessionId}/transcription/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data?.message || 'Failed to start transcription')
+        return
+      }
+      toast.success('Transcription started')
+      void refreshLiveSummary()
+    } catch {
+      toast.error('Failed to start transcription')
+    } finally {
+      setIsTranscriptionStarting(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!isAIOpen) return
+    void refreshLiveSummary()
+    const id = setInterval(() => {
+      void refreshLiveSummary()
+    }, 30_000)
+    return () => clearInterval(id)
+  }, [isAIOpen, sessionId])
 
   const activeStudents = Object.values(studentStates)
   const rosterStudents: { id: string; name: string; status: string | null }[] = (students || [])
@@ -269,6 +318,41 @@ export function MonitoringPanel({
             </CardHeader>
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
               <div className="flex flex-col space-y-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        Live Transcript
+                      </div>
+                      <div className="mt-0.5 text-xs text-slate-500">
+                        {liveTranscriptStatus ? `Status: ${liveTranscriptStatus}` : 'Not started'}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={startLiveTranscription}
+                        disabled={isTranscriptionStarting}
+                      >
+                        {isTranscriptionStarting ? 'Starting…' : 'Start'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs"
+                        onClick={refreshLiveSummary}
+                      >
+                        Refresh
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="mt-3 whitespace-pre-wrap text-sm text-slate-700">
+                    {liveSummary || 'Summary will appear here once transcript text is available.'}
+                  </div>
+                </div>
+
                 {aiMessages.length === 0 ? (
                   <div className="mt-4 space-y-2 text-center text-sm text-slate-500">
                     <p>Hi! I'm monitoring the classroom.</p>
