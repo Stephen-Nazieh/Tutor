@@ -520,6 +520,8 @@ function StudentFeedbackContent() {
 
   const [activeTab, setActiveTab] = useState<string>('task')
   const [isMirroringToTutor, setIsMirroringToTutor] = useState<boolean>(true)
+  const [videoOpen, setVideoOpen] = useState(false)
+  const [videoMounted, setVideoMounted] = useState(false)
 
   // Sync Student state to Tutor
   useEffect(() => {
@@ -1327,21 +1329,53 @@ function StudentFeedbackContent() {
 
           <div className="flex flex-1 flex-col overflow-hidden">
             {sessionContext?.roomUrl && (
-              <div className="relative h-44 w-full border-b bg-black sm:h-52">
-                <div className="absolute right-4 top-4 z-10">
-                  <Button
-                    variant={isMirroringToTutor ? 'default' : 'secondary'}
-                    size="sm"
-                    onClick={() => setIsMirroringToTutor(!isMirroringToTutor)}
-                    className="gap-2 shadow-lg"
+              <div className="flex items-center justify-end gap-2 border-b bg-white px-4 py-3">
+                <Button
+                  variant={isMirroringToTutor ? 'default' : 'secondary'}
+                  size="sm"
+                  onClick={() => setIsMirroringToTutor(!isMirroringToTutor)}
+                  className="gap-2 shadow-sm"
+                >
+                  <div
+                    className={`h-2 w-2 rounded-full ${isMirroringToTutor ? 'animate-pulse bg-green-400' : 'bg-red-400'}`}
+                  />
+                  {isMirroringToTutor ? 'Sharing screen with Tutor' : 'Screen share paused'}
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setVideoMounted(true)
+                    setVideoOpen(true)
+                  }}
+                  className="gap-2 shadow-sm"
+                >
+                  <Video className="h-4 w-4" />
+                  Video
+                </Button>
+                <Dialog
+                  open={videoOpen}
+                  onOpenChange={open => {
+                    setVideoOpen(open)
+                    if (open) setVideoMounted(true)
+                  }}
+                >
+                  <DialogContent
+                    forceMount
+                    className="h-[90vh] w-[90vw] max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-black p-0 data-[state=closed]:hidden"
+                    theme="default"
                   >
-                    <div
-                      className={`h-2 w-2 rounded-full ${isMirroringToTutor ? 'animate-pulse bg-green-400' : 'bg-red-400'}`}
-                    />
-                    {isMirroringToTutor ? 'Sharing screen with Tutor' : 'Screen share paused'}
-                  </Button>
-                </div>
-                <DailyVideoFrame roomUrl={sessionContext.roomUrl} token={sessionContext.token} />
+                    {videoMounted && sessionContext?.roomUrl && (
+                      <div className="h-full w-full p-3">
+                        <DailyVideoFrame
+                          roomUrl={sessionContext.roomUrl}
+                          token={sessionContext.token}
+                          className="h-full w-full rounded-none border-0"
+                        />
+                      </div>
+                    )}
+                  </DialogContent>
+                </Dialog>
               </div>
             )}
 

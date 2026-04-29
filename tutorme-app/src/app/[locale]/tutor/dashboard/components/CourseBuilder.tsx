@@ -793,6 +793,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [isMirroringToStudents, setIsMirroringToStudents] = useState(true)
+    const [liveVideoOpen, setLiveVideoOpen] = useState(false)
+    const [liveVideoMounted, setLiveVideoMounted] = useState(false)
     const [monitorSelectedStudent, setMonitorSelectedStudent] = useState<{
       id: string
       name: string
@@ -9511,13 +9513,44 @@ FEEDBACK: [your explanation]`
             </Button>
 
             {sessionContext?.roomUrl && (
-              <div className="hidden w-72 overflow-hidden rounded-xl border border-slate-600 bg-black shadow-2xl sm:block sm:w-80">
-                <DailyVideoFrame
-                  roomUrl={sessionContext.roomUrl}
-                  token={sessionContext.token}
-                  autoRecord={!isStudentView}
-                />
-              </div>
+              <>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setLiveVideoMounted(true)
+                    setLiveVideoOpen(true)
+                  }}
+                  className="h-8 gap-2 px-3 text-xs shadow-lg"
+                >
+                  <VideoIcon className="h-4 w-4" />
+                  Video
+                </Button>
+                <Dialog
+                  open={liveVideoOpen}
+                  onOpenChange={open => {
+                    setLiveVideoOpen(open)
+                    if (open) setLiveVideoMounted(true)
+                  }}
+                >
+                  <DialogContent
+                    forceMount
+                    className="h-[90vh] w-[90vw] max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-black p-0 data-[state=closed]:hidden"
+                    theme="default"
+                  >
+                    {liveVideoMounted && sessionContext?.roomUrl && (
+                      <div className="h-full w-full p-3">
+                        <DailyVideoFrame
+                          roomUrl={sessionContext.roomUrl}
+                          token={sessionContext.token}
+                          autoRecord={!isStudentView}
+                          className="h-full w-full rounded-none border-0"
+                        />
+                      </div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </>
             )}
           </div>
         )}
