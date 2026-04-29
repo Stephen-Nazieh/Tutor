@@ -5,6 +5,7 @@ import { routing } from '@/lib/i18n/config'
 import { ThemeProvider } from '@/components/ui/theme-provider'
 import { Toaster } from 'sonner'
 import { PWAInstallPrompt } from '@/components/pwa/PWAInstallPrompt'
+import { FloatingVideoOverlay } from '@/components/class/floating-video-overlay'
 
 type Props = {
   children: React.ReactNode
@@ -27,6 +28,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <ThemeProvider defaultTheme="aura" defaultMode="system">
       {children}
+      <FloatingVideoOverlay />
       <PWAInstallPrompt />
       <Toaster position="top-right" />
     </ThemeProvider>

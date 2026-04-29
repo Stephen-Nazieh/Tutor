@@ -61,7 +61,6 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
-import { DailyVideoFrame } from '@/components/class/daily-video-frame'
 import { PDFViewer } from '@/components/pdf/PDFViewer'
 import { PDFDocument } from 'pdf-lib'
 import {
@@ -73,6 +72,7 @@ import {
 import { cn } from '@/lib/utils'
 import { extractTextFromFile } from '@/lib/extract-file-text'
 import { toast } from 'sonner'
+import { useVideoOverlayStore } from '@/stores/video-overlay-store'
 import type { LiveTask } from '@/lib/socket'
 import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 import type {
@@ -796,8 +796,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [isMirroringToStudents, setIsMirroringToStudents] = useState(true)
-    const [liveVideoOpen, setLiveVideoOpen] = useState(false)
-    const [liveVideoMounted, setLiveVideoMounted] = useState(false)
+    const openVideoOverlay = useVideoOverlayStore(s => s.openOverlay)
     const [monitorSelectedStudent, setMonitorSelectedStudent] = useState<{
       id: string
       name: string
@@ -5045,67 +5044,143 @@ FEEDBACK: [your explanation]`
         >
           {portalTarget ? (
             createPortal(
-              <div className="mb-0 min-h-[48px] w-full shrink-0">
-                <TabsList className="grid h-[48px] w-full grid-cols-3 gap-2 border-0 bg-transparent p-0 shadow-none">
-                  <TabsTrigger
-                    value="live"
-                    className="z-20 flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
-                    onClick={e => {
-                      if (mainTab !== 'live') {
-                        setMainTab('live')
-                      }
-                    }}
-                  >
-                    <div className="pointer-events-none relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors">
-                      <VideoIcon
-                        className={cn(
-                          'h-4 w-4 transition-all duration-300',
-                          isSessionActive
-                            ? 'text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,1)]'
-                            : 'text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,1)]'
-                        )}
-                      />
-                      {saveMode === 'draft' ? 'Classroom' : 'Live'}
-                    </div>
-                  </TabsTrigger>
+              <div className="mb-0 flex w-full flex-col gap-2">
+                <div className="flex w-full flex-wrap items-center gap-2">
                   {!isStudentView && (
-                    <>
-                      <TabsTrigger
-                        value="test-pci"
-                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
-                        onClick={e => {
-                          if (mainTab !== 'test-pci') {
-                            setMainTab('test-pci')
-                          }
-                        }}
-                      >
-                        <TestTube2 className="h-4 w-4" />
-                        Test
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="builder"
-                        className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
-                        onClick={e => {
-                          if (mainTab !== 'builder') {
-                            setMainTab('builder')
-                          }
-                        }}
-                      >
-                        <div
-                          className={cn(
-                            'relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors',
-                            mainTab === 'builder'
-                              ? 'pointer-events-auto cursor-pointer'
-                              : 'pointer-events-none'
-                          )}
+                    <div className="flex min-h-[48px] flex-1 items-center justify-between gap-2 rounded-full border border-slate-200 bg-white px-2 shadow-[0_10px_24px_rgba(0,0,0,0.10)]">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {insightsProps && (
+                          <Button
+                            variant={isMirroringToStudents ? 'default' : 'secondary'}
+                            size="sm"
+                            onClick={() => setIsMirroringToStudents(!isMirroringToStudents)}
+                            className="h-8 gap-2 rounded-full px-3 text-xs shadow-none"
+                          >
+                            <div
+                              className={`h-2 w-2 rounded-full ${isMirroringToStudents ? 'animate-pulse bg-green-400' : 'bg-red-400'}`}
+                            />
+                            {isMirroringToStudents ? 'Syncing to Students' : 'Sync Paused'}
+                          </Button>
+                        )}
+
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            if (!sessionContext?.roomUrl) return
+                            openVideoOverlay({
+                              roomUrl: sessionContext.roomUrl,
+                              token: sessionContext.token,
+                              autoRecord: !isStudentView,
+                            })
+                          }}
+                          disabled={!sessionContext?.roomUrl}
+                          className="h-8 gap-2 rounded-full px-3 text-xs shadow-none"
                         >
-                          <PencilRuler className="h-4 w-4" />
-                          Build
+                          <VideoIcon className="h-4 w-4" />
+                          Video
+                        </Button>
+                      </div>
+
+                      {mainTab === 'live' && isSessionActive && (
+                        <div className="flex items-center gap-2 pr-1">
+                          {insightsProps?.isRecording && insightsProps?.recordingDuration != null && (
+                            <span className="font-mono text-xs text-red-500">
+                              {formatDuration(insightsProps.recordingDuration)}
+                            </span>
+                          )}
+                          {insightsProps?.onToggleRecording && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={insightsProps.onToggleRecording}
+                              className="h-8 w-8 rounded-full p-0 hover:bg-slate-100"
+                              title={insightsProps.isRecording ? 'Stop Recording' : 'Record'}
+                            >
+                              {insightsProps.isRecording ? (
+                                <Square className="h-4 w-4 fill-current text-red-500" />
+                              ) : (
+                                <Circle className="h-4 w-4 fill-current text-red-500" />
+                              )}
+                            </Button>
+                          )}
+                          {insightsProps?.onEndSession && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={insightsProps.onEndSession}
+                              disabled={insightsProps.endingSession}
+                              className="h-8 gap-2 rounded-full px-3 text-xs font-medium text-red-500 hover:bg-red-50 hover:text-red-600"
+                            >
+                              {insightsProps.endingSession ? 'Ending…' : 'End'}
+                            </Button>
+                          )}
                         </div>
-                      </TabsTrigger>
-                    </>
+                      )}
+                    </div>
                   )}
-                </TabsList>
+
+                  <TabsList className="flex h-[48px] w-full flex-none items-center gap-2 border-0 bg-transparent p-0 shadow-none sm:w-auto">
+                    <TabsTrigger
+                      value="live"
+                      className="z-20 flex cursor-pointer items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
+                      onClick={e => {
+                        if (mainTab !== 'live') {
+                          setMainTab('live')
+                        }
+                      }}
+                    >
+                      <div className="pointer-events-none relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors">
+                        <VideoIcon
+                          className={cn(
+                            'h-4 w-4 transition-all duration-300',
+                            isSessionActive
+                              ? 'text-red-500 drop-shadow-[0_0_8px_rgba(220,38,38,1)]'
+                              : 'text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,1)]'
+                          )}
+                        />
+                        {saveMode === 'draft' ? 'Classroom' : 'Live'}
+                      </div>
+                    </TabsTrigger>
+                    {!isStudentView && (
+                      <>
+                        <TabsTrigger
+                          value="test-pci"
+                          className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
+                          onClick={e => {
+                            if (mainTab !== 'test-pci') {
+                              setMainTab('test-pci')
+                            }
+                          }}
+                        >
+                          <TestTube2 className="h-4 w-4" />
+                          Test
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="builder"
+                          className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
+                          onClick={e => {
+                            if (mainTab !== 'builder') {
+                              setMainTab('builder')
+                            }
+                          }}
+                        >
+                          <div
+                            className={cn(
+                              'relative z-10 flex items-center gap-2 rounded-full px-2 py-0.5 transition-colors',
+                              mainTab === 'builder'
+                                ? 'pointer-events-auto cursor-pointer'
+                                : 'pointer-events-none'
+                            )}
+                          >
+                            <PencilRuler className="h-4 w-4" />
+                            Build
+                          </div>
+                        </TabsTrigger>
+                      </>
+                    )}
+                  </TabsList>
+                </div>
               </div>,
               portalTarget
             )
@@ -5156,42 +5231,6 @@ FEEDBACK: [your explanation]`
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
-                          {mainTab === 'live' && isSessionActive && (
-                            <div className="flex items-center gap-2">
-                              {insightsProps?.onEndSession && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={insightsProps.onEndSession}
-                                  disabled={insightsProps.endingSession}
-                                  className="h-7 gap-1 px-2 text-xs font-medium text-red-500 hover:bg-red-50 hover:text-red-600"
-                                >
-                                  {insightsProps.endingSession ? 'Ending…' : 'End'}
-                                </Button>
-                              )}
-                              {insightsProps?.onToggleRecording && (
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={insightsProps.onToggleRecording}
-                                  className="h-7 w-7 p-0 hover:bg-slate-200"
-                                  title={insightsProps.isRecording ? 'Stop Recording' : 'Record'}
-                                >
-                                  {insightsProps.isRecording ? (
-                                    <Square className="h-3.5 w-3.5 fill-current text-red-500" />
-                                  ) : (
-                                    <Circle className="h-3.5 w-3.5 fill-current text-red-500" />
-                                  )}
-                                </Button>
-                              )}
-                              {insightsProps?.isRecording &&
-                                insightsProps?.recordingDuration != null && (
-                                  <span className="font-mono text-xs text-red-500">
-                                    {formatDuration(insightsProps.recordingDuration)}
-                                  </span>
-                                )}
-                            </div>
-                          )}
                           {mainTab !== 'live' && mainTab !== 'test-pci' && (
                             <Button
                               size="sm"
@@ -9475,62 +9514,6 @@ FEEDBACK: [your explanation]`
           </DialogContent>
         </Dialog>
 
-        {insightsProps && mainTab === 'live' && !isStudentView && (
-          <div className="fixed bottom-4 right-4 z-50 flex flex-col items-end gap-2">
-            <Button
-              variant={isMirroringToStudents ? 'default' : 'secondary'}
-              size="sm"
-              onClick={() => setIsMirroringToStudents(!isMirroringToStudents)}
-              className="h-8 gap-2 px-3 text-xs shadow-lg"
-            >
-              <div
-                className={`h-2 w-2 rounded-full ${isMirroringToStudents ? 'animate-pulse bg-green-400' : 'bg-red-400'}`}
-              />
-              {isMirroringToStudents ? 'Syncing to Students' : 'Sync Paused'}
-            </Button>
-
-            {sessionContext?.roomUrl && (
-              <>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setLiveVideoMounted(true)
-                    setLiveVideoOpen(true)
-                  }}
-                  className="h-8 gap-2 px-3 text-xs shadow-lg"
-                >
-                  <VideoIcon className="h-4 w-4" />
-                  Video
-                </Button>
-                <Dialog
-                  open={liveVideoOpen}
-                  onOpenChange={open => {
-                    setLiveVideoOpen(open)
-                    if (open) setLiveVideoMounted(true)
-                  }}
-                >
-                  <DialogContent
-                    forceMount
-                    className="h-[90vh] w-[90vw] max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-black p-0 data-[state=closed]:hidden"
-                    theme="default"
-                  >
-                    {liveVideoMounted && sessionContext?.roomUrl && (
-                      <div className="h-full w-full p-3">
-                        <DailyVideoFrame
-                          roomUrl={sessionContext.roomUrl}
-                          token={sessionContext.token}
-                          autoRecord={!isStudentView}
-                          className="h-full w-full rounded-none border-0"
-                        />
-                      </div>
-                    )}
-                  </DialogContent>
-                </Dialog>
-              </>
-            )}
-          </div>
-        )}
       </div>
     )
   }

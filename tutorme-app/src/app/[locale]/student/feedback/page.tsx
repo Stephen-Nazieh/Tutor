@@ -54,7 +54,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
-import { DailyVideoFrame } from '@/components/class/daily-video-frame'
+import { useVideoOverlayStore } from '@/stores/video-overlay-store'
 import type { LiveTask, LiveTaskPoll, LiveTaskQuestion, ChatMessage } from '@/lib/socket'
 
 type WhiteboardPages = NonNullable<ComponentProps<typeof EnhancedWhiteboard>['pages']>
@@ -522,8 +522,7 @@ function StudentFeedbackContent() {
 
   const [activeTab, setActiveTab] = useState<string>('task')
   const [isMirroringToTutor, setIsMirroringToTutor] = useState<boolean>(true)
-  const [videoOpen, setVideoOpen] = useState(false)
-  const [videoMounted, setVideoMounted] = useState(false)
+  const openVideoOverlay = useVideoOverlayStore(s => s.openOverlay)
 
   // Sync Student state to Tutor
   useEffect(() => {
@@ -1412,37 +1411,18 @@ function StudentFeedbackContent() {
                   variant="secondary"
                   size="sm"
                   onClick={() => {
-                    setVideoMounted(true)
-                    setVideoOpen(true)
+                    if (!sessionContext?.roomUrl) return
+                    openVideoOverlay({
+                      roomUrl: sessionContext.roomUrl,
+                      token: sessionContext.token,
+                      autoRecord: false,
+                    })
                   }}
                   className="gap-2 shadow-sm"
                 >
                   <Video className="h-4 w-4" />
                   Video
                 </Button>
-                <Dialog
-                  open={videoOpen}
-                  onOpenChange={open => {
-                    setVideoOpen(open)
-                    if (open) setVideoMounted(true)
-                  }}
-                >
-                  <DialogContent
-                    forceMount
-                    className="h-[90vh] w-[90vw] max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-black p-0 data-[state=closed]:hidden"
-                    theme="default"
-                  >
-                    {videoMounted && sessionContext?.roomUrl && (
-                      <div className="h-full w-full p-3">
-                        <DailyVideoFrame
-                          roomUrl={sessionContext.roomUrl}
-                          token={sessionContext.token}
-                          className="h-full w-full rounded-none border-0"
-                        />
-                      </div>
-                    )}
-                  </DialogContent>
-                </Dialog>
               </div>
             )}
 

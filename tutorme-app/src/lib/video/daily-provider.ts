@@ -153,13 +153,24 @@ export class DailyCoProvider implements VideoProvider {
       ? Math.floor(Date.now() / 1000) + options.durationMinutes * 60
       : Math.floor(Date.now() / 1000) + 4 * 60 * 60 // 4 hours
 
+    const isOwner = options?.isOwner || false
+    const isBreakout = roomName.includes('breakout')
+
     const token = await this.fetchDaily('/meeting-tokens', {
       method: 'POST',
       body: JSON.stringify({
         properties: {
           room_name: roomName,
           user_id: userId,
-          is_owner: options?.isOwner || false,
+          is_owner: isOwner,
+          ...(isOwner || isBreakout
+            ? {}
+            : {
+                start_video_off: true,
+                permissions: {
+                  canSendVideo: false,
+                },
+              }),
           exp: expiry,
         },
       }),

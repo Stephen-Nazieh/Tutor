@@ -28,9 +28,16 @@ interface DailyVideoFrameProps {
   token?: string | null
   className?: string
   autoRecord?: boolean
+  floating?: boolean
 }
 
-export function DailyVideoFrame({ roomUrl, token, className, autoRecord }: DailyVideoFrameProps) {
+export function DailyVideoFrame({
+  roomUrl,
+  token,
+  className,
+  autoRecord,
+  floating = false,
+}: DailyVideoFrameProps) {
   const {
     call,
     isJoined,
@@ -178,6 +185,83 @@ export function DailyVideoFrame({ roomUrl, token, className, autoRecord }: Daily
 
   const mainTile = screenShareParticipant ?? remoteParticipants[0] ?? localParticipant ?? null
 
+  const [frame, setFrame] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
+  const outerRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<{
+    pointerId: number
+    startX: number
+    startY: number
+    originX: number
+    originY: number
+  } | null>(null)
+  const resizeRef = useRef<{
+    pointerId: number
+    startX: number
+    startY: number
+    originW: number
+    originH: number
+  } | null>(null)
+
+  useEffect(() => {
+    if (!floating) return
+    if (frame) return
+    const parent = outerRef.current?.parentElement
+    if (!parent) return
+    setFrame({ x: 0, y: 0, w: parent.clientWidth, h: parent.clientHeight })
+  }, [floating, frame])
+
+  useEffect(() => {
+    if (!floating || !frame) return
+    const onMove = (e: PointerEvent) => {
+      const drag = dragRef.current
+      const resize = resizeRef.current
+      const parent = outerRef.current?.parentElement
+      if (!parent) return
+
+      if (drag && e.pointerId === drag.pointerId) {
+        const dx = e.clientX - drag.startX
+        const dy = e.clientY - drag.startY
+        const maxX = Math.max(0, parent.clientWidth - frame.w)
+        const maxY = Math.max(0, parent.clientHeight - frame.h)
+        setFrame(prev => {
+          if (!prev) return prev
+          const nextX = Math.max(0, Math.min(maxX, drag.originX + dx))
+          const nextY = Math.max(0, Math.min(maxY, drag.originY + dy))
+          return { ...prev, x: nextX, y: nextY }
+        })
+      }
+
+      if (resize && e.pointerId === resize.pointerId) {
+        const dx = e.clientX - resize.startX
+        const dy = e.clientY - resize.startY
+        setFrame(prev => {
+          if (!prev) return prev
+          const minW = 360
+          const minH = 240
+          const maxW = Math.max(minW, parent.clientWidth - prev.x)
+          const maxH = Math.max(minH, parent.clientHeight - prev.y)
+          const nextW = Math.max(minW, Math.min(maxW, resize.originW + dx))
+          const nextH = Math.max(minH, Math.min(maxH, resize.originH + dy))
+          return { ...prev, w: nextW, h: nextH }
+        })
+      }
+    }
+    const onUp = (e: PointerEvent) => {
+      if (dragRef.current?.pointerId === e.pointerId) dragRef.current = null
+      if (resizeRef.current?.pointerId === e.pointerId) resizeRef.current = null
+    }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    window.addEventListener('pointercancel', onUp)
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onUp)
+    }
+  }, [floating, frame])
+
+  const canSendVideo = localParticipant?.permissions?.canSendVideo !== false
+
   if (!roomUrl) {
     return (
       <div className={`flex items-center justify-center bg-gray-900 text-white ${className || ''}`}>
@@ -202,173 +286,223 @@ export function DailyVideoFrame({ roomUrl, token, className, autoRecord }: Daily
     setActiveSpeakerId(null)
   }
 
+  useEffect(() => {
+    const fn = () => handleLeave()
+    window.addEventListener('tutorme:daily-video-leave', fn)
+    return () => window.removeEventListener('tutorme:daily-video-leave', fn)
+  }, [handleLeave])
+
   return (
     <div
-      className={`relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-black ${className || ''}`}
+      ref={outerRef}
+      className={floating && frame ? 'absolute' : 'relative'}
+      style={
+        floating && frame
+          ? { left: frame.x, top: frame.y, width: frame.w, height: frame.h }
+          : undefined
+      }
     >
-      <div className="absolute left-3 top-3 z-20 flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 text-xs text-white backdrop-blur">
-        <Wifi className="h-4 w-4" />
-        <span>Live</span>
-        <span className="mx-1 h-1 w-1 rounded-full bg-white/60" />
-        <Users className="h-4 w-4" />
-        <span>{Math.max(1, dailyParticipants.length)}</span>
-      </div>
+      <div
+        className={`relative flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-black ${className || ''}`}
+      >
+        {floating && frame && (
+          <>
+            <div
+              className="absolute left-0 right-0 top-0 z-30 h-10 cursor-move touch-none"
+              onPointerDown={e => {
+                if (!frame) return
+                dragRef.current = {
+                  pointerId: e.pointerId,
+                  startX: e.clientX,
+                  startY: e.clientY,
+                  originX: frame.x,
+                  originY: frame.y,
+                }
+                ;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
+              }}
+            />
+            <div
+              className="absolute bottom-2 right-2 z-30 h-4 w-4 cursor-se-resize touch-none rounded bg-white/20"
+              onPointerDown={e => {
+                if (!frame) return
+                resizeRef.current = {
+                  pointerId: e.pointerId,
+                  startX: e.clientX,
+                  startY: e.clientY,
+                  originW: frame.w,
+                  originH: frame.h,
+                }
+                ;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
+              }}
+            />
+          </>
+        )}
 
-      <div className="relative min-h-0 flex-1 p-3">
-        <div className="grid h-full grid-cols-1 gap-3 lg:grid-cols-[1fr_260px]">
-          <div className="relative min-h-0 overflow-hidden rounded-2xl bg-slate-950">
-            {mainTile ? (
-              <ParticipantMediaTile
-                participant={mainTile}
-                mode={screenShareParticipant ? 'screen' : 'camera'}
-                isActiveSpeaker={activeSpeakerId === (mainTile as any)?.session_id}
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-sm text-white/70">
-                Waiting for participants...
-              </div>
-            )}
-          </div>
-
-          <div className="min-h-0 overflow-hidden rounded-2xl bg-slate-950/70">
-            <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 text-xs font-semibold text-white/80">
-              <span>Participants</span>
-              <span>{Math.max(1, dailyParticipants.length)}</span>
-            </div>
-            <div className="h-full overflow-auto p-2">
-              <div className="grid grid-cols-1 gap-2">
-                {localParticipant && <ParticipantRow participant={localParticipant} label="You" />}
-                {remoteParticipants.map((p: any) => (
-                  <ParticipantRow key={p.session_id} participant={p} />
-                ))}
-              </div>
-            </div>
-          </div>
+        <div className="absolute left-3 top-3 z-20 flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 text-xs text-white backdrop-blur">
+          <Wifi className="h-4 w-4" />
+          <span>Live</span>
+          <span className="mx-1 h-1 w-1 rounded-full bg-white/60" />
+          <Users className="h-4 w-4" />
+          <span>{Math.max(1, dailyParticipants.length)}</span>
         </div>
 
-        {remoteParticipants.map((p: any) => (
-          <ParticipantAudio key={`${p.session_id}-audio`} participant={p} />
-        ))}
-      </div>
+        <div className="relative min-h-0 flex-1 p-3">
+          <div className="grid h-full grid-cols-1 gap-3 lg:grid-cols-[1fr_260px]">
+            <div className="relative min-h-0 overflow-hidden rounded-2xl bg-slate-950">
+              {mainTile ? (
+                <ParticipantMediaTile
+                  participant={mainTile}
+                  mode={screenShareParticipant ? 'screen' : 'camera'}
+                  isActiveSpeaker={activeSpeakerId === (mainTile as any)?.session_id}
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-white/70">
+                  Waiting for participants...
+                </div>
+              )}
+            </div>
 
-      <div className="relative z-10 border-t border-white/10 bg-black/80 px-3 py-2 backdrop-blur">
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <ControlButton
-            onClick={toggleAudio}
-            active={isAudioEnabled}
-            activeIcon={<Mic className="h-4 w-4" />}
-            inactiveIcon={<MicOff className="h-4 w-4" />}
-            activeLabel="Mic"
-            inactiveLabel="Mic"
-          />
-          <ControlButton
-            onClick={toggleVideo}
-            active={isVideoEnabled}
-            activeIcon={<Video className="h-4 w-4" />}
-            inactiveIcon={<VideoOff className="h-4 w-4" />}
-            activeLabel="Cam"
-            inactiveLabel="Cam"
-          />
-          <ControlButton
-            onClick={() => (isScreenSharing ? stopScreenShare() : startScreenShare())}
-            active={isScreenSharing}
-            activeIcon={<MonitorUp className="h-4 w-4" />}
-            inactiveIcon={<MonitorUp className="h-4 w-4" />}
-            activeLabel="Sharing"
-            inactiveLabel="Share"
-          />
-          <button
-            type="button"
-            onClick={handleLeave}
-            className="inline-flex h-9 items-center gap-2 rounded-full bg-red-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-500"
-          >
-            <PhoneOff className="h-4 w-4" />
-            Leave
-          </button>
+            <div className="min-h-0 overflow-hidden rounded-2xl bg-slate-950/70">
+              <div className="flex items-center justify-between border-b border-white/10 px-3 py-2 text-xs font-semibold text-white/80">
+                <span>Participants</span>
+                <span>{Math.max(1, dailyParticipants.length)}</span>
+              </div>
+              <div className="h-full overflow-auto p-2">
+                <div className="grid grid-cols-1 gap-2">
+                  {localParticipant && <ParticipantRow participant={localParticipant} label="You" />}
+                  {remoteParticipants.map((p: any) => (
+                    <ParticipantRow key={p.session_id} participant={p} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
 
-          <Popover open={devicesOpen} onOpenChange={setDevicesOpen}>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className="inline-flex h-9 items-center gap-2 rounded-full bg-white/10 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-white/15"
-              >
-                <Settings2 className="h-4 w-4" />
-                Devices
-              </button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="end"
-              className="w-[360px] rounded-xl border border-slate-200 bg-white p-4"
+          {remoteParticipants.map((p: any) => (
+            <ParticipantAudio key={`${p.session_id}-audio`} participant={p} />
+          ))}
+        </div>
+
+        <div className="relative z-10 border-t border-white/10 bg-black/80 px-3 py-2 backdrop-blur">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <ControlButton
+              onClick={toggleAudio}
+              active={isAudioEnabled}
+              activeIcon={<Mic className="h-4 w-4" />}
+              inactiveIcon={<MicOff className="h-4 w-4" />}
+              activeLabel="Mic"
+              inactiveLabel="Mic"
+            />
+            <ControlButton
+              onClick={toggleVideo}
+              active={isVideoEnabled}
+              activeIcon={<Video className="h-4 w-4" />}
+              inactiveIcon={<VideoOff className="h-4 w-4" />}
+              activeLabel="Cam"
+              inactiveLabel="Cam"
+              disabled={!canSendVideo}
+            />
+            <ControlButton
+              onClick={() => (isScreenSharing ? stopScreenShare() : startScreenShare())}
+              active={isScreenSharing}
+              activeIcon={<MonitorUp className="h-4 w-4" />}
+              inactiveIcon={<MonitorUp className="h-4 w-4" />}
+              activeLabel="Sharing"
+              inactiveLabel="Share"
+            />
+            <button
+              type="button"
+              onClick={handleLeave}
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-red-600 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-500"
             >
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-semibold text-slate-900">Device settings</div>
+              <PhoneOff className="h-4 w-4" />
+              Leave
+            </button>
+
+            <Popover open={devicesOpen} onOpenChange={setDevicesOpen}>
+              <PopoverTrigger asChild>
                 <button
                   type="button"
-                  onClick={() => void refreshDevices()}
-                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
-                  disabled={isRefreshingDevices}
+                  className="inline-flex h-9 items-center gap-2 rounded-full bg-white/10 px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-white/15"
                 >
-                  {isRefreshingDevices ? 'Refreshing…' : 'Refresh'}
+                  <Settings2 className="h-4 w-4" />
+                  Devices
                 </button>
-              </div>
-
-              <div className="mt-3 grid gap-3">
-                <div className="grid gap-1">
-                  <div className="text-xs font-semibold text-slate-600">Microphone</div>
-                  <Select value={audioInputId} onValueChange={setAudioInputId}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select microphone" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {audioInputs.map(d => (
-                        <SelectItem key={d.deviceId} value={d.deviceId}>
-                          {d.label || 'Microphone'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              </PopoverTrigger>
+              <PopoverContent
+                align="end"
+                className="w-[360px] rounded-xl border border-slate-200 bg-white p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold text-slate-900">Device settings</div>
+                  <button
+                    type="button"
+                    onClick={() => void refreshDevices()}
+                    className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
+                    disabled={isRefreshingDevices}
+                  >
+                    {isRefreshingDevices ? 'Refreshing…' : 'Refresh'}
+                  </button>
                 </div>
 
-                <div className="grid gap-1">
-                  <div className="text-xs font-semibold text-slate-600">Camera</div>
-                  <Select value={videoInputId} onValueChange={setVideoInputId}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select camera" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {videoInputs.map(d => (
-                        <SelectItem key={d.deviceId} value={d.deviceId}>
-                          {d.label || 'Camera'}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid gap-1">
-                  <div className="text-xs font-semibold text-slate-600">Speaker</div>
-                  <Select value={audioOutputId} onValueChange={setAudioOutputId}>
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select speaker" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {audioOutputs.length > 0 ? (
-                        audioOutputs.map(d => (
+                <div className="mt-3 grid gap-3">
+                  <div className="grid gap-1">
+                    <div className="text-xs font-semibold text-slate-600">Microphone</div>
+                    <Select value={audioInputId} onValueChange={setAudioInputId}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select microphone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {audioInputs.map(d => (
                           <SelectItem key={d.deviceId} value={d.deviceId}>
-                            {d.label || 'Speaker'}
+                            {d.label || 'Microphone'}
                           </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="__na__" disabled>
-                          Not supported in this browser
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-1">
+                    <div className="text-xs font-semibold text-slate-600">Camera</div>
+                    <Select value={videoInputId} onValueChange={setVideoInputId}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select camera" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {videoInputs.map(d => (
+                          <SelectItem key={d.deviceId} value={d.deviceId}>
+                            {d.label || 'Camera'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-1">
+                    <div className="text-xs font-semibold text-slate-600">Speaker</div>
+                    <Select value={audioOutputId} onValueChange={setAudioOutputId}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select speaker" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {audioOutputs.length > 0 ? (
+                          audioOutputs.map(d => (
+                            <SelectItem key={d.deviceId} value={d.deviceId}>
+                              {d.label || 'Speaker'}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="__na__" disabled>
+                            Not supported in this browser
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
       </div>
     </div>
@@ -382,6 +516,7 @@ function ControlButton({
   inactiveIcon,
   activeLabel,
   inactiveLabel,
+  disabled,
 }: {
   onClick: () => void
   active: boolean
@@ -389,13 +524,17 @@ function ControlButton({
   inactiveIcon: ReactNode
   activeLabel: string
   inactiveLabel: string
+  disabled?: boolean
 }) {
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={disabled ? () => {} : onClick}
+      disabled={disabled}
       className={`inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-semibold shadow-sm transition-colors ${
-        active
+        disabled
+          ? 'cursor-not-allowed bg-white/5 text-white/40'
+          : active
           ? 'bg-white text-slate-900 hover:bg-white/90'
           : 'bg-white/10 text-white hover:bg-white/15'
       }`}
