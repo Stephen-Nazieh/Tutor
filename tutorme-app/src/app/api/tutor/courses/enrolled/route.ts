@@ -4,7 +4,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { desc, eq, sql, count, inArray, and } from 'drizzle-orm'
+import { desc, eq, sql, inArray, and } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, courseEnrollment, liveSession } from '@/lib/db/schema'
@@ -28,6 +28,7 @@ export const GET = withAuth(
         isPublished: course.isPublished,
         price: course.price,
         currency: course.currency,
+        schedule: course.schedule,
         enrollmentCount,
       })
       .from(course)
@@ -39,7 +40,8 @@ export const GET = withAuth(
         course.categories,
         course.isPublished,
         course.price,
-        course.currency
+        course.currency,
+        course.schedule
       )
       .orderBy(desc(enrollmentCount))
 
@@ -51,13 +53,13 @@ export const GET = withAuth(
       const sessions = await drizzleDb
         .select({
           courseId: liveSession.courseId,
-          count: count(liveSession.sessionId),
+          count: sql<number>`count(${liveSession.sessionId})::int`,
         })
         .from(liveSession)
         .where(
           and(
             eq(liveSession.tutorId, tutorId),
-            inArray(liveSession.status, ['scheduled', 'active'])
+            inArray(liveSession.status, ['scheduled', 'active', 'live', 'paused'])
           )
         )
         .groupBy(liveSession.courseId)
@@ -75,10 +77,11 @@ export const GET = withAuth(
       isPublished: c.isPublished,
       price: c.price,
       currency: c.currency,
+      schedule: c.schedule,
       enrollmentCount: c.enrollmentCount,
       // Map categories to subject for backward compatibility
       subject: c.categories?.[0] ?? null,
-      sessionCount: sessionCounts.find(s => s.courseId === c.courseId)?.count ?? 0,
+      upcomingSessionsCount: sessionCounts.find(s => s.courseId === c.courseId)?.count ?? 0,
     }))
 
     return NextResponse.json({ courses: coursesWithSessionCount })

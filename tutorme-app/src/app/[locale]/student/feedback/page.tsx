@@ -401,7 +401,7 @@ function StudentFeedbackContent() {
     }
   }, [selectedSessionId, session?.user?.id, session?.user?.name])
 
-  const { socket, error } = useSocket(socketOptions)
+  const { socket, error, isConnected } = useSocket(socketOptions)
 
   useEffect(() => {
     setTasks([])
@@ -1521,21 +1521,40 @@ function StudentFeedbackContent() {
           )}
 
           <div className="flex flex-1 flex-col overflow-hidden">
-            {sessionContext?.roomUrl && (
-              <div className="flex items-center justify-between gap-2 border-b bg-white px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={followTutor ? 'default' : 'secondary'}
-                    size="sm"
-                    onClick={() => setFollowTutor(!followTutor)}
-                    className="gap-2 shadow-sm"
-                  >
-                    <div
-                      className={`h-2 w-2 rounded-full ${followTutor ? 'animate-pulse bg-green-400' : 'bg-red-400'}`}
-                    />
-                    {followTutor ? 'Following Tutor' : 'Follow Tutor'}
-                  </Button>
+            <div className="flex items-center justify-between gap-2 border-b bg-white px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={followTutor ? 'default' : 'secondary'}
+                  size="sm"
+                  onClick={() => setFollowTutor(!followTutor)}
+                  className="gap-2 shadow-sm"
+                >
+                  <div
+                    className={`h-2 w-2 rounded-full ${followTutor ? 'animate-pulse bg-green-400' : 'bg-red-400'}`}
+                  />
+                  {followTutor ? 'Following Tutor' : 'Follow Tutor'}
+                </Button>
+                <div
+                  className={cn(
+                    'flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium',
+                    isConnected
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : error
+                        ? 'border-red-200 bg-red-50 text-red-700'
+                        : 'border-slate-200 bg-slate-50 text-slate-700'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'h-2 w-2 rounded-full',
+                      isConnected ? 'bg-emerald-500' : error ? 'bg-red-500' : 'bg-slate-400'
+                    )}
+                  />
+                  {isConnected ? 'Connected' : error ? 'Disconnected' : 'Connecting'}
                 </div>
+              </div>
+
+              <div className="flex items-center gap-2">
                 <Button
                   variant={isMirroringToTutor ? 'default' : 'secondary'}
                   size="sm"
@@ -1550,6 +1569,7 @@ function StudentFeedbackContent() {
                 <Button
                   variant="secondary"
                   size="sm"
+                  disabled={!sessionContext?.roomUrl}
                   onClick={() => {
                     if (!sessionContext?.roomUrl) return
                     openVideoOverlay({
@@ -1564,7 +1584,7 @@ function StudentFeedbackContent() {
                   Video
                 </Button>
               </div>
-            )}
+            </div>
 
             <div className="flex-1">
               <div className="flex h-full flex-col gap-6">
