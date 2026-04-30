@@ -3,6 +3,7 @@ import { getServerSession, authOptions } from '@/lib/auth'
 import { eq, and, lt, gt, isNull, ne } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { oneOnOneBookingRequest, calendarEvent } from '@/lib/db/schema'
+import { dailyProvider } from '@/lib/video/daily-provider'
 import { notify } from '@/lib/notifications/notify'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
@@ -87,6 +88,12 @@ export async function PATCH(request: NextRequest) {
           return { conflict: true as const }
         }
 
+        // Create a Daily.co room for the 1-on-1 session
+        const room = await dailyProvider.createRoom(
+          `1on1-${existingRequest.requestId}`,
+          { maxParticipants: 2, durationMinutes: existingRequest.durationMinutes }
+        )
+
         const [newEvent] = await tx
           .insert(calendarEvent)
           .values({
@@ -102,6 +109,7 @@ export async function PATCH(request: NextRequest) {
             isAllDay: false,
             isRecurring: false,
             isVirtual: true,
+            meetingUrl: room.url,
             maxAttendees: 2,
             attendees: [existingRequest.studentId],
             reminders: [15, 60],

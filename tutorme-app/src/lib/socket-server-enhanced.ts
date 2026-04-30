@@ -11,6 +11,7 @@ import { eq, and, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   liveSession,
+  deployedMaterial,
   poll,
   pollOption,
   pollResponse,
@@ -1104,11 +1105,50 @@ export async function initEnhancedSocketServer(server: NetServer) {
         }
 
         if (!taskId) return
-        const room = activeRooms.get(roomId)
-        if (!room) return
+        let room = activeRooms.get(roomId)
+        if (!room && redisClient) {
+          const redisRoom = await getRoomFromRedis(roomId)
+          if (redisRoom) {
+            room = redisRoom
+            activeRooms.set(roomId, room)
+          }
+        }
+        if (!room) {
+          socket.emit('insight:send:error', { error: 'Room not available' })
+          return
+        }
 
-        const task = room.tasks.find(item => item.id === taskId)
-        if (!task) return
+        let task = room.tasks.find(item => item.id === taskId)
+        if (!task) {
+          try {
+            const [material] = await drizzleDb
+              .select({ content: deployedMaterial.content })
+              .from(deployedMaterial)
+              .where(and(eq(deployedMaterial.sessionId, roomId), eq(deployedMaterial.itemId, taskId)))
+              .limit(1)
+            const content = material?.content as any
+            if (content?.id) {
+              task = {
+                id: content.id,
+                title: content.title,
+                content: content.content,
+                source: content.source || 'task',
+                dmiItems: content.dmiItems,
+                deployedAt: content.deployedAt || Date.now(),
+                polls: Array.isArray(content.polls) ? content.polls : [],
+                questions: Array.isArray(content.questions) ? content.questions : [],
+                sourceDocument: content.sourceDocument,
+              }
+              room.tasks.push(task)
+              room.lastActivity = Date.now()
+              void persistRoomToRedis(roomId, room)
+            }
+          } catch {}
+        }
+        if (!task) {
+          socket.emit('insight:send:error', { error: 'Task is not deployed to this session' })
+          return
+        }
 
         if (type === 'poll') {
           const poll: LiveTaskPoll = {

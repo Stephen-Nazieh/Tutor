@@ -754,6 +754,7 @@ function TutorDashboardContent() {
                 initialView="availability"
                 dayClickMode="availability"
                 loading={loading}
+                availabilityOnly
               />
             </TabsContent>
             <TabsContent value="courses">

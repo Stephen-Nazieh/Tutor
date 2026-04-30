@@ -84,9 +84,6 @@ export function DashboardCalendar({
   const [month, setMonth] = useState<Date>(() => new Date())
   const [events, setEvents] = useState<CalendarEvent[]>(initialEvents ?? [])
   const [loading, setLoading] = useState(!initialEvents?.length)
-  const [classes, setClasses] = useState<ClassItem[]>([])
-  const [classesLoading, setClassesLoading] = useState(true)
-
   const monthStart = useMemo(() => new Date(month.getFullYear(), month.getMonth(), 1), [month])
   const monthEnd = useMemo(() => new Date(month.getFullYear(), month.getMonth() + 1, 0), [month])
 
@@ -117,26 +114,49 @@ export function DashboardCalendar({
     }
   }, [monthStart, monthEnd, onRefresh])
 
-  // Fetch classes for My Classes tab
-  useEffect(() => {
-    // Legacy endpoint removed; show empty state
-    setClasses([])
-    setClassesLoading(false)
-  }, [onRefresh])
+  // Derive classes list from calendar events for the Sessions tab
+  const classes = useMemo<ClassItem[]>(() => {
+    return events.map(ev => {
+      const evStatus = (ev as any).status as string | undefined
+      const isLive = evStatus === 'live' || evStatus === 'active'
+      return {
+        id: ev.id,
+        title: ev.title,
+        subject: ev.subject,
+        tutorName: ev.tutorName || 'Tutor',
+        scheduledAt: ev.start,
+        duration: ev.duration,
+        type: (ev as any).isVirtual === false ? ('in-person' as const) : ('online' as const),
+        students: 0,
+        maxStudents: (ev as any).maxAttendees ?? 50,
+        isBooked: true,
+      }
+    })
+  }, [events])
 
   const interactiveEvents = useMemo(() => {
-    return events.map(ev => ({
-      id: ev.id,
-      title: ev.title,
-      date: new Date(ev.start),
-      duration: ev.duration,
-      type: 'class' as const,
-      status: 'scheduled' as const,
-      subject: ev.subject,
-      isOnline: true,
-      description: ev.tutorName ? `Tutor: ${ev.tutorName}` : undefined,
-      color: 'bg-blue-500',
-    }))
+    return events.map(ev => {
+      const evStatus = (ev as any).status as string | undefined
+      const status: 'live' | 'completed' | 'scheduled' | 'cancelled' =
+        evStatus === 'live' || evStatus === 'active'
+          ? 'live'
+          : evStatus === 'ended' || evStatus === 'completed'
+            ? 'completed'
+            : 'scheduled'
+      return {
+        id: ev.id,
+        title: ev.title,
+        date: new Date(ev.start),
+        duration: ev.duration,
+        type: 'class' as const,
+        status,
+        subject: ev.subject,
+        isOnline: true,
+        description: (ev as any).meetingUrl || (ev.tutorName ? `Tutor: ${ev.tutorName}` : undefined),
+        color:
+          status === 'live' ? 'bg-emerald-500' : status === 'completed' ? 'bg-slate-400' : 'bg-blue-500',
+      }
+    })
   }, [events])
 
   return (
@@ -165,7 +185,7 @@ export function DashboardCalendar({
 
           {/* My Classes Tab */}
           <TabsContent value="classes" className="mt-0">
-            {classesLoading ? (
+            {loading ? (
               <div className="py-8 text-center">
                 <p className="text-muted-foreground text-sm">Loading your classes...</p>
               </div>

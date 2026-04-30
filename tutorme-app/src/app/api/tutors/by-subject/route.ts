@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     const users = await drizzleDb
-      .select({ userId: user.userId })
+      .select({ userId: user.userId, handle: user.handle })
       .from(user)
       .where(and(eq(user.role, 'TUTOR'), inArray(user.userId, tutorIds)))
       .limit(20)
@@ -82,10 +82,14 @@ export async function GET(request: NextRequest) {
       tutorSessionCount.set(s.tutorId, (tutorSessionCount.get(s.tutorId) ?? 0) + 1)
     }
 
+    const userMap = new Map(users.map(u => [u.userId, u]))
+
     const formattedTutors = userIds.map(userId => {
       const p = profileByUserId.get(userId)
+      const u = userMap.get(userId)
       return {
         id: userId,
+        username: u?.handle ?? userId,
         name: p?.name ?? 'Unknown Tutor',
         avatar: p?.avatarUrl ?? null,
         bio: p?.bio ?? `Experienced ${subjectCode} tutor`,

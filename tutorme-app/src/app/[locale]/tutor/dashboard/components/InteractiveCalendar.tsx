@@ -126,6 +126,8 @@ interface InteractiveCalendarProps {
   mode?: 'tutor' | 'student'
   initialView?: CalendarView
   dayClickMode?: 'create' | 'availability' | 'callback'
+  /** When true, renders a stripped-down availability-only UI without calendar chrome (nav, filters, view toggles). */
+  availabilityOnly?: boolean
 }
 
 const SUBJECTS = [
@@ -257,6 +259,7 @@ export function InteractiveCalendar({
   mode = 'tutor',
   initialView = 'month',
   dayClickMode = 'callback',
+  availabilityOnly = false,
 }: InteractiveCalendarProps) {
   const isStudent = mode === 'student'
   const [events, setEvents] = useState<CalendarEvent[]>(
@@ -346,6 +349,44 @@ export function InteractiveCalendar({
     }
     loadAvailability()
   }, [mode])
+
+  // Load calendar events for the visible month (tutor mode)
+  useEffect(() => {
+    if (mode !== 'tutor') return
+    const loadEvents = async () => {
+      try {
+        const year = currentDate.getFullYear()
+        const month = currentDate.getMonth()
+        const start = new Date(year, month, 1).toISOString()
+        const end = new Date(year, month + 1, 0, 23, 59, 59).toISOString()
+        const res = await fetch(
+          `/api/tutor/calendar/events?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
+          { credentials: 'include' }
+        )
+        if (!res.ok) return
+        const data = await res.json().catch(() => ({}))
+        const apiEvents = Array.isArray(data?.events) ? data.events : []
+        setEvents(
+          apiEvents.map((e: any) => ({
+            id: e.id,
+            title: e.title,
+            date: new Date(e.scheduledAt),
+            duration: e.duration || 60,
+            type: 'class',
+            status: e.status === 'live' ? 'live' : e.status === 'ended' ? 'completed' : 'scheduled',
+            subject: e.subject,
+            location: e.location,
+            isOnline: e.isVirtual,
+            description: e.meetingUrl,
+            color: e.status === 'live' ? 'bg-emerald-500' : e.status === 'ended' ? 'bg-slate-400' : 'bg-blue-500',
+          }))
+        )
+      } catch {
+        // silent fail
+      }
+    }
+    loadEvents()
+  }, [currentDate, mode])
 
   // DnD Sensors
   const sensors = useSensors(
@@ -674,200 +715,230 @@ export function InteractiveCalendar({
     >
       <Card className="flex h-[600px] flex-col border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md">
         <CardHeader className="shrink-0 pb-3">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={() => navigatePeriod(-1)}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <h2 className="min-w-[150px] text-center text-lg font-semibold">{headerLabel}</h2>
-                <Button variant="outline" size="icon" onClick={() => navigatePeriod(1)}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-              <Button variant="outline" size="sm" onClick={goToToday}>
-                Today
-              </Button>
-              {!isStudent && (
-                <div className="flex flex-col gap-1">
-                  <Select value={timezone} onValueChange={setTimezone}>
-                    <SelectTrigger className="w-[190px]">
-                      <SelectValue placeholder="Select timezone" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {supportedTimezones.map(tz => (
-                        <SelectItem key={tz} value={tz}>
-                          {tz}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              {!isStudent && (
-                <>
-                  {/* Calendar Integrations */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowCalendarIntegrations(true)}
-                  >
-                    <RefreshCw
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        calendarConnections.some(c => c.connected) && 'text-green-500'
-                      )}
-                    />
-                    Sync
-                  </Button>
-                </>
-              )}
-              {notifications.length > 0 && (
-                <Badge variant="destructive" className="text-xs">
-                  <Bell className="mr-1 h-3 w-3" />
-                  {notifications.length}
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* Filters */}
-              <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                <SelectTrigger className="w-36">
-                  <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue placeholder="Filter" />
+          {availabilityOnly ? (
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">My Availability</h2>
+              <Select value={timezone} onValueChange={setTimezone}>
+                <SelectTrigger className="w-[190px]">
+                  <SelectValue placeholder="Select timezone" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {!categoriesLoaded && (
-                    <SelectItem value="__loading__" disabled>
-                      Loading…
-                    </SelectItem>
-                  )}
-                  {categoryOptions.map(name => (
-                    <SelectItem key={name} value={name}>
-                      {name}
+                  {supportedTimezones.map(tz => (
+                    <SelectItem key={tz} value={tz}>
+                      {tz}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-
-              {/* View Toggle - Reordered as Day, Week, Month */}
-              <div className="flex rounded-lg border border-gray-200 bg-gray-100 p-1">
-                {(view === 'availability'
-                  ? (['day', 'week', 'month'] as CalendarView[])
-                  : (['day', 'week', 'month'] as CalendarView[])
-                ).map(v => (
-                  <button
-                    key={v}
-                    onClick={() => setView(v)}
-                    className={cn(
-                      'rounded-md px-3 py-1 text-sm font-medium capitalize transition-colors',
-                      view === v ? 'bg-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                    )}
-                  >
-                    {v}
-                  </button>
-                ))}
-              </div>
             </div>
-          </div>
-
-          {/* Conflict Warning Banner */}
-          {showConflictWarning.length > 0 && (
-            <div className="mt-4 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-red-800">
-                  {showConflictWarning.length / 2} scheduling conflicts detected
-                </p>
-                <p className="text-xs text-red-600">
-                  Some classes overlap in time. Drag events to reschedule or click &quot;View&quot;
-                  to see conflicts.
-                </p>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => setView('week')}>
-                View
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setShowConflictWarning([])}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
-
-          {/* Legend */}
-          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
-            {categoriesLoaded ? (
-              categoryOptions.map(name => (
-                <button
-                  key={name}
-                  onClick={() => setSubjectFilter(subjectFilter === name ? 'all' : name)}
-                  className={cn(
-                    'flex items-center gap-1 rounded-full px-2 py-1 transition-colors',
-                    subjectFilter === name ? 'bg-gray-200' : 'hover:bg-gray-100'
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="icon" onClick={() => navigatePeriod(-1)}>
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <h2 className="min-w-[150px] text-center text-lg font-semibold">{headerLabel}</h2>
+                    <Button variant="outline" size="icon" onClick={() => navigatePeriod(1)}>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={goToToday}>
+                    Today
+                  </Button>
+                  {!isStudent && (
+                    <div className="flex flex-col gap-1">
+                      <Select value={timezone} onValueChange={setTimezone}>
+                        <SelectTrigger className="w-[190px]">
+                          <SelectValue placeholder="Select timezone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {supportedTimezones.map(tz => (
+                            <SelectItem key={tz} value={tz}>
+                              {tz}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
-                >
-                  <div
-                    className={cn(
-                      'h-3 w-3 rounded-full',
-                      SUBJECTS.find(s => s.name === name)?.color || 'bg-gray-300'
-                    )}
-                  />
-                  <span>{name}</span>
-                </button>
-              ))
-            ) : (
-              <span className="text-muted-foreground text-xs">Loading categories…</span>
-            )}
-            {subjectFilter !== 'all' && (
-              <Button variant="ghost" size="sm" onClick={() => setSubjectFilter('all')}>
-                Clear Filter
-              </Button>
-            )}
-          </div>
+                  {!isStudent && (
+                    <>
+                      {/* Calendar Integrations */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowCalendarIntegrations(true)}
+                      >
+                        <RefreshCw
+                          className={cn(
+                            'mr-2 h-4 w-4',
+                            calendarConnections.some(c => c.connected) && 'text-green-500'
+                          )}
+                        />
+                        Sync
+                      </Button>
+                    </>
+                  )}
+                  {notifications.length > 0 && (
+                    <Badge variant="destructive" className="text-xs">
+                      <Bell className="mr-1 h-3 w-3" />
+                      {notifications.length}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* Filters */}
+                  <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+                    <SelectTrigger className="w-36">
+                      <Filter className="mr-2 h-4 w-4" />
+                      <SelectValue placeholder="Filter" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {!categoriesLoaded && (
+                        <SelectItem value="__loading__" disabled>
+                          Loading…
+                        </SelectItem>
+                      )}
+                      {categoryOptions.map(name => (
+                        <SelectItem key={name} value={name}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* View Toggle - Reordered as Day, Week, Month */}
+                  <div className="flex rounded-lg border border-gray-200 bg-gray-100 p-1">
+                    {(view === 'availability'
+                      ? (['day', 'week', 'month'] as CalendarView[])
+                      : (['day', 'week', 'month'] as CalendarView[])
+                    ).map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setView(v)}
+                        className={cn(
+                          'rounded-md px-3 py-1 text-sm font-medium capitalize transition-colors',
+                          view === v ? 'bg-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                        )}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Conflict Warning Banner */}
+              {showConflictWarning.length > 0 && (
+                <div className="mt-4 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-3">
+                  <AlertTriangle className="h-5 w-5 text-red-500" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-red-800">
+                      {showConflictWarning.length / 2} scheduling conflicts detected
+                    </p>
+                    <p className="text-xs text-red-600">
+                      Some classes overlap in time. Drag events to reschedule or click &quot;View&quot;
+                      to see conflicts.
+                    </p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setView('week')}>
+                    View
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setShowConflictWarning([])}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+
+              {/* Legend */}
+              <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
+                {categoriesLoaded ? (
+                  categoryOptions.map(name => (
+                    <button
+                      key={name}
+                      onClick={() => setSubjectFilter(subjectFilter === name ? 'all' : name)}
+                      className={cn(
+                        'flex items-center gap-1 rounded-full px-2 py-1 transition-colors',
+                        subjectFilter === name ? 'bg-gray-200' : 'hover:bg-gray-100'
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          'h-3 w-3 rounded-full',
+                          SUBJECTS.find(s => s.name === name)?.color || 'bg-gray-300'
+                        )}
+                      />
+                      <span>{name}</span>
+                    </button>
+                  ))
+                ) : (
+                  <span className="text-muted-foreground text-xs">Loading categories…</span>
+                )}
+                {subjectFilter !== 'all' && (
+                  <Button variant="ghost" size="sm" onClick={() => setSubjectFilter('all')}>
+                    Clear Filter
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
         </CardHeader>
 
         <CardContent className="flex-1 overflow-auto pt-0">
-          {view === 'month' && (
-            <MonthView
-              days={calendarDays}
-              events={filteredEvents}
-              onDateClick={handleDateClick}
-              onEventClick={handleEventClick}
-              isToday={isToday}
-              getEventsForDate={getEventsForDate}
-              conflicts={showConflictWarning}
-            />
-          )}
-
-          {view === 'week' && (
-            <WeekView
-              currentDate={currentDate}
-              events={filteredEvents}
-              onEventClick={handleEventClick}
-              onDateClick={handleDateClick}
-              conflicts={showConflictWarning}
-            />
-          )}
-
-          {view === 'day' && (
-            <DayView
-              currentDate={currentDate}
-              events={filteredEvents}
-              onEventClick={handleEventClick}
-              conflicts={showConflictWarning}
-            />
-          )}
-
-          {!isStudent && view === 'availability' && (
+          {availabilityOnly ? (
             <AvailabilityView
               availability={availability}
               onToggle={toggleAvailability}
-              onSave={() => {
-                toast.success('Availability updated!')
-                setView('month')
-              }}
+              onSave={() => toast.success('Availability updated!')}
             />
+          ) : (
+            <>
+              {view === 'month' && (
+                <MonthView
+                  days={calendarDays}
+                  events={filteredEvents}
+                  onDateClick={handleDateClick}
+                  onEventClick={handleEventClick}
+                  isToday={isToday}
+                  getEventsForDate={getEventsForDate}
+                  conflicts={showConflictWarning}
+                />
+              )}
+
+              {view === 'week' && (
+                <WeekView
+                  currentDate={currentDate}
+                  events={filteredEvents}
+                  onEventClick={handleEventClick}
+                  onDateClick={handleDateClick}
+                  conflicts={showConflictWarning}
+                />
+              )}
+
+              {view === 'day' && (
+                <DayView
+                  currentDate={currentDate}
+                  events={filteredEvents}
+                  onEventClick={handleEventClick}
+                  conflicts={showConflictWarning}
+                />
+              )}
+
+              {!isStudent && view === 'availability' && (
+                <AvailabilityView
+                  availability={availability}
+                  onToggle={toggleAvailability}
+                  onSave={() => {
+                    toast.success('Availability updated!')
+                    setView('month')
+                  }}
+                />
+              )}
+            </>
           )}
         </CardContent>
 
@@ -941,8 +1012,20 @@ export function InteractiveCalendar({
                       </DialogDescription>
                     </div>
                     <div className="flex gap-2">
-                      <Badge className={cn(selectedEvent.color || 'bg-blue-500')}>
-                        {selectedEvent.type}
+                      <Badge
+                        className={cn(
+                          selectedEvent.status === 'live'
+                            ? 'bg-emerald-500'
+                            : selectedEvent.status === 'completed'
+                              ? 'bg-slate-400'
+                              : selectedEvent.color || 'bg-blue-500'
+                        )}
+                      >
+                        {selectedEvent.status === 'live'
+                          ? 'Live'
+                          : selectedEvent.status === 'completed'
+                            ? 'Ended'
+                            : 'Scheduled'}
                       </Badge>
                       {selectedEvent.isRecurring && (
                         <Badge variant="outline" className="gap-1">
@@ -1021,10 +1104,32 @@ export function InteractiveCalendar({
                   <Button variant="outline" onClick={() => setSelectedEvent(null)}>
                     Close
                   </Button>
+                  {selectedEvent.description &&
+                    typeof selectedEvent.description === 'string' &&
+                    selectedEvent.description.startsWith('http') && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          window.open(selectedEvent.description, '_blank')
+                          setSelectedEvent(null)
+                        }}
+                      >
+                        <Video className="mr-2 h-4 w-4" />
+                        Join Session
+                      </Button>
+                    )}
                   <Button
                     className="bg-gradient-to-r from-purple-600 to-blue-600"
                     onClick={() => {
-                      toast.success('Opening class...')
+                      if (
+                        selectedEvent.description &&
+                        typeof selectedEvent.description === 'string' &&
+                        selectedEvent.description.startsWith('http')
+                      ) {
+                        window.open(selectedEvent.description, '_blank')
+                      } else {
+                        toast.success('Opening class...')
+                      }
                       setSelectedEvent(null)
                     }}
                   >
@@ -1504,72 +1609,74 @@ function DayView({ currentDate, events, onEventClick, conflicts }: any) {
 }
 
 function AvailabilityView({ availability, onToggle, onSave }: any) {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  const [expandedDays, setExpandedDays] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(days.map(day => [day, false]))
+  const days = [
+    { label: 'Mon', full: 'Monday', index: 1 },
+    { label: 'Tue', full: 'Tuesday', index: 2 },
+    { label: 'Wed', full: 'Wednesday', index: 3 },
+    { label: 'Thu', full: 'Thursday', index: 4 },
+    { label: 'Fri', full: 'Friday', index: 5 },
+    { label: 'Sat', full: 'Saturday', index: 6 },
+    { label: 'Sun', full: 'Sunday', index: 0 },
+  ]
+  const [activeDay, setActiveDay] = useState(days[0].full)
+
+  const activeDayIndex = days.find(d => d.full === activeDay)?.index ?? 1
+  const dayBlocks = availability.filter(
+    (block: AvailabilityBlock) => block.dayOfWeek === activeDayIndex
   )
+  const selectedCount = dayBlocks.filter((b: AvailabilityBlock) => b.isAvailable).length
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        {days.map((day, dayIndex) => {
-          const isExpanded = expandedDays[day]
-          const dayBlocks = availability.filter(
-            (block: AvailabilityBlock) => block.dayOfWeek === dayIndex
-          )
-          return (
-            <div key={day} className="rounded-lg border border-slate-200 bg-white/50 p-4">
-              <button
-                type="button"
-                className="flex w-full items-center justify-between text-left"
-                onClick={() => setExpandedDays(prev => ({ ...prev, [day]: !prev[day] }))}
-              >
-                <div className="flex items-center gap-2">
-                  {isExpanded ? (
-                    <ChevronDown className="h-4 w-4 text-gray-500" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-gray-500" />
-                  )}
-                  <h4 className="font-medium">{day}</h4>
-                </div>
-                <span className="text-muted-foreground text-xs">
-                  {dayBlocks.filter((b: AvailabilityBlock) => b.isAvailable).length} selected
-                </span>
-              </button>
-              {isExpanded && (
-                <div className="mt-3 grid grid-cols-4 gap-2 md:grid-cols-6 lg:grid-cols-8">
-                  {dayBlocks.map((block: AvailabilityBlock) => (
-                    <div
-                      key={block.id}
-                      className={cn(
-                        'cursor-pointer rounded-lg border p-3 transition-all',
-                        block.isAvailable
-                          ? 'border-green-200 bg-green-50'
-                          : 'border-gray-200 bg-gray-50 opacity-50'
-                      )}
-                      onClick={() => onToggle(block.id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">
-                          {block.startTime} - {block.endTime}
-                        </span>
-                        {block.isAvailable ? (
-                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <X className="h-5 w-5 text-gray-400" />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+    <div className="flex h-full flex-col">
+      <Tabs value={activeDay} onValueChange={setActiveDay} className="flex h-full flex-col">
+        <TabsList className="grid w-full grid-cols-7">
+          {days.map(day => (
+            <TabsTrigger key={day.full} value={day.full} className="text-xs sm:text-sm">
+              {day.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      <div className="flex justify-end gap-3">
-        <Button variant="outline">Cancel</Button>
+        {days.map(day => (
+          <TabsContent
+            key={day.full}
+            value={day.full}
+            className="mt-4 flex-1 data-[state=inactive]:hidden"
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-base font-medium">{day.full}</h3>
+              <span className="text-muted-foreground text-sm">
+                {selectedCount} of {dayBlocks.length} slots available
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+              {dayBlocks.map((block: AvailabilityBlock) => (
+                <button
+                  key={block.id}
+                  type="button"
+                  onClick={() => onToggle(block.id)}
+                  className={cn(
+                    'flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm transition-all',
+                    block.isAvailable
+                      ? 'border-green-300 bg-green-50 text-green-800 hover:bg-green-100'
+                      : 'border-gray-200 bg-gray-50 text-gray-500 opacity-60 hover:opacity-100'
+                  )}
+                >
+                  <span className="font-medium">{block.startTime}</span>
+                  {block.isAvailable ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <X className="h-4 w-4 text-gray-300" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </TabsContent>
+        ))}
+      </Tabs>
+
+      <div className="mt-4 flex justify-end gap-3 border-t pt-4">
         <Button onClick={onSave} className="bg-gradient-to-r from-green-600 to-emerald-600">
           Save Availability
         </Button>

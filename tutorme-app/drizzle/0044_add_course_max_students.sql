@@ -1,0 +1,1 @@
+ALTER TABLE "Course" ADD COLUMN IF NOT EXISTS "maxStudents" integer DEFAULT 50;

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseLesson, courseVariant, liveSession, tutorAsset } from '@/lib/db/schema'
+import { course, courseLesson, courseVariant, liveSession, tutorAsset, calendarEvent } from '@/lib/db/schema'
 import { dailyProvider } from '@/lib/video/daily-provider'
-import { eq, and, inArray, gte, lte, sql } from 'drizzle-orm'
+import { eq, and, inArray, gte, lte, sql, or, isNull } from 'drizzle-orm'
 import crypto from 'crypto'
 
 // GET current variants for this template course
@@ -280,6 +280,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         languageOfInstruction: course.languageOfInstruction,
         creatorId: course.creatorId,
         isLiveOnline: course.isLiveOnline,
+        maxStudents: course.maxStudents,
       })
       .from(course)
       .where(and(eq(course.courseId, templateCourseId), eq(course.creatorId, userId)))
@@ -436,10 +437,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
               ? new Date(Math.max(...scheduledAts.map(d => d.getTime())))
               : null
 
-          const existingSessions =
+          // Fetch all existing sessions/events that could overlap with the generated range
+          const sessionEndMax = maxScheduledAt
+            ? new Date(maxScheduledAt.getTime() + Math.max(...sessionDates.map(s => s.durationMinutes || 60)) * 60000)
+            : null
+
+          const [existingLiveSessions, existingCalendarEvents] = await Promise.all([
             minScheduledAt && maxScheduledAt
-              ? await tx
-                  .select({ scheduledAt: liveSession.scheduledAt })
+              ? tx
+                  .select({
+                    scheduledAt: liveSession.scheduledAt,
+                    durationMinutes: liveSession.durationMinutes,
+                  })
                   .from(liveSession)
                   .where(
                     and(
@@ -455,17 +464,57 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                       lte(liveSession.scheduledAt, maxScheduledAt)
                     )
                   )
-              : []
+              : Promise.resolve([]),
+            minScheduledAt && sessionEndMax
+              ? tx
+                  .select({
+                    startTime: calendarEvent.startTime,
+                    endTime: calendarEvent.endTime,
+                  })
+                  .from(calendarEvent)
+                  .where(
+                    and(
+                      eq(calendarEvent.tutorId, userId),
+                      eq(calendarEvent.isCancelled, false),
+                      isNull(calendarEvent.deletedAt),
+                      or(
+                        and(
+                          gte(calendarEvent.startTime, minScheduledAt),
+                          lte(calendarEvent.startTime, sessionEndMax)
+                        ),
+                        and(
+                          gte(calendarEvent.endTime, minScheduledAt),
+                          lte(calendarEvent.endTime, sessionEndMax)
+                        )
+                      )
+                    )
+                  )
+              : Promise.resolve([]),
+          ])
 
-          const existingDates = new Set(
-            existingSessions
-              .filter(s => s.scheduledAt)
-              .map(s => new Date(s.scheduledAt!).toISOString().slice(0, 16))
-          )
+          // Helper: check if a generated session overlaps with an existing event
+          function overlaps(
+            start: Date,
+            end: Date,
+            existing: { startTime?: Date | null; endTime?: Date | null; scheduledAt?: Date | null; durationMinutes?: number | null }
+          ): boolean {
+            const existingStart = existing.scheduledAt || existing.startTime
+            if (!existingStart) return false
+            const existingEnd =
+              existing.endTime ||
+              new Date(existingStart.getTime() + (existing.durationMinutes || 60) * 60000)
+            return start < existingEnd && end > existingStart
+          }
 
           for (const session of sessionDates) {
-            const dateKey = session.scheduledAt.toISOString().slice(0, 16)
-            if (existingDates.has(dateKey)) continue
+            const sessionStart = session.scheduledAt
+            const sessionEnd = new Date(sessionStart.getTime() + session.durationMinutes * 60000)
+
+            const hasConflict =
+              existingLiveSessions.some(ls => overlaps(sessionStart, sessionEnd, ls)) ||
+              existingCalendarEvents.some(ce => overlaps(sessionStart, sessionEnd, ce))
+
+            if (hasConflict) continue
 
             try {
               const liveSessionId = crypto.randomUUID()
@@ -482,10 +531,34 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                 description: templateCourse.description ?? null,
                 scheduledAt: session.scheduledAt,
                 status: 'scheduled',
-                maxStudents: 50,
+                maxStudents: templateCourse.maxStudents ?? 50,
                 durationMinutes: session.durationMinutes,
                 roomId: room.id,
                 roomUrl: room.url,
+              })
+
+              // Create corresponding CalendarEvent for tutor calendar
+              const endTime = new Date(session.scheduledAt.getTime() + session.durationMinutes * 60000)
+              await tx.insert(calendarEvent).values({
+                eventId: crypto.randomUUID(),
+                tutorId: userId,
+                title: session.title,
+                description: templateCourse.description ?? null,
+                type: 'LESSON',
+                status: 'CONFIRMED',
+                startTime: session.scheduledAt,
+                endTime,
+                timezone: 'UTC',
+                isAllDay: false,
+                isRecurring: false,
+                isVirtual: true,
+                location: 'Online',
+                meetingUrl: room.url,
+                courseId: publishedCourseId,
+                maxAttendees: templateCourse.maxStudents ?? 50,
+                createdBy: userId,
+                isCancelled: false,
+                externalId: liveSessionId,
               })
             } catch (insertError: any) {
               const pgError = insertError?.cause || insertError

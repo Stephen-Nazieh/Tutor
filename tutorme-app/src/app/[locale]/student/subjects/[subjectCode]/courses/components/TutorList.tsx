@@ -9,6 +9,7 @@ import { TutorCard } from './TutorCard'
 
 interface Tutor {
   id: string
+  username?: string
   name: string
   avatar: string | null
   bio: string

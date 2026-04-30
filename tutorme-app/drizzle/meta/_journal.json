@@ -309,6 +309,13 @@
       "when": 1775778000000,
       "tag": "0043_create_missing_directory_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1753600000000,
+      "tag": "0044_add_course_max_students",
+      "breakpoints": true
     }
   ]
 }

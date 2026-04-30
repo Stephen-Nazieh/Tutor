@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -535,7 +535,8 @@ export default function PublicTutorPage() {
   const [courseSortOrder, setCourseSortOrder] = useState<'newest' | 'price_asc' | 'price_desc'>(
     'newest'
   )
-  const [bookDialogOpen, setBookDialogOpen] = useState(false)
+  const searchParams = useSearchParams()
+  const [bookDialogOpen, setBookDialogOpen] = useState(() => searchParams.get('book') === '1')
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set())
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null)
   const [scheduleCourse, setScheduleCourse] = useState<

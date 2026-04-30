@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { webhookEvent, payment, user, profile, courseEnrollment, course } from '@/lib/db/schema'
+import { webhookEvent, payment, user, profile, courseEnrollment, course, oneOnOneBookingRequest } from '@/lib/db/schema'
 import { AirwallexGateway } from '@/lib/payments'
 import {
   sendPaymentConfirmation,
@@ -161,6 +161,39 @@ export async function POST(req: NextRequest) {
           }).catch(err =>
             console.error('[Airwallex Webhook] Failed to send confirmation email:', err)
           )
+        }
+      } else if (
+        meta?.type === 'one-on-one' &&
+        typeof meta.requestId === 'string'
+      ) {
+        await drizzleDb
+          .update(oneOnOneBookingRequest)
+          .set({ status: 'PAID', paidAt: new Date() })
+          .where(eq(oneOnOneBookingRequest.requestId, meta.requestId as string))
+
+        const [requestRow] = await drizzleDb
+          .select({ studentId: oneOnOneBookingRequest.studentId, tutorId: oneOnOneBookingRequest.tutorId })
+          .from(oneOnOneBookingRequest)
+          .where(eq(oneOnOneBookingRequest.requestId, meta.requestId as string))
+          .limit(1)
+
+        if (requestRow) {
+          const [userRow] = await drizzleDb
+            .select({ email: user.email, name: profile.name })
+            .from(user)
+            .leftJoin(profile, eq(profile.userId, user.userId))
+            .where(eq(user.userId, requestRow.studentId))
+            .limit(1)
+          if (userRow?.email) {
+            sendPaymentConfirmation({
+              paymentId: paymentRow.paymentId,
+              studentEmail: userRow.email,
+              studentName: userRow.name ?? undefined,
+              amount: paymentRow.amount,
+              currency: paymentRow.currency,
+              description: '1-on-1 tutoring session',
+            }).catch(err => console.error('[Airwallex Webhook] Failed to send confirmation email:', err))
+          }
         }
       } else if (paymentRow.bookingId) {
         // Clinics removed: no booking notifications.

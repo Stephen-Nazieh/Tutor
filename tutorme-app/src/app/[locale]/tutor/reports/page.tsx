@@ -752,20 +752,14 @@ function ItemAIChat({
 function CoursesAndClassesTab() {
   const [courses, setCourses] = useState<CourseItem[]>([])
   const [coursesLoading, setCoursesLoading] = useState(true)
-  const [selectedItem, setSelectedItem] = useState<{
-    type: 'course' | 'session'
-    id: string
-  } | null>(null)
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null)
   const [sessionsOverview, setSessionsOverview] = useState<SessionOverviewItem[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
   const [students, setStudents] = useState<Student[]>([])
 
-  const selectedCourse =
-    selectedItem?.type === 'course' ? courses.find(c => c.id === selectedItem.id) || null : null
-  const selectedSession =
-    selectedItem?.type === 'session'
-      ? sessionsOverview.find(s => s.id === selectedItem.id) || null
-      : null
+  const selectedCourse = courses.find(c => c.id === selectedCourseId) || null
+  const selectedSession = sessionsOverview.find(s => s.id === selectedSessionId) || null
 
   useEffect(() => {
     const loadCourses = async () => {
@@ -844,6 +838,50 @@ function CoursesAndClassesTab() {
       )
     : []
 
+  const displayedSessions = selectedCourse ? courseSessions : sessionsOverview
+
+  const handleCourseClick = (courseId: string) => {
+    if (selectedCourseId === courseId) {
+      // Deselect course
+      setSelectedCourseId(null)
+      setSelectedSessionId(null)
+    } else {
+      setSelectedCourseId(courseId)
+      // If a session is already selected but doesn't belong to this course, clear it
+      if (selectedSessionId) {
+        const session = sessionsOverview.find(s => s.id === selectedSessionId)
+        const newCourse = courses.find(c => c.id === courseId)
+        if (
+          session &&
+          newCourse &&
+          session.courseId !== courseId &&
+          session.subject !== newCourse.name
+        ) {
+          setSelectedSessionId(null)
+        }
+      }
+    }
+  }
+
+  const handleSessionClick = (sessionId: string) => {
+    if (selectedSessionId === sessionId) {
+      // Deselect session, keep course selected
+      setSelectedSessionId(null)
+    } else {
+      setSelectedSessionId(sessionId)
+      // Auto-select the matching course if not already selected
+      const session = sessionsOverview.find(s => s.id === sessionId)
+      if (session?.courseId) {
+        const matchingCourse = courses.find(
+          c => c.id === session.courseId || c.name === session.subject
+        )
+        if (matchingCourse && selectedCourseId !== matchingCourse.id) {
+          setSelectedCourseId(matchingCourse.id)
+        }
+      }
+    }
+  }
+
   return (
     <TabsContent value="overview" className="flex flex-col space-y-6 pb-12">
       {/* Panel 1 - Shared Courses & Classes / Sessions */}
@@ -871,17 +909,11 @@ function CoursesAndClassesTab() {
                     key={course.id}
                     className={cn(
                       'cursor-pointer rounded-[12px] border p-4 transition-colors',
-                      selectedItem?.type === 'course' && selectedItem.id === course.id
+                      selectedCourseId === course.id
                         ? 'border-indigo-400 bg-indigo-50 ring-1 ring-indigo-400/20'
                         : 'border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] hover:bg-slate-50'
                     )}
-                    onClick={() => {
-                      setSelectedItem(
-                        selectedItem?.type === 'course' && selectedItem.id === course.id
-                          ? null
-                          : { type: 'course', id: course.id }
-                      )
-                    }}
+                    onClick={() => handleCourseClick(course.id)}
                   >
                     <div className="flex items-start justify-between">
                       <div className="text-sm font-semibold text-slate-800">{course.name}</div>
@@ -903,7 +935,14 @@ function CoursesAndClassesTab() {
 
           <div className="flex flex-col overflow-hidden">
             <div className="shrink-0 pb-3">
-              <h3 className="text-base font-bold text-slate-800">Sessions</h3>
+              <h3 className="text-base font-bold text-slate-800">
+                Sessions
+                {selectedCourse && (
+                  <span className="ml-2 text-xs font-normal text-slate-500">
+                    ({displayedSessions.length} for {selectedCourse.name})
+                  </span>
+                )}
+              </h3>
             </div>
             <div className="flex-1 space-y-3 overflow-y-auto pr-2">
               {sessionsLoading ? (
@@ -911,12 +950,14 @@ function CoursesAndClassesTab() {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Loading sessions...
                 </div>
-              ) : sessionsOverview.length === 0 ? (
+              ) : displayedSessions.length === 0 ? (
                 <div className="flex h-full items-center justify-center py-10 text-center text-sm text-slate-500">
-                  No sessions found.
+                  {selectedCourse
+                    ? `No sessions found for ${selectedCourse.name}.`
+                    : 'No sessions found.'}
                 </div>
               ) : (
-                sessionsOverview.map((sessionItem: SessionOverviewItem) => {
+                displayedSessions.map((sessionItem: SessionOverviewItem) => {
                   const isOngoing = sessionItem.status === 'ACTIVE'
                   const isEnded = Boolean(sessionItem.endedAt) || sessionItem.status === 'COMPLETED'
                   const statusLabel = isOngoing ? 'Ongoing' : isEnded ? 'Ended' : 'Scheduled'
@@ -925,17 +966,11 @@ function CoursesAndClassesTab() {
                       key={sessionItem.id}
                       className={cn(
                         'cursor-pointer rounded-[12px] border p-4 transition-colors',
-                        selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
+                        selectedSessionId === sessionItem.id
                           ? 'border-indigo-400 bg-indigo-50 ring-1 ring-indigo-400/20'
                           : 'border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] hover:bg-slate-50'
                       )}
-                      onClick={() => {
-                        setSelectedItem(
-                          selectedItem?.type === 'session' && selectedItem.id === sessionItem.id
-                            ? null
-                            : { type: 'session', id: sessionItem.id }
-                        )
-                      }}
+                      onClick={() => handleSessionClick(sessionItem.id)}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
@@ -972,7 +1007,82 @@ function CoursesAndClassesTab() {
       {/* Panel 2 - Course Overview / Analytics Strip */}
       <div className="rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
         <div className="flex shrink-0 items-center gap-6 overflow-x-auto">
-          {selectedCourse ? (
+          {selectedCourse && selectedSession ? (
+            <>
+              {/* Course summary */}
+              <div className="flex shrink-0 items-center gap-2 border-r border-slate-100 pr-6 font-bold text-indigo-600">
+                <BarChart3 className="h-5 w-5" />
+                <span className="text-base">{selectedCourse.name}</span>
+              </div>
+              <div className="flex items-center gap-8 text-sm">
+                <div className="flex flex-col">
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Published
+                  </span>
+                  <span className="font-semibold text-slate-800">
+                    {formatDate(selectedCourse.createdAt)}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Sessions
+                  </span>
+                  <span className="font-semibold text-slate-800">{courseSessions.length}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Category
+                  </span>
+                  <span className="font-semibold text-slate-800">
+                    {selectedCourse.categories[0] || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Students
+                  </span>
+                  <span className="font-semibold text-slate-800">{students.length}</span>
+                </div>
+              </div>
+              {/* Divider */}
+              <div className="h-8 w-px bg-slate-200" />
+              {/* Session summary */}
+              <div className="flex shrink-0 items-center gap-2 border-r border-slate-100 pr-6 font-bold text-emerald-600">
+                <Calendar className="h-5 w-5" />
+                <span className="text-base">{selectedSession.title}</span>
+              </div>
+              <div className="flex items-center gap-8 text-sm">
+                <div className="flex flex-col">
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Status
+                  </span>
+                  <span className="font-semibold text-slate-800">{selectedSession.status}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Scheduled
+                  </span>
+                  <span className="font-semibold text-slate-800">
+                    {formatDate(selectedSession.scheduledAt)}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Subject
+                  </span>
+                  <span className="font-semibold text-slate-800">
+                    {selectedSession.subject || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Students
+                  </span>
+                  <span className="font-semibold text-slate-800">{students.length}</span>
+                </div>
+              </div>
+            </>
+          ) : selectedCourse ? (
             <>
               <div className="flex shrink-0 items-center gap-2 border-r border-slate-100 pr-6 font-bold text-indigo-600">
                 <BarChart3 className="h-5 w-5" />

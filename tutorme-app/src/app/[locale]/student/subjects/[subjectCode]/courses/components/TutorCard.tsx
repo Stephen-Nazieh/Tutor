@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 
 interface Tutor {
   id: string
+  username?: string
   name: string
   avatar: string | null
   bio: string
@@ -177,7 +178,7 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
         <div className="mt-auto pt-2">
           <div className="flex items-center justify-between">
             <Link
-              href={`/student/classes?tutor=${tutor.id}&subject=${subjectCode}`}
+              href={`/u/${tutor.username || tutor.id}?book=1`}
               className="flex items-center gap-2 text-slate-100 transition-colors hover:text-white"
             >
               <Calendar className="h-6 w-6 text-[rgba(255,255,255,0.8)]" />
