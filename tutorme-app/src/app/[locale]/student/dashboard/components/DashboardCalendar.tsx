@@ -53,6 +53,8 @@ interface ClassItem {
   isBooked?: boolean
   requiresPayment?: boolean
   price?: number | null
+  status?: 'scheduled' | 'live' | 'completed' | 'cancelled'
+  meetingUrl?: string | null
 }
 
 function formatEventTime(iso: string): string {
@@ -115,10 +117,16 @@ export function DashboardCalendar({
   }, [monthStart, monthEnd, onRefresh])
 
   // Derive classes list from calendar events for the Sessions tab
+  // Sorted reverse-chronologically: newest first, oldest at bottom
   const classes = useMemo<ClassItem[]>(() => {
-    return events.map(ev => {
+    const mapped = events.map(ev => {
       const evStatus = (ev as any).status as string | undefined
-      const isLive = evStatus === 'live' || evStatus === 'active'
+      const status: ClassItem['status'] =
+        evStatus === 'live' || evStatus === 'active'
+          ? 'live'
+          : evStatus === 'ended' || evStatus === 'completed'
+            ? 'completed'
+            : 'scheduled'
       return {
         id: ev.id,
         title: ev.title,
@@ -130,8 +138,13 @@ export function DashboardCalendar({
         students: 0,
         maxStudents: (ev as any).maxAttendees ?? 50,
         isBooked: true,
+        status,
+        meetingUrl: (ev as any).meetingUrl || null,
       }
     })
+    // Reverse chronological: newest first
+    mapped.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
+    return mapped
   }, [events])
 
   const interactiveEvents = useMemo(() => {
@@ -206,7 +219,26 @@ export function DashboardCalendar({
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h4 className="text-foreground font-medium">{cls.title}</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-foreground font-medium">{cls.title}</h4>
+                          <Badge
+                            variant="secondary"
+                            className={cn(
+                              'text-[10px]',
+                              cls.status === 'live'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : cls.status === 'completed'
+                                  ? 'bg-slate-100 text-slate-600'
+                                  : 'bg-blue-100 text-blue-700'
+                            )}
+                          >
+                            {cls.status === 'live'
+                              ? 'Live'
+                              : cls.status === 'completed'
+                                ? 'Completed'
+                                : 'Scheduled'}
+                          </Badge>
+                        </div>
                         <p className="text-muted-foreground text-sm">{cls.subject}</p>
 
                         <div className="text-muted-foreground mt-2 flex items-center gap-4 text-xs">
@@ -237,9 +269,19 @@ export function DashboardCalendar({
                         </div>
                       </div>
 
-                      <Button size="sm" variant="outline" asChild>
-                        <Link href={`/student/courses/${cls.id}`}>Details</Link>
-                      </Button>
+                      {cls.meetingUrl ? (
+                        <Button
+                          size="sm"
+                          className="bg-emerald-600 text-white hover:bg-emerald-500"
+                          onClick={() => window.open(cls.meetingUrl!, '_blank')}
+                        >
+                          {cls.status === 'live' ? 'Join' : 'Enter'}
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" asChild>
+                          <Link href={`/student/courses/${cls.id}`}>Details</Link>
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}

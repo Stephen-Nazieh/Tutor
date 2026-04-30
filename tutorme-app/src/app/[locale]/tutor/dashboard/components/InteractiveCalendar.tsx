@@ -200,15 +200,18 @@ function DraggableEvent({
   onClick,
   hasConflict,
   style = {},
+  disabled = false,
 }: {
   event: CalendarEvent
   onClick: () => void
   hasConflict?: boolean
   style?: React.CSSProperties
+  disabled?: boolean
 }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: event.id,
     data: { event },
+    disabled,
   })
 
   const cssTransform = CSS.Transform.toString(transform)
@@ -216,13 +219,13 @@ function DraggableEvent({
   return (
     <div
       ref={setNodeRef}
-      {...listeners}
-      {...attributes}
+      {...(disabled ? {} : listeners)}
+      {...(disabled ? {} : attributes)}
       style={{
         ...style,
-        transform: cssTransform,
+        transform: disabled ? undefined : cssTransform,
         opacity: isDragging ? 0.5 : 1,
-        cursor: 'grab',
+        cursor: disabled ? 'pointer' : 'grab',
       }}
       className={cn(
         'group absolute left-1 right-1 cursor-pointer overflow-hidden rounded p-2 text-xs',
@@ -242,7 +245,9 @@ function DraggableEvent({
             {event.date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
-        <GripVertical className="h-3 w-3 text-white/50 opacity-0 transition-opacity group-hover:opacity-100" />
+        {!disabled && (
+          <GripVertical className="h-3 w-3 text-white/50 opacity-0 transition-opacity group-hover:opacity-100" />
+        )}
       </div>
       {hasConflict && <AlertTriangle className="absolute right-1 top-1 h-3 w-3 text-white" />}
     </div>
@@ -916,6 +921,7 @@ export function InteractiveCalendar({
                   onEventClick={handleEventClick}
                   onDateClick={handleDateClick}
                   conflicts={showConflictWarning}
+                  readOnly={isStudent}
                 />
               )}
 
@@ -925,6 +931,7 @@ export function InteractiveCalendar({
                   events={filteredEvents}
                   onEventClick={handleEventClick}
                   conflicts={showConflictWarning}
+                  readOnly={isStudent}
                 />
               )}
 
@@ -1474,7 +1481,7 @@ function MonthView({
   )
 }
 
-function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }: any) {
+function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts, readOnly = false }: any) {
   const weekStart = new Date(currentDate)
   weekStart.setDate(currentDate.getDate() - currentDate.getDay())
 
@@ -1536,6 +1543,7 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
                       event={event}
                       onClick={() => onEventClick(event)}
                       hasConflict={hasConflict}
+                      disabled={readOnly}
                       style={{
                         top: `${top}px`,
                         height: `${Math.max(height, 32)}px`,
@@ -1552,7 +1560,7 @@ function WeekView({ currentDate, events, onEventClick, onDateClick, conflicts }:
   )
 }
 
-function DayView({ currentDate, events, onEventClick, conflicts }: any) {
+function DayView({ currentDate, events, onEventClick, conflicts, readOnly = false }: any) {
   const hours = Array.from({ length: 24 }, (_, i) => i)
 
   const dayEvents = events
@@ -1587,6 +1595,7 @@ function DayView({ currentDate, events, onEventClick, conflicts }: any) {
               event={event}
               onClick={() => onEventClick(event)}
               hasConflict={hasConflict}
+              disabled={readOnly}
               style={{
                 top: `${top}px`,
                 height: `${Math.max(height, 40)}px`,
