@@ -372,7 +372,9 @@ async function getRoomFromRedis(roomId: string): Promise<ClassRoom | null> {
     return {
       ...parsed,
       students: new Map(parsed.students),
-      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
+      // Intentionally do NOT restore tasks from Redis — each session should be independent.
+      // Tasks will be repopulated from DB via the directory API if needed.
+      tasks: [],
     }
   } catch (error) {
     console.error('Failed to retrieve room from Redis:', error)

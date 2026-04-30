@@ -433,6 +433,10 @@ function StudentFeedbackContent() {
         const hwIds: string[] = []
 
         for (const n of notifications) {
+          // Only count notifications for the current session
+          const notifSessionId = n.data?.roomId || n.data?.sessionId
+          if (notifSessionId && notifSessionId !== selectedSessionId) continue
+
           const deployType = n.data?.deployType
           if (deployType === 'task' || deployType === 'assessment') {
             const taskId = n.data?.taskId || n.data?.itemId
@@ -1531,7 +1535,8 @@ function StudentFeedbackContent() {
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-1 flex-col">
                   {(() => {
                     const controlRow = (
-                      <div className="flex w-full items-center justify-between gap-3 border-b bg-white px-4 py-3">
+                      <div className="sticky top-3 z-50 w-full px-4">
+                        <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 rounded-full border border-slate-200 bg-white/85 px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.12)] backdrop-blur-md">
                         <div className="flex flex-wrap items-center gap-2">
                           <Button
                             size="sm"
@@ -1631,6 +1636,7 @@ function StudentFeedbackContent() {
                             Tutor Board
                           </TabsTrigger>
                         </TabsList>
+                      </div>
                       </div>
                     )
 
