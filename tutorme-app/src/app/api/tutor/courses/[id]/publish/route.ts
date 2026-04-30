@@ -3,6 +3,7 @@ import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, courseLesson, courseVariant, liveSession, tutorAsset, calendarEvent, calendarAvailability, calendarException } from '@/lib/db/schema'
 import { dailyProvider } from '@/lib/video/daily-provider'
+import { createSession } from '@/lib/sessions/create-session'
 import { eq, and, inArray, gte, lte, sql, or, isNull } from 'drizzle-orm'
 import crypto from 'crypto'
 
@@ -82,107 +83,6 @@ const DAY_MAP: Record<string, number> = {
  * Robust LiveSession insert that adapts to schema drift.
  * Detects actual columns and uses raw SQL via the underlying pg driver.
  */
-async function insertLiveSessionRaw(
-  tx: any,
-  data: {
-    sessionId: string
-    tutorId: string
-    courseId: string
-    title: string
-    category: string
-    description: string | null
-    scheduledAt: Date
-    status: string
-    maxStudents: number
-    durationMinutes?: number
-    roomId?: string | null
-    roomUrl?: string | null
-  }
-): Promise<void> {
-  // Discover actual columns
-  const colResult = await tx.execute(sql`
-    SELECT column_name, data_type, udt_name
-    FROM information_schema.columns
-    WHERE table_name = 'LiveSession'
-  `)
-  const columns = new Map((colResult.rows as any[]).map((r: any) => [r.column_name, r]))
-
-  const hasCategory = columns.has('category')
-  const hasSubject = columns.has('subject')
-  const categoryCol = hasCategory ? 'category' : hasSubject ? 'subject' : null
-
-  if (!categoryCol) {
-    throw new Error('LiveSession is missing both "category" and "subject" columns')
-  }
-
-  const hasCourseId = columns.has('courseId')
-  if (!hasCourseId) {
-    throw new Error('LiveSession is missing "courseId" column')
-  }
-
-  const hasStatus = columns.has('status')
-  if (!hasStatus) {
-    throw new Error('LiveSession is missing "status" column')
-  }
-
-  const hasMaxStudents = columns.has('maxStudents')
-  const hasDescription = columns.has('description')
-  const hasDurationMinutes = columns.has('durationMinutes')
-  const hasRoomId = columns.has('roomId')
-  const hasRoomUrl = columns.has('roomUrl')
-
-  // Build column list and values
-  const colNames = ['"id"', '"tutorId"', '"courseId"', '"title"', `"${categoryCol}"`]
-  const values: (string | number | Date | null)[] = [
-    data.sessionId,
-    data.tutorId,
-    data.courseId,
-    data.title,
-    data.category,
-  ]
-
-  if (hasDescription) {
-    colNames.push('"description"')
-    values.push(data.description)
-  }
-
-  colNames.push('"scheduledAt"', '"status"')
-  values.push(data.scheduledAt, data.status)
-
-  if (hasMaxStudents) {
-    colNames.push('"maxStudents"')
-    values.push(data.maxStudents)
-  }
-
-  if (hasDurationMinutes && typeof data.durationMinutes === 'number') {
-    colNames.push('"durationMinutes"')
-    values.push(data.durationMinutes)
-  }
-
-  if (hasRoomId && data.roomId) {
-    colNames.push('"roomId"')
-    values.push(data.roomId)
-  }
-
-  if (hasRoomUrl && data.roomUrl) {
-    colNames.push('"roomUrl"')
-    values.push(data.roomUrl)
-  }
-
-  const colList = colNames.join(', ')
-  const placeholders = values.map((_, i) => `$${i + 1}`).join(', ')
-  const rawSql = `INSERT INTO "LiveSession" (${colList}) VALUES (${placeholders})`
-
-  // Use underlying pg client for parameter binding
-  const client = tx.session?.client
-  if (client) {
-    await client.query(rawSql, values)
-  } else {
-    // Fallback: execute without params (should not happen)
-    await tx.execute(sql.raw(rawSql))
-  }
-}
-
 function generateSessionDates(
   schedule: ScheduleItem[],
   weeksAhead = 8
@@ -716,7 +616,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
                     eventId: crypto.randomUUID(),
                     tutorId: userId,
                     title: session.title,
-                    description: templateCourse.description ?? null,
+                    description: templateCourse.description ?? undefined,
                     type: 'LESSON',
                     status: 'CONFIRMED',
                     startTime: conflictingLs.scheduledAt,
@@ -754,70 +654,34 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             }
 
             try {
-              const liveSessionId = crypto.randomUUID()
-              const room = await dailyProvider.createRoom(liveSessionId, {
-                maxParticipants: 10,
-                durationMinutes: session.durationMinutes,
-              })
-              await insertLiveSessionRaw(tx, {
-                sessionId: liveSessionId,
-                tutorId: userId,
-                courseId: publishedCourseId,
-                title: session.title,
-                category: v.category,
-                description: templateCourse.description ?? null,
-                scheduledAt: session.scheduledAt,
-                status: 'scheduled',
-                maxStudents: 50,
-                durationMinutes: session.durationMinutes,
-                roomId: room.id,
-                roomUrl: room.url,
-              })
-
-              // Create corresponding CalendarEvent for tutor calendar
-              const endTime = new Date(session.scheduledAt.getTime() + session.durationMinutes * 60000)
-              await tx.insert(calendarEvent).values({
-                eventId: crypto.randomUUID(),
-                tutorId: userId,
-                title: session.title,
-                description: templateCourse.description ?? null,
-                type: 'LESSON',
-                status: 'CONFIRMED',
-                startTime: session.scheduledAt,
-                endTime,
-                timezone: 'UTC',
-                isAllDay: false,
-                isRecurring: false,
-                isVirtual: true,
-                location: 'Online',
-                meetingUrl: room.url,
-                courseId: publishedCourseId,
-                maxAttendees: 50,
-                createdBy: userId,
-                isCancelled: false,
-                externalId: liveSessionId,
-              })
+              await createSession(
+                {
+                  tutorId: userId,
+                  title: session.title,
+                  scheduledAt: session.scheduledAt,
+                  durationMinutes: session.durationMinutes,
+                  category: v.category,
+                  type: 'COURSE',
+                  courseId: publishedCourseId,
+                  description: templateCourse.description ?? undefined,
+                  status: 'scheduled',
+                  maxStudents: 50,
+                  timezone: 'UTC',
+                },
+                tx
+              )
             } catch (insertError: any) {
               const pgError = insertError?.cause || insertError
               const msg = insertError?.message || String(insertError)
               const pgMsg = pgError?.message || msg
-              console.error('[publish] LiveSession insert failed:', {
+              console.error('[publish] createSession failed:', {
                 message: msg,
                 pgMessage: pgMsg,
                 pgCode: pgError?.code,
                 pgDetail: pgError?.detail,
-                pgColumn: pgError?.column,
-                pgTable: pgError?.table,
-                schemaColumns: Array.from(
-                  (
-                    await tx.execute(
-                      sql`SELECT column_name FROM information_schema.columns WHERE table_name = 'LiveSession'`
-                    )
-                  ).rows as any[]
-                ).map((r: any) => r.column_name),
               })
               throw new Error(
-                `LiveSession insert failed: ${pgMsg} (code: ${pgError?.code || 'unknown'}). ` +
+                `createSession failed: ${pgMsg} (code: ${pgError?.code || 'unknown'}). ` +
                   `Run: npm run db:apply-schema`
               )
             }

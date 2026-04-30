@@ -1059,7 +1059,7 @@ function TutorDashboardContent() {
                                 ) : (
                                   <Video className="mr-1 h-3 w-3" />
                                 )}
-                                Start Class
+                                Open Session
                               </Button>
                             ) : isScheduled ? (
                               <Button
@@ -1073,7 +1073,7 @@ function TutorDashboardContent() {
                                 ) : (
                                   <Video className="mr-1 h-3 w-3" />
                                 )}
-                                Start Class
+                                Open Session
                               </Button>
                             ) : isActive ? (
                               <Button

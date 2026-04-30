@@ -10,7 +10,7 @@ import { CreateRoomSchema, validateRequest } from '@/lib/validation/schemas'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { liveSession, course, user, profile, sessionParticipant } from '@/lib/db/schema'
-import crypto from 'crypto'
+import { createSession } from '@/lib/sessions/create-session'
 
 // POST /api/class/rooms - Create a new class room
 export const POST = withCsrf(
@@ -108,31 +108,27 @@ export const POST = withCsrf(
 
         const category = data.subject?.trim() || 'General'
 
-        // Store class session in database
+        // Unified session creation (LiveSession + CalendarEvent)
         let classSessionResult
         try {
-          const [result] = await drizzleDb
-            .insert(liveSession)
-            .values({
-              sessionId: crypto.randomUUID(),
-              tutorId: userId,
-              courseId: data.courseId || null,
-              title: data.title || `${data.subject} Class`,
-              category,
-              description: data.description || null,
-              roomUrl: room.url,
-              roomId: room.id,
-              maxStudents: data.maxStudents,
-              scheduledAt,
-              status: isScheduledForFuture ? 'scheduled' : 'active',
-              durationMinutes: data.durationMinutes,
-            })
-            .returning()
+          const { liveSession: result } = await createSession({
+            tutorId: userId,
+            title: data.title || `${data.subject} Class`,
+            scheduledAt,
+            durationMinutes: data.durationMinutes,
+            category,
+            type: 'ADHOC',
+            courseId: data.courseId,
+            maxStudents: data.maxStudents,
+            description: data.description || undefined,
+            status: isScheduledForFuture ? 'scheduled' : 'active',
+            existingRoom: room,
+          })
           classSessionResult = result
         } catch (error) {
           const rootError = (error as { cause?: Error }).cause ?? error
           const msg = rootError instanceof Error ? rootError.message : String(rootError)
-          console.error('[Class Rooms] DB insert failed:', rootError)
+          console.error('[Class Rooms] createSession failed:', rootError)
           const isSchemaError =
             msg.includes('column') || msg.includes('enum') || msg.includes('does not exist')
           return NextResponse.json(

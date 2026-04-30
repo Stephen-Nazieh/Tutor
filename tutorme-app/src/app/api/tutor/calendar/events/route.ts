@@ -109,7 +109,7 @@ export const GET = withAuth(
         courseId: e.courseId,
         location: e.location,
         isVirtual: e.isVirtual,
-        sessionId: e.sessionId,
+        sessionId: e.sessionId || e.externalId,
       })),
       ...liveSessions
         .filter(ls => !coveredSessionIds.has(ls.sessionId))

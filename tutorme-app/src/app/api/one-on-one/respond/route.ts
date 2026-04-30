@@ -4,6 +4,7 @@ import { eq, and, lt, gt, isNull, ne } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { oneOnOneBookingRequest, calendarEvent } from '@/lib/db/schema'
 import { dailyProvider } from '@/lib/video/daily-provider'
+import { createSession } from '@/lib/sessions/create-session'
 import { notify } from '@/lib/notifications/notify'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
@@ -94,31 +95,23 @@ export async function PATCH(request: NextRequest) {
           { maxParticipants: 2, durationMinutes: existingRequest.durationMinutes }
         )
 
-        const [newEvent] = await tx
-          .insert(calendarEvent)
-          .values({
-            eventId: nanoid(),
+        // Unified session creation (LiveSession + CalendarEvent)
+        const { calendarEvent: newEvent } = await createSession(
+          {
             tutorId: existingRequest.tutorId,
             title: `1-on-1 Session`,
+            scheduledAt: eventStart,
+            durationMinutes: existingRequest.durationMinutes,
+            category: 'Consultation',
+            type: 'ONE_ON_ONE',
+            studentId: existingRequest.studentId,
+            maxStudents: 2,
             description: `One-on-one tutoring session with student`,
-            startTime: eventStart,
-            endTime: eventEnd,
-            type: 'CONSULTATION',
-            status: 'CONFIRMED',
             timezone: existingRequest.timezone,
-            isAllDay: false,
-            isRecurring: false,
-            isVirtual: true,
-            meetingUrl: room.url,
-            maxAttendees: 2,
-            attendees: [existingRequest.studentId],
-            reminders: [15, 60],
-            createdBy: existingRequest.tutorId,
-            isCancelled: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          })
-          .returning()
+            existingRoom: room,
+          },
+          tx
+        )
 
         const [updatedRequest] = await tx
           .update(oneOnOneBookingRequest)

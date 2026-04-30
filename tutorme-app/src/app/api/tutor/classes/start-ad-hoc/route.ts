@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { getPool } from '@/lib/db/drizzle'
-import { liveSession, user, course } from '@/lib/db/schema'
+import { user, course } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
-import { randomUUID } from 'crypto'
 import { notify } from '@/lib/notifications/notify'
 import { dailyProvider } from '@/lib/video/daily-provider'
+import { createSession } from '@/lib/sessions/create-session'
 
 const SPECIAL_TOKENS = ['kim.kon#26', 'stephen#26'] // fallback token, should match the one in landing page
 
@@ -22,8 +22,6 @@ export const POST = withAuth(
           return NextResponse.json({ error: 'Invalid access token' }, { status: 403 })
         }
 
-        const sessionId = randomUUID()
-
         let room
         try {
           room = await dailyProvider.createRoom(currentUser.id, {
@@ -38,19 +36,19 @@ export const POST = withAuth(
           )
         }
 
-        await drizzleDb.insert(liveSession).values({
-          sessionId,
+        const { liveSession: created } = await createSession({
           tutorId: currentUser.id,
-          courseId: null,
           title: title || 'Live Training Session',
+          scheduledAt: new Date(),
+          durationMinutes: 120,
           category: 'Training',
+          type: 'ADHOC',
           description: 'Tutor training session',
           status: 'active',
           startedAt: new Date(),
-          scheduledAt: new Date(),
-          roomId: room.id,
-          roomUrl: room.url,
+          existingRoom: room,
         })
+        const sessionId = created.sessionId
 
         // Notify tutors based on target audience
         const pool = getPool()
@@ -148,7 +146,6 @@ export const POST = withAuth(
           return NextResponse.json({ error: 'Course not found' }, { status: 404 })
         }
 
-        const sessionId = randomUUID()
         const isPublished = courseRecord.isPublished
 
         let room
@@ -165,20 +162,21 @@ export const POST = withAuth(
           )
         }
 
-        await drizzleDb.insert(liveSession).values({
-          sessionId,
+        const { liveSession: created } = await createSession({
           tutorId: currentUser.id,
-          courseId,
           title: title || `${courseRecord.name} - Live Session`,
+          scheduledAt: new Date(),
+          durationMinutes: 120,
           category: Array.isArray(courseRecord.categories)
             ? courseRecord.categories[0] || 'General'
             : 'General',
+          type: 'ADHOC',
+          courseId,
           status: 'active',
           startedAt: new Date(),
-          scheduledAt: new Date(),
-          roomId: room.id,
-          roomUrl: room.url,
+          existingRoom: room,
         })
+        const sessionId = created.sessionId
 
         if (isPublished) {
           // Find enrolled students and notify them
