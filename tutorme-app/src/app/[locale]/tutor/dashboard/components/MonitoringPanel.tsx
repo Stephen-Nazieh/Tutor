@@ -22,6 +22,7 @@ type StudentUpdate = {
 type MonitoringPanelProps = {
   socket: Socket
   sessionId: string
+  tutorId?: string // Optional: exclude tutor from participant list
   students?: any[] // Optional: pass the room's student list if available
   selectedStudentId?: string | null
   onNavigateToWhiteboard?: (studentId: string, studentName: string) => void
@@ -31,6 +32,7 @@ type MonitoringPanelProps = {
 export function MonitoringPanel({
   socket,
   sessionId,
+  tutorId,
   students,
   selectedStudentId,
   onNavigateToWhiteboard,
@@ -176,7 +178,7 @@ export function MonitoringPanel({
       name: (s as any)?.name ?? (s as any)?.studentName ?? 'Student',
       status: (s as any)?.status ?? null,
     }))
-    .filter((s: any) => !!s.id)
+    .filter((s: any) => !!s.id && s.id !== tutorId)
 
   const displayStudents =
     rosterStudents.length > 0

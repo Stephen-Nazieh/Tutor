@@ -59,7 +59,10 @@ export const POST = withCsrf(
         )
         .limit(1)
 
-      if (!existingParticipant) {
+      // Prevent tutors from joining as students
+      const isTutor = session.user.id === row.tutorId
+
+      if (!existingParticipant && !isTutor) {
         const [{ count }] = await tx
           .select({ count: sql<number>`count(*)::int` })
           .from(sessionParticipant)

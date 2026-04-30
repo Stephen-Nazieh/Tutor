@@ -311,6 +311,7 @@ export interface CourseBuilderInsightsProps {
   onEndSession?: () => void
   endingSession?: boolean
   socket?: any
+  tutorId?: string
 }
 
 export interface CourseBuilderProps {

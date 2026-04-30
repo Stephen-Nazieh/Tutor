@@ -78,7 +78,13 @@ export const GET = withAuth(
       .from(sessionParticipant)
       .innerJoin(user, eq(sessionParticipant.studentId, user.userId))
       .leftJoin(profile, eq(profile.userId, user.userId))
-      .where(eq(sessionParticipant.sessionId, classId))
+      .where(
+        and(
+          eq(sessionParticipant.sessionId, classId),
+          // Exclude the tutor from the participant list
+          sql`${sessionParticipant.studentId} != ${liveSessionRow.tutorId}`
+        )
+      )
 
     const messages = await drizzleDb
       .select({

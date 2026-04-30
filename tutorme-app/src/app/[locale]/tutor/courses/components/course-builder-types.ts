@@ -63,4 +63,5 @@ export interface CourseBuilderInsightsProps {
   recordingDuration?: number
   onToggleRecording?: () => void
   socket?: any
+  tutorId?: string
 }

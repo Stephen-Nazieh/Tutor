@@ -57,23 +57,6 @@ export const POST = withCsrf(
       throw new ValidationError('Class session is full')
     }
 
-    const [existingParticipant] = await drizzleDb
-      .select()
-      .from(sessionParticipant)
-      .where(
-        and(eq(sessionParticipant.sessionId, id), eq(sessionParticipant.studentId, session.user.id))
-      )
-      .limit(1)
-
-    if (!existingParticipant) {
-      await drizzleDb.insert(sessionParticipant).values({
-        participantId: crypto.randomUUID(),
-        sessionId: id,
-        studentId: session.user.id,
-        joinedAt: new Date(),
-      })
-    }
-
     let token = null
     if (classSessionRow.roomId) {
       const isOwner = session.user.id === classSessionRow.tutorId
@@ -118,6 +101,32 @@ export const POST = withCsrf(
       tutor: tutorRow ? { profile: tutorProfile } : null,
       course: courseName ? { name: courseName } : null,
       participants,
+    }
+
+    // Prevent tutors from joining as students
+    if (session.user.id === classSessionRow.tutorId) {
+      return NextResponse.json({
+        session: classSession,
+        token,
+        roomUrl: classSessionRow.roomUrl,
+      })
+    }
+
+    const [existingParticipant] = await drizzleDb
+      .select()
+      .from(sessionParticipant)
+      .where(
+        and(eq(sessionParticipant.sessionId, id), eq(sessionParticipant.studentId, session.user.id))
+      )
+      .limit(1)
+
+    if (!existingParticipant) {
+      await drizzleDb.insert(sessionParticipant).values({
+        participantId: crypto.randomUUID(),
+        sessionId: id,
+        studentId: session.user.id,
+        joinedAt: new Date(),
+      })
     }
 
     return NextResponse.json({

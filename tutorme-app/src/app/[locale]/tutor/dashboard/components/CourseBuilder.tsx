@@ -991,9 +991,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
       if (!activeTab) return
 
+      // Only sync activeTaskId if the task has been deployed to the session
+      const deployedTaskIds = new Set(insightsProps?.liveTasks?.map((t: any) => t.id) ?? [])
+      const candidateTaskId = loadedTaskId || loadedAssessmentId || null
+      const activeTaskId = candidateTaskId && deployedTaskIds.has(candidateTaskId) ? candidateTaskId : null
+
       const statePayload = {
         activeTab,
-        activeTaskId: loadedTaskId || loadedAssessmentId || null,
+        activeTaskId,
       }
       insightsProps.socket.emit('insight:send', {
         roomId: insightsProps.sessionId,
@@ -7580,6 +7585,7 @@ FEEDBACK: [your explanation]`
                                                   <MonitoringPanel
                                                     socket={insightsProps.socket}
                                                     sessionId={insightsProps.sessionId}
+                                                    tutorId={insightsProps.tutorId}
                                                     students={sessionStudents}
                                                     selectedStudentId={
                                                       monitorSelectedStudent?.id ?? null

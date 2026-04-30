@@ -886,6 +886,7 @@ function TutorInsightsPageInner() {
           recordingDuration: recordingDurationSeconds,
           onToggleRecording: handleToggleRecording,
           socket,
+          tutorId: session?.user?.id,
         }}
         sessionCategory={sessionCategory}
         sessionNationality={sessionNationality}
