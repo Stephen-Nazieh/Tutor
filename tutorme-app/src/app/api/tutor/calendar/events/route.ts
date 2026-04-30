@@ -8,8 +8,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { calendarEvent, liveSession, course } from '@/lib/db/schema'
-import { eq, and, gte, lte, inArray, isNull } from 'drizzle-orm'
+import { calendarEvent, liveSession, course, sessionParticipant } from '@/lib/db/schema'
+import { eq, and, gte, lte, inArray, isNull, sql } from 'drizzle-orm'
 
 export const GET = withAuth(
   async (req: NextRequest, session) => {
@@ -139,10 +139,26 @@ export const GET = withAuth(
         : []
     const courseMap = new Map(courseRows.map(c => [c.courseId, c.name]))
 
+    // Fetch session participant counts
+    const sessionIds = [...new Set(merged.map(e => e.sessionId).filter(Boolean))] as string[]
+    const participantRows =
+      sessionIds.length > 0
+        ? await drizzleDb
+            .select({
+              sessionId: sessionParticipant.sessionId,
+              count: sql<number>`count(*)::int`.as('count'),
+            })
+            .from(sessionParticipant)
+            .where(inArray(sessionParticipant.sessionId, sessionIds))
+            .groupBy(sessionParticipant.sessionId)
+        : []
+    const participantMap = new Map(participantRows.map(p => [p.sessionId, p.count]))
+
     const enriched = merged.map(e => ({
       ...e,
       courseName: e.courseId ? (courseMap.get(e.courseId) ?? undefined) : undefined,
       category: e.courseId ? (courseMap.get(e.courseId) ?? undefined) : undefined,
+      enrolledCount: e.sessionId ? (participantMap.get(e.sessionId) ?? 0) : 0,
     }))
 
     // Sort by scheduledAt / startTime

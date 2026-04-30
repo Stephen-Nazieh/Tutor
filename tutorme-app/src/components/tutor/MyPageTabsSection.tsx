@@ -201,15 +201,41 @@ function MyPageTabsSectionInner() {
     setDeleteBusy(prev => ({ ...prev, [course.id]: true }))
     try {
       const csrfToken = await fetchCsrfToken()
-      const res = await fetch(`/api/tutor/courses/${course.id}`, {
-        method: 'DELETE',
-        headers: {
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-        },
-        credentials: 'include',
-      })
+      const doDelete = async (confirmed: boolean) =>
+        fetch(`/api/tutor/courses/${course.id}${confirmed ? '?confirm=true' : ''}`, {
+          method: 'DELETE',
+          headers: {
+            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+          },
+          credentials: 'include',
+        })
+
+      const res = await doDelete(false)
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
+        if (res.status === 409 && data?.requiresConfirmation) {
+          const enrolledCount = Number(data?.enrolledCount || 0)
+          const courseName = data?.courseName || course.name
+          const ok = confirm(
+            `This published course has ${enrolledCount} enrolled student${enrolledCount === 1 ? '' : 's'}.\n\nDeleting it will automatically initiate refunds for paid enrollments and notify students.\n\nDelete "${courseName}" anyway?`
+          )
+          if (!ok) return
+          const confirmedRes = await doDelete(true)
+          const confirmedData = await confirmedRes.json().catch(() => ({}))
+          if (!confirmedRes.ok) {
+            toast.error(confirmedData?.error || 'Failed to delete course')
+            return
+          }
+          setAllCourses(prev => prev.filter(c => c.id !== course.id))
+          setSelectedCourseId(prev => (prev === course.id ? null : prev))
+          const refundsInitiated = Number(confirmedData?.refundsInitiated || 0)
+          toast.success(
+            refundsInitiated > 0
+              ? `Course deleted. Refunds initiated for ${refundsInitiated} payment${refundsInitiated === 1 ? '' : 's'}.`
+              : 'Course deleted'
+          )
+          return
+        }
         toast.error(data?.error || 'Failed to delete course')
         return
       }

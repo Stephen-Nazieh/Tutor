@@ -137,7 +137,7 @@ export function DashboardCalendar({
         scheduledAt: ev.start,
         duration: ev.duration,
         type: (ev as any).isVirtual === false ? ('in-person' as const) : ('online' as const),
-        students: 0,
+        students: (ev as any).enrolledCount ?? 0,
         maxStudents: (ev as any).maxAttendees ?? 50,
         isBooked: true,
         status,

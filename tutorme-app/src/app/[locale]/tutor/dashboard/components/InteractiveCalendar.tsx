@@ -405,6 +405,7 @@ export function InteractiveCalendar({
             description: e.meetingUrl,
             sessionId: e.sessionId,
             courseName: e.courseName,
+            studentCount: e.enrolledCount ?? 0,
             color: e.status === 'live' ? 'bg-emerald-500' : e.status === 'ended' ? 'bg-slate-400' : 'bg-blue-500',
           }))
         )

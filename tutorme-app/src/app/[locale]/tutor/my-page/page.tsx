@@ -122,20 +122,45 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
       const csrfData = await csrfRes.json().catch(() => ({}))
       const csrfToken = csrfData?.token ?? null
 
-      const res = await fetch(`/api/tutor/courses/${courseId}`, {
-        method: 'DELETE',
-        headers: {
-          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
-        },
-        credentials: 'include',
-      })
+      const doDelete = async (confirmed: boolean) =>
+        fetch(`/api/tutor/courses/${courseId}${confirmed ? '?confirm=true' : ''}`, {
+          method: 'DELETE',
+          headers: {
+            ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+          },
+          credentials: 'include',
+        })
+
+      const res = await doDelete(false)
 
       if (res.ok) {
         setCourses(prev => prev.filter(c => c.id !== courseId))
         toast.success('Course deleted')
       } else {
         const data = await res.json().catch(() => ({}))
-        toast.error(data.error || 'Failed to delete course')
+        if (res.status === 409 && data?.requiresConfirmation) {
+          const enrolledCount = Number(data?.enrolledCount || 0)
+          const courseName = data?.courseName || 'this course'
+          const ok = confirm(
+            `This published course has ${enrolledCount} enrolled student${enrolledCount === 1 ? '' : 's'}.\n\nDeleting it will automatically initiate refunds for paid enrollments and notify students.\n\nDelete "${courseName}" anyway?`
+          )
+          if (!ok) return
+          const confirmedRes = await doDelete(true)
+          const confirmedData = await confirmedRes.json().catch(() => ({}))
+          if (confirmedRes.ok) {
+            setCourses(prev => prev.filter(c => c.id !== courseId))
+            const refundsInitiated = Number(confirmedData?.refundsInitiated || 0)
+            toast.success(
+              refundsInitiated > 0
+                ? `Course deleted. Refunds initiated for ${refundsInitiated} payment${refundsInitiated === 1 ? '' : 's'}.`
+                : 'Course deleted'
+            )
+            return
+          }
+          toast.error(confirmedData?.error || 'Failed to delete course')
+          return
+        }
+        toast.error(data?.error || 'Failed to delete course')
       }
     } catch {
       toast.error('Failed to delete course')

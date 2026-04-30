@@ -49,7 +49,7 @@ export const GET = withAuth(
           ? drizzleDb
               .select({
                 courseId: courseEnrollment.courseId,
-                hasStudents: sql<boolean>`count(*) > 0`.as('hasStudents'),
+                studentCount: sql<number>`count(*)::int`.as('studentCount'),
               })
               .from(courseEnrollment)
               .where(inArray(courseEnrollment.courseId, courseIds))
@@ -75,7 +75,10 @@ export const GET = withAuth(
           createdAt: c.createdAt,
           updatedAt: c.updatedAt,
           hasSessions: sessionMeta?.hasSessions ?? false,
-          hasStudents: enrollmentMeta?.hasStudents ?? false,
+          studentCount: enrollmentMeta?.studentCount ?? 0,
+          _count: {
+            enrollments: enrollmentMeta?.studentCount ?? 0,
+          },
           lastSessionDate: sessionMeta?.lastSessionDate ?? null,
           upcomingSessionsCount: sessionMeta?.upcomingSessionsCount ?? 0,
         }
