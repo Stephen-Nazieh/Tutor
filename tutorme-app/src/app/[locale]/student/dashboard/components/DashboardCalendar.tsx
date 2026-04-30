@@ -56,6 +56,7 @@ interface ClassItem {
   price?: number | null
   status?: 'scheduled' | 'live' | 'completed' | 'cancelled'
   meetingUrl?: string | null
+  courseName?: string | null
 }
 
 function formatEventTime(iso: string): string {
@@ -142,6 +143,7 @@ export function DashboardCalendar({
         status,
         meetingUrl: (ev as any).meetingUrl || null,
         sessionId: (ev as any).sessionId || ev.id,
+        courseName: (ev as any).courseName || null,
       }
     })
     // Reverse chronological: newest first
@@ -222,7 +224,9 @@ export function DashboardCalendar({
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <h4 className="text-foreground font-medium">{cls.title}</h4>
+                          <h4 className="text-foreground font-medium">
+                            {cls.courseName || cls.title}
+                          </h4>
                           <Badge
                             variant="secondary"
                             className={cn(
@@ -241,7 +245,9 @@ export function DashboardCalendar({
                                 : 'Scheduled'}
                           </Badge>
                         </div>
-                        <p className="text-muted-foreground text-sm">{cls.subject}</p>
+                        <p className="text-muted-foreground text-sm">
+                          {cls.courseName ? cls.title : cls.subject}
+                        </p>
 
                         <div className="text-muted-foreground mt-2 flex items-center gap-4 text-xs">
                           <span className="flex items-center gap-1">

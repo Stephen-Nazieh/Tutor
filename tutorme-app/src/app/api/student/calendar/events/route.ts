@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { calendarEvent, courseEnrollment, profile, liveSession } from '@/lib/db/schema'
+import { calendarEvent, courseEnrollment, profile, liveSession, course } from '@/lib/db/schema'
 import { eq, and, gte, lte, inArray, isNull } from 'drizzle-orm'
 
 export const GET = withAuth(
@@ -126,6 +126,7 @@ export const GET = withAuth(
         location: e.location,
         isVirtual: e.isVirtual,
         status: e.sessionStatus || 'scheduled',
+        courseId: e.courseId,
       })),
       ...liveSessions
         .filter(ls => !coveredExternalIds.has(ls.sessionId))
@@ -146,6 +147,7 @@ export const GET = withAuth(
           location: 'Online',
           isVirtual: true,
           status: ls.status,
+          courseId: ls.courseId,
         })),
     ]
 
@@ -164,9 +166,22 @@ export const GET = withAuth(
 
     const tutorMap = new Map(tutorProfiles.map(t => [t.userId, t.name]))
 
+    // Fetch course names
+    const eventCourseIds = [...new Set(merged.map(e => e.courseId).filter(Boolean))] as string[]
+    const courseRows =
+      eventCourseIds.length > 0
+        ? await drizzleDb
+            .select({ courseId: course.courseId, name: course.name })
+            .from(course)
+            .where(inArray(course.courseId, eventCourseIds))
+        : []
+    const courseMap = new Map(courseRows.map(c => [c.courseId, c.name]))
+
     const formatted = merged.map(e => ({
       ...e,
       tutorName: e.tutorId ? (tutorMap.get(e.tutorId) ?? 'Tutor') : 'Tutor',
+      courseName: e.courseId ? (courseMap.get(e.courseId) ?? undefined) : undefined,
+      category: e.courseId ? (courseMap.get(e.courseId) ?? undefined) : undefined,
     }))
 
     return NextResponse.json({ events: formatted })

@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { calendarEvent, liveSession } from '@/lib/db/schema'
+import { calendarEvent, liveSession, course } from '@/lib/db/schema'
 import { eq, and, gte, lte, inArray, isNull } from 'drizzle-orm'
 
 export const GET = withAuth(
@@ -128,10 +128,27 @@ export const GET = withAuth(
         })),
     ]
 
-    // Sort by scheduledAt / startTime
-    merged.sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+    // Fetch course names
+    const courseIds = [...new Set(merged.map(e => e.courseId).filter(Boolean))] as string[]
+    const courseRows =
+      courseIds.length > 0
+        ? await drizzleDb
+            .select({ courseId: course.courseId, name: course.name })
+            .from(course)
+            .where(inArray(course.courseId, courseIds))
+        : []
+    const courseMap = new Map(courseRows.map(c => [c.courseId, c.name]))
 
-    return NextResponse.json({ events: merged })
+    const enriched = merged.map(e => ({
+      ...e,
+      courseName: e.courseId ? (courseMap.get(e.courseId) ?? undefined) : undefined,
+      category: e.courseId ? (courseMap.get(e.courseId) ?? undefined) : undefined,
+    }))
+
+    // Sort by scheduledAt / startTime
+    enriched.sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+
+    return NextResponse.json({ events: enriched })
   },
   { role: 'TUTOR' }
 )

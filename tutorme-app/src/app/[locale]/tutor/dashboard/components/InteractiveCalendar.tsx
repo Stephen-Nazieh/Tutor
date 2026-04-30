@@ -101,6 +101,7 @@ interface CalendarEvent {
   color?: string
   isRecurring?: boolean
   recurringPattern?: 'daily' | 'weekly' | 'biweekly' | 'monthly'
+  courseName?: string
 }
 
 interface AvailabilityBlock {
@@ -403,6 +404,7 @@ export function InteractiveCalendar({
             isOnline: e.isVirtual,
             description: e.meetingUrl,
             sessionId: e.sessionId,
+            courseName: e.courseName,
             color: e.status === 'live' ? 'bg-emerald-500' : e.status === 'ended' ? 'bg-slate-400' : 'bg-blue-500',
           }))
         )
@@ -1034,8 +1036,11 @@ export function InteractiveCalendar({
                 <DialogHeader>
                   <div className="flex items-start justify-between">
                     <div>
-                      <DialogTitle className="text-xl">{selectedEvent.title}</DialogTitle>
+                      <DialogTitle className="text-xl">
+                        {selectedEvent.courseName || selectedEvent.title}
+                      </DialogTitle>
                       <DialogDescription className="mt-1">
+                        {selectedEvent.courseName ? `${selectedEvent.title} • ` : ''}
                         {selectedEvent.subject} • {selectedEvent.duration} minutes
                       </DialogDescription>
                     </div>
@@ -1094,27 +1099,26 @@ export function InteractiveCalendar({
                       <Users className="h-5 w-5 text-gray-500" />
                       <div>
                         <p className="font-medium">
-                          {selectedEvent.studentCount} / {selectedEvent.maxStudents} students
+                          {selectedEvent.studentCount ?? 0} / {selectedEvent.maxStudents ?? 50} students
                         </p>
                         <p className="text-sm text-gray-500">
-                          {selectedEvent.maxStudents &&
-                            selectedEvent.studentCount &&
-                            selectedEvent.maxStudents - selectedEvent.studentCount}{' '}
+                          {Math.max(
+                            0,
+                            (selectedEvent.maxStudents ?? 50) - (selectedEvent.studentCount ?? 0)
+                          )}{' '}
                           spots remaining
                         </p>
                       </div>
                     </div>
                   )}
 
-                  {/* Session Info */}
-                  {selectedEvent.type === 'class' && (
+                  {/* Course Info */}
+                  {selectedEvent.courseName && (
                     <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
                       <BookOpen className="h-5 w-5 text-gray-500" />
                       <div>
-                        <p className="font-medium">
-                          Session {selectedEvent.isRecurring ? '1' : '1'} of 12
-                        </p>
-                        <p className="text-sm text-gray-500">Total Sessions: 12</p>
+                        <p className="font-medium">{selectedEvent.courseName}</p>
+                        <p className="text-sm text-gray-500">Course</p>
                       </div>
                     </div>
                   )}
