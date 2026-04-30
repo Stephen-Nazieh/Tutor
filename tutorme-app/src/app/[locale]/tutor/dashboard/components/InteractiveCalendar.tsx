@@ -1406,11 +1406,18 @@ export function InteractiveCalendar({
                                     onClick={async () => {
                                       setRecommendationsLoading(prev => new Set(prev).add(ev.id))
                                       try {
+                                        const qp = ev.sessionId
+                                          ? `sessionId=${encodeURIComponent(ev.sessionId)}`
+                                          : `eventId=${encodeURIComponent(ev.id)}`
                                         const res = await fetch(
-                                          `/api/tutor/calendar/recommendations?sessionId=${ev.sessionId || ev.id}`,
+                                          `/api/tutor/calendar/recommendations?${qp}`,
                                           { credentials: 'include' }
                                         )
                                         const data = await res.json().catch(() => ({}))
+                                        if (!res.ok) {
+                                          toast.error(data.error || 'Failed to load recommendations')
+                                          return
+                                        }
                                         setConflictRecommendations(prev => {
                                           const next = new Map(prev)
                                           next.set(ev.id, data.recommendations || [])
@@ -1436,6 +1443,12 @@ export function InteractiveCalendar({
                                   <div className="mt-2 flex items-center justify-center py-2">
                                     <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                                   </div>
+                                )}
+
+                                {recs.length === 0 && !loading && conflictRecommendations.has(ev.id) && (
+                                  <p className="mt-2 text-xs text-gray-500">
+                                    No available slots found. Try dragging the event to reschedule manually, or update your availability settings.
+                                  </p>
                                 )}
 
                                 {recs.length > 0 && (

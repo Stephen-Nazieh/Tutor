@@ -1,5 +1,5 @@
 /**
- * GET /api/tutor/calendar/recommendations?sessionId=xxx
+ * GET /api/tutor/calendar/recommendations?sessionId=xxx OR ?eventId=xxx
  * Returns recommended alternative time slots for a session based on tutor availability.
  */
 
@@ -14,16 +14,47 @@ export const GET = withAuth(
     const tutorId = session.user.id
     const { searchParams } = new URL(req.url)
     const sessionIdParam = searchParams.get('sessionId')
+    const eventIdParam = searchParams.get('eventId')
 
-    if (!sessionIdParam) {
-      return NextResponse.json({ error: 'sessionId is required' }, { status: 400 })
+    if (!sessionIdParam && !eventIdParam) {
+      return NextResponse.json({ error: 'sessionId or eventId is required' }, { status: 400 })
     }
 
-    const [ls] = await drizzleDb
-      .select()
-      .from(liveSession)
-      .where(and(eq(liveSession.sessionId, sessionIdParam), eq(liveSession.tutorId, tutorId)))
-      .limit(1)
+    let ls: typeof liveSession.$inferSelect | undefined
+
+    if (sessionIdParam) {
+      const rows = await drizzleDb
+        .select()
+        .from(liveSession)
+        .where(and(eq(liveSession.sessionId, sessionIdParam), eq(liveSession.tutorId, tutorId)))
+        .limit(1)
+      ls = rows[0]
+    }
+
+    // Fallback: look up via CalendarEvent.externalId
+    if (!ls && eventIdParam) {
+      const [ce] = await drizzleDb
+        .select({ externalId: calendarEvent.externalId })
+        .from(calendarEvent)
+        .where(
+          and(
+            eq(calendarEvent.eventId, eventIdParam),
+            eq(calendarEvent.tutorId, tutorId)
+          )
+        )
+        .limit(1)
+
+      if (ce?.externalId) {
+        const rows = await drizzleDb
+          .select()
+          .from(liveSession)
+          .where(
+            and(eq(liveSession.sessionId, ce.externalId), eq(liveSession.tutorId, tutorId))
+          )
+          .limit(1)
+        ls = rows[0]
+      }
+    }
 
     if (!ls) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
