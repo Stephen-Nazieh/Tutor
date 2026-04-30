@@ -12,13 +12,12 @@ import {
 } from '@/components/ui/dialog'
 import { BookOpen, Calendar, Sparkles } from 'lucide-react'
 
-interface StudentHeroSectionProps {
-  classes?: Array<{
-    id: string
-    title: string
-    subject: string
-    startTime: string
-  }>
+interface CalendarEventItem {
+  id: string
+  title: string
+  start: string
+  end: string
+  duration: number
 }
 
 interface DayEvent {
@@ -28,11 +27,13 @@ interface DayEvent {
   duration: number
 }
 
-export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
+export function StudentHeroSection() {
   const { data: session } = useSession()
   const [greeting, setGreeting] = useState('Good morning')
   const [currentTime, setCurrentTime] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<{ date: Date; events: DayEvent[] } | null>(null)
+  const [sessions, setSessions] = useState<CalendarEventItem[]>([])
+  const [sessionsLoading, setSessionsLoading] = useState(true)
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -44,20 +45,63 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
     return () => clearInterval(timer)
   }, [])
 
+  // Fetch upcoming sessions with a wide date range (today to +90 days)
+  useEffect(() => {
+    let cancelled = false
+    const now = new Date()
+    const start = now.toISOString()
+    const end = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000).toISOString()
+
+    fetch(
+      `/api/student/calendar/events?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
+      { credentials: 'include' }
+    )
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled) return
+        const list: CalendarEventItem[] = Array.isArray(data?.events)
+          ? data.events.map((e: any) => ({
+              id: e.id || e.eventId || e.bookingId,
+              title: e.title || 'Session',
+              start: e.start || e.startTime,
+              end: e.end || e.endTime,
+              duration: e.duration || 60,
+            }))
+          : []
+        setSessions(list)
+        setSessionsLoading(false)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setSessions([])
+        setSessionsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   const eventsByDay = useMemo(() => {
     const map = new Map<string, DayEvent[]>()
-    classes.forEach(cls => {
-      const date = new Date(cls.startTime)
+    sessions.forEach(s => {
+      const date = new Date(s.start)
       const key = date.toDateString()
-      const duration = 60
-      const end = new Date(date.getTime() + duration * 60000)
-      const timeLabel = `${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
+      const startDate = new Date(s.start)
+      const endDate = new Date(s.end)
+      const timeLabel = `${startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
       const list = map.get(key) ?? []
-      list.push({ id: cls.id, title: cls.title, timeLabel, duration })
+      list.push({ id: s.id, title: s.title, timeLabel, duration: s.duration })
       map.set(key, list)
     })
     return map
-  }, [classes])
+  }, [sessions])
+
+  // Find the next upcoming session (first session with start time >= now)
+  const nextSession = useMemo(() => {
+    const now = Date.now()
+    return sessions.find(s => new Date(s.start).getTime() >= now) || null
+  }, [sessions])
 
   const formatDate = (date: Date) =>
     date.toLocaleDateString('en-US', {
@@ -85,9 +129,23 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-500">
             <Calendar className="h-4 w-4" />
-            {classes.length > 0
-              ? `${classes.length} upcoming class${classes.length > 1 ? 'es' : ''}`
-              : 'No upcoming classes'}
+            {sessionsLoading ? (
+              <span>Loading sessions…</span>
+            ) : nextSession ? (
+              <span>
+                Next: {nextSession.title} •{' '}
+                {new Date(nextSession.start).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                })}{' '}
+                {new Date(nextSession.start).toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </span>
+            ) : (
+              'No upcoming sessions'
+            )}
           </div>
         </div>
 
@@ -96,7 +154,7 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
             const d = new Date(currentTime)
             d.setDate(currentTime.getDate() + i)
             const dayEvents = eventsByDay.get(d.toDateString()) ?? []
-            const hasClasses = dayEvents.length > 0
+            const hasEvents = dayEvents.length > 0
 
             return (
               <div
@@ -117,7 +175,7 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
                 >
                   {d.getDate()}
                 </span>
-                <div className="mt-2 flex flex-col items-center gap-0.5">
+                <div className="mt-2 flex flex-col items-center gap-0.5 min-h-[18px]">
                   {dayEvents.slice(0, 1).map(evt => (
                     <span key={evt.id} className="text-[10px] font-medium text-indigo-600">
                       {evt.timeLabel}
@@ -126,7 +184,7 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
                   {dayEvents.length > 1 && (
                     <span className="text-[8px] text-slate-500">+{dayEvents.length - 1} more</span>
                   )}
-                  {!hasClasses && (
+                  {!hasEvents && (
                     <div className="flex h-1.5 gap-1">
                       <div className="h-1.5 w-1.5 rounded-full bg-slate-200" />
                     </div>
@@ -149,8 +207,8 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
               </DialogTitle>
               <DialogDescription className="text-slate-500">
                 {selectedDay && selectedDay.events.length > 0
-                  ? `${selectedDay.events.length} class${selectedDay.events.length > 1 ? 'es' : ''} scheduled`
-                  : 'No classes scheduled'}
+                  ? `${selectedDay.events.length} session${selectedDay.events.length > 1 ? 's' : ''} scheduled`
+                  : 'No sessions scheduled'}
               </DialogDescription>
             </DialogHeader>
 
@@ -175,7 +233,7 @@ export function StudentHeroSection({ classes = [] }: StudentHeroSectionProps) {
               {(!selectedDay || selectedDay.events.length === 0) && (
                 <div className="py-8 text-center text-slate-500">
                   <Calendar className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-                  <p>No classes scheduled for this day</p>
+                  <p>No sessions scheduled for this day</p>
                 </div>
               )}
             </div>

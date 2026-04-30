@@ -270,7 +270,7 @@ export default function StudentDashboard() {
         )}
         {/* Welcome */}
         <div className="mb-8">
-          <StudentHeroSection classes={data?.classes ?? []} />
+          <StudentHeroSection />
         </div>
 
         <div className="space-y-6">
