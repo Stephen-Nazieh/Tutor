@@ -28,6 +28,7 @@ import {
   LayoutTemplate,
   Save,
   Calendar,
+  Trash2,
   Video as VideoIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -545,18 +546,6 @@ function CourseBuilderInsightsRouteInner({
                     </SelectContent>
                   </Select>
                 )}
-                {/* Show Go Live only in Draft mode */}
-                {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
-                  <Button
-                    variant="default"
-                    className="gap-2 bg-green-500 font-medium text-white shadow-[0_0_15px_rgba(34,197,94,0.8)] ring-1 ring-green-400 transition-all duration-300 hover:bg-green-600"
-                    onClick={handleStartSessionClick}
-                  >
-                    <VideoIcon className="h-4 w-4" />
-                    Go Live
-                  </Button>
-                )}
-
                 {activeMainTab === 'builder' &&
                   (onSaveCourse ||
                     (onCreateCourse && !insightsProps.sessionId) ||
@@ -590,27 +579,44 @@ function CourseBuilderInsightsRouteInner({
                           Schedule
                         </Button>
                       )}
-                      {onDeleteCourse &&
-                        !insightsProps.sessionId &&
-                        saveMode === 'draft' &&
-                        ((courses && courses.length > 1) ||
-                          (draftCourses && draftCourses.length > 1)) && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="icon">
-                                <MoreVertical className="h-5 w-5" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={onDeleteCourse}
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                              >
-                                Delete Course
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
+                      {/* Kebab menu with Go Live and Delete Course */}
+                      {((courseId && courseId !== 'insights-draft' && saveMode === 'draft') ||
+                        (onDeleteCourse &&
+                          !insightsProps.sessionId &&
+                          saveMode === 'draft' &&
+                          ((courses && courses.length > 1) ||
+                            (draftCourses && draftCourses.length > 1)))) && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon">
+                              <MoreVertical className="h-5 w-5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {courseId &&
+                              courseId !== 'insights-draft' &&
+                              saveMode === 'draft' && (
+                                <DropdownMenuItem onClick={handleStartSessionClick}>
+                                  <VideoIcon className="mr-2 h-4 w-4 text-green-600" />
+                                  Go Live
+                                </DropdownMenuItem>
+                              )}
+                            {onDeleteCourse &&
+                              !insightsProps.sessionId &&
+                              saveMode === 'draft' &&
+                              ((courses && courses.length > 1) ||
+                                (draftCourses && draftCourses.length > 1)) && (
+                                <DropdownMenuItem
+                                  onClick={onDeleteCourse}
+                                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete Course
+                                </DropdownMenuItem>
+                              )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </>
                   )}
               </div>
