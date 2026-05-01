@@ -1591,7 +1591,7 @@ function StudentFeedbackContent() {
                                 isMirroringToTutor ? 'bg-white' : 'bg-slate-500'
                               )}
                             />
-                            {isMirroringToTutor ? 'Sharing screen with Tutor' : 'Screen share paused'}
+                            {isMirroringToTutor ? 'Mirroring On' : 'Mirror to Tutor'}
                           </Button>
 
                           <Button
@@ -1756,30 +1756,6 @@ function StudentFeedbackContent() {
 
                   <TabsContent value="my-board" className="flex-1 outline-none">
                     <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden">
-                      <div className="flex items-center justify-between border-b bg-white px-4 py-2">
-                        <span className="text-xs font-medium text-slate-500">
-                          {isMirroringToTutor ? 'Your board is visible to the tutor' : 'Your board is hidden from the tutor'}
-                        </span>
-                        <Button
-                          size="sm"
-                          variant={isMirroringToTutor ? 'default' : 'outline'}
-                          onClick={() => setIsMirroringToTutor(!isMirroringToTutor)}
-                          className={cn(
-                            'h-7 gap-2 rounded-full px-3 text-xs',
-                            isMirroringToTutor
-                              ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                              : 'text-slate-600 hover:bg-slate-100'
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              'h-2 w-2 rounded-full',
-                              isMirroringToTutor ? 'bg-white' : 'bg-slate-400'
-                            )}
-                          />
-                          {isMirroringToTutor ? 'Mirroring On' : 'Mirror to Tutor'}
-                        </Button>
-                      </div>
                       <div className="min-h-0 flex-1">
                         <EnhancedWhiteboard
                           pages={myBoardPages}
