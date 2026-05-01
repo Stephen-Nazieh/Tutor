@@ -1566,8 +1566,8 @@ function StudentFeedbackContent() {
                   {(() => {
                     const controlRow = (
                       <div className="sticky top-3 z-50 w-full px-4">
-                        <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 rounded-full border border-slate-200 bg-white/85 px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.12)] backdrop-blur-md">
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center justify-between gap-3">
+                          <div className="flex flex-wrap items-center gap-2 rounded-full border border-slate-200 bg-white/85 px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.12)] backdrop-blur-md">
                           <Button
                             size="sm"
                             variant="secondary"
@@ -1644,24 +1644,24 @@ function StudentFeedbackContent() {
                             <Video className="h-4 w-4" />
                             Video
                           </Button>
-                        </div>
+                          </div>
 
-                        <TabsList className="grid h-8 w-[420px] grid-cols-3 gap-2 border-0 bg-transparent p-0 shadow-none">
+                          <TabsList className="flex h-8 items-center gap-2 border-0 bg-transparent p-0 shadow-none">
                           <TabsTrigger
                             value="task"
-                            className="flex items-center justify-center rounded-full border-0 px-3 py-2 text-xs font-semibold transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                            className="h-8 rounded-full border-0 bg-white px-4 text-xs font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933]"
                           >
                             Classroom
                           </TabsTrigger>
                           <TabsTrigger
                             value="my-board"
-                            className="flex items-center justify-center rounded-full border-0 px-3 py-2 text-xs font-semibold transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                            className="h-8 rounded-full border-0 bg-white px-4 text-xs font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933]"
                           >
                             My Board
                           </TabsTrigger>
                           <TabsTrigger
                             value="tutor-board"
-                            className="flex items-center justify-center rounded-full border-0 px-3 py-2 text-xs font-semibold transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)] data-[state=inactive]:shadow-[0_10px_24px_rgba(0,0,0,0.16)]"
+                            className="h-8 rounded-full border-0 bg-white px-4 text-xs font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933]"
                           >
                             Tutor Board
                           </TabsTrigger>
@@ -1789,12 +1789,38 @@ function StudentFeedbackContent() {
 
                   <TabsContent value="my-board" className="flex-1 outline-none">
                     <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden">
-                      <EnhancedWhiteboard
-                        pages={myBoardPages}
-                        currentPageIndex={myBoardPageIndex}
-                        onPagesChange={setMyBoardPages}
-                        onPageIndexChange={setMyBoardPageIndex}
-                      />
+                      <div className="flex items-center justify-between border-b bg-white px-4 py-2">
+                        <span className="text-xs font-medium text-slate-500">
+                          {isMirroringToTutor ? 'Your board is visible to the tutor' : 'Your board is hidden from the tutor'}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant={isMirroringToTutor ? 'default' : 'outline'}
+                          onClick={() => setIsMirroringToTutor(!isMirroringToTutor)}
+                          className={cn(
+                            'h-7 gap-2 rounded-full px-3 text-xs',
+                            isMirroringToTutor
+                              ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                              : 'text-slate-600 hover:bg-slate-100'
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              'h-2 w-2 rounded-full',
+                              isMirroringToTutor ? 'bg-white' : 'bg-slate-400'
+                            )}
+                          />
+                          {isMirroringToTutor ? 'Mirroring On' : 'Mirror to Tutor'}
+                        </Button>
+                      </div>
+                      <div className="min-h-0 flex-1">
+                        <EnhancedWhiteboard
+                          pages={myBoardPages}
+                          currentPageIndex={myBoardPageIndex}
+                          onPagesChange={setMyBoardPages}
+                          onPageIndexChange={setMyBoardPageIndex}
+                        />
+                      </div>
                     </div>
                   </TabsContent>
 
