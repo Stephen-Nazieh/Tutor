@@ -23,6 +23,7 @@ import { activePolls, sessionPolls, cleanupStaleSocketState } from '@/lib/socket
 import type { PollState } from '@/lib/socket'
 import { socketAuthMiddleware } from './socket/socket-auth'
 import { notifyMany } from '@/lib/notifications/notify'
+import type { StrokeDelta, ShapeDelta, TextDelta, CursorDelta } from './socket/whiteboard-delta'
 
 // Types from original socket-server.ts
 export type StudentStatus = 'on_track' | 'needs_help' | 'struggling' | 'idle'
@@ -1073,11 +1074,11 @@ export async function initEnhancedSocketServer(server: NetServer) {
         }
 
         room.lastActivity = Date.now()
+        // Legacy full-state snapshot — delta sync is preferred
         room.whiteboardData = {
           ...(room.whiteboardData || {}),
           tutorBoard: board,
         }
-        void persistRoomToRedis(roomId, room)
         io.to(roomId).emit('tutor:whiteboard:update', board)
       }
     )
@@ -1108,6 +1109,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
         }
 
         room.lastActivity = Date.now()
+        // Legacy full-state snapshot — delta sync is preferred
         const studentId = socket.data.userId
         const existing = (room.whiteboardData || {}) as Record<string, unknown>
         const studentBoards = (existing.studentBoards || {}) as Record<string, typeof board>
@@ -1118,8 +1120,112 @@ export async function initEnhancedSocketServer(server: NetServer) {
             [studentId]: board,
           },
         }
-        void persistRoomToRedis(roomId, room)
         io.to(roomId).emit('student:whiteboard:update', { studentId, ...board })
+      }
+    )
+
+    // Incremental whiteboard delta sync handlers
+    socket.on(
+      'whiteboard:stroke:add',
+      (data: { roomId: string; stroke: StrokeDelta }) => {
+        if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
+        const { roomId, stroke } = data || ({} as any)
+        if (!roomId || !stroke) return
+
+        const room = activeRooms.get(roomId)
+        if (!room) return
+
+        room.lastActivity = Date.now()
+        const wb = (room.whiteboardData || {}) as Record<string, unknown>
+        const strokes = (wb.strokes || []) as StrokeDelta[]
+        room.whiteboardData = {
+          ...wb,
+          strokes: [...strokes, stroke],
+        }
+        io.to(roomId).emit('whiteboard:stroke:added', stroke)
+      }
+    )
+
+    socket.on(
+      'whiteboard:shape:add',
+      (data: { roomId: string; shape: ShapeDelta }) => {
+        if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
+        const { roomId, shape } = data || ({} as any)
+        if (!roomId || !shape) return
+
+        const room = activeRooms.get(roomId)
+        if (!room) return
+
+        room.lastActivity = Date.now()
+        const wb = (room.whiteboardData || {}) as Record<string, unknown>
+        const shapes = (wb.shapes || []) as ShapeDelta[]
+        room.whiteboardData = {
+          ...wb,
+          shapes: [...shapes, shape],
+        }
+        io.to(roomId).emit('whiteboard:shape:added', shape)
+      }
+    )
+
+    socket.on(
+      'whiteboard:text:add',
+      (data: { roomId: string; text: TextDelta }) => {
+        if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
+        const { roomId, text } = data || ({} as any)
+        if (!roomId || !text) return
+
+        const room = activeRooms.get(roomId)
+        if (!room) return
+
+        room.lastActivity = Date.now()
+        const wb = (room.whiteboardData || {}) as Record<string, unknown>
+        const texts = (wb.texts || []) as TextDelta[]
+        room.whiteboardData = {
+          ...wb,
+          texts: [...texts, text],
+        }
+        io.to(roomId).emit('whiteboard:text:added', text)
+      }
+    )
+
+    socket.on(
+      'whiteboard:cursor:move',
+      (data: { roomId: string; cursor: CursorDelta }) => {
+        if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
+        const { roomId, cursor } = data || ({} as any)
+        if (!roomId || !cursor) return
+
+        const room = activeRooms.get(roomId)
+        if (!room) return
+
+        room.lastActivity = Date.now()
+        // Cursor movements are ephemeral — no persistence
+        io.to(roomId).emit('whiteboard:cursor:moved', cursor)
+      }
+    )
+
+    socket.on(
+      'whiteboard:page:clear',
+      (data: { roomId: string; pageIndex: number }) => {
+        if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
+        const { roomId, pageIndex } = data || ({} as any)
+        if (!roomId || typeof pageIndex !== 'number') return
+
+        const room = activeRooms.get(roomId)
+        if (!room) return
+
+        room.lastActivity = Date.now()
+        const wb = (room.whiteboardData || {}) as Record<string, unknown>
+        const strokes = ((wb.strokes || []) as StrokeDelta[]).filter(s => s.pageIndex !== pageIndex)
+        const shapes = ((wb.shapes || []) as ShapeDelta[]).filter(s => s.pageIndex !== pageIndex)
+        const texts = ((wb.texts || []) as TextDelta[]).filter(t => t.pageIndex !== pageIndex)
+        room.whiteboardData = {
+          ...wb,
+          strokes,
+          shapes,
+          texts,
+        }
+        io.to(roomId).emit('whiteboard:page:cleared', { pageIndex })
       }
     )
 

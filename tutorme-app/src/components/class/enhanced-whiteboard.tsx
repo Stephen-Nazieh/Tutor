@@ -156,6 +156,16 @@ interface TextOverlay {
   height: number
 }
 
+interface CursorDelta {
+  userId: string
+  name: string
+  color: string
+  x: number
+  y: number
+  pageIndex: number
+  timestamp?: number
+}
+
 interface EnhancedWhiteboardProps {
   onUpdate?: (pages: Page[]) => void
   readOnly?: boolean
@@ -171,6 +181,13 @@ interface EnhancedWhiteboardProps {
   students?: Student[]
   onPushHint?: (studentId: string, hint: string) => void
   initialLessonContent?: { title?: string; objectives?: string[]; diagrams?: any[] }
+  // Real-time sync
+  socket?: any
+  roomId?: string
+  userId?: string
+  userName?: string
+  userColor?: string
+  onRemoteStroke?: (stroke: Stroke) => void
 }
 
 const BACKGROUND_COLORS = [
@@ -198,6 +215,12 @@ export function EnhancedWhiteboard({
   students: externalStudents,
   onPushHint,
   initialLessonContent,
+  socket,
+  roomId,
+  userId,
+  userName,
+  userColor,
+  onRemoteStroke,
 }: EnhancedWhiteboardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -222,6 +245,12 @@ export function EnhancedWhiteboard({
   const currentPageIndex = externalPageIndex ?? internalPageIndex
   const setPages = onPagesChange ?? setInternalPages
   const setCurrentPageIndex = onPageIndexChange ?? setInternalPageIndex
+
+  // Refs to avoid stale closures in socket handlers
+  const pagesRef = useRef(pages)
+  pagesRef.current = pages
+  const currentPageIndexRef = useRef(currentPageIndex)
+  currentPageIndexRef.current = currentPageIndex
 
   // Pre-populate page 1 with lesson content when initializing
   const initialLessonAppliedRef = useRef(false)
@@ -341,6 +370,10 @@ export function EnhancedWhiteboard({
   const [videoDragOffset, setVideoDragOffset] = useState({ x: 0, y: 0 })
   const [showTeachingAssistant, setShowTeachingAssistant] = useState(false)
 
+  // Real-time collaboration state
+  const [remoteCursors, setRemoteCursors] = useState<Map<string, CursorDelta>>(new Map())
+  const cursorThrottleRef = useRef<number | null>(null)
+
   // Mock students fallback
   const mockStudents: Student[] = [
     {
@@ -432,6 +465,7 @@ export function EnhancedWhiteboard({
     tempShape,
     selectedObject,
     canvasSize,
+    remoteCursors,
   ])
 
   const redrawCanvas = useCallback(() => {
@@ -519,6 +553,22 @@ export function EnhancedWhiteboard({
       )
       ctx.restore()
     }
+
+    // Remote cursors
+    remoteCursors.forEach(cursor => {
+      if (cursor.pageIndex !== currentPageIndex) return
+      ctx.save()
+      ctx.translate(cursor.x, cursor.y)
+      ctx.scale(1 / scale, 1 / scale)
+      ctx.fillStyle = cursor.color || '#3b82f6'
+      ctx.beginPath()
+      ctx.arc(0, 0, 6, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#1f2937'
+      ctx.font = 'bold 12px sans-serif'
+      ctx.fillText(cursor.name || 'User', 10, -10)
+      ctx.restore()
+    })
   }, [
     pages,
     currentPageIndex,
@@ -534,6 +584,7 @@ export function EnhancedWhiteboard({
     selectedObject,
     currentPage,
     canvasSize,
+    remoteCursors,
   ])
 
   const drawBackgroundPattern = (
@@ -724,6 +775,24 @@ export function EnhancedWhiteboard({
       { x: selected.x + selected.width, y: selected.y + selected.height },
     ]
     handles.forEach(h => ctx.fillRect(h.x - 3 / scale, h.y - 3 / scale, 6 / scale, 6 / scale))
+  }
+
+  const compressPoints = (pts: Point[]): number[] =>
+    pts.flatMap(p => [Math.round(p.x * 100) / 100, Math.round(p.y * 100) / 100])
+
+  const decompressPoints = (flat: number[]): Point[] => {
+    const pts: Point[] = []
+    for (let i = 0; i < flat.length; i += 2) pts.push({ x: flat[i], y: flat[i + 1] })
+    return pts
+  }
+
+  const drawStrokeDirectly = (ctx: CanvasRenderingContext2D, stroke: Stroke) => {
+    ctx.save()
+    ctx.translate(pan.x, pan.y)
+    ctx.scale(scale, scale)
+    if (stroke.type === 'eraser') drawEraserStroke(ctx, stroke.points, stroke.width || 20)
+    else drawStroke(ctx, stroke.points, stroke.color, stroke.width)
+    ctx.restore()
   }
 
   const screenToCanvas = (screenX: number, screenY: number): Point => {
@@ -941,6 +1010,9 @@ export function EnhancedWhiteboard({
           lineWidth,
         }
         updateCurrentPage({ ...currentPage, shapes: [...currentPage.shapes, newShape] })
+        if (socket && roomId) {
+          socket.emit('whiteboard:shape:add', { roomId, shape: newShape })
+        }
         setLineStart(null)
         setTempLineEnd(null)
       }
@@ -981,6 +1053,26 @@ export function EnhancedWhiteboard({
   const handleMouseMove = (e: React.MouseEvent) => {
     setPointerPos({ x: e.clientX, y: e.clientY })
     const point = screenToCanvas(e.clientX, e.clientY)
+
+    // Emit cursor position for real-time collaboration
+    if (socket && roomId && userId) {
+      if (!cursorThrottleRef.current) {
+        cursorThrottleRef.current = window.setTimeout(() => {
+          cursorThrottleRef.current = null
+        }, 50)
+        socket.emit('whiteboard:cursor:move', {
+          roomId,
+          cursor: {
+            userId,
+            name: userName || 'User',
+            color: userColor || '#3b82f6',
+            x: point.x,
+            y: point.y,
+            pageIndex: currentPageIndex,
+          },
+        })
+      }
+    }
 
     if (isDraggingVideo) {
       const container = containerRef.current
@@ -1129,6 +1221,9 @@ export function EnhancedWhiteboard({
         lineWidth,
       }
       updateCurrentPage({ ...currentPage, shapes: [...currentPage.shapes, newShape] })
+      if (socket && roomId) {
+        socket.emit('whiteboard:shape:add', { roomId, shape: newShape })
+      }
       setShapeStart(null)
       setTempShape(null)
       return
@@ -1146,6 +1241,12 @@ export function EnhancedWhiteboard({
         type: tool === 'eraser' ? 'eraser' : 'pen',
       }
       updateCurrentPage({ ...currentPage, strokes: [...currentPage.strokes, newStroke] })
+      if (socket && roomId) {
+        socket.emit('whiteboard:stroke:add', {
+          roomId,
+          stroke: { ...newStroke, points: compressPoints(newStroke.points) },
+        })
+      }
       setCurrentStroke([])
     }
   }
@@ -1187,6 +1288,9 @@ export function EnhancedWhiteboard({
     }
 
     updateCurrentPage({ ...currentPage, texts: [...currentPage.texts, newText] })
+    if (socket && roomId) {
+      socket.emit('whiteboard:text:add', { roomId, text: newText })
+    }
     setTextOverlays(overlays => overlays.filter(o => o.id !== overlayId))
   }
 
@@ -1313,6 +1417,9 @@ export function EnhancedWhiteboard({
 
   const clearPage = () => {
     updateCurrentPage({ ...currentPage, strokes: [], texts: [], shapes: [] })
+    if (socket && roomId) {
+      socket.emit('whiteboard:page:clear', { roomId })
+    }
     setSelectedObject(null)
     setTextOverlays([])
   }
@@ -1349,6 +1456,9 @@ export function EnhancedWhiteboard({
             height: inlineTextInput.fontSize * 1.5,
           }
           updateCurrentPage({ ...currentPage, texts: [...currentPage.texts, newText] })
+          if (socket && roomId) {
+            socket.emit('whiteboard:text:add', { roomId, text: newText })
+          }
         }
         setInlineTextInput(null)
       } else if (e.key === 'Escape') {
@@ -1381,6 +1491,94 @@ export function EnhancedWhiteboard({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [readOnly, selectedObject, textOverlays, currentPage, inlineTextInput])
+
+  // Socket.io real-time sync
+  useEffect(() => {
+    if (!socket || !roomId) return
+
+    const handleStrokeAdded = (data: { stroke: Stroke & { points?: number[] | Point[] } }) => {
+      const stroke: Stroke = {
+        ...data.stroke,
+        points: Array.isArray(data.stroke.points?.[0])
+          ? (data.stroke.points as Point[])
+          : decompressPoints((data.stroke.points as number[]) || []),
+      }
+      const idx = currentPageIndexRef.current
+      const currentPages = pagesRef.current
+      if (idx < 0 || idx >= currentPages.length) return
+      const newPages = [...currentPages]
+      newPages[idx] = { ...newPages[idx], strokes: [...newPages[idx].strokes, stroke] }
+      setInternalPages(newPages)
+      onPagesChange?.(newPages)
+      onRemoteStroke?.(stroke)
+      const canvas = canvasRef.current
+      const ctx = canvas?.getContext('2d')
+      if (canvas && ctx) drawStrokeDirectly(ctx, stroke)
+    }
+
+    const handleShapeAdded = (data: { shape: ShapeElement }) => {
+      const idx = currentPageIndexRef.current
+      const currentPages = pagesRef.current
+      if (idx < 0 || idx >= currentPages.length) return
+      const newPages = [...currentPages]
+      newPages[idx] = { ...newPages[idx], shapes: [...newPages[idx].shapes, data.shape] }
+      setInternalPages(newPages)
+      onPagesChange?.(newPages)
+      const canvas = canvasRef.current
+      const ctx = canvas?.getContext('2d')
+      if (canvas && ctx) {
+        ctx.save()
+        ctx.translate(pan.x, pan.y)
+        ctx.scale(scale, scale)
+        drawShape(ctx, data.shape)
+        ctx.restore()
+      }
+    }
+
+    const handleTextAdded = (data: { text: TextElement }) => {
+      const idx = currentPageIndexRef.current
+      const currentPages = pagesRef.current
+      if (idx < 0 || idx >= currentPages.length) return
+      const newPages = [...currentPages]
+      newPages[idx] = { ...newPages[idx], texts: [...newPages[idx].texts, data.text] }
+      setInternalPages(newPages)
+      onPagesChange?.(newPages)
+    }
+
+    const handleCursorMoved = (data: { cursor: CursorDelta }) => {
+      setRemoteCursors(prev => {
+        const next = new Map(prev)
+        next.set(data.cursor.userId, { ...data.cursor, timestamp: Date.now() })
+        return next
+      })
+    }
+
+    const handlePageCleared = (_data: { roomId: string }) => {
+      const idx = currentPageIndexRef.current
+      const currentPages = pagesRef.current
+      if (idx < 0 || idx >= currentPages.length) return
+      const newPages = [...currentPages]
+      newPages[idx] = { ...newPages[idx], strokes: [], texts: [], shapes: [] }
+      setInternalPages(newPages)
+      onPagesChange?.(newPages)
+      setSelectedObject(null)
+      setTextOverlays([])
+    }
+
+    socket.on('whiteboard:stroke:added', handleStrokeAdded)
+    socket.on('whiteboard:shape:added', handleShapeAdded)
+    socket.on('whiteboard:text:added', handleTextAdded)
+    socket.on('whiteboard:cursor:moved', handleCursorMoved)
+    socket.on('whiteboard:page:cleared', handlePageCleared)
+
+    return () => {
+      socket.off('whiteboard:stroke:added', handleStrokeAdded)
+      socket.off('whiteboard:shape:added', handleShapeAdded)
+      socket.off('whiteboard:text:added', handleTextAdded)
+      socket.off('whiteboard:cursor:moved', handleCursorMoved)
+      socket.off('whiteboard:page:cleared', handlePageCleared)
+    }
+  }, [socket, roomId, scale, pan, onPagesChange, onRemoteStroke])
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden rounded-lg bg-slate-900">

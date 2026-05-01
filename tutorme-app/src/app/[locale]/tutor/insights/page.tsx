@@ -673,21 +673,58 @@ function TutorInsightsPageInner() {
       toast.error(data.error || 'Cannot deploy right now')
     }
 
-    const handleStudentWhiteboardUpdate = (data: {
-      studentId: string
-      pages?: unknown[]
+    const handleWhiteboardStrokeAdded = (payload: {
+      userId: string
+      stroke: any
       pageIndex?: number
-      updatedAt?: number
     }) => {
-      if (!data?.studentId) return
-      setStudentBoards(prev => ({
-        ...prev,
-        [data.studentId]: {
-          pages: data.pages ?? [],
-          pageIndex: typeof data.pageIndex === 'number' ? data.pageIndex : 0,
-          updatedAt: data.updatedAt,
-        },
-      }))
+      if (!payload?.userId) return
+      setStudentBoards(prev => {
+        const board = prev[payload.userId]
+        if (!board) return prev
+        const pages = [...(board.pages as any[])]
+        const pageIdx = payload.pageIndex ?? board.pageIndex ?? 0
+        const page = pages[pageIdx]
+        if (!page) return prev
+        pages[pageIdx] = { ...page, strokes: [...(page.strokes || []), payload.stroke] }
+        return { ...prev, [payload.userId]: { ...board, pages, updatedAt: Date.now() } }
+      })
+    }
+
+    const handleWhiteboardShapeAdded = (payload: {
+      userId: string
+      shape: any
+      pageIndex?: number
+    }) => {
+      if (!payload?.userId) return
+      setStudentBoards(prev => {
+        const board = prev[payload.userId]
+        if (!board) return prev
+        const pages = [...(board.pages as any[])]
+        const pageIdx = payload.pageIndex ?? board.pageIndex ?? 0
+        const page = pages[pageIdx]
+        if (!page) return prev
+        pages[pageIdx] = { ...page, shapes: [...(page.shapes || []), payload.shape] }
+        return { ...prev, [payload.userId]: { ...board, pages, updatedAt: Date.now() } }
+      })
+    }
+
+    const handleWhiteboardTextAdded = (payload: {
+      userId: string
+      text: any
+      pageIndex?: number
+    }) => {
+      if (!payload?.userId) return
+      setStudentBoards(prev => {
+        const board = prev[payload.userId]
+        if (!board) return prev
+        const pages = [...(board.pages as any[])]
+        const pageIdx = payload.pageIndex ?? board.pageIndex ?? 0
+        const page = pages[pageIdx]
+        if (!page) return prev
+        pages[pageIdx] = { ...page, texts: [...(page.texts || []), payload.text] }
+        return { ...prev, [payload.userId]: { ...board, pages, updatedAt: Date.now() } }
+      })
     }
 
     socket.on('task:deployed', handleTaskDeployed)
@@ -696,7 +733,9 @@ function TutorInsightsPageInner() {
     socket.on('session:ended', handleSessionEnded)
     socket.on('task:deploy:error', handleDeployError)
     socket.on('insight:send:error', handleDeployError)
-    socket.on('student:whiteboard:update', handleStudentWhiteboardUpdate)
+    socket.on('whiteboard:stroke:added', handleWhiteboardStrokeAdded)
+    socket.on('whiteboard:shape:added', handleWhiteboardShapeAdded)
+    socket.on('whiteboard:text:added', handleWhiteboardTextAdded)
 
     return () => {
       socket.off('task:deployed', handleTaskDeployed)
@@ -705,7 +744,9 @@ function TutorInsightsPageInner() {
       socket.off('session:ended', handleSessionEnded)
       socket.off('task:deploy:error', handleDeployError)
       socket.off('insight:send:error', handleDeployError)
-      socket.off('student:whiteboard:update', handleStudentWhiteboardUpdate)
+      socket.off('whiteboard:stroke:added', handleWhiteboardStrokeAdded)
+      socket.off('whiteboard:shape:added', handleWhiteboardShapeAdded)
+      socket.off('whiteboard:text:added', handleWhiteboardTextAdded)
     }
   }, [socket, sessionId, endingAlertShown, handleStopRecording])
 
@@ -914,6 +955,7 @@ function TutorInsightsPageInner() {
           socket,
           studentBoards,
           tutorId: session?.user?.id,
+          tutorName: session?.user?.name || 'Tutor',
         }}
         sessionCategory={sessionCategory}
         sessionNationality={sessionNationality}

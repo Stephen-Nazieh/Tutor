@@ -72,6 +72,15 @@ const createDefaultWhiteboardPages = (): WhiteboardPages => [
   },
 ]
 
+function stringToColor(str: string): string {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const c = (hash & 0x00ffffff).toString(16).toUpperCase()
+  return '#' + '00000'.substring(0, 6 - c.length) + c
+}
+
 interface SessionSummary {
   id: string
   title: string
@@ -613,36 +622,6 @@ function StudentFeedbackContent() {
     socket.emit('student:state_sync', { roomId: selectedSessionId, payload })
   }, [socket, selectedSessionId, activeTab, activeTaskId])
 
-  // Sync student whiteboard to tutor when mirroring is enabled
-  const studentBoardSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  useEffect(() => {
-    if (!socket || !selectedSessionId) return
-    if (!isMirroringToTutor) return
-
-    if (studentBoardSyncTimeoutRef.current) {
-      clearTimeout(studentBoardSyncTimeoutRef.current)
-    }
-
-    const payload = {
-      pages: myBoardPages,
-      pageIndex: myBoardPageIndex,
-      updatedAt: Date.now(),
-    }
-
-    studentBoardSyncTimeoutRef.current = setTimeout(() => {
-      socket.emit('student:whiteboard:update', {
-        roomId: selectedSessionId,
-        board: payload,
-      })
-    }, 150)
-
-    return () => {
-      if (studentBoardSyncTimeoutRef.current) {
-        clearTimeout(studentBoardSyncTimeoutRef.current)
-      }
-    }
-  }, [socket, selectedSessionId, myBoardPages, myBoardPageIndex, isMirroringToTutor])
-
   useEffect(() => {
     if (!socket) return
 
@@ -728,25 +707,12 @@ function StudentFeedbackContent() {
       toast.success(`New homework assigned: ${hw.title}`)
     }
 
-    const handleTutorBoardUpdate = (payload: {
-      pages?: WhiteboardPage[]
-      pageIndex?: number
-    }) => {
-      if (payload?.pages && Array.isArray(payload.pages)) {
-        setTutorBoardPages(payload.pages)
-      }
-      if (typeof payload?.pageIndex === 'number') {
-        setTutorBoardPageIndex(payload.pageIndex)
-      }
-    }
-
     socket.on('task:deployed', handleTaskDeployed)
     socket.on('task:updated', handleTaskUpdated)
     socket.on('task:deployed:sequence', handleTaskSequence)
     socket.on('insight:receive', handleInsightReceived)
     socket.on('student:direct_message', handleStudentDirectMessage)
     socket.on('homework:received', handleHomeworkReceived)
-    socket.on('tutor:whiteboard:update', handleTutorBoardUpdate)
 
     return () => {
       socket.off('task:deployed', handleTaskDeployed)
@@ -755,7 +721,6 @@ function StudentFeedbackContent() {
       socket.off('insight:receive', handleInsightReceived)
       socket.off('student:direct_message', handleStudentDirectMessage)
       socket.off('homework:received', handleHomeworkReceived)
-      socket.off('tutor:whiteboard:update', handleTutorBoardUpdate)
     }
   }, [socket, followTutor])
 
@@ -1819,6 +1784,11 @@ function StudentFeedbackContent() {
                           currentPageIndex={myBoardPageIndex}
                           onPagesChange={setMyBoardPages}
                           onPageIndexChange={setMyBoardPageIndex}
+                          socket={socket}
+                          roomId={selectedSessionId ?? undefined}
+                          userId={session?.user?.id ?? undefined}
+                          userName={session?.user?.name || 'Student'}
+                          userColor={stringToColor(session?.user?.id || '')}
                         />
                       </div>
                     </div>

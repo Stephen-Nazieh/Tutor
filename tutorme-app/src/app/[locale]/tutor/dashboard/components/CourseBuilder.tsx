@@ -256,6 +256,15 @@ import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 // MAIN COURSE BUILDER COMPONENT
 // ============================================
 
+function stringToColor(str: string): string {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const c = (hash & 0x00ffffff).toString(16).toUpperCase()
+  return '#' + '00000'.substring(0, 6 - c.length) + c
+}
+
 function InsightsReportView({
   type,
   onMentionStudent,
@@ -599,8 +608,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       createDefaultWhiteboardPages
     )
     const [tutorBoardPageIndex, setTutorBoardPageIndex] = useState(0)
-    const tutorBoardSyncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
     const designatedFolder = useMemo(() => {
       const liveCourse = (insightsProps as any)?.courses?.find((c: any) => c.id === courseId)
       if (liveCourse && (liveCourse as any).categories?.length > 0) {
@@ -1014,45 +1021,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       isStudentView,
       isSessionActive,
       canMirrorToStudents,
-    ])
-
-    useEffect(() => {
-      if (!insightsProps?.socket || !insightsProps?.sessionId) return
-      if (isStudentView) return
-      if (!isSessionActive) return
-      if (!isMirroringToStudents) return
-
-      if (tutorBoardSyncTimeoutRef.current) {
-        clearTimeout(tutorBoardSyncTimeoutRef.current)
-      }
-
-      const payload = {
-        pages: tutorBoardPages,
-        pageIndex: tutorBoardPageIndex,
-        updatedAt: Date.now(),
-      }
-
-      tutorBoardSyncTimeoutRef.current = setTimeout(() => {
-        insightsProps.socket.emit('tutor:whiteboard:update', {
-          roomId: insightsProps.sessionId,
-          board: payload,
-        })
-      }, 150)
-
-      return () => {
-        if (tutorBoardSyncTimeoutRef.current) {
-          clearTimeout(tutorBoardSyncTimeoutRef.current)
-        }
-      }
-    }, [
-      insightsProps?.socket,
-      insightsProps?.sessionId,
-      isStudentView,
-      isSessionActive,
-      isMirroringToStudents,
-      testPciActiveTab,
-      tutorBoardPages,
-      tutorBoardPageIndex,
     ])
 
     const [extractedTextFontSizeMap, setExtractedTextFontSizeMap] = useState<
@@ -7558,6 +7526,11 @@ FEEDBACK: [your explanation]`
                                                   currentPageIndex={tutorBoardPageIndex}
                                                   onPagesChange={setTutorBoardPages}
                                                   onPageIndexChange={setTutorBoardPageIndex}
+                                                  socket={insightsProps?.socket}
+                                                  roomId={insightsProps?.sessionId ?? undefined}
+                                                  userId={insightsProps?.tutorId ?? undefined}
+                                                  userName={insightsProps?.tutorName || 'Tutor'}
+                                                  userColor={stringToColor(insightsProps?.tutorId || '')}
                                                 />
                                               </div>
                                             )
