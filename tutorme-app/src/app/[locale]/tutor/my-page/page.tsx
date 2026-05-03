@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback, type SVGProps } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -36,6 +36,9 @@ import {
   MapPin,
   BookOpen,
   Award,
+  Instagram,
+  Youtube,
+  Facebook,
   GraduationCap,
   School,
   Flag,
@@ -72,6 +75,12 @@ const SUBJECTS = [
   { value: 'history', label: 'History' },
   { value: 'cs', label: 'Computer Science' },
 ]
+
+const TikTokIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" {...props}>
+    <path d="M208 88.9a71 71 0 0 1-52-22.2v95.5a63.9 63.9 0 1 1-54-63v33.4a30.6 30.6 0 1 0 21 29.1V24h33.1a71 71 0 0 0 52.1 55.3Z" />
+  </svg>
+)
 
 // My Courses Section Component
 interface Course {
@@ -989,13 +998,6 @@ export default function TutorMyPage() {
     }
   }
 
-  const hasSocialLinks = Boolean(
-    socialAccounts.tiktok ||
-      socialAccounts.youtube ||
-      socialAccounts.instagram ||
-      socialAccounts.facebook
-  )
-
   const headerCardClass =
     'group relative overflow-hidden rounded-[20px] p-[1px] shadow-[0_10px_30px_rgba(0,0,0,0.08)] transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(0,0,0,0.10)]'
   const headerInnerClass =
@@ -1141,8 +1143,8 @@ export default function TutorMyPage() {
           </div>
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className={panelCardClass}>
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
+          <div className={`${panelCardClass} flex h-full flex-col`}>
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
                 <Globe className="h-4 w-4 text-slate-700" />
@@ -1150,16 +1152,16 @@ export default function TutorMyPage() {
               <div className="text-lg font-semibold text-slate-900">About Me</div>
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 flex min-h-0 flex-1 flex-col">
               <Textarea
                 value={bio}
                 readOnly
-                className="min-h-[220px] resize-none border-slate-200 bg-white text-sm text-slate-700"
+                className="min-h-0 flex-1 resize-none border-slate-200 bg-white text-sm text-slate-700"
               />
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="flex h-full flex-col gap-6">
             <div className={panelCardClass}>
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
@@ -1214,36 +1216,60 @@ export default function TutorMyPage() {
               </div>
 
               <div className="mt-4">
-                {hasSocialLinks ? (
-                  <div className="grid gap-3 text-sm text-slate-700 sm:grid-cols-2">
-                    {socialAccounts.tiktok ? (
-                      <div>
-                        <span className="font-semibold text-slate-900">TikTok:</span> @
-                        {socialAccounts.tiktok}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {[
+                    {
+                      key: 'tiktok',
+                      value: socialAccounts.tiktok ? `@${socialAccounts.tiktok}` : '—',
+                      icon: TikTokIcon,
+                      iconClassName: 'text-slate-900',
+                      muted: !socialAccounts.tiktok,
+                    },
+                    {
+                      key: 'youtube',
+                      value: socialAccounts.youtube ? `@${socialAccounts.youtube}` : '—',
+                      icon: Youtube,
+                      iconClassName: 'text-red-600',
+                      muted: !socialAccounts.youtube,
+                    },
+                    {
+                      key: 'instagram',
+                      value: socialAccounts.instagram ? `@${socialAccounts.instagram}` : '—',
+                      icon: Instagram,
+                      iconClassName: 'text-pink-600',
+                      muted: !socialAccounts.instagram,
+                    },
+                    {
+                      key: 'facebook',
+                      value: socialAccounts.facebook ? `@${socialAccounts.facebook}` : '—',
+                      icon: Facebook,
+                      iconClassName: 'text-blue-600',
+                      muted: !socialAccounts.facebook,
+                    },
+                  ].map(item => {
+                    const Icon = item.icon
+                    return (
+                      <div
+                        key={item.key}
+                        className={[
+                          'flex items-center gap-3 text-sm font-medium text-slate-700',
+                          item.muted ? 'text-slate-400' : '',
+                        ].join(' ')}
+                      >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
+                          <Icon
+                            className={[
+                              'h-5 w-5',
+                              item.iconClassName,
+                              item.muted ? 'opacity-40' : '',
+                            ].join(' ')}
+                          />
+                        </div>
+                        <div className="min-w-0 truncate">{item.value}</div>
                       </div>
-                    ) : null}
-                    {socialAccounts.youtube ? (
-                      <div>
-                        <span className="font-semibold text-slate-900">YouTube:</span> @
-                        {socialAccounts.youtube}
-                      </div>
-                    ) : null}
-                    {socialAccounts.instagram ? (
-                      <div>
-                        <span className="font-semibold text-slate-900">Instagram:</span> @
-                        {socialAccounts.instagram}
-                      </div>
-                    ) : null}
-                    {socialAccounts.facebook ? (
-                      <div>
-                        <span className="font-semibold text-slate-900">Facebook:</span> @
-                        {socialAccounts.facebook}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="text-sm text-slate-500">No accounts linked</div>
-                )}
+                    )
+                  })}
+                </div>
               </div>
             </div>
 
