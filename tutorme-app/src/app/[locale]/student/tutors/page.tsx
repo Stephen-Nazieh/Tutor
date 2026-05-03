@@ -221,15 +221,15 @@ export default function StudentTutorDirectoryPage() {
 
   return (
     <div
-      className="bg-background text-foreground min-h-screen w-full space-y-6 p-4 sm:p-6"
+      className="min-h-screen w-full space-y-6 bg-white p-4 text-slate-900 sm:p-6"
       style={themeStyle}
     >
-      <Card className="border-border bg-card overflow-hidden shadow-sm">
+      <Card className="overflow-hidden border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
         <div className="bg-gradient-to-br from-sky-50/80 via-cyan-50/80 to-emerald-50/80 p-6 sm:p-8 dark:from-sky-950/30 dark:via-cyan-950/30 dark:to-emerald-950/30">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
-              <h1 className="text-foreground text-2xl font-bold sm:text-3xl">Find Your Tutor</h1>
-              <p className="text-muted-foreground max-w-2xl text-sm">
+              <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Find Your Tutor</h1>
+              <p className="max-w-2xl text-sm text-slate-600">
                 Explore tutor profiles, compare subjects and courses, and open any tutor profile
                 instantly.
               </p>
@@ -237,7 +237,7 @@ export default function StudentTutorDirectoryPage() {
             <div className="flex items-center gap-3">
               {/* Theme Selector */}
               <Select value={themeId} onValueChange={setThemeId}>
-                <SelectTrigger className="border-border bg-background text-foreground h-9 w-[150px] text-xs">
+                <SelectTrigger className="h-9 w-[150px] border-slate-200 bg-white text-xs text-slate-900">
                   <SelectValue placeholder="Theme" />
                 </SelectTrigger>
                 <SelectContent>
@@ -258,48 +258,50 @@ export default function StudentTutorDirectoryPage() {
           </div>
         </div>
         <CardContent className="grid gap-3 p-4 sm:grid-cols-3 sm:p-6">
-          <div className="border-border bg-card rounded-lg border p-3">
-            <p className="text-muted-foreground text-xs uppercase tracking-wide">Tutors</p>
-            <p className="text-foreground mt-1 text-xl font-semibold">
+          <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-[0_10px_30px_rgba(0,0,0,0.10)]">
+            <p className="text-xs uppercase tracking-wide text-slate-500">Tutors</p>
+            <p className="mt-1 text-xl font-semibold text-slate-900">
               {headlineMetrics.tutorCount}
             </p>
           </div>
-          <div className="border-border bg-card rounded-lg border p-3">
-            <p className="text-muted-foreground text-xs uppercase tracking-wide">
+          <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-[0_10px_30px_rgba(0,0,0,0.10)]">
+            <p className="text-xs uppercase tracking-wide text-slate-500">
               Published Courses
             </p>
-            <p className="text-foreground mt-1 text-xl font-semibold">
+            <p className="mt-1 text-xl font-semibold text-slate-900">
               {headlineMetrics.totalCourses}
             </p>
           </div>
-          <div className="border-border bg-card rounded-lg border p-3">
-            <p className="text-muted-foreground text-xs uppercase tracking-wide">
+          <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-[0_10px_30px_rgba(0,0,0,0.10)]">
+            <p className="text-xs uppercase tracking-wide text-slate-500">
               Total Enrollments
             </p>
-            <p className="text-foreground mt-1 text-xl font-semibold">
+            <p className="mt-1 text-xl font-semibold text-slate-900">
               {headlineMetrics.totalEnrollments}
             </p>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-border bg-card">
+      <Card className="border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
         <CardHeader>
-          <CardTitle className="text-foreground">Search & Filter</CardTitle>
-          <CardDescription>Refine by keywords, subject, country, and ranking.</CardDescription>
+          <CardTitle className="text-slate-900">Search & Filter</CardTitle>
+          <CardDescription className="text-slate-600">
+            Refine by keywords, subject, country, and ranking.
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-4">
           <div className="relative">
-            <Search className="text-muted-foreground pointer-events-none absolute left-3 top-3.5 h-4 w-4" />
+            <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
             <Input
               value={searchQuery}
               onChange={event => setSearchQuery(event.target.value)}
               placeholder="Search tutor, subject, specialty..."
-              className="pl-9"
+              className="border-slate-200 bg-white pl-9 text-slate-900"
             />
           </div>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="border-slate-200 bg-white text-slate-900">
               <SelectValue placeholder="Filter by category" />
             </SelectTrigger>
             <SelectContent>
@@ -312,7 +314,7 @@ export default function StudentTutorDirectoryPage() {
             </SelectContent>
           </Select>
           <Select value={nationalityFilter} onValueChange={setNationalityFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="border-slate-200 bg-white text-slate-900">
               <SelectValue placeholder="Filter by country" />
             </SelectTrigger>
             <SelectContent>
@@ -325,7 +327,7 @@ export default function StudentTutorDirectoryPage() {
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={value => setSortBy(value as typeof sortBy)}>
-            <SelectTrigger>
+            <SelectTrigger className="border-slate-200 bg-white text-slate-900">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
@@ -341,24 +343,25 @@ export default function StudentTutorDirectoryPage() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {loading ? (
           Array.from({ length: 6 }).map((_, index) => (
-            <Card key={`loading-${index}`} className="border-border bg-card animate-pulse">
+            <Card
+              key={`loading-${index}`}
+              className="animate-pulse border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]"
+            >
               <CardHeader className="space-y-2 p-4">
-                <div className="bg-muted h-5 w-2/3 rounded" />
-                <div className="bg-muted h-3 w-1/2 rounded" />
+                <div className="h-5 w-2/3 rounded bg-slate-100" />
+                <div className="h-3 w-1/2 rounded bg-slate-100" />
               </CardHeader>
               <CardContent className="space-y-2 p-4 pt-0">
-                <div className="bg-muted h-3 rounded" />
-                <div className="bg-muted h-3 rounded" />
+                <div className="h-3 rounded bg-slate-100" />
+                <div className="h-3 rounded bg-slate-100" />
               </CardContent>
             </Card>
           ))
         ) : tutors.length === 0 ? (
-          <Card className="border-border bg-card col-span-full">
+          <Card className="col-span-full border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
             <CardHeader>
-              <CardTitle className="text-foreground">
-                No tutors match your current filters
-              </CardTitle>
-              <CardDescription>
+              <CardTitle className="text-slate-900">No tutors match your current filters</CardTitle>
+              <CardDescription className="text-slate-600">
                 Try broadening search terms or selecting a different subject or country.
               </CardDescription>
             </CardHeader>

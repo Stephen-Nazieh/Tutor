@@ -129,12 +129,12 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       >
         <div
           className={cn(
-            'fixed bottom-0 left-0 top-0 z-40 hidden h-screen flex-col border-r bg-white transition-all duration-300 lg:flex',
-            desktopNavOpen ? 'w-64' : 'w-0 overflow-hidden border-r-0'
+            'fixed bottom-4 left-4 top-4 z-40 hidden flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-300 lg:flex',
+            desktopNavOpen ? 'w-60' : 'w-0 overflow-hidden ring-0'
           )}
         >
-          <div className="flex h-full w-64 flex-col">
-            <div className="flex min-w-[256px] shrink-0 items-center justify-between p-4">
+          <div className="flex h-full w-60 flex-col">
+            <div className="flex min-w-[240px] shrink-0 items-center justify-between p-4">
               <div className="flex items-center gap-2">
                 <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
               </div>
