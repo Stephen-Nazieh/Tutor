@@ -28,6 +28,8 @@ import {
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Globe,
   Award,
   GraduationCap,
@@ -152,6 +154,10 @@ export default function TutorCoursePage() {
   )
   const [categorySearch, setCategorySearch] = useState('')
   const [scheduleSummary, setScheduleSummary] = useState<ScheduleItem[]>([])
+  const [infoOpen, setInfoOpen] = useState(true)
+  const [categoriesOpen, setCategoriesOpen] = useState(true)
+  const [publishOpen, setPublishOpen] = useState(true)
+  const [publishingVariants, setPublishingVariants] = useState(false)
 
   // Available countries based on selected regions
   const availableCountries = useMemo<CountryData[]>(() => {
@@ -603,20 +609,36 @@ export default function TutorCoursePage() {
             variant="floating"
             elevation={2}
             padding="none"
-            className="overflow-hidden rounded-[16px]"
+            className="overflow-hidden rounded-[16px] bg-white"
           >
-            <div className="panel-header panel-header-metallic">
-              <div className="flex items-center gap-3">
-                <div className="panel-header-icon">
-                  <BookOpen className="h-5 w-5 text-slate-900" />
+            <button
+              type="button"
+              onClick={() => setInfoOpen(o => !o)}
+              className="panel-header panel-header-metallic w-full text-left"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="panel-header-icon">
+                    <BookOpen className="h-5 w-5 text-slate-900" />
+                  </div>
+                  <div>
+                    <div className="panel-header-title">Course Information</div>
+                    <div className="panel-header-subtext">
+                      Add the basic details of your course.
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="panel-header-title">Course Information</div>
-                  <div className="panel-header-subtext">Add the basic details of your course.</div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
+                  {infoOpen ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
                 </div>
               </div>
-            </div>
-            <CardContent spacing="default">
+            </button>
+            {infoOpen ? (
+            <CardContent spacing="default" className="bg-white text-slate-900">
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="form-group space-y-2">
                   <Label className="form-label font-semibold text-slate-700">Course Name</Label>
@@ -624,7 +646,7 @@ export default function TutorCoursePage() {
                     value={courseName}
                     onChange={e => setCourseName(e.target.value)}
                     placeholder="Course name"
-                    className="bg-transparent"
+                    className="bg-white"
                   />
                   <div className="mt-3 flex items-center gap-3 text-sm text-slate-700">
                     <span className="font-semibold">No. of Lessons</span>
@@ -640,35 +662,50 @@ export default function TutorCoursePage() {
                     value={description}
                     onChange={e => setDescription(e.target.value)}
                     placeholder="What will students learn in this course?"
-                    rows={1}
-                    className="min-h-[40px] resize-y bg-transparent"
+                    rows={2}
+                    className="h-full min-h-[80px] resize-none bg-white text-slate-900"
                   />
                 </div>
               </div>
             </CardContent>
+            ) : null}
           </Card>
 
           <Card
             variant="floating"
             elevation={2}
             padding="none"
-            className="overflow-hidden rounded-[16px]"
+            className="overflow-hidden rounded-[16px] bg-white"
           >
-            <div className="panel-header panel-header-metallic">
-              <div className="flex items-center gap-3">
-                <div className="panel-header-icon">
-                  <Globe className="h-5 w-5 text-slate-900" />
-                </div>
-                <div>
-                  <div className="panel-header-title">Categories</div>
-                  <div className="panel-header-subtext">
-                    Select the categories and exams relevant to your course.
+            <button
+              type="button"
+              onClick={() => setCategoriesOpen(o => !o)}
+              className="panel-header panel-header-metallic w-full text-left"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="panel-header-icon">
+                    <Globe className="h-5 w-5 text-slate-900" />
+                  </div>
+                  <div>
+                    <div className="panel-header-title">Categories</div>
+                    <div className="panel-header-subtext">
+                      Select the categories and exams relevant to your course.
+                    </div>
                   </div>
                 </div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
+                  {categoriesOpen ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </div>
               </div>
-            </div>
+            </button>
 
-            <CardContent spacing="default">
+            {categoriesOpen ? (
+            <CardContent spacing="default" className="bg-white text-slate-900">
               <div className="flex flex-col gap-6">
                 {/* Top Panel - Region & Country Selection Dropdowns */}
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
@@ -682,7 +719,7 @@ export default function TutorCoursePage() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full justify-between border-slate-200 bg-transparent font-normal"
+                          className="w-full justify-between border-slate-200 bg-white font-normal"
                         >
                           {selectedRegions.length === 0
                             ? 'Select Regions...'
@@ -715,7 +752,7 @@ export default function TutorCoursePage() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="outline"
-                          className="w-full justify-between border-slate-200 bg-transparent font-normal"
+                          className="w-full justify-between border-slate-200 bg-white font-normal"
                           disabled={selectedRegions.length === 0}
                         >
                           {selectedRegions.length === 0
@@ -811,7 +848,7 @@ export default function TutorCoursePage() {
                           placeholder="Search categories..."
                           value={categorySearch}
                           onChange={e => setCategorySearch(e.target.value)}
-                          className="h-10 border-slate-200 bg-transparent pl-10"
+                          className="h-10 border-slate-200 bg-white pl-10"
                         />
                       </div>
                     </div>
@@ -1094,27 +1131,44 @@ export default function TutorCoursePage() {
                 </div>
               )}
             </CardContent>
+            ) : null}
           </Card>
 
           <Card
             variant="floating"
             elevation={2}
             padding="none"
-            className="overflow-hidden rounded-[16px]"
+            className="overflow-hidden rounded-[16px] bg-white"
           >
-            <div className="panel-header panel-header-metallic">
-              <div className="flex items-center gap-3">
-                <div className="panel-header-icon">
-                  <DollarSign className="h-5 w-5 text-slate-900" />
+            <button
+              type="button"
+              onClick={() => setPublishOpen(o => !o)}
+              className="panel-header panel-header-metallic w-full text-left"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="panel-header-icon">
+                    <DollarSign className="h-5 w-5 text-slate-900" />
+                  </div>
+                  <div>
+                    <div className="panel-header-title">Publish</div>
+                    <div className="panel-header-subtext">
+                      Pricing structure and publishing.
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="panel-header-title">Publish</div>
-                  <div className="panel-header-subtext">Pricing structure and publishing.</div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
+                  {publishOpen ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
                 </div>
               </div>
-            </div>
+            </button>
 
-            <CardContent spacing="default">
+            {publishOpen ? (
+            <CardContent spacing="default" className="bg-white text-slate-900">
               <div className="space-y-8">
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                   <div>
@@ -1147,7 +1201,7 @@ export default function TutorCoursePage() {
                       onChange={e => setPrice(e.target.value)}
                       placeholder="$"
                       disabled={isFree}
-                      className="border-slate-200 bg-transparent"
+                      className="border-slate-200 bg-white"
                     />
                   </div>
                   <div className="form-group space-y-2">
@@ -1158,7 +1212,7 @@ export default function TutorCoursePage() {
                       id="currency"
                       value="USD"
                       disabled
-                      className="cursor-not-allowed border-slate-200 bg-slate-50 text-slate-500"
+                      className="cursor-not-allowed border-slate-200 bg-white text-slate-500"
                     />
                   </div>
                 </div>
@@ -1182,17 +1236,10 @@ export default function TutorCoursePage() {
                     <span className="font-semibold">{variantStats.published}</span> published out of{' '}
                     <span className="font-semibold">{variantStats.total}</span> variants
                   </div>
-                  <Button
-                    type="button"
-                    onClick={() => void variantManagerRef.current?.publish()}
-                    disabled={variantStats.total === 0}
-                    className="rounded-full bg-indigo-600 px-6 text-white shadow-sm transition-all duration-300 hover:bg-indigo-700"
-                  >
-                    Publish Variants
-                  </Button>
                 </div>
               </div>
             </CardContent>
+            ) : null}
           </Card>
 
           <VariantManager
@@ -1208,7 +1255,25 @@ export default function TutorCoursePage() {
             hidePublishAction
           />
 
-          <div className="flex justify-end gap-4 pt-2">
+          <div className="flex flex-col-reverse justify-end gap-4 pt-2 sm:flex-row sm:items-center">
+            <Button
+              size="lg"
+              variant="default"
+              onClick={async () => {
+                if (publishingVariants) return
+                setPublishingVariants(true)
+                try {
+                  await variantManagerRef.current?.publish()
+                } finally {
+                  setPublishingVariants(false)
+                }
+              }}
+              disabled={variantStats.total === 0 || publishingVariants}
+              className="rounded-full border border-indigo-600 bg-white px-8 text-indigo-700 hover:bg-indigo-50"
+            >
+              {publishingVariants ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {publishingVariants ? 'Publishing…' : 'Publish'}
+            </Button>
             <Button
               size="lg"
               variant="default"

@@ -21,7 +21,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Globe, DollarSign, Calendar, Languages } from 'lucide-react'
+import { Loader2, Globe, DollarSign, Calendar, Languages, ChevronDown, ChevronUp } from 'lucide-react'
 import { toast } from 'sonner'
 import { VariantScheduleEditor } from './VariantScheduleEditor'
 import type { ScheduleItem } from '../constants'
@@ -104,6 +104,8 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
     const [variants, setVariants] = useState<VariantConfig[]>([])
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
     const [scheduleDialogIndex, setScheduleDialogIndex] = useState<number | null>(null)
+    const [globalDefaultsOpen, setGlobalDefaultsOpen] = useState(true)
+    const [generatedVariantsOpen, setGeneratedVariantsOpen] = useState(true)
 
     // Load existing variants on mount
     useEffect(() => {
@@ -312,22 +314,36 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
           variant="floating"
           elevation={2}
           padding="none"
-          className="overflow-hidden rounded-[16px]"
+          className="overflow-hidden rounded-[16px] bg-white"
         >
-          <div className="panel-header panel-header-metallic">
-            <div className="flex items-center gap-3">
-              <div className="panel-header-icon">
-                <Globe className="h-5 w-5 text-slate-900" />
-              </div>
-              <div>
-                <div className="panel-header-title">Global Defaults</div>
-                <div className="panel-header-subtext">
-                  Set default price, currency, and language for all variants.
+          <button
+            type="button"
+            onClick={() => setGlobalDefaultsOpen(o => !o)}
+            className="panel-header panel-header-metallic w-full text-left"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="panel-header-icon">
+                  <Globe className="h-5 w-5 text-slate-900" />
+                </div>
+                <div>
+                  <div className="panel-header-title">Global Defaults</div>
+                  <div className="panel-header-subtext">
+                    Set default price, currency, and language for all variants.
+                  </div>
                 </div>
               </div>
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
+                {globalDefaultsOpen ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
+              </div>
             </div>
-          </div>
-          <CardContent spacing="default">
+          </button>
+          {globalDefaultsOpen ? (
+          <CardContent spacing="default" className="bg-white text-slate-900">
             <div className="grid gap-6 sm:grid-cols-4">
               <div className="form-group space-y-2">
                 <Label className="form-label font-semibold text-slate-700">Price</Label>
@@ -339,14 +355,14 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                     value={globalPrice}
                     onChange={e => setGlobalPrice(e.target.value)}
                     placeholder="0.00"
-                    className="border-slate-200 bg-transparent"
+                    className="border-slate-200 bg-white"
                   />
                 </div>
               </div>
               <div className="form-group space-y-2">
                 <Label className="form-label font-semibold text-slate-700">Currency</Label>
                 <Select value={globalCurrency} onValueChange={setGlobalCurrency}>
-                  <SelectTrigger className="border-slate-200 bg-transparent">
+                  <SelectTrigger className="border-slate-200 bg-white">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -366,7 +382,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                     value={globalLanguage}
                     onChange={e => setGlobalLanguage(e.target.value)}
                     placeholder="e.g. English"
-                    className="border-slate-200 bg-transparent"
+                    className="border-slate-200 bg-white"
                   />
                 </div>
               </div>
@@ -375,22 +391,27 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                   type="button"
                   variant="outline"
                   onClick={applyGlobalsToAll}
-                  className="w-full border-slate-200 bg-transparent hover:bg-slate-50"
+                  className="w-full border-slate-200 bg-white hover:bg-slate-50"
                 >
                   Apply to all
                 </Button>
               </div>
             </div>
           </CardContent>
+          ) : null}
         </Card>
 
         <Card
           variant="floating"
           elevation={2}
           padding="none"
-          className="overflow-hidden rounded-[16px]"
+          className="overflow-hidden rounded-[16px] bg-white"
         >
-          <div className="panel-header panel-header-metallic">
+          <button
+            type="button"
+            onClick={() => setGeneratedVariantsOpen(o => !o)}
+            className="panel-header panel-header-metallic w-full text-left"
+          >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="panel-header-icon">
@@ -403,18 +424,28 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-sm text-white/80">
-                <Badge variant="outline" className="border-white/20 bg-white/10 text-white">
-                  {variants.length} total
-                </Badge>
-                <Badge variant="secondary" className="border-0 bg-white/15 text-white">
-                  {publishedCount} published
-                </Badge>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm text-white/80">
+                  <Badge variant="outline" className="border-white/20 bg-white/10 text-white">
+                    {variants.length} total
+                  </Badge>
+                  <Badge variant="secondary" className="border-0 bg-white/15 text-white">
+                    {publishedCount} published
+                  </Badge>
+                </div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
+                  {generatedVariantsOpen ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          </button>
 
-          <CardContent spacing="default">
+          {generatedVariantsOpen ? (
+          <CardContent spacing="default" className="bg-white text-slate-900">
             {variants.length === 0 && (
               <div className="rounded-xl border border-dashed border-slate-200 py-12 text-center text-sm text-slate-500">
                 Select categories and countries above to generate variant courses.
@@ -472,7 +503,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                               }))
                             }}
                             placeholder="0.00"
-                            className="border-slate-200 bg-transparent"
+                            className="border-slate-200 bg-white"
                           />
                         </div>
                       </div>
@@ -484,7 +515,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                             updateVariant(index, v => ({ ...v, currency: val }))
                           }
                         >
-                          <SelectTrigger className="border-slate-200 bg-transparent">
+                          <SelectTrigger className="border-slate-200 bg-white">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -511,7 +542,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                               }))
                             }
                             placeholder="e.g. English"
-                            className="border-slate-200 bg-transparent"
+                            className="border-slate-200 bg-white"
                           />
                         </div>
                       </div>
@@ -532,7 +563,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                       <Button
                         type="button"
                         variant="outline"
-                        className="border-slate-200 bg-transparent"
+                        className="border-slate-200 bg-white"
                         onClick={() => openScheduleDialog(index)}
                       >
                         {Array.isArray(variant.schedule) && variant.schedule.length > 0
@@ -559,6 +590,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
               </div>
             )}
           </CardContent>
+          ) : null}
         </Card>
 
         {/* Schedule Dialog */}
