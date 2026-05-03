@@ -7,9 +7,10 @@
  * Features: offline caching, background sync, offline queue
  */
 declare const self: ServiceWorkerGlobalScope
+declare const __SW_CACHE_VERSION__: string
 
 const WEBPACK_ENTRY_POINT = 'tutorme-app'
-const CACHE_VERSION = 'v2.0.2'
+const CACHE_VERSION = __SW_CACHE_VERSION__ || 'dev'
 const CACHE_NAMES = {
   PRECACHE: `${WEBPACK_ENTRY_POINT}-precache-${CACHE_VERSION}`,
   RUNTIME: `${WEBPACK_ENTRY_POINT}-runtime-${CACHE_VERSION}`,

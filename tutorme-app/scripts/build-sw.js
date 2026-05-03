@@ -14,10 +14,16 @@ if (!fs.existsSync(src)) {
   process.exit(1)
 }
 
+const cacheVersion =
+  process.env.GITHUB_SHA ||
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  process.env.SW_CACHE_VERSION ||
+  String(Date.now())
+
 try {
   // Use esbuild for fast compilation (installed as transitive dep or use npx)
   execSync(
-    `npx esbuild "${src}" --outfile="${dest}" --bundle --format=iife --target=es2017 --platform=browser --minify`,
+    `npx esbuild "${src}" --outfile="${dest}" --bundle --format=iife --target=es2017 --platform=browser --minify --define:__SW_CACHE_VERSION__=\\"${cacheVersion}\\"`,
     { stdio: 'inherit' }
   )
   console.log('Service worker built successfully:', dest)
