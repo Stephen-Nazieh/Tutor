@@ -182,7 +182,7 @@ export default function CommunicationCenterPage() {
 
       <div className="grid h-[600px] grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Conversations List */}
-        <div className="flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] lg:col-span-1">
+        <div className="flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] transition-shadow duration-200 hover:shadow-[0_18px_60px_rgba(0,0,0,0.14)] lg:col-span-1">
           <div className="p-4 pb-3">
             <h2 className="flex items-center justify-between text-base font-bold text-slate-800">
               Conversations
@@ -245,7 +245,7 @@ export default function CommunicationCenterPage() {
         </div>
 
         {/* Chat Area */}
-        <div className="flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] lg:col-span-2">
+        <div className="flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] transition-shadow duration-200 hover:shadow-[0_18px_60px_rgba(0,0,0,0.14)] lg:col-span-2">
           {selectedConversation ? (
             <>
               <div className="border-b border-slate-100 p-4">

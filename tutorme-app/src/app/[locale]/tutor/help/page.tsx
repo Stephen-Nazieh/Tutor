@@ -51,10 +51,13 @@ const guides = [
 ]
 
 export default function TutorHelpPage() {
+  const sectionCardClass =
+    'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
+
   return (
-    <div className="w-full px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full bg-white px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 min-h-[52px] shrink-0">
-        <div className="flex h-full w-full items-center justify-between gap-2 rounded-2xl border border-[#D8E0EA] bg-[linear-gradient(to_bottom,_#F8FAFC,_#F1F5F9)] p-1.5 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_1px_2px_rgba(15,23,42,0.04)]">
+        <div className="flex h-full w-full items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 px-4 shadow-[0_10px_30px_rgba(0,0,0,0.10)]">
           <div className="flex items-center gap-2">
             <HelpCircle className="h-5 w-5 text-[#2563EB]" />
             <h1 className="text-sm font-semibold text-[#1F2933]">Support</h1>
@@ -66,7 +69,7 @@ export default function TutorHelpPage() {
       </div>
 
       {/* Search */}
-      <Card className="mb-8">
+      <Card className={`mb-8 ${sectionCardClass}`}>
         <CardContent className="pt-6">
           <div className="relative mx-auto max-w-2xl">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
@@ -80,7 +83,7 @@ export default function TutorHelpPage() {
         {guides.map(guide => {
           const Icon = guide.icon
           return (
-            <Card key={guide.title} className="cursor-pointer transition-shadow hover:shadow-md">
+            <Card key={guide.title} className={sectionCardClass}>
               <CardContent className="p-6">
                 <Icon className="mb-4 h-10 w-10 text-blue-500" />
                 <h3 className="font-semibold text-gray-900">{guide.title}</h3>
@@ -94,7 +97,7 @@ export default function TutorHelpPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* FAQs */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className={sectionCardClass}>
             <CardHeader>
               <CardTitle>Frequently Asked Questions</CardTitle>
               <CardDescription>Quick answers to common questions</CardDescription>
@@ -112,7 +115,7 @@ export default function TutorHelpPage() {
 
         {/* Contact Support */}
         <div>
-          <Card>
+          <Card className={sectionCardClass}>
             <CardHeader>
               <CardTitle>Contact Support</CardTitle>
               <CardDescription>Need more help?</CardDescription>

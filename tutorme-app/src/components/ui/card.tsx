@@ -38,12 +38,23 @@ const cardVariants = cva(
         false: '',
       },
 
+      hoverable: {
+        true: ['hover:shadow-hover-lift'],
+        false: '',
+      },
+
       // Variant styles
       variant: {
         default: '',
         elevated: ['bg-card-elevated', 'border-0', 'shadow-elevation-3'],
-        outlined: ['bg-transparent', 'border-border border-2', 'shadow-none'],
-        ghost: ['bg-transparent', 'border-0', 'shadow-none', 'hover:bg-accent/20'],
+        outlined: ['bg-transparent', 'border-border border-2', 'shadow-none', 'hover:shadow-none'],
+        ghost: [
+          'bg-transparent',
+          'border-0',
+          'shadow-none',
+          'hover:bg-accent/20',
+          'hover:shadow-none',
+        ],
         glass: [
           'bg-background/80',
           'backdrop-blur-md',
@@ -66,6 +77,7 @@ const cardVariants = cva(
     defaultVariants: {
       elevation: 2,
       interactive: false,
+      hoverable: true,
       variant: 'default',
       padding: 'default',
     },
@@ -80,10 +92,10 @@ export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {}
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, elevation, interactive, variant, padding, ...props }, ref) => (
+  ({ className, elevation, interactive, hoverable, variant, padding, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(cardVariants({ elevation, interactive, variant, padding }), className)}
+      className={cn(cardVariants({ elevation, interactive, hoverable, variant, padding }), className)}
       {...props}
     />
   )

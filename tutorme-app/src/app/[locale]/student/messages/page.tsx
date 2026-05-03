@@ -94,7 +94,7 @@ export default function StudentMessagesPage() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-7xl bg-[#FFFFFF] px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full bg-[#FFFFFF] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 min-h-[52px] shrink-0">
         <div className="flex h-full w-full items-center justify-between gap-2 rounded-2xl border border-[#E5E7EB] bg-white p-1.5 px-4 shadow-[0_8px_20px_rgba(0,0,0,0.08)]">
           <div className="flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function StudentMessagesPage() {
 
       <div className="grid h-[600px] grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Conversations List */}
-        <div className="flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] lg:col-span-1">
+        <div className="flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] transition-shadow duration-200 hover:shadow-[0_18px_60px_rgba(0,0,0,0.14)] lg:col-span-1">
           <div className="p-4 pb-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -155,7 +155,7 @@ export default function StudentMessagesPage() {
         </div>
 
         {/* Chat Area */}
-        <div className="flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] lg:col-span-2">
+        <div className="flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)] transition-shadow duration-200 hover:shadow-[0_18px_60px_rgba(0,0,0,0.14)] lg:col-span-2">
           <div className="border-b border-slate-100 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

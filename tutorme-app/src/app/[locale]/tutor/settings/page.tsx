@@ -604,7 +604,7 @@ export default function TutorSettings() {
   return (
     <div className="min-h-screen bg-white pb-12">
       <header className="sticky top-0 z-10 w-full bg-white px-4 pb-2 pt-4 sm:px-6">
-        <div className="mx-auto max-w-5xl">
+        <div className="w-full">
           <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <BackButton href="/tutor/dashboard" />
@@ -616,7 +616,7 @@ export default function TutorSettings() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main className="w-full px-4 py-8 sm:px-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="flex h-auto w-full flex-wrap gap-2 bg-transparent p-0">
             <TabsTrigger

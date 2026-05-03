@@ -175,7 +175,7 @@ export default function StudentSettings() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      <main className="w-full px-4 py-8 sm:px-6">
         <div className="flex flex-col gap-6 md:flex-row">
           {/* Sidebar Tabs */}
           <div className="w-full flex-shrink-0 space-y-2 md:w-64">
