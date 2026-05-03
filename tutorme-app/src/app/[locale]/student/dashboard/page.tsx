@@ -3,10 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { UserNav } from '@/components/user-nav'
-import { NotificationBell } from '@/components/notifications/NotificationBell'
 import {
   Select,
   SelectContent,
@@ -15,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { Settings, AlertCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 
 import {
   // ContinueLearning,  // Moved to DashboardCalendar tabs
@@ -136,14 +133,6 @@ export default function StudentDashboard() {
   if (status === 'loading' || loading) {
     return (
       <div className="bg-background text-foreground min-h-screen" style={themeStyle}>
-        <nav className="safe-top border-border bg-secondary sticky top-0 z-50 border-b">
-          <div className="w-full px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-              <div className="h-7 w-24 animate-pulse rounded bg-gray-200" />
-              <div className="h-9 w-9 animate-pulse rounded bg-gray-100" />
-            </div>
-          </div>
-        </nav>
         <DashboardSkeleton loadingLabel={strings.loadingDashboard} />
       </div>
     )
@@ -199,54 +188,6 @@ export default function StudentDashboard() {
 
   return (
     <div className="text-foreground min-h-screen bg-[#FFFFFF]">
-      {/* Navigation */}
-      <nav className="safe-top border-border bg-secondary sticky top-0 z-50 border-b">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 justify-between">
-            <div className="flex items-center">
-              <Link
-                href="/student/dashboard"
-                className="inline-flex items-center"
-                aria-label="Student dashboard"
-              >
-                <span className="sr-only">Dashboard</span>
-              </Link>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Select
-                  value={themeId}
-                  onValueChange={value => {
-                    setThemeId(value)
-                    try {
-                      localStorage.setItem('student-dashboard-theme', value)
-                    } catch {}
-                  }}
-                >
-                  <SelectTrigger className="border-border bg-card text-foreground h-8 w-[190px]">
-                    <SelectValue placeholder="Select theme" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-72">
-                    {DASHBOARD_THEMES.map(theme => (
-                      <SelectItem key={theme.id} value={theme.id}>
-                        {theme.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <NotificationBell />
-              <Link href="/student/settings">
-                <Button variant="ghost" size="icon">
-                  <Settings className="h-5 w-5" />
-                </Button>
-              </Link>
-              <UserNav />
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Main Content */}
       <main className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8" aria-busy={loading}>
         {fetchError && (
