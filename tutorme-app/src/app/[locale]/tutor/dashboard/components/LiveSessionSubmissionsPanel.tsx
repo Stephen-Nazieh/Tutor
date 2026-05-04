@@ -232,7 +232,7 @@ export function LiveSessionSubmissionsPanel({
 
       {!hidden && (
         <div
-          className="absolute right-0 top-0 z-40 flex h-full flex-col border-l border-[#E5E7EB] bg-white shadow-[-8px_0_20px_rgba(0,0,0,0.06)]"
+          className="absolute right-0 top-0 z-40 flex h-full flex-col overflow-hidden rounded-l-2xl border-l border-[#E5E7EB] bg-white shadow-[-8px_0_20px_rgba(0,0,0,0.06)]"
           style={{ width }}
         >
           <div className="flex items-center justify-between border-b px-4 py-3">
