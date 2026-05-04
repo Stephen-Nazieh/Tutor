@@ -1209,7 +1209,8 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
   const [selectedCountryCode, setSelectedCountryCode] = useState('')
   const [courses, setCourses] = useState<any[]>([])
   const [tutors, setTutors] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasLoaded, setHasLoaded] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const coursesRef = useRef<HTMLDivElement>(null)
   const tutorsRef = useRef<HTMLDivElement>(null)
@@ -1258,10 +1259,11 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
         }
       } finally {
         setIsLoading(false)
+        setHasLoaded(true)
       }
     }
 
-    const t = setTimeout(run, 200)
+    const t = setTimeout(run, q ? 200 : 0)
     return () => {
       controller.abort()
       clearTimeout(t)
@@ -1400,7 +1402,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
           </div>
         </div>
       </div>
-      {!isLoading && items.length === 0 && (
+      {!isLoading && hasLoaded && items.length === 0 && (
         <div className="mt-3 text-xs font-medium text-slate-500">
           {loadError || 'No results found.'}
         </div>
