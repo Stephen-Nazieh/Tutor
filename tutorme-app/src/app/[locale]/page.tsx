@@ -1959,8 +1959,34 @@ const SpecialAccessSection = ({
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null)
   const router = useRouter()
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key
+
+  useEffect(() => {
+    if (!expanded) return
+
+    const width = 320
+    const margin = 12
+
+    const update = () => {
+      const rect = triggerRef.current?.getBoundingClientRect()
+      if (!rect) return
+
+      const left = Math.min(window.innerWidth - width - margin, Math.max(margin, rect.right - width))
+      const top =
+        popoverPlacement === 'bottom'
+          ? rect.bottom + margin
+          : Math.max(margin, rect.top - margin - 84)
+
+      setPopoverPos({ top, left })
+    }
+
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [expanded, popoverPlacement])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -1978,6 +2004,7 @@ const SpecialAccessSection = ({
       <button
         type="button"
         onClick={() => setExpanded(v => !v)}
+        ref={triggerRef}
         className={triggerClassName}
       >
         {triggerLabel}
@@ -1986,14 +2013,13 @@ const SpecialAccessSection = ({
       <AnimatePresence>
         {expanded && (
           <>
-            <div className="fixed inset-0 z-40" onClick={() => setExpanded(false)} />
+            <div className="fixed inset-0 z-[990]" onMouseDown={() => setExpanded(false)} />
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className={`absolute right-0 z-50 w-[320px] overflow-hidden rounded-[16px] border border-white/25 bg-[#0B4DFF]/10 p-4 backdrop-blur-xl ${
-                popoverPlacement === 'top' ? 'bottom-full mb-3' : 'top-full mt-3'
-              }`}
+              className="fixed z-[1000] w-[320px] overflow-hidden rounded-[16px] border border-white/25 bg-[#0B4DFF]/10 p-4 backdrop-blur-xl"
+              style={popoverPos ?? undefined}
             >
               <form onSubmit={handleSubmit} className="flex items-center gap-3">
                 <Input
@@ -2001,6 +2027,7 @@ const SpecialAccessSection = ({
                   placeholder={t('enterCode')}
                   value={code}
                   onChange={e => setCode(e.target.value)}
+                  autoFocus
                   className={`h-10 flex-1 rounded-full border border-white/20 bg-white/10 text-white placeholder:text-white/60 ${error ? 'border-red-400' : ''}`}
                 />
                 <Button
