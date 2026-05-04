@@ -37,6 +37,7 @@ import {
   Code,
   Trophy,
   Search,
+  QrCode,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -1173,13 +1174,18 @@ const CountdownTimer = () => {
     return () => clearInterval(timer)
   }, [])
   return (
-    <div className="flex items-center justify-center gap-4 font-mono md:gap-8">
+    <div className="flex items-center gap-2 font-mono">
       {Object.entries(timeLeft).map(([unit, value]) => (
-        <div key={unit} className="flex flex-col items-center">
-          <div className="text-4xl font-bold tabular-nums drop-shadow-lg md:text-6xl">
+        <div
+          key={unit}
+          className="flex h-11 w-11 flex-col items-center justify-center rounded-[10px] border border-white/25 bg-white/90 text-slate-900 shadow-[0_6px_16px_rgba(0,0,0,0.18)]"
+        >
+          <div className="text-[18px] font-bold tabular-nums leading-none">
             {value.toString().padStart(2, '0')}
           </div>
-          <div className="mt-2 text-xs uppercase tracking-widest opacity-70">{unit}</div>
+          <div className="mt-1 text-[8px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            {unit}
+          </div>
         </div>
       ))}
     </div>
@@ -1620,15 +1626,7 @@ const ComingSoonModal = ({
   )
 }
 
-const SpecialAccessSection = ({
-  lang,
-  theme,
-  mode,
-}: {
-  lang: Language
-  theme: ColorTheme
-  mode: ThemeMode
-}) => {
+const SpecialAccessSection = ({ lang }: { lang: Language }) => {
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
   const [expanded, setExpanded] = useState(false)
@@ -1645,86 +1643,46 @@ const SpecialAccessSection = ({
     }
   }
 
-  const themeColors = {
-    emerald: {
-      border: 'border-emerald-500/20',
-      bg: 'from-emerald-900/30 to-zinc-900/50',
-      accent: 'bg-emerald-500 hover:bg-emerald-400',
-    },
-    ocean: {
-      border: 'border-sky-500/20',
-      bg: 'from-sky-900/30 to-zinc-900/50',
-      accent: 'bg-sky-500 hover:bg-sky-400',
-    },
-    sunset: {
-      border: 'border-amber-500/20',
-      bg: 'from-amber-900/30 to-zinc-900/50',
-      accent: 'bg-amber-500 hover:bg-amber-400',
-    },
-    galaxy: {
-      border: 'border-purple-500/20',
-      bg: 'from-purple-900/30 to-zinc-900/50',
-      accent: 'bg-purple-500 hover:bg-purple-400',
-    },
-  }
-
   return (
-    <div className="mx-auto mb-16 max-w-7xl px-6">
-      <div
-        className={`bg-gradient-to-r ${themeColors[theme].bg} ${themeColors[theme].border} rounded-2xl border p-6 backdrop-blur-sm`}
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setExpanded(v => !v)}
+        className="rounded-full border border-white/55 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-white/10"
       >
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex w-full items-center justify-between text-left"
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className={`flex h-10 w-10 items-center justify-center rounded-xl ${mode === 'dark' ? 'bg-white/10' : 'bg-black/10'}`}
-            >
-              <Lock
-                className={`h-5 w-5 ${mode === 'dark' ? `text-${theme}-400` : `text-${theme}-600`}`}
-              />
-            </div>
-            <h3 className={`font-semibold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
-              {t('accessWithCode')}
-            </h3>
-          </div>
-          <ChevronRight
-            className={`h-5 w-5 ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'} transition-transform ${expanded ? 'rotate-90' : ''}`}
-          />
-        </button>
-        <AnimatePresence>
-          {expanded && (
+        {t('accessWithCode')}
+      </button>
+
+      <AnimatePresence>
+        {expanded && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setExpanded(false)} />
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="absolute bottom-full right-0 z-50 mb-3 w-[320px] overflow-hidden rounded-[16px] border border-white/25 bg-[#0B4DFF]/10 p-4 backdrop-blur-xl"
             >
-              <div className={`mt-6 border-t border-white/10 pt-6`}>
-                <p
-                  className={`mb-4 text-sm ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}
+              <form onSubmit={handleSubmit} className="flex items-center gap-3">
+                <Input
+                  type="password"
+                  placeholder={t('enterCode')}
+                  value={code}
+                  onChange={e => setCode(e.target.value)}
+                  className={`h-10 flex-1 rounded-full border border-white/20 bg-white/10 text-white placeholder:text-white/60 ${error ? 'border-red-400' : ''}`}
+                />
+                <Button
+                  type="submit"
+                  className="h-10 rounded-full bg-white px-5 text-sm font-semibold text-[#0B4DFF] hover:bg-white/90"
                 >
-                  {t('enterCode')}
-                </p>
-                <form onSubmit={handleSubmit} className="flex gap-3">
-                  <Input
-                    type="password"
-                    placeholder={t('enterCode')}
-                    value={code}
-                    onChange={e => setCode(e.target.value)}
-                    className={`flex-1 border ${mode === 'dark' ? 'border-white/10 bg-white/5 text-white placeholder:text-zinc-500' : 'border-black/10 bg-black/5 text-zinc-900 placeholder:text-zinc-500'} ${error ? 'border-red-500' : ''}`}
-                  />
-                  <Button type="submit" className={`px-6 text-white ${themeColors[theme].accent}`}>
-                    {t('access')}
-                  </Button>
-                </form>
-                {error && <p className="mt-2 text-sm text-red-400">{t('invalidCode')}</p>}
-              </div>
+                  {t('access')}
+                </Button>
+              </form>
+              {error && <p className="mt-2 text-xs font-medium text-red-200">{t('invalidCode')}</p>}
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -2350,8 +2308,6 @@ export default function LandingPage() {
 
   return (
     <div className={`relative min-h-screen ${mode === 'dark' ? 'text-zinc-100' : 'text-zinc-900'}`}>
-      <FuturisticBackground theme={theme} mode={mode} />
-      <Navbar lang={language} onLanguageChange={setLanguage} theme={theme} mode={mode} />
       <ComingSoonModal
         isOpen={modalType !== null}
         onClose={() => setModalType(null)}
@@ -2375,89 +2331,89 @@ export default function LandingPage() {
       <PrivacyPolicyModal isOpen={privacyOpen} onClose={() => setPrivacyOpen(false)} mode={mode} />
       <TermsOfServiceModal isOpen={termsOpen} onClose={() => setTermsOpen(false)} mode={mode} />
 
-      <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative pt-24">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden px-6 py-20 text-center md:py-32">
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <div
-              className={`mb-8 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium backdrop-blur-sm ${mode === 'dark' ? `bg-${theme}-500/10 border-${theme}-500/20 text-${theme}-400` : `bg-${theme}-100 border-${theme}-300 text-${theme}-700`}`}
-            >
-              <span className="relative flex h-2 w-2">
-                <span
-                  className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75`}
-                  style={{ backgroundColor: THEMES[theme].colors.primary }}
-                ></span>
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-current"></span>
-              </span>
-              {t('comingSoon')}
+      <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative">
+        <section
+          className="relative min-h-screen overflow-hidden bg-cover bg-center"
+          style={{
+            backgroundImage:
+              'url("https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=soft%20smooth%20premium%20blue%20gradient%20background%2C%20minimal%2C%20subtle%20diagonal%20light%20beam%20from%20upper%20left%20toward%20center%2C%20no%20texture%2C%20no%20grid%2C%20clean%20modern%2C%20high%20resolution%2C%20website%20hero%20background&image_size=landscape_16_9")',
+          }}
+        >
+          <div className="absolute inset-0" />
+          <header className="relative z-10 flex items-center justify-between px-8 pt-8">
+            <div className="flex items-center gap-3">
+              <img src="/solocornlogo.png" alt="Solocorn" className="h-9 w-9" />
+              <span className="text-[18px] font-semibold tracking-tight text-white">Solocorn</span>
             </div>
-            <h1
-              className={`mb-4 text-6xl font-bold tracking-tighter drop-shadow-2xl md:text-8xl ${mode === 'dark' ? '' : ''}`}
-            >
-              {t('launch')}{' '}
-              <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                Solocorn
-              </span>
-            </h1>
-            <p
-              className={`mb-12 text-xl font-medium md:text-2xl ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}
-            >
-              Live AI-Augmented Instruction Platform
-            </p>
-
-            {/* View all Categories Button - glowing and active */}
-            <Link href="/categories">
-              <motion.button
-                className={`relative mb-12 inline-flex items-center gap-2 rounded-full px-6 py-3 text-lg font-semibold transition-all ${mode === 'dark' ? 'border border-white/20 bg-white/10 text-white hover:bg-white/20' : 'border border-black/20 bg-black/10 text-zinc-900 hover:bg-black/20'}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                animate={{
-                  boxShadow: [
-                    '0 0 20px rgba(16, 185, 129, 0.3)',
-                    '0 0 40px rgba(16, 185, 129, 0.5)',
-                    '0 0 20px rgba(16, 185, 129, 0.3)',
-                  ],
-                }}
-                transition={{
-                  boxShadow: {
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  },
-                }}
-              >
-                <Search className="h-5 w-5" />
-                {t('viewAllCategories')}
-              </motion.button>
-            </Link>
-            <div className="mb-8">
-              <CountdownTimer />
-            </div>
-
-            {/* Register Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="mb-16"
-            >
-              <Button
+            <div className="flex items-center gap-6">
+              <button
+                type="button"
                 onClick={() => setModalType('register')}
-                size="lg"
-                className={`rounded-full px-8 py-6 text-lg font-bold shadow-lg transition-all hover:scale-105 hover:shadow-xl ${mode === 'dark' ? 'bg-white text-black hover:bg-emerald-400' : 'bg-zinc-900 text-white hover:bg-emerald-500'}`}
+                className="text-sm font-medium text-white"
               >
-                {t('register')}
-              </Button>
-            </motion.div>
-          </motion.div>
+                JOIN
+              </button>
+              <Link
+                href="/login"
+                className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[#0B4DFF]"
+              >
+                Sign In
+              </Link>
+            </div>
+          </header>
+
+          <div className="relative z-10 flex min-h-[calc(100vh-160px)] flex-col items-center justify-center px-6 text-center">
+            <h1 className="text-balance text-[32px] font-medium leading-tight text-white md:text-[36px]">
+              Live AI-Augmented Instruction Platform
+            </h1>
+
+            <div className="mt-10 w-full">
+              <div className="mx-auto flex h-14 w-[min(64vw,1040px)] max-w-full items-center rounded-full bg-white px-6">
+                <Search className="h-5 w-5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search tutors, courses, categories..."
+                  className="ml-4 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                />
+                <QrCode className="h-5 w-5 text-slate-400" />
+              </div>
+            </div>
+
+            <a
+              href="#how-it-works"
+              className="mt-[22px] rounded-full bg-white px-6 py-2.5 text-sm font-semibold text-[#0B4DFF]"
+            >
+              How It Works
+            </a>
+          </div>
+
+          <div className="absolute bottom-12 left-0 right-0 z-10 px-8">
+            <div className="flex items-end justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <CountdownTimer />
+                <span className="text-sm font-medium text-white">Launch</span>
+              </div>
+
+              <div className="flex items-center justify-center gap-6">
+                <div className="flex h-11 min-w-[180px] items-center justify-center gap-4 rounded-[10px] border border-white/55 bg-white/5 text-white">
+                  <span className="text-2xl font-semibold tracking-[0.04em]">0128</span>
+                  <span className="text-sm font-medium">Tutors</span>
+                </div>
+                <div className="flex h-11 min-w-[180px] items-center justify-center gap-4 rounded-[10px] border border-white/55 bg-white/5 text-white">
+                  <span className="text-2xl font-semibold tracking-[0.04em]">0346</span>
+                  <span className="text-sm font-medium">Courses</span>
+                </div>
+              </div>
+
+              <div className="flex justify-end">
+                <SpecialAccessSection lang={language} />
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Tutor Strip */}
-        <section className="mb-32">
+        <section id="how-it-works" className="mb-32 bg-white">
           <div className="mx-auto mb-8 flex max-w-7xl items-end justify-between px-6">
             <div>
               <h2
@@ -2470,9 +2426,6 @@ export default function LandingPage() {
           </div>
           <TutorStrip theme={theme} mode={mode} />
         </section>
-
-        {/* Special Access */}
-        <SpecialAccessSection lang={language} theme={theme} mode={mode} />
 
         {/* Action Grid */}
         <section className="mx-auto mb-32 grid max-w-7xl grid-cols-1 gap-6 px-6 md:grid-cols-2 lg:grid-cols-3">
