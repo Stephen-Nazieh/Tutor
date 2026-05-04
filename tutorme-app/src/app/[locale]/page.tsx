@@ -2333,10 +2333,12 @@ export default function LandingPage() {
 
       <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative">
         <section
-          className="relative min-h-screen overflow-hidden bg-cover bg-center"
+          className="relative min-h-screen overflow-hidden"
           style={{
             backgroundImage:
-              'url("https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=soft%20smooth%20premium%20blue%20gradient%20background%2C%20minimal%2C%20subtle%20diagonal%20light%20beam%20from%20upper%20left%20toward%20center%2C%20no%20texture%2C%20no%20grid%2C%20clean%20modern%2C%20high%20resolution%2C%20website%20hero%20background&image_size=landscape_16_9")',
+              'radial-gradient(1200px 900px at 14% 10%, rgba(154, 208, 255, 0.92) 0%, rgba(97, 163, 255, 0.68) 28%, rgba(45, 122, 248, 0.35) 52%, rgba(15, 72, 198, 0.00) 76%), linear-gradient(135deg, #2F75FF 0%, #1C63F3 32%, #0F4DDA 62%, #0A3AB7 100%)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
           }}
         >
           <div className="absolute inset-0" />
