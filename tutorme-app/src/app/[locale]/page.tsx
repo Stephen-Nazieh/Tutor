@@ -13,6 +13,7 @@ import {
   School,
   Building2,
   Mail,
+  ChevronLeft,
   ChevronRight,
   X,
   Lock,
@@ -38,11 +39,21 @@ import {
   Trophy,
   Search,
   QrCode,
+  Users,
+  Bot,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { REGIONS } from '@/lib/data/tutor-categories'
 
 // --- Types ---
 type ModalType = 'register' | 'tutor' | 'academy' | 'schools' | null
@@ -1192,6 +1203,159 @@ const CountdownTimer = () => {
   )
 }
 
+const Panel2SearchResults = ({ query }: { query: string }) => {
+  const [selectedRegion, setSelectedRegion] = useState('')
+  const [selectedCountryCode, setSelectedCountryCode] = useState('')
+  const coursesRef = useRef<HTMLDivElement>(null)
+  const tutorsRef = useRef<HTMLDivElement>(null)
+
+  const availableCountries = (() => {
+    const region = REGIONS.find(r => r.id === selectedRegion)
+    return region ? region.countries : []
+  })()
+
+  const scrollRow = (ref: React.RefObject<HTMLDivElement>, direction: 1 | -1) => {
+    const el = ref.current
+    if (!el) return
+    const amount = Math.max(360, Math.floor(el.clientWidth * 0.85))
+    el.scrollBy({ left: direction * amount, behavior: 'smooth' })
+  }
+
+  const CarouselRow = ({
+    title,
+    icon,
+    rowRef,
+  }: {
+    title: string
+    icon: React.ReactNode
+    rowRef: React.RefObject<HTMLDivElement>
+  }) => (
+    <div className="w-full">
+      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-600">
+        <span className="text-slate-500">{icon}</span>
+        <span>{title}</span>
+      </div>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => scrollRow(rowRef, -1)}
+          className="absolute left-0 top-1/2 z-10 flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#1F2933] text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)]"
+          aria-label={`Scroll ${title} left`}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => scrollRow(rowRef, 1)}
+          className="absolute right-0 top-1/2 z-10 flex h-10 w-10 translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#1F2933] text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)]"
+          aria-label={`Scroll ${title} right`}
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+
+        <div className="relative px-10">
+          <div
+            ref={rowRef}
+            className="flex w-full gap-4 overflow-x-auto scroll-smooth py-1"
+            style={{ scrollSnapType: 'x mandatory' }}
+          >
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="shrink-0" style={{ scrollSnapAlign: 'start' }}>
+                <div className="h-[clamp(220px,18vw,280px)] w-[clamp(190px,14vw,250px)] rounded-[22px] border border-white/20 bg-white/30 shadow-[0_14px_35px_rgba(0,0,0,0.18)] backdrop-blur-md" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <section
+      className="relative w-full overflow-hidden"
+      style={{
+        backgroundColor: '#D7DCE2',
+        backgroundImage:
+          'linear-gradient(to right, rgba(255,255,255,0.55) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.55) 1px, transparent 1px)',
+        backgroundSize: '36px 36px',
+      }}
+    >
+      <div className="mx-auto w-full max-w-[1400px] px-8 py-10">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
+          <div className="flex flex-wrap items-center gap-4 lg:col-span-4">
+            <Select
+              value={selectedRegion}
+              onValueChange={value => {
+                setSelectedRegion(value)
+                setSelectedCountryCode('')
+              }}
+            >
+              <SelectTrigger className="h-11 w-[170px] rounded-full border border-white/60 bg-white/90 shadow-[0_10px_26px_rgba(0,0,0,0.12)]">
+                <SelectValue placeholder="Region" />
+              </SelectTrigger>
+              <SelectContent>
+                {REGIONS.map(region => (
+                  <SelectItem key={region.id} value={region.id}>
+                    {region.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={selectedCountryCode}
+              onValueChange={setSelectedCountryCode}
+              disabled={!selectedRegion}
+            >
+              <SelectTrigger className="h-11 w-[170px] rounded-full border border-white/60 bg-white/90 shadow-[0_10px_26px_rgba(0,0,0,0.12)]">
+                <SelectValue placeholder="Country" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableCountries.map(country => (
+                  <SelectItem key={country.code} value={country.code}>
+                    {country.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="lg:col-span-8">
+            <div className="mx-auto flex w-full max-w-[720px] flex-col gap-3">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                <Bot className="h-4 w-4" />
+                AI Assistant
+              </div>
+              <div className="min-h-[44px] text-xs leading-relaxed text-slate-600">
+                Showing results for “{query.trim()}”. Tap a course or tutor to refine recommendations.
+              </div>
+              <div className="flex h-11 w-full items-center rounded-full bg-white shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
+                <input
+                  type="text"
+                  placeholder="Ask the assistant..."
+                  className="h-full flex-1 rounded-full bg-transparent px-5 text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                />
+                <button
+                  type="button"
+                  className="mr-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#1D4ED8] text-white"
+                  aria-label="Send"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 space-y-10">
+          <CarouselRow title="Courses" icon={<BookOpen className="h-4 w-4" />} rowRef={coursesRef} />
+          <CarouselRow title="Tutors" icon={<Users className="h-4 w-4" />} rowRef={tutorsRef} />
+        </div>
+      </div>
+    </section>
+  )
+}
+
 const BlankTutorCard = ({ theme, mode }: { theme: ColorTheme; mode: ThemeMode }) => {
   const themeColors = {
     emerald: 'from-emerald-500/10 to-cyan-500/10 border-emerald-500/20',
@@ -2300,6 +2464,7 @@ export default function LandingPage() {
   const [language, setLanguage] = useState<Language>('en')
   const [theme] = useState<ColorTheme>('emerald')
   const [mode] = useState<ThemeMode>('light')
+  const [searchQuery, setSearchQuery] = useState('')
   const [contactModalOpen, setContactModalOpen] = useState(false)
   const [privacyOpen, setPrivacyOpen] = useState(false)
   const [termsOpen, setTermsOpen] = useState(false)
@@ -2375,6 +2540,8 @@ export default function LandingPage() {
                 <input
                   type="text"
                   placeholder="Search tutors, courses, categories..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className="ml-4 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
                 />
                 <QrCode className="h-5 w-5 text-slate-400" />
@@ -2413,6 +2580,19 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        <AnimatePresence>
+          {searchQuery.trim().length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              transition={{ duration: 0.22 }}
+            >
+              <Panel2SearchResults query={searchQuery} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Tutor Strip */}
         <section id="how-it-works" className="mb-32 bg-white">
