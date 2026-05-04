@@ -46,6 +46,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         isPublished: course.isPublished,
         price: course.price,
         currency: course.currency,
+        isFree: course.isFree,
         languageOfInstruction: course.languageOfInstruction,
         schedule: course.schedule,
       })
@@ -71,6 +72,7 @@ interface VariantConfig {
   category: string
   nationality: string
   isPublished: boolean
+  isFree?: boolean
   price: number | null
   currency: string
   languageOfInstruction: string
@@ -398,6 +400,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         requestedKeys.add(key)
         const existing = existingMap.get(key)
         const courseName = `${v.category} - ${v.nationality}`
+        const isFree = typeof v.isFree === 'boolean' ? v.isFree : (templateCourse.isFree ?? false)
+        const price = isFree ? 0 : typeof v.price === 'number' ? v.price : null
 
         let publishedCourseId: string
 
@@ -414,9 +418,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
               updatedAt: now,
               isLiveOnline: templateCourse.isLiveOnline ?? false,
               languageOfInstruction: v.languageOfInstruction || null,
-              price: typeof v.price === 'number' ? v.price : null,
+              price,
               currency: v.currency || templateCourse.currency || 'USD',
-              isFree: templateCourse.isFree ?? false,
+              isFree,
               schedule: v.schedule || [],
             })
             .where(eq(course.courseId, publishedCourseId))
@@ -444,9 +448,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             creatorId: userId,
             isLiveOnline: templateCourse.isLiveOnline ?? false,
             languageOfInstruction: v.languageOfInstruction || null,
-            price: typeof v.price === 'number' ? v.price : null,
+            price,
             currency: v.currency || templateCourse.currency || 'USD',
-            isFree: templateCourse.isFree ?? false,
+            isFree,
             schedule: v.schedule || [],
           })
 

@@ -31,6 +31,7 @@ interface VariantConfig {
   category: string
   nationality: string
   isPublished: boolean
+  isFree: boolean
   price: number | null
   currency: string
   languageOfInstruction: string
@@ -59,6 +60,7 @@ type VariantApiItem = {
   category?: unknown
   nationality?: unknown
   isPublished?: unknown
+  isFree?: unknown
   price?: unknown
   currency?: unknown
   languageOfInstruction?: unknown
@@ -101,6 +103,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
     )
     const [globalCurrency, setGlobalCurrency] = useState(defaultCurrency || 'USD')
     const [globalLanguage, setGlobalLanguage] = useState(defaultLanguage || 'English')
+    const [globalIsFree, setGlobalIsFree] = useState<boolean>(defaultPrice == null || defaultPrice === 0)
     const [variants, setVariants] = useState<VariantConfig[]>([])
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
     const [scheduleDialogIndex, setScheduleDialogIndex] = useState<number | null>(null)
@@ -120,6 +123,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
             category: typeof v.category === 'string' ? v.category : '',
             nationality: typeof v.nationality === 'string' ? v.nationality : '',
             isPublished: typeof v.isPublished === 'boolean' ? v.isPublished : false,
+            isFree: typeof v.isFree === 'boolean' ? v.isFree : false,
             price: typeof v.price === 'number' ? v.price : null,
             currency: typeof v.currency === 'string' ? v.currency : 'USD',
             languageOfInstruction:
@@ -141,6 +145,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
       setGlobalPrice(defaultPrice != null ? String(defaultPrice) : '')
       setGlobalCurrency(defaultCurrency || 'USD')
       setGlobalLanguage(defaultLanguage || 'English')
+      setGlobalIsFree(defaultPrice == null || defaultPrice === 0)
     }, [defaultPrice, defaultCurrency, defaultLanguage])
 
     // Compute the desired variant keys from current selections
@@ -169,7 +174,8 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
               category,
               nationality,
               isPublished: true,
-              price: globalPrice ? parseFloat(globalPrice) : null,
+              isFree: globalIsFree,
+              price: globalIsFree ? 0 : globalPrice ? parseFloat(globalPrice) : null,
               currency: globalCurrency,
               languageOfInstruction: globalLanguage,
               schedule: Array.isArray(defaultSchedule) ? [...defaultSchedule] : [],
@@ -197,13 +203,14 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
       setVariants(prev =>
         prev.map(v => ({
           ...v,
-          price,
+          isFree: globalIsFree,
+          price: globalIsFree ? 0 : price,
           currency: globalCurrency,
           languageOfInstruction: globalLanguage,
         }))
       )
       toast.success('Global defaults applied to all variants')
-    }, [globalPrice, globalCurrency, globalLanguage])
+    }, [globalPrice, globalCurrency, globalLanguage, globalIsFree])
 
     const updateVariant = useCallback(
       (index: number, updater: (v: VariantConfig) => VariantConfig) => {
@@ -241,7 +248,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
 
         const payload = variants.map(v => ({
           ...v,
-          price: typeof v.price === 'number' ? v.price : null,
+          price: v.isFree ? 0 : typeof v.price === 'number' ? v.price : null,
         }))
 
         const res = await fetch(`/api/tutor/courses/${templateCourseId}/publish`, {
@@ -329,7 +336,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                 <div>
                   <div className="panel-header-title">Global Defaults</div>
                   <div className="panel-header-subtext">
-                    Set default price, currency, and language for all variants.
+                    Set default pricing, currency, and language for all variants.
                   </div>
                 </div>
               </div>
@@ -344,7 +351,16 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
           </button>
           {globalDefaultsOpen ? (
           <CardContent spacing="default" className="bg-white text-slate-900">
-            <div className="grid gap-6 sm:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-5">
+              <div className="form-group space-y-2 sm:col-span-2">
+                <Label className="form-label font-semibold text-slate-700">Free course</Label>
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
+                  <span className="text-sm font-medium text-slate-600">
+                    {globalIsFree ? 'Enabled' : 'Disabled'}
+                  </span>
+                  <Switch checked={globalIsFree} onCheckedChange={setGlobalIsFree} />
+                </div>
+              </div>
               <div className="form-group space-y-2">
                 <Label className="form-label font-semibold text-slate-700">Price</Label>
                 <div className="flex items-center gap-2">
@@ -355,6 +371,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                     value={globalPrice}
                     onChange={e => setGlobalPrice(e.target.value)}
                     placeholder="0.00"
+                    disabled={globalIsFree}
                     className="border-slate-200 bg-white"
                   />
                 </div>
@@ -486,7 +503,25 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                     </div>
                   </div>
                   <div className="p-5">
-                    <div className="grid gap-6 sm:grid-cols-3">
+                    <div className="grid gap-6 sm:grid-cols-4">
+                      <div className="form-group space-y-2">
+                        <Label className="form-label font-semibold text-slate-700">Free</Label>
+                        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3">
+                          <span className="text-sm font-medium text-slate-600">
+                            {variant.isFree ? 'Yes' : 'No'}
+                          </span>
+                          <Switch
+                            checked={variant.isFree}
+                            onCheckedChange={checked =>
+                              updateVariant(index, v => ({
+                                ...v,
+                                isFree: checked,
+                                price: checked ? 0 : v.price,
+                              }))
+                            }
+                          />
+                        </div>
+                      </div>
                       <div className="form-group space-y-2">
                         <Label className="form-label font-semibold text-slate-700">Price</Label>
                         <div className="flex items-center gap-2">
@@ -503,6 +538,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                               }))
                             }}
                             placeholder="0.00"
+                            disabled={variant.isFree}
                             className="border-slate-200 bg-white"
                           />
                         </div>

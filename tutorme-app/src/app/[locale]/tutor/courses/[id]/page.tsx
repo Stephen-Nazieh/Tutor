@@ -156,7 +156,6 @@ export default function TutorCoursePage() {
   const [scheduleSummary, setScheduleSummary] = useState<ScheduleItem[]>([])
   const [infoOpen, setInfoOpen] = useState(true)
   const [categoriesOpen, setCategoriesOpen] = useState(true)
-  const [publishOpen, setPublishOpen] = useState(true)
   const [publishingVariants, setPublishingVariants] = useState(false)
 
   // Available countries based on selected regions
@@ -391,15 +390,22 @@ export default function TutorCoursePage() {
     try {
       const csrf = await getCsrf()
 
-      // Build payload, excluding null name (name is required)
       const payload: Record<string, unknown> = {
-        description: description.trim() || null,
-        languageOfInstruction: languageOfInstruction || null,
-        price: isFree ? 0 : price === '' ? null : Number(price),
-        currency: 'USD',
-        isFree,
         categories: selectedCategories,
-        schedule: schedule.length ? schedule : null,
+        schedule,
+      }
+
+      const trimmedDescription = description.trim()
+      if (trimmedDescription) payload.description = trimmedDescription
+
+      const trimmedLanguage = languageOfInstruction.trim()
+      if (trimmedLanguage) payload.languageOfInstruction = trimmedLanguage
+
+      payload.currency = 'USD'
+      payload.isFree = isFree
+      if (!isFree && price !== '') {
+        const n = Number(price)
+        if (!Number.isNaN(n)) payload.price = n
       }
 
       // Only include name if it has a value (required field)
@@ -1130,114 +1136,6 @@ export default function TutorCoursePage() {
                   </span>
                 </div>
               )}
-            </CardContent>
-            ) : null}
-          </Card>
-
-          <Card
-            variant="floating"
-            elevation={2}
-            padding="none"
-            className="overflow-hidden rounded-[16px] bg-white"
-          >
-            <button
-              type="button"
-              onClick={() => setPublishOpen(o => !o)}
-              className="panel-header panel-header-metallic w-full text-left"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="panel-header-icon">
-                    <DollarSign className="h-5 w-5 text-slate-900" />
-                  </div>
-                  <div>
-                    <div className="panel-header-title">Publish</div>
-                    <div className="panel-header-subtext">
-                      Pricing structure and publishing.
-                    </div>
-                  </div>
-                </div>
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
-                  {publishOpen ? (
-                    <ChevronUp className="h-5 w-5" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5" />
-                  )}
-                </div>
-              </div>
-            </button>
-
-            {publishOpen ? (
-            <CardContent spacing="default" className="bg-white text-slate-900">
-              <div className="space-y-8">
-                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                  <div>
-                    <Label htmlFor="isFree" className="form-label font-semibold text-slate-700">
-                      Free course
-                    </Label>
-                    <p className="text-sm text-slate-500">Students can enroll without payment.</p>
-                  </div>
-                  <Switch
-                    id="isFree"
-                    checked={isFree}
-                    onCheckedChange={checked => {
-                      setIsFree(checked)
-                      if (checked) setPrice('')
-                    }}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div className="form-group space-y-2">
-                    <Label htmlFor="price" className="form-label font-semibold text-slate-700">
-                      Cost per 1 hour session
-                    </Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={price}
-                      onChange={e => setPrice(e.target.value)}
-                      placeholder="$"
-                      disabled={isFree}
-                      className="border-slate-200 bg-white"
-                    />
-                  </div>
-                  <div className="form-group space-y-2">
-                    <Label htmlFor="currency" className="form-label font-semibold text-slate-700">
-                      Currency
-                    </Label>
-                    <Input
-                      id="currency"
-                      value="USD"
-                      disabled
-                      className="cursor-not-allowed border-slate-200 bg-white text-slate-500"
-                    />
-                  </div>
-                </div>
-
-                {!isFree && price && Number(price) > 0 && (
-                  <div className="rounded-xl bg-indigo-50/50 p-4 text-indigo-900">
-                    <p className="text-sm">
-                      <span className="font-semibold">Cost per session:</span> USD{' '}
-                      {Number(price).toFixed(2)}
-                    </p>
-                  </div>
-                )}
-                {isFree && (
-                  <div className="rounded-xl bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
-                    This course will be listed as free.
-                  </div>
-                )}
-
-                <div className="flex flex-col items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center">
-                  <div className="text-sm text-slate-700">
-                    <span className="font-semibold">{variantStats.published}</span> published out of{' '}
-                    <span className="font-semibold">{variantStats.total}</span> variants
-                  </div>
-                </div>
-              </div>
             </CardContent>
             ) : null}
           </Card>
