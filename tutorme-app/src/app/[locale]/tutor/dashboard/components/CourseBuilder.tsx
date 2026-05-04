@@ -1010,6 +1010,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         activeTab,
         activeTaskId,
       }
+      if (!insightsProps?.socket || !insightsProps?.sessionId) {
+        return
+      }
       insightsProps.socket.emit('insight:send', {
         roomId: insightsProps.sessionId,
         type: 'tutor:state_sync',

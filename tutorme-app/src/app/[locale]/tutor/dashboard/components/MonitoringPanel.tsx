@@ -53,6 +53,7 @@ export function MonitoringPanel({
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (!socket) return
     const handleStudentStateUpdate = (update: StudentUpdate) => {
       setStudentStates(prev => ({
         ...prev,
@@ -67,6 +68,10 @@ export function MonitoringPanel({
   }, [socket])
 
   const handleSendHelp = (studentId: string, studentName: string, customMessage?: string) => {
+    if (!socket) {
+      toast.error('Socket not connected')
+      return
+    }
     const msg =
       customMessage ||
       `Hi ${studentName}, I noticed you might be stuck. Do you need any help with this step?`
