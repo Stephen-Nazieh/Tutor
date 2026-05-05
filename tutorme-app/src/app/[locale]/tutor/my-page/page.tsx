@@ -1,6 +1,14 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState, useCallback, type SVGProps } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+  type SVGProps,
+  type PointerEvent,
+} from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -14,6 +22,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Slider } from '@/components/ui/slider'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
@@ -50,6 +59,7 @@ import {
   Edit3,
   Eye,
   EyeOff,
+  RotateCcw,
 } from 'lucide-react'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
 import {
@@ -426,6 +436,23 @@ export default function TutorMyPage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [cropDialogOpen, setCropDialogOpen] = useState(false)
   const [cropSourceUrl, setCropSourceUrl] = useState<string | null>(null)
+  const [cropSourceFile, setCropSourceFile] = useState<File | null>(null)
+  const cropViewportRef = useRef<HTMLDivElement | null>(null)
+  const cropImageRef = useRef<HTMLImageElement | null>(null)
+  const cropDragRef = useRef<{
+    pointerId: number
+    startX: number
+    startY: number
+    startOffsetX: number
+    startOffsetY: number
+  } | null>(null)
+  const [cropImageSize, setCropImageSize] = useState<{ width: number; height: number } | null>(
+    null
+  )
+  const [cropViewportSize, setCropViewportSize] = useState(0)
+  const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 })
+  const [cropZoom, setCropZoom] = useState(1)
+  const [cropError, setCropError] = useState<string | null>(null)
   const [croppedPreviewUrl, setCroppedPreviewUrl] = useState<string | null>(null)
   const [cropping, setCropping] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
@@ -604,39 +631,182 @@ export default function TutorMyPage() {
 
   useEffect(() => {
     if (!cropSourceUrl) {
+      cropImageRef.current = null
+      setCropImageSize(null)
       setCroppedPreviewUrl(null)
       return
     }
 
     let active = true
+    const img = new Image()
+    img.src = cropSourceUrl
+    img.onload = () => {
+      if (!active) return
+      cropImageRef.current = img
+      setCropImageSize({ width: img.naturalWidth, height: img.naturalHeight })
+    }
+    img.onerror = () => {
+      if (!active) return
+      cropImageRef.current = null
+      setCropImageSize(null)
+      setCroppedPreviewUrl(null)
+      setCropError('Invalid image file')
+    }
+
+    return () => {
+      active = false
+    }
+  }, [cropSourceUrl])
+
+  useEffect(() => {
+    if (!cropDialogOpen) return
+    const el = cropViewportRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(entries => {
+      const entry = entries[0]
+      if (!entry) return
+      setCropViewportSize(Math.round(entry.contentRect.width))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [cropDialogOpen])
+
+  const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+
+  const getCropData = () => {
+    if (!cropImageSize || !cropViewportSize) return null
+    const baseScale = Math.max(
+      cropViewportSize / cropImageSize.width,
+      cropViewportSize / cropImageSize.height
+    )
+    const scale = baseScale * cropZoom
+    const displayW = cropImageSize.width * scale
+    const displayH = cropImageSize.height * scale
+    const maxOffsetX = Math.max(0, (displayW - cropViewportSize) / 2)
+    const maxOffsetY = Math.max(0, (displayH - cropViewportSize) / 2)
+    const offsetX = clamp(cropOffset.x, -maxOffsetX, maxOffsetX)
+    const offsetY = clamp(cropOffset.y, -maxOffsetY, maxOffsetY)
+
+    const imgLeft = (cropViewportSize - displayW) / 2 + offsetX
+    const imgTop = (cropViewportSize - displayH) / 2 + offsetY
+
+    const sx = (0 - imgLeft) / scale
+    const sy = (0 - imgTop) / scale
+    const side = cropViewportSize / scale
+
+    const x = Math.round(clamp(sx, 0, cropImageSize.width - 1))
+    const y = Math.round(clamp(sy, 0, cropImageSize.height - 1))
+    const maxSide = Math.min(cropImageSize.width - x, cropImageSize.height - y)
+    const size = Math.round(clamp(side, 1, maxSide))
+
+    return {
+      x,
+      y,
+      width: size,
+      height: size,
+      originalWidth: cropImageSize.width,
+      originalHeight: cropImageSize.height,
+    }
+  }
+
+  const maxCropZoom = useMemo(() => {
+    if (!cropImageSize || !cropViewportSize) return 1
+    const baseScale = Math.max(
+      cropViewportSize / cropImageSize.width,
+      cropViewportSize / cropImageSize.height
+    )
+    const maxByMinCrop = cropViewportSize / (baseScale * 256)
+    return Math.max(1, Number.isFinite(maxByMinCrop) ? maxByMinCrop : 1)
+  }, [cropImageSize, cropViewportSize])
+
+  useEffect(() => {
+    setCropZoom(prev => clamp(prev, 1, maxCropZoom))
+  }, [maxCropZoom])
+
+  useEffect(() => {
+    if (!cropImageSize || !cropViewportSize) return
+    const baseScale = Math.max(
+      cropViewportSize / cropImageSize.width,
+      cropViewportSize / cropImageSize.height
+    )
+    const scale = baseScale * cropZoom
+    const displayW = cropImageSize.width * scale
+    const displayH = cropImageSize.height * scale
+    const maxOffsetX = Math.max(0, (displayW - cropViewportSize) / 2)
+    const maxOffsetY = Math.max(0, (displayH - cropViewportSize) / 2)
+    setCropOffset(prev => ({
+      x: clamp(prev.x, -maxOffsetX, maxOffsetX),
+      y: clamp(prev.y, -maxOffsetY, maxOffsetY),
+    }))
+  }, [cropImageSize, cropViewportSize, cropZoom])
+
+  const handleCropPointerDown = useCallback(
+    (e: PointerEvent<HTMLDivElement>) => {
+      if (cropping || uploadingAvatar) return
+      e.currentTarget.setPointerCapture(e.pointerId)
+      cropDragRef.current = {
+        pointerId: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+        startOffsetX: cropOffset.x,
+        startOffsetY: cropOffset.y,
+      }
+    },
+    [cropping, uploadingAvatar, cropOffset.x, cropOffset.y]
+  )
+
+  const handleCropPointerMove = useCallback(
+    (e: PointerEvent<HTMLDivElement>) => {
+      const drag = cropDragRef.current
+      if (!drag || drag.pointerId !== e.pointerId) return
+      const dx = e.clientX - drag.startX
+      const dy = e.clientY - drag.startY
+      setCropOffset({ x: drag.startOffsetX + dx, y: drag.startOffsetY + dy })
+    },
+    []
+  )
+
+  const handleCropPointerUp = useCallback((e: PointerEvent<HTMLDivElement>) => {
+    const drag = cropDragRef.current
+    if (!drag || drag.pointerId !== e.pointerId) return
+    cropDragRef.current = null
+  }, [])
+
+  useEffect(() => {
+    if (!cropSourceUrl || !cropDialogOpen) return
+    if (!cropImageSize || !cropViewportSize) return
+
+    let active = true
     let objectUrlToRevoke: string | null = null
 
     const generatePreview = async () => {
-      const img = new Image()
-      img.src = cropSourceUrl
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve()
-        img.onerror = () => reject(new Error('Failed to load image'))
-      })
-
-      if (!active) return
-
-      const side = Math.min(img.naturalWidth, img.naturalHeight)
-      const sx = (img.naturalWidth - side) / 2
-      const sy = (img.naturalHeight - side) / 2
+      const img = cropImageRef.current
+      if (!img) return
+      const cropData = getCropData()
+      if (!cropData) return
 
       const canvas = document.createElement('canvas')
-      canvas.width = 300
-      canvas.height = 300
+      canvas.width = 256
+      canvas.height = 256
       const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('Canvas not supported')
+      if (!ctx) return
 
-      ctx.drawImage(img, sx, sy, side, side, 0, 0, 300, 300)
+      ctx.drawImage(
+        img,
+        cropData.x,
+        cropData.y,
+        cropData.width,
+        cropData.height,
+        0,
+        0,
+        256,
+        256
+      )
 
       const blob = await new Promise<Blob | null>(resolve =>
         canvas.toBlob(resolve, 'image/webp', 0.85)
       )
-      if (!blob || !active) return
+      if (!active || !blob) return
 
       objectUrlToRevoke = URL.createObjectURL(blob)
       setCroppedPreviewUrl(objectUrlToRevoke)
@@ -651,7 +821,7 @@ export default function TutorMyPage() {
       active = false
       if (objectUrlToRevoke) URL.revokeObjectURL(objectUrlToRevoke)
     }
-  }, [cropSourceUrl])
+  }, [cropSourceUrl, cropDialogOpen, cropImageSize, cropViewportSize, cropOffset, cropZoom])
 
   const handleCopyProfile = () => {
     if (!publicUrl) return
@@ -717,7 +887,7 @@ export default function TutorMyPage() {
     }
   }
 
-  const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024
+  const MAX_AVATAR_SIZE_BYTES = 10 * 1024 * 1024
   const ACCEPTED_AVATAR_MIME = ['image/jpeg', 'image/png', 'image/webp']
 
   const isAcceptedAvatarFile = (file: File) => {
@@ -738,13 +908,16 @@ export default function TutorMyPage() {
       return
     }
     if (file.size > MAX_AVATAR_SIZE_BYTES) {
-      toast.error('Maximum size is 5 MB')
+      toast.error('Maximum size is 10 MB')
       return
     }
 
     if (cropSourceUrl) URL.revokeObjectURL(cropSourceUrl)
     setCroppedPreviewUrl(null)
     setCropDialogOpen(false)
+    setCropError(null)
+    setCropOffset({ x: 0, y: 0 })
+    setCropZoom(1)
     const objectUrl = URL.createObjectURL(file)
     try {
       const img = new Image()
@@ -754,12 +927,14 @@ export default function TutorMyPage() {
         img.onerror = () => reject(new Error('Failed to load image'))
       })
 
-      if (img.naturalWidth < 300 || img.naturalHeight < 300) {
-        toast.error('Minimum dimensions: 300 × 300 px')
+      if (img.naturalWidth < 512 || img.naturalHeight < 512) {
+        toast.error('Minimum dimensions: 512 × 512 px')
+        URL.revokeObjectURL(objectUrl)
         return
       }
 
       setCropSourceUrl(objectUrl)
+      setCropSourceFile(file)
       setCropDialogOpen(true)
     } catch {
       toast.error('Invalid image file')
@@ -767,7 +942,7 @@ export default function TutorMyPage() {
     }
   }
 
-  const uploadAvatarFile = async (file: File) => {
+  const uploadAvatarFile = async (file: File, crop: any | null) => {
     setAvatarFile(file)
     setUploadingAvatar(true)
     try {
@@ -777,6 +952,9 @@ export default function TutorMyPage() {
 
       const formData = new FormData()
       formData.set('avatar', file)
+      if (crop) {
+        formData.set('crop', JSON.stringify(crop))
+      }
 
       const res = await fetch('/api/tutor/public-profile/avatar', {
         method: 'POST',
@@ -813,44 +991,32 @@ export default function TutorMyPage() {
   const closeCropDialog = () => {
     setCropDialogOpen(false)
     setCropping(false)
+    setCropError(null)
+    setCropZoom(1)
+    setCropOffset({ x: 0, y: 0 })
+    setCropViewportSize(0)
+    cropImageRef.current = null
+    setCropImageSize(null)
     setCropSourceUrl(prev => {
       if (prev) URL.revokeObjectURL(prev)
       return null
     })
+    setCropSourceFile(null)
     setCroppedPreviewUrl(null)
   }
 
   const confirmCropAndUpload = async () => {
-    if (!cropSourceUrl) return
+    if (!cropSourceUrl || !cropSourceFile) return
+    const cropData = getCropData()
+    if (!cropData) return
+    if (cropData.width < 256 || cropData.height < 256) {
+      setCropError('Crop is too small (min 256 × 256)')
+      return
+    }
 
     setCropping(true)
     try {
-      const img = new Image()
-      img.src = cropSourceUrl
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve()
-        img.onerror = () => reject(new Error('Failed to load image'))
-      })
-
-      const side = Math.min(img.naturalWidth, img.naturalHeight)
-      const sx = (img.naturalWidth - side) / 2
-      const sy = (img.naturalHeight - side) / 2
-
-      const canvas = document.createElement('canvas')
-      canvas.width = 256
-      canvas.height = 256
-      const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('Canvas not supported')
-
-      ctx.drawImage(img, sx, sy, side, side, 0, 0, 256, 256)
-
-      const blob = await new Promise<Blob | null>(resolve =>
-        canvas.toBlob(resolve, 'image/webp', 0.85)
-      )
-      if (!blob) throw new Error('Failed to crop image')
-
-      const croppedFile = new File([blob], 'avatar.webp', { type: 'image/webp' })
-      await uploadAvatarFile(croppedFile)
+      await uploadAvatarFile(cropSourceFile, cropData)
       closeCropDialog()
     } catch {
       toast.error('Failed to crop/upload photo')
@@ -1314,16 +1480,74 @@ export default function TutorMyPage() {
               <DialogTitle>Crop Profile Photo</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              {cropSourceUrl ? (
-                <div className="relative overflow-hidden rounded-xl border border-[#E2E8F0] bg-white">
-                  <img
-                    src={cropSourceUrl}
-                    alt="Avatar preview"
-                    className="h-64 w-full object-cover"
-                  />
-                  <div className="pointer-events-none absolute inset-0 m-auto h-44 w-44 border-2 border-[#4FD1C5] opacity-90" />
+              {cropError ? (
+                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {cropError}
                 </div>
               ) : null}
+
+              {cropSourceUrl ? (
+                <div
+                  ref={cropViewportRef}
+                  className="relative mx-auto w-full max-w-[360px] touch-none select-none overflow-hidden rounded-xl border border-[#E2E8F0] bg-white"
+                  style={{ aspectRatio: '1 / 1' }}
+                  onPointerDown={handleCropPointerDown}
+                  onPointerMove={handleCropPointerMove}
+                  onPointerUp={handleCropPointerUp}
+                  onPointerCancel={handleCropPointerUp}
+                >
+                  <img
+                    src={cropSourceUrl}
+                    alt="Avatar crop"
+                    className="absolute left-1/2 top-1/2 max-w-none select-none"
+                    draggable={false}
+                    style={{
+                      transform: `translate(-50%, -50%) translate(${cropOffset.x}px, ${cropOffset.y}px) scale(${
+                        cropImageSize && cropViewportSize
+                          ? cropZoom *
+                            Math.max(
+                              cropViewportSize / cropImageSize.width,
+                              cropViewportSize / cropImageSize.height
+                            )
+                          : 1
+                      })`,
+                    }}
+                  />
+                  <div className="pointer-events-none absolute inset-0 ring-2 ring-[#4FD1C5]/80" />
+                </div>
+              ) : null}
+
+              {cropSourceUrl ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="text-sm font-medium text-[#1F2933]">Zoom</div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-2"
+                      onClick={() => {
+                        setCropError(null)
+                        setCropZoom(1)
+                        setCropOffset({ x: 0, y: 0 })
+                      }}
+                      disabled={cropping || uploadingAvatar}
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      Reset
+                    </Button>
+                  </div>
+                  <Slider
+                    min={1}
+                    max={maxCropZoom}
+                    step={0.01}
+                    value={[cropZoom]}
+                    onValueChange={v => setCropZoom(v[0] ?? 1)}
+                    disabled={cropping || uploadingAvatar}
+                  />
+                </div>
+              ) : null}
+
               {croppedPreviewUrl ? (
                 <div className="flex items-center gap-4">
                   <div className="text-sm font-medium text-[#1F2933]">Preview (256x256)</div>
@@ -1335,8 +1559,7 @@ export default function TutorMyPage() {
                 </div>
               ) : null}
               <p className="text-xs text-[#64748B]">
-                We will crop a centered 1:1 square and upload it as WebP. Server-side processing
-                will also generate 64x64 and 128x128 versions.
+                Drag to position. Crop is locked to 1:1 and will upload exactly as previewed.
               </p>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
@@ -1349,7 +1572,7 @@ export default function TutorMyPage() {
               </Button>
               <Button
                 onClick={() => void confirmCropAndUpload()}
-                disabled={cropping || uploadingAvatar || !cropSourceUrl}
+                disabled={cropping || uploadingAvatar || !cropSourceUrl || !cropSourceFile}
               >
                 {cropping ? 'Cropping...' : 'Crop & Upload'}
               </Button>

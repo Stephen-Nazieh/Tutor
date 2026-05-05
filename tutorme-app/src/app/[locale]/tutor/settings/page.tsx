@@ -388,7 +388,7 @@ export default function TutorSettings() {
     return ['UTC', 'Asia/Shanghai', 'America/New_York', 'Europe/London']
   }, [])
 
-  const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024
+  const MAX_AVATAR_SIZE_BYTES = 10 * 1024 * 1024
   const ACCEPTED_AVATAR_MIME = ['image/jpeg', 'image/png', 'image/webp']
 
   const isAcceptedAvatarFile = (file: File) => {
@@ -409,8 +409,28 @@ export default function TutorSettings() {
       return
     }
     if (file.size > MAX_AVATAR_SIZE_BYTES) {
-      toast.error('Maximum size is 5 MB')
+      toast.error('Maximum size is 10 MB')
       return
+    }
+
+    if (typeof window === 'undefined') return
+    const objectUrl = URL.createObjectURL(file)
+    try {
+      const img = new window.Image()
+      img.src = objectUrl
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = () => reject(new Error('Failed to load image'))
+      })
+      if (img.naturalWidth < 512 || img.naturalHeight < 512) {
+        toast.error('Minimum dimensions: 512 × 512 px')
+        return
+      }
+    } catch {
+      toast.error('Invalid image file')
+      return
+    } finally {
+      URL.revokeObjectURL(objectUrl)
     }
 
     setUploadingAvatar(true)

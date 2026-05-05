@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { profile } from '@/lib/db/schema'
-import { saveAvatar } from '@/lib/registration/register-user'
+import { saveAvatar, type AvatarCropPayload } from '@/lib/registration/register-user'
 
 export const POST = withCsrf(
   withAuth(
@@ -19,7 +19,17 @@ export const POST = withCsrf(
         return NextResponse.json({ error: 'Avatar file is required' }, { status: 400 })
       }
 
-      const avatarUrl = await saveAvatar(session.user.id, file)
+      let crop: AvatarCropPayload | null = null
+      const cropRaw = formData.get('crop')
+      if (typeof cropRaw === 'string' && cropRaw.trim()) {
+        try {
+          crop = JSON.parse(cropRaw) as AvatarCropPayload
+        } catch {
+          return NextResponse.json({ error: 'Invalid crop data' }, { status: 400 })
+        }
+      }
+
+      const avatarUrl = await saveAvatar(session.user.id, file, crop)
 
       const [updated] = await drizzleDb
         .update(profile)

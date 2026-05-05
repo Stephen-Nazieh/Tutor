@@ -33,7 +33,16 @@ import {
 } from '@/lib/mentions/handles'
 import type { NextRequest } from 'next/server'
 
-const MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024
+const MAX_AVATAR_SIZE_BYTES = 10 * 1024 * 1024
+
+export type AvatarCropPayload = {
+  x: number
+  y: number
+  width: number
+  height: number
+  originalWidth: number
+  originalHeight: number
+}
 
 function normalizeHandleSeed(seed: string): string {
   const cleaned = seed
@@ -60,9 +69,13 @@ async function generateUniqueHandle(
   return `user${nanoid(8).toLowerCase()}`.slice(0, 30)
 }
 
-export async function saveAvatar(userId: string, avatarFile: File): Promise<string> {
+export async function saveAvatar(
+  userId: string,
+  avatarFile: File,
+  crop?: AvatarCropPayload | null
+): Promise<string> {
   if (avatarFile.size > MAX_AVATAR_SIZE_BYTES) {
-    throw new ValidationError('Profile photo is too large (max 5MB)')
+    throw new ValidationError('Profile photo is too large (max 10MB)')
   }
 
   const acceptedMimes = new Set(['image/jpeg', 'image/png', 'image/webp'])
@@ -84,8 +97,8 @@ export async function saveAvatar(userId: string, avatarFile: File): Promise<stri
     throw new ValidationError('Invalid image')
   }
 
-  if (width < 300 || height < 300) {
-    throw new ValidationError('Minimum dimensions: 300 × 300 px')
+  if (width < 512 || height < 512) {
+    throw new ValidationError('Minimum dimensions: 512 × 512 px')
   }
 
   if (format && !['jpeg', 'png', 'webp'].includes(format)) {
@@ -124,6 +137,34 @@ export async function saveAvatar(userId: string, avatarFile: File): Promise<stri
     throw new ValidationError('Profile photo failed moderation checks')
   }
 
+  const isFiniteNumber = (value: unknown): value is number =>
+    typeof value === 'number' && Number.isFinite(value)
+
+  const clampInt = (value: number, min: number, max: number) =>
+    Math.min(max, Math.max(min, Math.round(value)))
+
+  const getCropExtract = (inputWidth: number, inputHeight: number) => {
+    if (!crop) return null
+    const { x, y, width, height, originalWidth, originalHeight } = crop
+    const hasNumbers = [x, y, width, height, originalWidth, originalHeight].every(isFiniteNumber)
+    if (!hasNumbers) throw new ValidationError('Invalid crop data')
+    if (width < 256 || height < 256) throw new ValidationError('Crop is too small (min 256 × 256)')
+    if (originalWidth <= 0 || originalHeight <= 0) throw new ValidationError('Invalid crop data')
+    if (Math.abs(width - height) > 2) throw new ValidationError('Crop must be square')
+
+    const scaleX = inputWidth / originalWidth
+    const scaleY = inputHeight / originalHeight
+
+    const left = clampInt(x * scaleX, 0, inputWidth - 1)
+    const top = clampInt(y * scaleY, 0, inputHeight - 1)
+    const w = clampInt(width * scaleX, 1, inputWidth - left)
+    const h = clampInt(height * scaleY, 1, inputHeight - top)
+    const side = Math.min(w, h)
+    if (side < 256) throw new ValidationError('Crop is too small (min 256 × 256)')
+
+    return { left, top, width: side, height: side }
+  }
+
   // Save avatar to file system
   const path = await import('path')
   const { mkdir } = await import('fs/promises')
@@ -142,20 +183,28 @@ export async function saveAvatar(userId: string, avatarFile: File): Promise<stri
     position: 'centre' as const,
   }
 
+  const extract = getCropExtract(width, height)
+  const pipeline = extract ? input.clone().extract(extract) : input.clone()
+
   await Promise.all([
-    input
+    pipeline
       .clone()
       .resize(256, 256, outputCommon)
-      .webp({ quality: 82 })
+      .webp({ quality: 84 })
       .withMetadata({})
       .toFile(out256),
-    input
+    pipeline
       .clone()
       .resize(128, 128, outputCommon)
-      .webp({ quality: 80 })
+      .webp({ quality: 84 })
       .withMetadata({})
       .toFile(out128),
-    input.clone().resize(64, 64, outputCommon).webp({ quality: 78 }).withMetadata({}).toFile(out64),
+    pipeline
+      .clone()
+      .resize(64, 64, outputCommon)
+      .webp({ quality: 84 })
+      .withMetadata({})
+      .toFile(out64),
   ])
 
   return `/${relativeDir}/${baseName}-256.webp`
