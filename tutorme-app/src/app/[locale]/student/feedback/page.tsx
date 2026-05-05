@@ -132,6 +132,7 @@ function StudentFeedbackContent() {
     objectives: string[] | null
     roomUrl: string | null
     token: string | null
+    tutorId: string | null
     tutorUsername: string
     courseCategory: string
     courseId: string | null
@@ -518,6 +519,7 @@ function StudentFeedbackContent() {
               : null,
           roomUrl: data?.roomUrl ?? null,
           token: data?.token ?? null,
+          tutorId: data?.session?.tutorId ?? null,
           tutorUsername: data?.session?.tutor?.profile?.name || 'Tutor',
           courseCategory: data?.session?.category || 'General',
           courseId: data?.session?.courseId ?? null,
@@ -1811,6 +1813,9 @@ function StudentFeedbackContent() {
                         currentPageIndex={tutorBoardPageIndex}
                         onPagesChange={setTutorBoardPages}
                         onPageIndexChange={setTutorBoardPageIndex}
+                        socket={socket}
+                        roomId={selectedSessionId ?? undefined}
+                        filterByUserId={sessionContext?.tutorId ?? undefined}
                       />
                     </div>
                   </TabsContent>

@@ -218,6 +218,7 @@ interface EnhancedWhiteboardProps {
   userName?: string
   userColor?: string
   onRemoteStroke?: (stroke: Stroke) => void
+  filterByUserId?: string
 }
 
 const BACKGROUND_COLORS = [
@@ -251,6 +252,7 @@ export function EnhancedWhiteboard({
   userName,
   userColor,
   onRemoteStroke,
+  filterByUserId,
 }: EnhancedWhiteboardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -1809,7 +1811,11 @@ export function EnhancedWhiteboard({
   useEffect(() => {
     if (!socket || !roomId) return
 
-    const handleStrokeAdded = (data: { stroke: Stroke & { points?: number[] | Point[] } }) => {
+    const handleStrokeAdded = (data: {
+      userId?: string
+      stroke: Stroke & { points?: number[] | Point[] }
+    }) => {
+      if (filterByUserId && data.userId !== filterByUserId) return
       const stroke: Stroke = {
         ...data.stroke,
         points: Array.isArray(data.stroke.points?.[0])
@@ -1829,7 +1835,8 @@ export function EnhancedWhiteboard({
       if (canvas && ctx) drawStrokeDirectly(ctx, stroke)
     }
 
-    const handleShapeAdded = (data: { shape: ShapeElement }) => {
+    const handleShapeAdded = (data: { userId?: string; shape: ShapeElement }) => {
+      if (filterByUserId && data.userId !== filterByUserId) return
       const idx = currentPageIndexRef.current
       const currentPages = pagesRef.current
       if (idx < 0 || idx >= currentPages.length) return
@@ -1848,7 +1855,8 @@ export function EnhancedWhiteboard({
       }
     }
 
-    const handleTextAdded = (data: { text: TextElement }) => {
+    const handleTextAdded = (data: { userId?: string; text: TextElement }) => {
+      if (filterByUserId && data.userId !== filterByUserId) return
       const idx = currentPageIndexRef.current
       const currentPages = pagesRef.current
       if (idx < 0 || idx >= currentPages.length) return
@@ -1868,7 +1876,8 @@ export function EnhancedWhiteboard({
       })
     }
 
-    const handleFormulaAdded = (data: { formula: FormulaElement }) => {
+    const handleFormulaAdded = (data: { userId?: string; formula: FormulaElement }) => {
+      if (filterByUserId && data.userId !== filterByUserId) return
       const idx = currentPageIndexRef.current
       const currentPages = pagesRef.current
       if (idx < 0 || idx >= currentPages.length) return
@@ -1878,7 +1887,8 @@ export function EnhancedWhiteboard({
       onPagesChange?.(newPages)
     }
 
-    const handleGraphAdded = (data: { graph: GraphElement }) => {
+    const handleGraphAdded = (data: { userId?: string; graph: GraphElement }) => {
+      if (filterByUserId && data.userId !== filterByUserId) return
       const idx = currentPageIndexRef.current
       const currentPages = pagesRef.current
       if (idx < 0 || idx >= currentPages.length) return
@@ -1888,7 +1898,7 @@ export function EnhancedWhiteboard({
       onPagesChange?.(newPages)
     }
 
-    const handlePageCleared = (_data: { roomId: string; pageIndex?: number }) => {
+    const handlePageCleared = (_data: { pageIndex?: number }) => {
       const idx = currentPageIndexRef.current
       const currentPages = pagesRef.current
       if (idx < 0 || idx >= currentPages.length) return
@@ -1924,7 +1934,7 @@ export function EnhancedWhiteboard({
       socket.off('whiteboard:cursor:moved', handleCursorMoved)
       socket.off('whiteboard:page:cleared', handlePageCleared)
     }
-  }, [socket, roomId, scale, pan, onPagesChange, onRemoteStroke])
+  }, [socket, roomId, scale, pan, onPagesChange, onRemoteStroke, filterByUserId])
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden rounded-lg bg-slate-900">

@@ -1153,7 +1153,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
         ...wb,
         strokes: [...strokes, stroke],
       }
-      io.to(roomId).emit('whiteboard:stroke:added', stroke)
+      io.to(roomId).emit('whiteboard:stroke:added', { userId: socket.data.userId, stroke })
     })
 
     socket.on('whiteboard:shape:add', (data: { roomId: string; shape: ShapeDelta }) => {
@@ -1171,7 +1171,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
         ...wb,
         shapes: [...shapes, shape],
       }
-      io.to(roomId).emit('whiteboard:shape:added', shape)
+      io.to(roomId).emit('whiteboard:shape:added', { userId: socket.data.userId, shape })
     })
 
     socket.on('whiteboard:text:add', (data: { roomId: string; text: TextDelta }) => {
@@ -1189,7 +1189,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
         ...wb,
         texts: [...texts, text],
       }
-      io.to(roomId).emit('whiteboard:text:added', text)
+      io.to(roomId).emit('whiteboard:text:added', { userId: socket.data.userId, text })
     })
 
     socket.on('whiteboard:cursor:move', (data: { roomId: string; cursor: CursorDelta }) => {
@@ -1202,7 +1202,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
 
       room.lastActivity = Date.now()
       // Cursor movements are ephemeral — no persistence
-      io.to(roomId).emit('whiteboard:cursor:moved', cursor)
+      io.to(roomId).emit('whiteboard:cursor:moved', { cursor })
     })
 
     socket.on('whiteboard:formula:add', (data: { roomId: string; formula: FormulaDelta }) => {
@@ -1217,7 +1217,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
       const wb = (room.whiteboardData || {}) as Record<string, unknown>
       const formulas = (wb.formulas || []) as FormulaDelta[]
       room.whiteboardData = { ...wb, formulas: [...formulas, formula] }
-      io.to(roomId).emit('whiteboard:formula:added', formula)
+      io.to(roomId).emit('whiteboard:formula:added', { userId: socket.data.userId, formula })
     })
 
     socket.on('whiteboard:graph:add', (data: { roomId: string; graph: GraphDelta }) => {
@@ -1232,7 +1232,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
       const wb = (room.whiteboardData || {}) as Record<string, unknown>
       const graphs = (wb.graphs || []) as GraphDelta[]
       room.whiteboardData = { ...wb, graphs: [...graphs, graph] }
-      io.to(roomId).emit('whiteboard:graph:added', graph)
+      io.to(roomId).emit('whiteboard:graph:added', { userId: socket.data.userId, graph })
     })
 
     socket.on('whiteboard:page:clear', (data: { roomId: string; pageIndex: number }) => {
