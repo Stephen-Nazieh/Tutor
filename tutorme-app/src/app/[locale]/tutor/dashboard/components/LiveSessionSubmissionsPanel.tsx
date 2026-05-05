@@ -87,6 +87,7 @@ export function LiveSessionSubmissionsPanel({
   selectedStudentId: string | null
   onSelectStudent: (studentId: string, studentName: string) => void
 }) {
+  const panelInset = 16
   const [data, setData] = useState<LiveSessionSubmissionsResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -219,7 +220,7 @@ export function LiveSessionSubmissionsPanel({
     <>
       <div
         className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full border border-r-0 border-[#E5E7EB] bg-white shadow-[-2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
-        style={{ right: hidden ? 0 : width - 16 }}
+        style={{ right: hidden ? 0 : panelInset + width - 16 }}
         onClick={() => onToggleHidden(!hidden)}
         title={hidden ? 'Show live submissions' : 'Hide live submissions'}
       >
@@ -232,12 +233,12 @@ export function LiveSessionSubmissionsPanel({
 
       {!hidden && (
         <div
-          className="absolute right-0 top-0 z-40 flex h-full flex-col overflow-hidden rounded-l-2xl border-l border-[#E5E7EB] bg-white shadow-[-8px_0_20px_rgba(0,0,0,0.06)]"
+          className="absolute bottom-4 right-4 top-4 z-40 flex flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)]"
           style={{ width }}
         >
-          <div className="flex items-center justify-between border-b px-4 py-3">
+          <div className="flex items-center justify-between px-4 py-3">
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold text-[#1F2933]">Live Submissions</div>
+              <div className="truncate text-sm font-semibold text-[#1F2933]">Submissions</div>
               <div className="mt-0.5 truncate text-xs text-slate-500">{sessionTitle}</div>
             </div>
             <Button
