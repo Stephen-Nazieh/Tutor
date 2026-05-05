@@ -130,23 +130,13 @@ export function LiveSessionSubmissionsPanel({
     }))
   }, [selectedStudentId])
 
-  const participants = useMemo(() => {
-    const list =
-      (data?.participants || [])
-        .filter(s => !!s.studentId)
-        .map(s => ({ studentId: s.studentId, name: s.studentName || 'Student' })) || []
-    return list.sort((a, b) => a.name.localeCompare(b.name))
-  }, [data])
-
-  const enrolledOnly = useMemo(() => {
+  const enrolledStudents = useMemo(() => {
     const list =
       (data?.enrolled || [])
         .filter(s => !!s.studentId)
         .map(s => ({ studentId: s.studentId, name: s.studentName || 'Student' })) || []
-    const set = new Set(participants.map(p => p.studentId))
-    const filtered = list.filter(s => !set.has(s.studentId))
-    return filtered.sort((a, b) => a.name.localeCompare(b.name))
-  }, [data, participants])
+    return list.sort((a, b) => a.name.localeCompare(b.name))
+  }, [data])
 
   const deployed = useMemo(() => {
     const d = data?.deployed || []
@@ -274,42 +264,15 @@ export function LiveSessionSubmissionsPanel({
                 {open.root && (
                   <div className="pl-4">
                     <FolderRow
-                      isOpen={!!open.participants}
-                      onToggle={() => toggle('participants')}
-                      icon={<Folder className="h-4 w-4 text-slate-500" />}
-                      title="Participants"
-                      subtitle={`${participants.length}`}
-                    />
-
-                    {open.participants &&
-                      participants.map(st => (
-                        <StudentNode
-                          key={`p_${st.studentId}`}
-                          student={st}
-                          isSelected={selectedStudentId === st.studentId}
-                          open={open}
-                          toggle={toggle}
-                          submitted={{
-                            task: filterSubmitted(st.studentId, 'task'),
-                            assessment: filterSubmitted(st.studentId, 'assessment'),
-                            homework: filterSubmitted(st.studentId, 'homework'),
-                          }}
-                          buildLeaf={(type, item) => buildLeaf(st.studentId, st.name, type, item)}
-                          onSelectLeaf={setSelected}
-                          onSelectStudent={() => onSelectStudent(st.studentId, st.name)}
-                        />
-                      ))}
-
-                    <FolderRow
                       isOpen={!!open.enrolled}
                       onToggle={() => toggle('enrolled')}
                       icon={<Folder className="h-4 w-4 text-slate-500" />}
                       title="Enrolled"
-                      subtitle={`${enrolledOnly.length}`}
+                      subtitle={`${enrolledStudents.length}`}
                     />
 
                     {open.enrolled &&
-                      enrolledOnly.map(st => (
+                      enrolledStudents.map(st => (
                         <StudentNode
                           key={`e_${st.studentId}`}
                           student={st}

@@ -136,19 +136,6 @@ export function SubmissionsPanel({
     return map
   }, [sessions, lessons])
 
-  const participantsBySession = useMemo(() => {
-    const map: Record<string, { studentId: string; name: string }[]> = {}
-    ;(data?.sessionParticipants || []).forEach(p => {
-      if (!p.sessionId || !p.studentId) return
-      if (!map[p.sessionId]) map[p.sessionId] = []
-      map[p.sessionId].push({ studentId: p.studentId, name: p.studentName || 'Student' })
-    })
-    Object.keys(map).forEach(sessionId => {
-      map[sessionId] = map[sessionId].sort((a, b) => a.name.localeCompare(b.name))
-    })
-    return map
-  }, [data])
-
   const enrolled = useMemo(() => {
     const list =
       (data?.enrolledStudents || [])
@@ -266,10 +253,6 @@ export function SubmissionsPanel({
                       {open[`lesson_${lesson.id}`] &&
                         (sessionsByLessonId[lesson.id] || []).map((session, idx) => {
                           const sessionKey = `session_${session.id}`
-                          const participants = participantsBySession[session.id] || []
-                          const enrolledOnly = enrolled.filter(
-                            s => !participants.some(p => p.studentId === s.studentId)
-                          )
                           return (
                             <div key={session.id} className="pl-4">
                               <FolderRow
@@ -283,38 +266,15 @@ export function SubmissionsPanel({
                               {open[sessionKey] && (
                                 <div className="pl-4">
                                   <FolderRow
-                                    isOpen={!!open[`${sessionKey}_participants`]}
-                                    onToggle={() => toggle(`${sessionKey}_participants`)}
-                                    icon={<Folder className="h-4 w-4 text-slate-500" />}
-                                    title="Participants"
-                                    subtitle={`${participants.length}`}
-                                  />
-
-                                  {open[`${sessionKey}_participants`] &&
-                                    participants.map(st => (
-                                      <StudentNode
-                                        key={`${session.id}_${st.studentId}_p`}
-                                        session={session}
-                                        student={st}
-                                        deployedBySession={deployedBySession}
-                                        submissionMap={submissionMap}
-                                        reportMap={reportMap}
-                                        open={open}
-                                        toggle={toggle}
-                                        onSelect={setSelected}
-                                      />
-                                    ))}
-
-                                  <FolderRow
                                     isOpen={!!open[`${sessionKey}_enrolled`]}
                                     onToggle={() => toggle(`${sessionKey}_enrolled`)}
                                     icon={<Folder className="h-4 w-4 text-slate-500" />}
                                     title="Enrolled"
-                                    subtitle={`${enrolledOnly.length}`}
+                                    subtitle={`${enrolled.length}`}
                                   />
 
                                   {open[`${sessionKey}_enrolled`] &&
-                                    enrolledOnly.map(st => (
+                                    enrolled.map(st => (
                                       <StudentNode
                                         key={`${session.id}_${st.studentId}_e`}
                                         session={session}
