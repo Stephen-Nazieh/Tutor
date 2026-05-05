@@ -1225,7 +1225,11 @@ export function EnhancedWhiteboard({
         }
         updateCurrentPage({ ...currentPage, shapes: [...currentPage.shapes, newShape] })
         if (socket && roomId) {
-          socket.emit('whiteboard:shape:add', { roomId, shape: newShape, pageIndex: currentPageIndexRef.current })
+          socket.emit('whiteboard:shape:add', {
+            roomId,
+            shape: newShape,
+            pageIndex: currentPageIndexRef.current,
+          })
         }
         setLineStart(null)
         setTempLineEnd(null)
@@ -1436,7 +1440,11 @@ export function EnhancedWhiteboard({
       }
       updateCurrentPage({ ...currentPage, shapes: [...currentPage.shapes, newShape] })
       if (socket && roomId) {
-        socket.emit('whiteboard:shape:add', { roomId, shape: newShape, pageIndex: currentPageIndexRef.current })
+        socket.emit('whiteboard:shape:add', {
+          roomId,
+          shape: newShape,
+          pageIndex: currentPageIndexRef.current,
+        })
       }
       setShapeStart(null)
       setTempShape(null)
@@ -1504,7 +1512,11 @@ export function EnhancedWhiteboard({
 
     updateCurrentPage({ ...currentPage, texts: [...currentPage.texts, newText] })
     if (socket && roomId) {
-      socket.emit('whiteboard:text:add', { roomId, text: newText, pageIndex: currentPageIndexRef.current })
+      socket.emit('whiteboard:text:add', {
+        roomId,
+        text: newText,
+        pageIndex: currentPageIndexRef.current,
+      })
     }
     setTextOverlays(overlays => overlays.filter(o => o.id !== overlayId))
   }
@@ -1704,7 +1716,11 @@ export function EnhancedWhiteboard({
 
       updateCurrentPage({ ...currentPage, formulas: [...currentPage.formulas, formula] })
       if (socket && roomId) {
-        socket.emit('whiteboard:formula:add', { roomId, formula, pageIndex: currentPageIndexRef.current })
+        socket.emit('whiteboard:formula:add', {
+          roomId,
+          formula,
+          pageIndex: currentPageIndexRef.current,
+        })
       }
     } catch (err) {
       console.error('Failed to place formula:', err)
@@ -1758,7 +1774,11 @@ export function EnhancedWhiteboard({
           }
           updateCurrentPage({ ...currentPage, texts: [...currentPage.texts, newText] })
           if (socket && roomId) {
-            socket.emit('whiteboard:text:add', { roomId, text: newText, pageIndex: currentPageIndexRef.current })
+            socket.emit('whiteboard:text:add', {
+              roomId,
+              text: newText,
+              pageIndex: currentPageIndexRef.current,
+            })
           }
         }
         setInlineTextInput(null)

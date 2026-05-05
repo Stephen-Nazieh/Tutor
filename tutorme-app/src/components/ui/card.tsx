@@ -95,7 +95,10 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, elevation, interactive, hoverable, variant, padding, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(cardVariants({ elevation, interactive, hoverable, variant, padding }), className)}
+      className={cn(
+        cardVariants({ elevation, interactive, hoverable, variant, padding }),
+        className
+      )}
       {...props}
     />
   )

@@ -104,7 +104,10 @@ export async function POST(req: NextRequest) {
           .select()
           .from(payment)
           .where(
-            and(eq(payment.gateway, 'HITPAY'), or(...ids.map(id => eq(payment.gatewayPaymentId, id))))
+            and(
+              eq(payment.gateway, 'HITPAY'),
+              or(...ids.map(id => eq(payment.gatewayPaymentId, id)))
+            )
           )
           .limit(1)
       }

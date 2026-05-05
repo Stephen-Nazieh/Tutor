@@ -151,8 +151,7 @@ export default function StudentSettings() {
     )
   }
 
-  const sectionCardClass =
-    'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
+  const sectionCardClass = 'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
 
   const copyValue = async (kind: 'studentId' | 'accountId', value: string) => {
     if (!value) return

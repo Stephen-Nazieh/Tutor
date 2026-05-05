@@ -1138,59 +1138,76 @@ export async function initEnhancedSocketServer(server: NetServer) {
     )
 
     // Incremental whiteboard delta sync handlers
-    socket.on('whiteboard:stroke:add', (data: { roomId: string; stroke: StrokeDelta; pageIndex?: number }) => {
-      if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
-      const { roomId, stroke, pageIndex } = data || ({} as any)
-      if (!roomId || !stroke) return
+    socket.on(
+      'whiteboard:stroke:add',
+      (data: { roomId: string; stroke: StrokeDelta; pageIndex?: number }) => {
+        if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
+        const { roomId, stroke, pageIndex } = data || ({} as any)
+        if (!roomId || !stroke) return
 
-      const room = activeRooms.get(roomId)
-      if (!room) return
+        const room = activeRooms.get(roomId)
+        if (!room) return
 
-      room.lastActivity = Date.now()
-      const wb = (room.whiteboardData || {}) as Record<string, unknown>
-      const strokes = (wb.strokes || []) as StrokeDelta[]
-      room.whiteboardData = {
-        ...wb,
-        strokes: [...strokes, { ...stroke, pageIndex }],
+        room.lastActivity = Date.now()
+        const wb = (room.whiteboardData || {}) as Record<string, unknown>
+        const strokes = (wb.strokes || []) as StrokeDelta[]
+        room.whiteboardData = {
+          ...wb,
+          strokes: [...strokes, { ...stroke, pageIndex }],
+        }
+        io.to(roomId).emit('whiteboard:stroke:added', {
+          userId: socket.data.userId,
+          stroke,
+          pageIndex,
+        })
       }
-      io.to(roomId).emit('whiteboard:stroke:added', { userId: socket.data.userId, stroke, pageIndex })
-    })
+    )
 
-    socket.on('whiteboard:shape:add', (data: { roomId: string; shape: ShapeDelta; pageIndex?: number }) => {
-      if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
-      const { roomId, shape, pageIndex } = data || ({} as any)
-      if (!roomId || !shape) return
+    socket.on(
+      'whiteboard:shape:add',
+      (data: { roomId: string; shape: ShapeDelta; pageIndex?: number }) => {
+        if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
+        const { roomId, shape, pageIndex } = data || ({} as any)
+        if (!roomId || !shape) return
 
-      const room = activeRooms.get(roomId)
-      if (!room) return
+        const room = activeRooms.get(roomId)
+        if (!room) return
 
-      room.lastActivity = Date.now()
-      const wb = (room.whiteboardData || {}) as Record<string, unknown>
-      const shapes = (wb.shapes || []) as ShapeDelta[]
-      room.whiteboardData = {
-        ...wb,
-        shapes: [...shapes, { ...shape, pageIndex }],
+        room.lastActivity = Date.now()
+        const wb = (room.whiteboardData || {}) as Record<string, unknown>
+        const shapes = (wb.shapes || []) as ShapeDelta[]
+        room.whiteboardData = {
+          ...wb,
+          shapes: [...shapes, { ...shape, pageIndex }],
+        }
+        io.to(roomId).emit('whiteboard:shape:added', {
+          userId: socket.data.userId,
+          shape,
+          pageIndex,
+        })
       }
-      io.to(roomId).emit('whiteboard:shape:added', { userId: socket.data.userId, shape, pageIndex })
-    })
+    )
 
-    socket.on('whiteboard:text:add', (data: { roomId: string; text: TextDelta; pageIndex?: number }) => {
-      if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
-      const { roomId, text, pageIndex } = data || ({} as any)
-      if (!roomId || !text) return
+    socket.on(
+      'whiteboard:text:add',
+      (data: { roomId: string; text: TextDelta; pageIndex?: number }) => {
+        if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
+        const { roomId, text, pageIndex } = data || ({} as any)
+        if (!roomId || !text) return
 
-      const room = activeRooms.get(roomId)
-      if (!room) return
+        const room = activeRooms.get(roomId)
+        if (!room) return
 
-      room.lastActivity = Date.now()
-      const wb = (room.whiteboardData || {}) as Record<string, unknown>
-      const texts = (wb.texts || []) as TextDelta[]
-      room.whiteboardData = {
-        ...wb,
-        texts: [...texts, { ...text, pageIndex }],
+        room.lastActivity = Date.now()
+        const wb = (room.whiteboardData || {}) as Record<string, unknown>
+        const texts = (wb.texts || []) as TextDelta[]
+        room.whiteboardData = {
+          ...wb,
+          texts: [...texts, { ...text, pageIndex }],
+        }
+        io.to(roomId).emit('whiteboard:text:added', { userId: socket.data.userId, text, pageIndex })
       }
-      io.to(roomId).emit('whiteboard:text:added', { userId: socket.data.userId, text, pageIndex })
-    })
+    )
 
     socket.on('whiteboard:cursor:move', (data: { roomId: string; cursor: CursorDelta }) => {
       if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
@@ -1205,35 +1222,49 @@ export async function initEnhancedSocketServer(server: NetServer) {
       io.to(roomId).emit('whiteboard:cursor:moved', { cursor })
     })
 
-    socket.on('whiteboard:formula:add', (data: { roomId: string; formula: FormulaDelta; pageIndex?: number }) => {
-      if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
-      const { roomId, formula, pageIndex } = data || ({} as any)
-      if (!roomId || !formula) return
+    socket.on(
+      'whiteboard:formula:add',
+      (data: { roomId: string; formula: FormulaDelta; pageIndex?: number }) => {
+        if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
+        const { roomId, formula, pageIndex } = data || ({} as any)
+        if (!roomId || !formula) return
 
-      const room = activeRooms.get(roomId)
-      if (!room) return
+        const room = activeRooms.get(roomId)
+        if (!room) return
 
-      room.lastActivity = Date.now()
-      const wb = (room.whiteboardData || {}) as Record<string, unknown>
-      const formulas = (wb.formulas || []) as FormulaDelta[]
-      room.whiteboardData = { ...wb, formulas: [...formulas, { ...formula, pageIndex }] }
-      io.to(roomId).emit('whiteboard:formula:added', { userId: socket.data.userId, formula, pageIndex })
-    })
+        room.lastActivity = Date.now()
+        const wb = (room.whiteboardData || {}) as Record<string, unknown>
+        const formulas = (wb.formulas || []) as FormulaDelta[]
+        room.whiteboardData = { ...wb, formulas: [...formulas, { ...formula, pageIndex }] }
+        io.to(roomId).emit('whiteboard:formula:added', {
+          userId: socket.data.userId,
+          formula,
+          pageIndex,
+        })
+      }
+    )
 
-    socket.on('whiteboard:graph:add', (data: { roomId: string; graph: GraphDelta; pageIndex?: number }) => {
-      if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
-      const { roomId, graph, pageIndex } = data || ({} as any)
-      if (!roomId || !graph) return
+    socket.on(
+      'whiteboard:graph:add',
+      (data: { roomId: string; graph: GraphDelta; pageIndex?: number }) => {
+        if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return
+        const { roomId, graph, pageIndex } = data || ({} as any)
+        if (!roomId || !graph) return
 
-      const room = activeRooms.get(roomId)
-      if (!room) return
+        const room = activeRooms.get(roomId)
+        if (!room) return
 
-      room.lastActivity = Date.now()
-      const wb = (room.whiteboardData || {}) as Record<string, unknown>
-      const graphs = (wb.graphs || []) as GraphDelta[]
-      room.whiteboardData = { ...wb, graphs: [...graphs, { ...graph, pageIndex }] }
-      io.to(roomId).emit('whiteboard:graph:added', { userId: socket.data.userId, graph, pageIndex })
-    })
+        room.lastActivity = Date.now()
+        const wb = (room.whiteboardData || {}) as Record<string, unknown>
+        const graphs = (wb.graphs || []) as GraphDelta[]
+        room.whiteboardData = { ...wb, graphs: [...graphs, { ...graph, pageIndex }] }
+        io.to(roomId).emit('whiteboard:graph:added', {
+          userId: socket.data.userId,
+          graph,
+          pageIndex,
+        })
+      }
+    )
 
     socket.on('whiteboard:page:clear', (data: { roomId: string; pageIndex: number }) => {
       if (socket.data.role !== 'tutor' && socket.data.role !== 'student') return

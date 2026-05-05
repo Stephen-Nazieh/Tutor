@@ -7,4 +7,3 @@ export const GET = async () => {
     version: process.env.APP_VERSION ?? null,
   })
 }
-

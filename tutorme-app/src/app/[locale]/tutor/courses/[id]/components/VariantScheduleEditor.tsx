@@ -433,9 +433,7 @@ export function VariantScheduleEditor({
                 <CalendarIcon className="h-5 w-5 text-white/80" />
                 Schedule Summary
               </div>
-              <div className="mt-1 text-xs font-medium text-white/70">
-                Times in {timezoneLabel}
-              </div>
+              <div className="mt-1 text-xs font-medium text-white/70">Times in {timezoneLabel}</div>
             </div>
           </div>
 

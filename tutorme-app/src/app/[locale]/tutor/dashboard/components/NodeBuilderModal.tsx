@@ -29,9 +29,7 @@ export function NodeBuilderModal({ isOpen, onClose, onSave, initialData }: NodeB
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent
-        className="max-h-[90vh] max-w-2xl overflow-y-auto"
-      >
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-blue-500" />

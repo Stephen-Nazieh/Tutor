@@ -241,7 +241,9 @@ export function ModernHeroSection({
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold">{event.title}</p>
-                    <p className="text-sm text-slate-600">{event.time} • {event.duration} min</p>
+                    <p className="text-sm text-slate-600">
+                      {event.time} • {event.duration} min
+                    </p>
                   </div>
                 </div>
               ))}

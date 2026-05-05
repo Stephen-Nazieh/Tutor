@@ -43,8 +43,7 @@ const guides = [
 ]
 
 export default function StudentHelpPage() {
-  const sectionCardClass =
-    'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
+  const sectionCardClass = 'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
 
   return (
     <div className="min-h-screen w-full bg-white px-4 py-8 sm:px-6 lg:px-8">

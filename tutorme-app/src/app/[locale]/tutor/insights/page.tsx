@@ -711,7 +711,12 @@ function TutorInsightsPageInner() {
               const id = s?.userId ?? s?.id
               if (!id) return
               const existing = map.get(id) || {}
-              map.set(id, { ...existing, ...s, id, status: s.status || existing.status || 'online' })
+              map.set(id, {
+                ...existing,
+                ...s,
+                id,
+                status: s.status || existing.status || 'online',
+              })
             })
             return Array.from(map.values())
           })
@@ -732,7 +737,9 @@ function TutorInsightsPageInner() {
       },
       onStudentLeft: (userId: string) => {
         setStudents(prev =>
-          prev.map(s => (((s as any)?.userId ?? s?.id) === userId ? { ...s, status: 'offline' } : s))
+          prev.map(s =>
+            ((s as any)?.userId ?? s?.id) === userId ? { ...s, status: 'offline' } : s
+          )
         )
       },
       onStudentStateUpdate: (data: { userId: string; state: any }) => {
@@ -837,8 +844,7 @@ function TutorInsightsPageInner() {
       setStudentBoards(prev => {
         const board = getOrCreateBoard(prev, payload.userId)
         const pages = [...(board.pages as any[])]
-        const pageIdx =
-          payload.pageIndex ?? payload.stroke?.pageIndex ?? board.pageIndex ?? 0
+        const pageIdx = payload.pageIndex ?? payload.stroke?.pageIndex ?? board.pageIndex ?? 0
         if (pageIdx >= pages.length) {
           // Ensure the page exists
           while (pages.length <= pageIdx) {
@@ -872,8 +878,7 @@ function TutorInsightsPageInner() {
       setStudentBoards(prev => {
         const board = getOrCreateBoard(prev, payload.userId)
         const pages = [...(board.pages as any[])]
-        const pageIdx =
-          payload.pageIndex ?? payload.shape?.pageIndex ?? board.pageIndex ?? 0
+        const pageIdx = payload.pageIndex ?? payload.shape?.pageIndex ?? board.pageIndex ?? 0
         if (pageIdx >= pages.length) {
           while (pages.length <= pageIdx) {
             pages.push({
@@ -905,8 +910,7 @@ function TutorInsightsPageInner() {
       setStudentBoards(prev => {
         const board = getOrCreateBoard(prev, payload.userId)
         const pages = [...(board.pages as any[])]
-        const pageIdx =
-          payload.pageIndex ?? payload.text?.pageIndex ?? board.pageIndex ?? 0
+        const pageIdx = payload.pageIndex ?? payload.text?.pageIndex ?? board.pageIndex ?? 0
         if (pageIdx >= pages.length) {
           while (pages.length <= pageIdx) {
             pages.push({

@@ -280,14 +280,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       )}
 
       {/* Main Content */}
-      <main
-        className={cn(
-          'min-h-screen flex-1',
-          'pt-0'
-        )}
-      >
-        {children}
-      </main>
+      <main className={cn('min-h-screen flex-1', 'pt-0')}>{children}</main>
     </div>
   )
 }

@@ -5,7 +5,13 @@ import { oneOnOneBookingRequest, profile, user } from '@/lib/db/schema'
 import { notify } from '@/lib/notifications/notify'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
-import { withAuth, withCsrf, ForbiddenError, ValidationError, NotFoundError } from '@/lib/api/middleware'
+import {
+  withAuth,
+  withCsrf,
+  ForbiddenError,
+  ValidationError,
+  NotFoundError,
+} from '@/lib/api/middleware'
 import { parseJson } from '@/lib/api/parse'
 
 const requestSchema = z.object({
@@ -130,78 +136,78 @@ export const POST = withCsrf(
 
 // Get all pending requests for the current user (student or tutor)
 export const GET = withAuth(async (request: NextRequest, session) => {
-    const { searchParams } = new URL(request.url)
-    const role = searchParams.get('role') // 'sent' or 'received'
-    const requestId = searchParams.get('requestId')
+  const { searchParams } = new URL(request.url)
+  const role = searchParams.get('role') // 'sent' or 'received'
+  const requestId = searchParams.get('requestId')
 
-    if (requestId) {
-      const requestRow = await drizzleDb.query.oneOnOneBookingRequest.findFirst({
-        where: eq(oneOnOneBookingRequest.requestId, requestId),
-      })
+  if (requestId) {
+    const requestRow = await drizzleDb.query.oneOnOneBookingRequest.findFirst({
+      where: eq(oneOnOneBookingRequest.requestId, requestId),
+    })
 
-      if (!requestRow) throw new NotFoundError('Request not found')
+    if (!requestRow) throw new NotFoundError('Request not found')
 
-      const isOwner =
-        requestRow.studentId === session.user.id || requestRow.tutorId === session.user.id
-      if (!isOwner && session.user.role !== 'ADMIN') {
-        throw new ForbiddenError('Unauthorized')
-      }
-
-      const [tutorRow] = await drizzleDb
-        .select({
-          userId: user.userId,
-          handle: user.handle,
-          image: user.image,
-          name: profile.name,
-          currency: profile.currency,
-        })
-        .from(user)
-        .leftJoin(profile, eq(profile.userId, user.userId))
-        .where(eq(user.userId, requestRow.tutorId))
-        .limit(1)
-
-      return NextResponse.json({
-        request: requestRow,
-        tutor: tutorRow ?? null,
-      })
+    const isOwner =
+      requestRow.studentId === session.user.id || requestRow.tutorId === session.user.id
+    if (!isOwner && session.user.role !== 'ADMIN') {
+      throw new ForbiddenError('Unauthorized')
     }
 
-    let requests
-    if (role === 'sent' || session.user.role === 'STUDENT') {
-      // Get requests sent by current user (as student)
-      requests = await drizzleDb.query.oneOnOneBookingRequest.findMany({
-        where: eq(oneOnOneBookingRequest.studentId, session.user.id),
-        orderBy: (oneOnOneBookingRequest, { desc }) => [desc(oneOnOneBookingRequest.createdAt)],
-        with: {
-          tutor: {
-            columns: {
-              userId: true,
-              handle: true,
-              email: true,
-              image: true,
-            },
-          },
-        },
+    const [tutorRow] = await drizzleDb
+      .select({
+        userId: user.userId,
+        handle: user.handle,
+        image: user.image,
+        name: profile.name,
+        currency: profile.currency,
       })
-    } else if (role === 'received' || session.user.role === 'TUTOR') {
-      // Get requests received by current user (as tutor)
-      requests = await drizzleDb.query.oneOnOneBookingRequest.findMany({
-        where: eq(oneOnOneBookingRequest.tutorId, session.user.id),
-        orderBy: (oneOnOneBookingRequest, { desc }) => [desc(oneOnOneBookingRequest.createdAt)],
-        with: {
-          student: {
-            columns: {
-              userId: true,
-              handle: true,
-              email: true,
-              image: true,
-            },
-          },
-        },
-      })
-    } else {
-      throw new ValidationError('Invalid role parameter')
-    }
+      .from(user)
+      .leftJoin(profile, eq(profile.userId, user.userId))
+      .where(eq(user.userId, requestRow.tutorId))
+      .limit(1)
 
-    return NextResponse.json({ requests })
+    return NextResponse.json({
+      request: requestRow,
+      tutor: tutorRow ?? null,
+    })
+  }
+
+  let requests
+  if (role === 'sent' || session.user.role === 'STUDENT') {
+    // Get requests sent by current user (as student)
+    requests = await drizzleDb.query.oneOnOneBookingRequest.findMany({
+      where: eq(oneOnOneBookingRequest.studentId, session.user.id),
+      orderBy: (oneOnOneBookingRequest, { desc }) => [desc(oneOnOneBookingRequest.createdAt)],
+      with: {
+        tutor: {
+          columns: {
+            userId: true,
+            handle: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+    })
+  } else if (role === 'received' || session.user.role === 'TUTOR') {
+    // Get requests received by current user (as tutor)
+    requests = await drizzleDb.query.oneOnOneBookingRequest.findMany({
+      where: eq(oneOnOneBookingRequest.tutorId, session.user.id),
+      orderBy: (oneOnOneBookingRequest, { desc }) => [desc(oneOnOneBookingRequest.createdAt)],
+      with: {
+        student: {
+          columns: {
+            userId: true,
+            handle: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+    })
+  } else {
+    throw new ValidationError('Invalid role parameter')
+  }
+
+  return NextResponse.json({ requests })
 })

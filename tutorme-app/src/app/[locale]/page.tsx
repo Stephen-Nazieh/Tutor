@@ -1314,7 +1314,11 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
           <div className="flex items-start gap-3">
             <div className="h-10 w-10 overflow-hidden rounded-full border border-white/40 bg-white/60">
               {item?.avatarUrl ? (
-                <img src={item.avatarUrl} alt={item?.name || 'Tutor'} className="h-full w-full object-cover" />
+                <img
+                  src={item.avatarUrl}
+                  alt={item?.name || 'Tutor'}
+                  className="h-full w-full object-cover"
+                />
               ) : null}
             </div>
             <div className="min-w-0 flex-1">
@@ -1332,7 +1336,9 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
             </div>
           </div>
           <div className="mt-3 flex items-center justify-between text-xs font-semibold text-slate-600">
-            <div className="truncate">{typeof item?.courseCount === 'number' ? `${item.courseCount} courses` : ''}</div>
+            <div className="truncate">
+              {typeof item?.courseCount === 'number' ? `${item.courseCount} courses` : ''}
+            </div>
             <div className="text-[#1D4ED8]">View</div>
           </div>
         </div>
@@ -2000,7 +2006,10 @@ const SpecialAccessSection = ({
       const rect = triggerRef.current?.getBoundingClientRect()
       if (!rect) return
 
-      const left = Math.min(window.innerWidth - width - margin, Math.max(margin, rect.right - width))
+      const left = Math.min(
+        window.innerWidth - width - margin,
+        Math.max(margin, rect.right - width)
+      )
       const top =
         popoverPlacement === 'bottom'
           ? rect.bottom + margin
@@ -2778,7 +2787,7 @@ export default function LandingPage() {
                     placeholder="Search tutors, courses, categories..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="ml-4 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-none"
+                    className="ml-4 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                   <button
                     type="submit"

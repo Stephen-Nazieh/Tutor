@@ -881,84 +881,84 @@ function CoursePageInner() {
           </DialogHeader>
           <div className="pt-4">
             <div className="rounded-[14px] border border-[rgba(226,232,240,0.9)] bg-white p-6 text-[#1F2933] shadow-[0_10px_24px_rgba(15,23,42,0.16)]">
-            {isLoadingSessions ? (
-              <DialogPanel className="p-6">
-                <div className="flex justify-center p-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
-                </div>
-              </DialogPanel>
-            ) : sessionLoadError ? (
-              <DialogPanel className="p-6">
-                <div className="py-8 text-center">
-                  <p className="text-sm font-medium text-red-700">Failed to load sessions</p>
-                  <p className="mt-1 text-xs text-red-600">{sessionLoadError}</p>
-                  <Button
-                    variant="modal-secondary"
-                    size="sm"
-                    className="mt-3 h-10"
-                    onClick={() => {
-                      if (sessionsCourseId) handleEnterClass(sessionsCourseId)
-                    }}
-                  >
-                    Retry
-                  </Button>
-                </div>
-              </DialogPanel>
-            ) : courseSessions.length === 0 ? (
-              <DialogPanel className="p-6">
-                <div className="py-6 text-center">
-                  <p className="text-sm font-medium text-gray-700">
-                    No live sessions have been created yet.
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Your tutor will start a session based on the course schedule.
-                  </p>
-                  {(() => {
-                    const course = myCourses.find(c => c.id === sessionsCourseId)
-                    const slots = course?.availability?.slots || []
-                    if (slots.length > 0) {
-                      return (
-                        <div className="mt-3 space-y-1.5">
-                          <p className="text-xs font-medium text-gray-600">Upcoming schedule:</p>
-                          {slots.map((slot: any, idx: number) => (
-                            <div
-                              key={idx}
-                              className="mx-auto flex max-w-xs items-center justify-between rounded-md border bg-white px-3 py-1.5 text-xs"
-                            >
-                              <span className="font-medium text-gray-700">{slot.day}</span>
-                              <span className="text-gray-500">
-                                {slot.time} ({slot.durationMinutes || 60} mins)
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )
-                    }
-                    return null
-                  })()}
-                </div>
-              </DialogPanel>
-            ) : (
-              <SessionList
-                sessions={courseSessions}
-                sessionsCourseName={sessionsCourseName}
-                sessionsTutorHandle={sessionsTutorHandle}
-                showAll={showAllSessions}
-                onToggleShowAll={() => setShowAllSessions(!showAllSessions)}
-                onEnterSession={(sessionId: string) => {
-                  setSessionsCourseId(null)
-                  const nameParam = sessionsCourseName
-                    ? `&courseName=${encodeURIComponent(sessionsCourseName)}`
-                    : ''
-                  const tutorParam = sessionsTutorHandle
-                    ? `&tutorHandle=${encodeURIComponent(sessionsTutorHandle)}`
-                    : ''
-                  router.push(`/student/feedback?sessionId=${sessionId}${nameParam}${tutorParam}`)
-                }}
-                onRequestMaterials={handleRequestMaterials}
-                requestingSessionId={requestingSessionId}
-              />
-            )}
+              {isLoadingSessions ? (
+                <DialogPanel className="p-6">
+                  <div className="flex justify-center p-8">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
+                  </div>
+                </DialogPanel>
+              ) : sessionLoadError ? (
+                <DialogPanel className="p-6">
+                  <div className="py-8 text-center">
+                    <p className="text-sm font-medium text-red-700">Failed to load sessions</p>
+                    <p className="mt-1 text-xs text-red-600">{sessionLoadError}</p>
+                    <Button
+                      variant="modal-secondary"
+                      size="sm"
+                      className="mt-3 h-10"
+                      onClick={() => {
+                        if (sessionsCourseId) handleEnterClass(sessionsCourseId)
+                      }}
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                </DialogPanel>
+              ) : courseSessions.length === 0 ? (
+                <DialogPanel className="p-6">
+                  <div className="py-6 text-center">
+                    <p className="text-sm font-medium text-gray-700">
+                      No live sessions have been created yet.
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Your tutor will start a session based on the course schedule.
+                    </p>
+                    {(() => {
+                      const course = myCourses.find(c => c.id === sessionsCourseId)
+                      const slots = course?.availability?.slots || []
+                      if (slots.length > 0) {
+                        return (
+                          <div className="mt-3 space-y-1.5">
+                            <p className="text-xs font-medium text-gray-600">Upcoming schedule:</p>
+                            {slots.map((slot: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="mx-auto flex max-w-xs items-center justify-between rounded-md border bg-white px-3 py-1.5 text-xs"
+                              >
+                                <span className="font-medium text-gray-700">{slot.day}</span>
+                                <span className="text-gray-500">
+                                  {slot.time} ({slot.durationMinutes || 60} mins)
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      }
+                      return null
+                    })()}
+                  </div>
+                </DialogPanel>
+              ) : (
+                <SessionList
+                  sessions={courseSessions}
+                  sessionsCourseName={sessionsCourseName}
+                  sessionsTutorHandle={sessionsTutorHandle}
+                  showAll={showAllSessions}
+                  onToggleShowAll={() => setShowAllSessions(!showAllSessions)}
+                  onEnterSession={(sessionId: string) => {
+                    setSessionsCourseId(null)
+                    const nameParam = sessionsCourseName
+                      ? `&courseName=${encodeURIComponent(sessionsCourseName)}`
+                      : ''
+                    const tutorParam = sessionsTutorHandle
+                      ? `&tutorHandle=${encodeURIComponent(sessionsTutorHandle)}`
+                      : ''
+                    router.push(`/student/feedback?sessionId=${sessionId}${nameParam}${tutorParam}`)
+                  }}
+                  onRequestMaterials={handleRequestMaterials}
+                  requestingSessionId={requestingSessionId}
+                />
+              )}
             </div>
           </div>
           <DialogFooter align="end" className="gap-3">

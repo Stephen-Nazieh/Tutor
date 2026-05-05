@@ -75,7 +75,9 @@ export async function POST(req: NextRequest) {
       const [p] = await drizzleDb
         .select()
         .from(payment)
-        .where(and(eq(payment.gatewayPaymentId, gatewayPaymentId), eq(payment.gateway, 'AIRWALLEX')))
+        .where(
+          and(eq(payment.gatewayPaymentId, gatewayPaymentId), eq(payment.gateway, 'AIRWALLEX'))
+        )
         .limit(1)
       paymentIdForEvent = p?.paymentId ?? null
     }
@@ -215,31 +217,34 @@ export async function POST(req: NextRequest) {
       }
     }
 
-  if (
-    result.success &&
-    (result.status === 'cancelled' || result.eventType?.includes('cancelled'))
-  ) {
-    const [paymentRow] = await drizzleDb
-      .select()
-      .from(payment)
-      .where(
-        and(eq(payment.gatewayPaymentId, result.paymentId ?? ''), eq(payment.gateway, 'AIRWALLEX'))
-      )
-      .limit(1)
-    if (paymentRow) {
-      await drizzleDb
-        .update(payment)
-        .set({ status: 'CANCELLED' })
-        .where(eq(payment.paymentId, paymentRow.paymentId))
+    if (
+      result.success &&
+      (result.status === 'cancelled' || result.eventType?.includes('cancelled'))
+    ) {
+      const [paymentRow] = await drizzleDb
+        .select()
+        .from(payment)
+        .where(
+          and(
+            eq(payment.gatewayPaymentId, result.paymentId ?? ''),
+            eq(payment.gateway, 'AIRWALLEX')
+          )
+        )
+        .limit(1)
+      if (paymentRow) {
+        await drizzleDb
+          .update(payment)
+          .set({ status: 'CANCELLED' })
+          .where(eq(payment.paymentId, paymentRow.paymentId))
+      }
     }
-  }
 
-  await drizzleDb
-    .update(webhookEvent)
-    .set({ processed: true, processedAt: new Date() })
-    .where(eq(webhookEvent.eventId, webhookEventId))
+    await drizzleDb
+      .update(webhookEvent)
+      .set({ processed: true, processedAt: new Date() })
+      .where(eq(webhookEvent.eventId, webhookEventId))
 
-  return NextResponse.json({ received: true })
+    return NextResponse.json({ received: true })
   } catch (error) {
     return handleApiError(error, 'Webhook failed', 'api/payments/webhooks/airwallex/route.ts')
   }

@@ -33,7 +33,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
     const directCode =
-      error && typeof error === 'object' && 'code' in error ? (error as { code: string }).code : null
+      error && typeof error === 'object' && 'code' in error
+        ? (error as { code: string }).code
+        : null
     const causeCode =
       error && typeof error === 'object' && 'cause' in error
         ? ((error as { cause?: { code?: string } }).cause?.code ?? null)

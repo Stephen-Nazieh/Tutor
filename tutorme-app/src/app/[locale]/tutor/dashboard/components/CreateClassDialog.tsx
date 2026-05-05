@@ -181,94 +181,94 @@ export function CreateClassDialog({
         <div className="pt-4">
           <div className="rounded-[14px] border border-[rgba(226,232,240,0.9)] bg-white p-6 text-[#1F2933] shadow-[0_10px_24px_rgba(15,23,42,0.16)]">
             <DialogPanel className="space-y-4">
-            {apiError && (
-              <p
-                id="create-class-api-error"
-                className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
-                role="alert"
-              >
-                {apiError}
-              </p>
-            )}
-            <div>
-              <Label className="text-gray-900">Class Title *</Label>
-              <Input
-                value={form.title}
-                onChange={e => setForm({ ...form, title: e.target.value })}
-                placeholder="e.g., AP Calculus - Limits"
-                disabled={creating}
-                aria-invalid={!!apiError}
-              />
-            </div>
-            <div>
-              <Label className="text-gray-900">Subject *</Label>
-              <Select value={form.subject} onValueChange={v => setForm({ ...form, subject: v })}>
-                <SelectTrigger disabled={creating}>
-                  <SelectValue placeholder="Select subject" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUBJECTS.map(s => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label className="text-gray-900">Description</Label>
-              <Textarea
-                value={form.description}
-                onChange={e => setForm({ ...form, description: e.target.value })}
-                placeholder="What will you cover in this class?"
-                disabled={creating}
-              />
-            </div>
-            <div>
-              <Label className="text-gray-900">Date & Time *</Label>
-              <Input
-                type="datetime-local"
-                value={form.scheduledAt}
-                onChange={e => setForm({ ...form, scheduledAt: e.target.value })}
-                disabled={creating}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-gray-900">Duration (minutes)</Label>
-                <Select
-                  value={form.durationMinutes.toString()}
-                  onValueChange={v => setForm({ ...form, durationMinutes: parseInt(v) })}
+              {apiError && (
+                <p
+                  id="create-class-api-error"
+                  className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600"
+                  role="alert"
                 >
+                  {apiError}
+                </p>
+              )}
+              <div>
+                <Label className="text-gray-900">Class Title *</Label>
+                <Input
+                  value={form.title}
+                  onChange={e => setForm({ ...form, title: e.target.value })}
+                  placeholder="e.g., AP Calculus - Limits"
+                  disabled={creating}
+                  aria-invalid={!!apiError}
+                />
+              </div>
+              <div>
+                <Label className="text-gray-900">Subject *</Label>
+                <Select value={form.subject} onValueChange={v => setForm({ ...form, subject: v })}>
                   <SelectTrigger disabled={creating}>
-                    <SelectValue />
+                    <SelectValue placeholder="Select subject" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                    <SelectItem value="60">1 hour</SelectItem>
-                    <SelectItem value="90">1.5 hours</SelectItem>
-                    <SelectItem value="120">2 hours</SelectItem>
+                    {SUBJECTS.map(s => (
+                      <SelectItem key={s.value} value={s.value}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Label className="text-gray-900">Max Students</Label>
-                <Select
-                  value={form.maxStudents.toString()}
-                  onValueChange={v => setForm({ ...form, maxStudents: parseInt(v) })}
-                >
-                  <SelectTrigger disabled={creating}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 students</SelectItem>
-                    <SelectItem value="25">25 students</SelectItem>
-                    <SelectItem value="50">50 students</SelectItem>
-                    <SelectItem value="100">100 students</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-gray-900">Description</Label>
+                <Textarea
+                  value={form.description}
+                  onChange={e => setForm({ ...form, description: e.target.value })}
+                  placeholder="What will you cover in this class?"
+                  disabled={creating}
+                />
               </div>
-            </div>
+              <div>
+                <Label className="text-gray-900">Date & Time *</Label>
+                <Input
+                  type="datetime-local"
+                  value={form.scheduledAt}
+                  onChange={e => setForm({ ...form, scheduledAt: e.target.value })}
+                  disabled={creating}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-900">Duration (minutes)</Label>
+                  <Select
+                    value={form.durationMinutes.toString()}
+                    onValueChange={v => setForm({ ...form, durationMinutes: parseInt(v) })}
+                  >
+                    <SelectTrigger disabled={creating}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="60">1 hour</SelectItem>
+                      <SelectItem value="90">1.5 hours</SelectItem>
+                      <SelectItem value="120">2 hours</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-gray-900">Max Students</Label>
+                  <Select
+                    value={form.maxStudents.toString()}
+                    onValueChange={v => setForm({ ...form, maxStudents: parseInt(v) })}
+                  >
+                    <SelectTrigger disabled={creating}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10 students</SelectItem>
+                      <SelectItem value="25">25 students</SelectItem>
+                      <SelectItem value="50">50 students</SelectItem>
+                      <SelectItem value="100">100 students</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </DialogPanel>
           </div>
         </div>

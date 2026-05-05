@@ -67,7 +67,10 @@ export async function POST(req: NextRequest) {
     try {
       MathJax = await getMathJax()
     } catch (initErr) {
-      console.warn('[render-formula] MathJax init failed, using fallback:', (initErr as Error).message)
+      console.warn(
+        '[render-formula] MathJax init failed, using fallback:',
+        (initErr as Error).message
+      )
       return NextResponse.json(fallbackSvg(trimmed))
     }
 

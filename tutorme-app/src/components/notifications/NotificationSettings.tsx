@@ -168,8 +168,7 @@ export function NotificationSettings() {
   }
 
   if (!prefs) return null
-  const sectionCardClass =
-    'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
+  const sectionCardClass = 'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
 
   return (
     <div className="space-y-6">

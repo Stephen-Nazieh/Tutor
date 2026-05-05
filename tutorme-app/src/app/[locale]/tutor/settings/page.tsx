@@ -58,8 +58,7 @@ const LANGUAGES = [
   { code: 'ja', name: '日本語 (Japanese)' },
 ]
 
-const SECTION_CARD_CLASS =
-  'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
+const SECTION_CARD_CLASS = 'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
 
 interface PaymentMethod {
   id: string
@@ -774,12 +773,7 @@ export default function TutorSettings() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="timezone">Timezone</Label>
-                    <Input
-                      id="timezone"
-                      value={formData.timezone}
-                      disabled
-                      className="bg-white"
-                    />
+                    <Input id="timezone" value={formData.timezone} disabled className="bg-white" />
                     <p className="text-xs text-gray-500">Automatically detected</p>
                   </div>
                 </div>

@@ -95,7 +95,9 @@ export async function GET(request: NextRequest) {
     for (const row of rows) {
       if (!byCourseId.has(row.courseId)) byCourseId.set(row.courseId, row)
     }
-    const ordered = paginatedCourseIds.map(id => byCourseId.get(id)).filter(Boolean) as (typeof rows)[number][]
+    const ordered = paginatedCourseIds
+      .map(id => byCourseId.get(id))
+      .filter(Boolean) as (typeof rows)[number][]
 
     const templateCourseIds = Array.from(
       new Set(
@@ -130,7 +132,7 @@ export async function GET(request: NextRequest) {
         c.description && c.description.trim().length > 0
           ? c.description
           : c.templateCourseId
-            ? templateDescriptionMap[c.templateCourseId] ?? null
+            ? (templateDescriptionMap[c.templateCourseId] ?? null)
             : null,
       categories: c.categories || [],
       price: c.isFree ? 0 : c.price,

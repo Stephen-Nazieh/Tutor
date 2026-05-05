@@ -185,7 +185,7 @@ export async function GET(
           c.description && c.description.trim().length > 0
             ? c.description
             : c.templateCourseId
-              ? templateDescriptionMap[c.templateCourseId] ?? null
+              ? (templateDescriptionMap[c.templateCourseId] ?? null)
               : null,
         categories: c.categories || [],
 

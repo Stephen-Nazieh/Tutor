@@ -1313,7 +1313,9 @@ export default function PublicTutorPage() {
                     ? description
                     : 'No description provided for this course yet.'
                   const descriptionPreview =
-                    descriptionText.length > 200 ? `${descriptionText.slice(0, 197)}...` : descriptionText
+                    descriptionText.length > 200
+                      ? `${descriptionText.slice(0, 197)}...`
+                      : descriptionText
                   const isList = catalogLayout === 'list'
                   const isCompact = catalogLayout === 'compact'
 

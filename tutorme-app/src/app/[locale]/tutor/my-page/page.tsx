@@ -1357,7 +1357,7 @@ export default function TutorMyPage() {
           </DialogContent>
         </Dialog>
 
-    <Card className="border border-[#E2E8F0] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+        <Card className="border border-[#E2E8F0] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
           <CardHeader
             className="cursor-pointer select-none bg-white pb-3"
             onClick={() => setProfileSettingsOpen(prev => !prev)}
