@@ -1278,29 +1278,35 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
       href={`/u/${encodeURIComponent(item?.tutor?.username || '')}`}
       className="block h-full w-full"
     >
-      <div className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] overflow-hidden rounded-[22px] border border-white/20 bg-white/30 shadow-[0_14px_35px_rgba(0,0,0,0.18)] backdrop-blur-md transition-shadow hover:shadow-[0_22px_55px_rgba(0,0,0,0.22)]">
+      <div
+        className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] overflow-hidden rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(30,40,50,0.65)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)] backdrop-blur-[12px] transition-all duration-300 hover:-translate-y-[2px] hover:brightness-105 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]"
+        style={{
+          backgroundImage:
+            'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
+        }}
+      >
         <div className="flex h-full flex-col p-4">
           <div className="min-w-0">
-            <div className="line-clamp-2 text-sm font-semibold text-slate-800">{item?.name}</div>
-            <div className="mt-1 text-xs font-medium text-slate-500">
+            <div className="line-clamp-2 text-sm font-semibold text-slate-100">{item?.name}</div>
+            <div className="mt-1 text-xs font-medium text-slate-300">
               @{item?.tutor?.username || 'tutor'}
             </div>
             {Array.isArray(item?.categories) && item.categories[0] ? (
-              <div className="mt-2 w-fit rounded-full bg-[#1D4ED8] px-3 py-1 text-[10px] font-semibold text-white">
+              <div className="mt-2 w-fit rounded-full border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-[10px] font-semibold text-slate-100">
                 {item.categories[0]}
               </div>
             ) : null}
           </div>
-          <div className="mt-3 flex-1 rounded-[14px] border border-slate-200/60 bg-white/80 px-3 py-2">
-            <div className="line-clamp-4 text-[11px] leading-relaxed text-slate-700">
+          <div className="mt-3 flex-1 rounded-[14px] border border-[rgba(255,255,255,0.10)] bg-[rgba(255,255,255,0.06)] px-3 py-2">
+            <div className="line-clamp-4 text-[11px] leading-relaxed text-slate-200">
               {(item?.description || '').trim() || 'No course description provided yet.'}
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs font-semibold text-slate-600">
-            <div className="truncate">
+          <div className="mt-3 flex items-center justify-between text-xs font-semibold">
+            <div className="truncate text-slate-300">
               {item?.isFree ? 'Free' : item?.price != null ? `$${item.price}` : 'Free'}
             </div>
-            <div className="text-[#1D4ED8]">View</div>
+            <div className="text-blue-400">View</div>
           </div>
         </div>
       </div>
@@ -1309,10 +1315,16 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
 
   const TutorSlot = ({ item }: { item: any }) => (
     <Link href={`/u/${encodeURIComponent(item?.username || '')}`} className="block h-full w-full">
-      <div className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] overflow-hidden rounded-[22px] border border-white/20 bg-white/30 shadow-[0_14px_35px_rgba(0,0,0,0.18)] backdrop-blur-md transition-shadow hover:shadow-[0_22px_55px_rgba(0,0,0,0.22)]">
+      <div
+        className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] overflow-hidden rounded-[22px] border border-[rgba(255,255,255,0.12)] bg-[rgba(30,40,50,0.65)] shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_12px_30px_rgba(0,0,0,0.35)] backdrop-blur-[12px] transition-all duration-300 hover:-translate-y-[2px] hover:brightness-105 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]"
+        style={{
+          backgroundImage:
+            'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(70, 110, 180, 0.75), rgba(25, 55, 110, 0.95))',
+        }}
+      >
         <div className="flex h-full flex-col p-4">
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 overflow-hidden rounded-full border border-white/40 bg-white/60">
+            <div className="h-10 w-10 overflow-hidden rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)]">
               {item?.avatarUrl ? (
                 <img
                   src={item.avatarUrl}
@@ -1322,24 +1334,24 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
               ) : null}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold text-slate-800">
+              <div className="truncate text-sm font-semibold text-slate-50">
                 {item?.name || 'Tutor'}
               </div>
-              <div className="mt-0.5 truncate text-xs font-medium text-slate-500">
+              <div className="mt-0.5 truncate text-xs font-medium text-slate-300">
                 @{item?.username || 'tutor'}
               </div>
             </div>
           </div>
-          <div className="mt-3 flex-1 rounded-[14px] border border-slate-200/60 bg-white/80 px-3 py-2">
-            <div className="line-clamp-4 text-[11px] leading-relaxed text-slate-700">
+          <div className="mt-3 flex-1 rounded-[14px] border border-[rgba(255,255,255,0.10)] bg-[rgba(255,255,255,0.06)] px-3 py-2">
+            <div className="line-clamp-4 text-[11px] leading-relaxed text-slate-100">
               {(item?.bio || '').trim() || 'Experienced tutor ready to help you improve quickly.'}
             </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs font-semibold text-slate-600">
-            <div className="truncate">
+          <div className="mt-3 flex items-center justify-between text-xs font-semibold">
+            <div className="truncate text-slate-300">
               {typeof item?.courseCount === 'number' ? `${item.courseCount} courses` : ''}
             </div>
-            <div className="text-[#1D4ED8]">View</div>
+            <div className="text-blue-400">View</div>
           </div>
         </div>
       </div>
@@ -1402,7 +1414,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
                 {visible.map((item: any, i: number) => (
                   <div key={item?.id || item?.__skeleton || i} className="w-[var(--card-width)]">
                     {item?.__skeleton ? (
-                      <div className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] rounded-[22px] border border-white/20 bg-white/25 shadow-[0_14px_35px_rgba(0,0,0,0.14)] backdrop-blur-md" />
+                      <div className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] rounded-[22px] border border-[rgba(255,255,255,0.10)] bg-[rgba(30,40,50,0.45)] shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_10px_25px_rgba(0,0,0,0.25)] backdrop-blur-[12px]" />
                     ) : kind === 'courses' ? (
                       <CourseSlot item={item} />
                     ) : (
