@@ -212,10 +212,7 @@ function StudentFeedbackContent() {
     recordedSessions: true,
   })
 
-  const [portalTarget] = useState<HTMLElement | null>(() => {
-    if (typeof document === 'undefined') return null
-    return document.getElementById('student-live-tabs-portal')
-  })
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
   useEffect(() => {
     const loadDirectory = async () => {
       setDirectoryLoading(true)
@@ -300,6 +297,29 @@ function StudentFeedbackContent() {
     }
     loadDirectory()
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    let attempts = 0
+
+    const trySet = () => {
+      if (cancelled) return
+      const el = document.getElementById('student-live-tabs-portal')
+      if (el) {
+        setPortalTarget(el)
+        return
+      }
+      attempts += 1
+      if (attempts < 20) {
+        window.setTimeout(trySet, 50)
+      }
+    }
+
+    trySet()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
