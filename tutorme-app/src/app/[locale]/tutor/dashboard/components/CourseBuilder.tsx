@@ -7589,7 +7589,7 @@ FEEDBACK: [your explanation]`
                                                 style={{
                                                   paddingRight: liveSubmissionsPanelHidden
                                                     ? 0
-                                                    : liveSubmissionsPanelWidth + 16,
+                                                    : liveSubmissionsPanelWidth + 32,
                                                 }}
                                               >
                                                 <div className="h-full w-full">
