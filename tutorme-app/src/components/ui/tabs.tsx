@@ -49,7 +49,7 @@ const tabsTriggerVariants = cva(
     'inline-flex items-center justify-center',
     'whitespace-nowrap text-sm font-medium',
     'ease-premium transition-all duration-200',
-    'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+    'focus-visible:outline-none',
     'disabled:pointer-events-none disabled:opacity-50',
   ],
   {
@@ -160,27 +160,24 @@ TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 // TABS CONTENT
 // ============================================
 
-const tabsContentVariants = cva(
-  'ring-offset-background focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-  {
-    variants: {
-      animate: {
-        true: ['data-[state=inactive]:animate-fade-out', 'data-[state=active]:animate-fade-in'],
-        false: '',
-      },
-      padding: {
-        none: '',
-        sm: 'pt-3',
-        default: 'pt-4',
-        lg: 'pt-6',
-      },
+const tabsContentVariants = cva('ring-offset-background focus-visible:outline-none', {
+  variants: {
+    animate: {
+      true: ['data-[state=inactive]:animate-fade-out', 'data-[state=active]:animate-fade-in'],
+      false: '',
     },
-    defaultVariants: {
-      animate: false,
-      padding: 'default',
+    padding: {
+      none: '',
+      sm: 'pt-3',
+      default: 'pt-4',
+      lg: 'pt-6',
     },
-  }
-)
+  },
+  defaultVariants: {
+    animate: false,
+    padding: 'default',
+  },
+})
 
 interface TabsContentProps
   extends
@@ -244,7 +241,7 @@ const VerticalTabsTrigger = React.forwardRef<
     className={cn(
       'flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium',
       'transition-all duration-200',
-      'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
+      'focus-visible:outline-none',
       isActive
         ? 'bg-background text-foreground shadow-elevation-1'
         : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground',

@@ -446,9 +446,7 @@ export default function TutorMyPage() {
     startOffsetX: number
     startOffsetY: number
   } | null>(null)
-  const [cropImageSize, setCropImageSize] = useState<{ width: number; height: number } | null>(
-    null
-  )
+  const [cropImageSize, setCropImageSize] = useState<{ width: number; height: number } | null>(null)
   const [cropViewportSize, setCropViewportSize] = useState(0)
   const [cropOffset, setCropOffset] = useState({ x: 0, y: 0 })
   const [cropZoom, setCropZoom] = useState(1)
@@ -769,16 +767,13 @@ export default function TutorMyPage() {
     [cropping, uploadingAvatar, cropOffset.x, cropOffset.y]
   )
 
-  const handleCropPointerMove = useCallback(
-    (e: PointerEvent<HTMLDivElement>) => {
-      const drag = cropDragRef.current
-      if (!drag || drag.pointerId !== e.pointerId) return
-      const dx = e.clientX - drag.startX
-      const dy = e.clientY - drag.startY
-      setCropOffset({ x: drag.startOffsetX + dx, y: drag.startOffsetY + dy })
-    },
-    []
-  )
+  const handleCropPointerMove = useCallback((e: PointerEvent<HTMLDivElement>) => {
+    const drag = cropDragRef.current
+    if (!drag || drag.pointerId !== e.pointerId) return
+    const dx = e.clientX - drag.startX
+    const dy = e.clientY - drag.startY
+    setCropOffset({ x: drag.startOffsetX + dx, y: drag.startOffsetY + dy })
+  }, [])
 
   const handleCropPointerUp = useCallback((e: PointerEvent<HTMLDivElement>) => {
     const drag = cropDragRef.current
@@ -805,17 +800,7 @@ export default function TutorMyPage() {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      ctx.drawImage(
-        img,
-        cropData.x,
-        cropData.y,
-        cropData.width,
-        cropData.height,
-        0,
-        0,
-        256,
-        256
-      )
+      ctx.drawImage(img, cropData.x, cropData.y, cropData.width, cropData.height, 0, 0, 256, 256)
 
       const blob = await new Promise<Blob | null>(resolve =>
         canvas.toBlob(resolve, 'image/webp', 0.85)

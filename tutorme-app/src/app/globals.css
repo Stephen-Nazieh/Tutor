@@ -680,7 +680,7 @@
   
   /* Focus visible styles */
   :focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    outline: none;
   }
   
   /* Selection styles */
@@ -793,7 +793,8 @@
   
   /* Focus Glow */
   .focus-glow:focus-visible {
-    @apply outline-none ring-0 shadow-focus-glow;
+    outline: none;
+    box-shadow: none;
   }
   
   /* Text Gradients */
@@ -870,8 +871,7 @@
   
   /* Input Focus Ring */
   .input-ring {
-    @apply focus:ring-2 focus:ring-ring focus:ring-offset-2 
-           focus:ring-offset-background transition-shadow duration-150;
+    @apply transition-shadow duration-150;
   }
 }
 

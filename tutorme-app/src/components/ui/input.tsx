@@ -19,7 +19,7 @@ const inputVariants = cva(
     'ease-premium transition-all duration-150',
     'file:border-0 file:bg-transparent file:text-sm file:font-medium',
     // Focus states
-    'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+    'focus-visible:outline-none',
     // Disabled states
     'disabled:bg-muted disabled:cursor-not-allowed disabled:opacity-50',
   ],
@@ -45,26 +45,20 @@ const inputVariants = cva(
           'border-input border-2 bg-transparent',
           'focus-visible:border-primary focus-visible:bg-background',
         ],
-        ghost: [
-          'border-transparent bg-transparent',
-          'hover:bg-muted/50',
-          'focus-visible:bg-muted focus-visible:ring-0',
-        ],
+        ghost: ['border-transparent bg-transparent', 'hover:bg-muted/50', 'focus-visible:bg-muted'],
         elevated: [
           'bg-background border-0',
           'shadow-elevation-1',
-          'focus-visible:shadow-elevation-2 focus-visible:ring-offset-0',
+          'focus-visible:shadow-elevation-2',
         ],
       },
 
       // State modifiers
       state: {
         default: '',
-        error: [
-          'border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20',
-        ],
-        success: ['border-success focus-visible:border-success focus-visible:ring-success/20'],
-        warning: ['border-warning focus-visible:border-warning focus-visible:ring-warning/20'],
+        error: ['border-destructive focus-visible:border-destructive'],
+        success: ['border-success focus-visible:border-success'],
+        warning: ['border-warning focus-visible:border-warning'],
       },
     },
 
@@ -201,7 +195,7 @@ const InputGroup = React.forwardRef<HTMLDivElement, InputGroupProps>(
       ref={ref}
       className={cn(
         'border-input flex overflow-hidden rounded-lg border',
-        'focus-within:ring-ring focus-within:ring-2 focus-within:ring-offset-2',
+        'focus-within:outline-none',
         className
       )}
       {...props}

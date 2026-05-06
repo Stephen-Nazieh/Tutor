@@ -178,7 +178,7 @@ const DialogContent = React.forwardRef<
                 'flex items-center justify-center',
                 'h-8 w-8 rounded-lg',
                 'transition-all duration-150',
-                'focus:ring-ring focus:outline-none focus:ring-2 focus:ring-offset-2',
+                'focus:outline-none',
                 'disabled:pointer-events-none',
                 theme === 'metallic'
                   ? 'text-gray-400 hover:bg-white/10 hover:text-white'

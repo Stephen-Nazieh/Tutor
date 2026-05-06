@@ -1279,7 +1279,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
       className="block h-full w-full"
     >
       <div
-        className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] overflow-hidden rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(30,40,50,0.65)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)] backdrop-blur-[12px] transition-all duration-300 hover:-translate-y-[2px] hover:brightness-105 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]"
+        className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] overflow-hidden rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(30,40,50,0.65)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)] backdrop-blur-[12px] transition-all duration-300 hover:-translate-y-[2px] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)] hover:brightness-105"
         style={{
           backgroundImage:
             'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
@@ -1316,7 +1316,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
   const TutorSlot = ({ item }: { item: any }) => (
     <Link href={`/u/${encodeURIComponent(item?.username || '')}`} className="block h-full w-full">
       <div
-        className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] overflow-hidden rounded-[22px] border border-[rgba(255,255,255,0.12)] bg-[rgba(30,40,50,0.65)] shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_12px_30px_rgba(0,0,0,0.35)] backdrop-blur-[12px] transition-all duration-300 hover:-translate-y-[2px] hover:brightness-105 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]"
+        className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] overflow-hidden rounded-[22px] border border-[rgba(255,255,255,0.12)] bg-[rgba(30,40,50,0.65)] shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_12px_30px_rgba(0,0,0,0.35)] backdrop-blur-[12px] transition-all duration-300 hover:-translate-y-[2px] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)] hover:brightness-105"
         style={{
           backgroundImage:
             'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(70, 110, 180, 0.75), rgba(25, 55, 110, 0.95))',
@@ -1403,13 +1403,13 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
               type="button"
               onClick={() => setPage(Math.max(currentPage - 1, 0))}
               disabled={!canPrev}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1F2933] text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-35"
-              aria-label={`Previous ${title}`}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-[#2F3742]/80 text-white shadow-[0_4px_12px_rgba(0,0,0,0.20)] backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-[#2F3742] hover:shadow-[0_6px_18px_rgba(0,0,0,0.28)] disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:scale-100"
+              aria-label="Previous"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
 
-            <div className="w-[calc((var(--card-width)*5)+(var(--card-gap)*4))] overflow-hidden">
+            <div className="w-[calc((var(--card-width)*5)+(var(--card-gap)*4))] overflow-visible py-3">
               <div className="grid grid-cols-5 gap-[var(--card-gap)]">
                 {visible.map((item: any, i: number) => (
                   <div key={item?.id || item?.__skeleton || i} className="w-[var(--card-width)]">
@@ -1436,8 +1436,8 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
               type="button"
               onClick={() => setPage(Math.min(currentPage + 1, totalPages - 1))}
               disabled={!canNext}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1F2933] text-white shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-35"
-              aria-label={`Next ${title}`}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-[#2F3742]/80 text-white shadow-[0_4px_12px_rgba(0,0,0,0.20)] backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-[#2F3742] hover:shadow-[0_6px_18px_rgba(0,0,0,0.28)] disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:scale-100"
+              aria-label="Next"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -2035,8 +2035,7 @@ const SpecialAccessSection = ({
     return () => window.removeEventListener('resize', update)
   }, [expanded, popoverPlacement])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const checkAccess = () => {
     if (SPECIAL_CODES.includes(code.trim())) {
       setExpanded(false)
       router.push('/login')
@@ -2044,6 +2043,11 @@ const SpecialAccessSection = ({
       setError(true)
       setTimeout(() => setError(false), 2000)
     }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    checkAccess()
   }
 
   return (
@@ -2070,16 +2074,20 @@ const SpecialAccessSection = ({
             >
               <form onSubmit={handleSubmit} className="flex items-center gap-3">
                 <Input
-                  type="password"
+                  type="text"
                   placeholder={t('enterCode')}
                   value={code}
                   onChange={e => setCode(e.target.value)}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
                   autoFocus
                   className={`h-10 flex-1 rounded-full border border-white/20 bg-white/10 text-white placeholder:text-white/60 ${error ? 'border-red-400' : ''}`}
                 />
                 <Button
-                  type="submit"
-                  className="h-10 rounded-full bg-white px-5 text-sm font-semibold text-[#0B4DFF] hover:bg-white/90"
+                  type="button"
+                  onClick={checkAccess}
+                  className="h-10 cursor-pointer rounded-full bg-white px-5 text-sm font-semibold text-[#0B4DFF] shadow-sm transition-all duration-200 hover:-translate-y-px hover:bg-slate-100 hover:shadow-md active:translate-y-0 active:scale-95"
                 >
                   {t('access')}
                 </Button>

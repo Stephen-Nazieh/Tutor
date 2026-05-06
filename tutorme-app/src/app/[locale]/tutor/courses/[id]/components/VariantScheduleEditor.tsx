@@ -1,12 +1,17 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronDown,
+  Calendar as CalendarIcon,
+} from 'lucide-react'
 import type { ScheduleItem } from '../constants'
 import { DAYS, TIME_SLOT_OPTIONS } from '../constants'
 
@@ -61,6 +66,7 @@ export function VariantScheduleEditor({
   weeksToSchedule = 8,
   onWeeksChange,
 }: VariantScheduleEditorProps) {
+  const calendarScrollRef = useRef<HTMLDivElement>(null)
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
   const [scheduleRepeatWeekly, setScheduleRepeatWeekly] = useState(false)
   const [numberOfWeeks, setNumberOfWeeks] = useState(weeksToSchedule || 8)
@@ -233,7 +239,7 @@ export function VariantScheduleEditor({
                   if (totalSessionsDesired !== '') setTotalSessionsDesired('')
                 }}
                 disabled={totalSessionsDesired !== ''}
-                className="h-8 w-20 text-sm"
+                className="h-8 w-14 text-center text-sm"
               />
               {totalSessionsDesired !== '' && (
                 <span className="text-muted-foreground text-xs">
@@ -348,80 +354,108 @@ export function VariantScheduleEditor({
             )
           })}
         </div>
-        <ScrollArea className="h-[320px]">
-          <div className="grid grid-cols-8">
-            {TIME_SLOT_OPTIONS.map(timeStr => {
-              const hour = parseInt(timeStr.slice(0, 2), 10)
-              const endHour = hour + 1
-              const startLabel = `${hour % 12 || 12} ${hour >= 12 ? 'PM' : 'AM'}`
-              const endLabel = `${endHour % 12 || 12} ${endHour >= 12 ? 'PM' : 'AM'}`
-              const displayTime = `${startLabel} \u2013 ${endLabel}`
-              return (
-                <div key={timeStr} className="contents">
-                  <div className="flex h-12 min-w-[150px] items-center justify-center border-b border-r border-[rgba(209,213,219,0.85)] px-2 text-center text-[11px] font-semibold text-slate-600">
-                    {displayTime}
-                  </div>
-                  {DAYS.map((day, dayIndex) => {
-                    const dateKey = formatDateKey(weekDates[dayIndex])
-                    const validScheduleArray = Array.isArray(schedule)
-                      ? schedule.filter(Boolean)
-                      : []
-                    const matchingSlotIndex = validScheduleArray.findIndex(s => {
-                      if (!s || s.dayOfWeek !== day) return false
-                      if (!scheduleRepeatWeekly) {
-                        if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0) return false
-                      }
-                      const [sh, sm] = (s.startTime || '00:00').split(':').map(Number)
-                      const startM = sh * 60 + sm
-                      const endM = startM + (s.durationMinutes || 60)
-                      const [th, tm] = timeStr.split(':').map(Number)
-                      const slotM = th * 60 + tm
-                      return slotM >= startM && slotM < endM
-                    })
-                    const inRange = matchingSlotIndex >= 0
-                    let sessionNum = 0
-                    if (inRange) {
-                      const currentSlot = validScheduleArray[matchingSlotIndex]
-                      const sortedSessions = [...validScheduleArray].sort((a, b) => {
-                        const aDate = a.date || ''
-                        const bDate = b.date || ''
-                        if (aDate !== bDate) return aDate.localeCompare(bDate)
-                        return (a.startTime || '').localeCompare(b.startTime || '')
+        <div className="relative">
+          <div ref={calendarScrollRef} className="scrollbar-hide h-[320px] overflow-y-auto">
+            <div className="grid grid-cols-8">
+              {TIME_SLOT_OPTIONS.map(timeStr => {
+                const hour = parseInt(timeStr.slice(0, 2), 10)
+                const endHour = hour + 1
+                const startLabel = `${hour % 12 || 12} ${hour >= 12 ? 'PM' : 'AM'}`
+                const endLabel = `${endHour % 12 || 12} ${endHour >= 12 ? 'PM' : 'AM'}`
+                const displayTime = `${startLabel} \u2013 ${endLabel}`
+                return (
+                  <div key={timeStr} className="contents">
+                    <div className="flex h-12 min-w-[150px] items-center justify-center border-b border-r border-[rgba(209,213,219,0.85)] px-2 text-center text-[11px] font-semibold text-slate-600">
+                      {displayTime}
+                    </div>
+                    {DAYS.map((day, dayIndex) => {
+                      const dateKey = formatDateKey(weekDates[dayIndex])
+                      const validScheduleArray = Array.isArray(schedule)
+                        ? schedule.filter(Boolean)
+                        : []
+                      const matchingSlotIndex = validScheduleArray.findIndex(s => {
+                        if (!s || s.dayOfWeek !== day) return false
+                        if (!scheduleRepeatWeekly) {
+                          if (s.date ? s.date !== dateKey : scheduleWeekOffset !== 0) return false
+                        }
+                        const [sh, sm] = (s.startTime || '00:00').split(':').map(Number)
+                        const startM = sh * 60 + sm
+                        const endM = startM + (s.durationMinutes || 60)
+                        const [th, tm] = timeStr.split(':').map(Number)
+                        const slotM = th * 60 + tm
+                        return slotM >= startM && slotM < endM
                       })
-                      sessionNum =
-                        sortedSessions.findIndex(
-                          s =>
-                            s &&
-                            s.dayOfWeek === currentSlot.dayOfWeek &&
-                            s.startTime === currentSlot.startTime &&
-                            s.date === currentSlot.date
-                        ) + 1
-                    }
-                    return (
-                      <div
-                        key={`${day}-${timeStr}`}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => toggleSlot(day, dateKey, timeStr)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            toggleSlot(day, dateKey, timeStr)
-                          }
-                        }}
-                        className={`flex h-12 w-full cursor-pointer items-center justify-center border-b border-r border-[rgba(209,213,219,0.85)] px-2 text-center transition-colors ${inRange ? 'bg-[#1D4ED8] font-semibold text-white' : 'bg-white text-slate-700 hover:bg-slate-50'}`}
-                        aria-pressed={inRange}
-                        aria-label={`${day} ${displayTime}${inRange ? ', selected' : ''}. Click to ${inRange ? 'remove' : 'add'} session.`}
-                      >
-                        {inRange ? <span className="text-[11px]">Session {sessionNum}</span> : null}
-                      </div>
-                    )
-                  })}
-                </div>
-              )
-            })}
+                      const inRange = matchingSlotIndex >= 0
+                      let sessionNum = 0
+                      if (inRange) {
+                        const currentSlot = validScheduleArray[matchingSlotIndex]
+                        const sortedSessions = [...validScheduleArray].sort((a, b) => {
+                          const aDate = a.date || ''
+                          const bDate = b.date || ''
+                          if (aDate !== bDate) return aDate.localeCompare(bDate)
+                          return (a.startTime || '').localeCompare(b.startTime || '')
+                        })
+                        sessionNum =
+                          sortedSessions.findIndex(
+                            s =>
+                              s &&
+                              s.dayOfWeek === currentSlot.dayOfWeek &&
+                              s.startTime === currentSlot.startTime &&
+                              s.date === currentSlot.date
+                          ) + 1
+                      }
+                      return (
+                        <div
+                          key={`${day}-${timeStr}`}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => toggleSlot(day, dateKey, timeStr)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              toggleSlot(day, dateKey, timeStr)
+                            }
+                          }}
+                          className={`flex h-12 w-full cursor-pointer items-center justify-center border-b border-r border-[rgba(209,213,219,0.85)] px-2 text-center transition-colors ${inRange ? 'bg-[#1D4ED8] font-semibold text-white' : 'bg-white text-slate-700 hover:bg-slate-50'}`}
+                          aria-pressed={inRange}
+                          aria-label={`${day} ${displayTime}${inRange ? ', selected' : ''}. Click to ${inRange ? 'remove' : 'add'} session.`}
+                        >
+                          {inRange ? (
+                            <span className="text-[11px]">Session {sessionNum}</span>
+                          ) : null}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
           </div>
-        </ScrollArea>
+
+          {/* Floating vertical navigation arrows */}
+          <div className="pointer-events-none absolute right-2 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                calendarScrollRef.current?.scrollBy({ top: -192, behavior: 'smooth' })
+              }}
+              className="pointer-events-auto flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/30 bg-white/[0.72] text-slate-700 shadow-[0_4px_16px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:bg-white/90 hover:shadow-[0_6px_20px_rgba(0,0,0,0.18)] active:scale-95"
+              aria-label="Scroll calendar up"
+            >
+              <ChevronUp className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                calendarScrollRef.current?.scrollBy({ top: 192, behavior: 'smooth' })
+              }}
+              className="pointer-events-auto flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/30 bg-white/[0.72] text-slate-700 shadow-[0_4px_16px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:bg-white/90 hover:shadow-[0_6px_20px_rgba(0,0,0,0.18)] active:scale-95"
+              aria-label="Scroll calendar down"
+            >
+              <ChevronDown className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Schedule Summary */}

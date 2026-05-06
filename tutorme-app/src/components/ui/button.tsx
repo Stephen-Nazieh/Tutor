@@ -16,7 +16,7 @@ const buttonVariants = cva(
     'whitespace-nowrap text-sm font-medium',
     'rounded-lg', // Soft rounded corners
     'ease-premium transition-all duration-200',
-    'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+    'focus-visible:outline-none',
     'disabled:pointer-events-none disabled:opacity-50',
     'active:scale-[0.98]', // Subtle press effect
   ],
@@ -175,13 +175,13 @@ const buttonVariants = cva(
         'solocorn-book': [
           'bg-white text-[#0B3A9B]',
           'shadow-elevation-1',
-          'hover:bg-slate-600/80 hover:text-white',
+          'hover:bg-[#3F4A5A] hover:text-white',
           'hover:shadow-elevation-2',
         ],
 
         'solocorn-follow': [
-          'border-2 border-white/50 bg-transparent text-white',
-          'hover:border-transparent hover:bg-white hover:text-[#0B3A9B]',
+          'bg-[#E87D2A] text-white',
+          'hover:bg-white hover:text-[#E87D2A]',
           'hover:shadow-elevation-1',
         ],
       },
