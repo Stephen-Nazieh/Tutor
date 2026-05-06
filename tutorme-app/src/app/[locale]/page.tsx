@@ -2707,11 +2707,55 @@ export default function LandingPage() {
   const [theme] = useState<ColorTheme>('emerald')
   const [mode] = useState<ThemeMode>('light')
   const [searchQuery, setSearchQuery] = useState('')
+  const [tutorTotal, setTutorTotal] = useState<number | null>(null)
+  const [courseTotal, setCourseTotal] = useState<number | null>(null)
   const [contactModalOpen, setContactModalOpen] = useState(false)
   const [privacyOpen, setPrivacyOpen] = useState(false)
   const [termsOpen, setTermsOpen] = useState(false)
 
   const t = (key: string) => translations[key]?.[language] || translations[key]?.['en'] || key
+  const formatCount = (value: number | null) =>
+    typeof value === 'number' ? String(value).padStart(4, '0') : '0000'
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const loadCounts = async () => {
+      const parseJsonSafe = async (res: Response) => {
+        const ct = res.headers.get('content-type') || ''
+        if (!ct.includes('application/json')) return null
+        return await res.json()
+      }
+
+      try {
+        const [tutorsRes, coursesRes] = await Promise.all([
+          fetch('/api/public/tutors?page=1&pageSize=1', { signal: controller.signal }),
+          fetch('/api/public/courses?page=1&pageSize=1', { signal: controller.signal }),
+        ])
+
+        const [tutorsJson, coursesJson] = await Promise.all([
+          tutorsRes.ok ? parseJsonSafe(tutorsRes) : null,
+          coursesRes.ok ? parseJsonSafe(coursesRes) : null,
+        ])
+
+        const nextTutorTotal =
+          typeof tutorsJson?.pagination?.total === 'number' ? tutorsJson.pagination.total : null
+        const nextCourseTotal =
+          typeof coursesJson?.pagination?.total === 'number' ? coursesJson.pagination.total : null
+
+        setTutorTotal(nextTutorTotal)
+        setCourseTotal(nextCourseTotal)
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') {
+          setTutorTotal(null)
+          setCourseTotal(null)
+        }
+      }
+    }
+
+    void loadCounts()
+    return () => controller.abort()
+  }, [])
+
   const scrollToSearchResults = () => {
     window.requestAnimationFrame(() => {
       document
@@ -2829,11 +2873,15 @@ export default function LandingPage() {
 
               <div className="flex items-center justify-center gap-6">
                 <div className="flex h-11 min-w-[180px] items-center justify-center gap-4 rounded-[10px] border border-white/55 bg-white/5 text-white">
-                  <span className="text-2xl font-semibold tracking-[0.04em]">0128</span>
+                  <span className="text-2xl font-semibold tracking-[0.04em]">
+                    {formatCount(tutorTotal)}
+                  </span>
                   <span className="text-sm font-medium">Tutors</span>
                 </div>
                 <div className="flex h-11 min-w-[180px] items-center justify-center gap-4 rounded-[10px] border border-white/55 bg-white/5 text-white">
-                  <span className="text-2xl font-semibold tracking-[0.04em]">0346</span>
+                  <span className="text-2xl font-semibold tracking-[0.04em]">
+                    {formatCount(courseTotal)}
+                  </span>
                   <span className="text-sm font-medium">Courses</span>
                 </div>
               </div>
