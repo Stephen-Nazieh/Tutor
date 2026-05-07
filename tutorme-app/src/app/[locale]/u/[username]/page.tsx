@@ -880,14 +880,17 @@ export default function PublicTutorPage() {
   }
 
   const headerCardClass =
-    'group relative overflow-hidden rounded-[20px] p-[1px] shadow-[0_18px_60px_rgba(0,0,0,0.18)] transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_24px_80px_rgba(0,0,0,0.22)]'
+    'group relative overflow-hidden rounded-[20px] p-[1px] shadow-[0_18px_60px_rgba(0,0,0,0.18)] transition-all duration-200 ease-in-out hover:shadow-[0_24px_80px_rgba(0,0,0,0.22)]'
   const headerInnerClass =
-    'rounded-[20px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-8 py-6 text-white'
+    'rounded-[20px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-8 py-5 text-white'
   const panelCardClass =
-    'group rounded-[18px] bg-white p-6 shadow-[0_14px_45px_rgba(0,0,0,0.12)] transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_20px_60px_rgba(0,0,0,0.16)]'
+    'group rounded-[18px] bg-white p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)] transition-all duration-200 ease-in-out hover:shadow-[0_20px_60px_rgba(0,0,0,0.16)]'
 
   return (
-    <div className="min-h-screen w-full bg-white p-4 sm:p-6">
+    <div
+      className="min-h-screen w-full bg-white p-4 sm:p-6"
+      style={{ '--density-scale': '0.9' } as React.CSSProperties}
+    >
       <div className="w-full">
         <section className={headerCardClass}>
           <div className={headerInnerClass}>
@@ -910,7 +913,7 @@ export default function PublicTutorPage() {
                       Verified
                     </span>
                   </div>
-                  <div className="mt-1 text-sm font-medium text-white/80">Solocorn Tutor</div>
+                  <div className="mt-1 text-sm font-medium text-white/80">@{tutor.username}</div>
 
                   <div className="mt-4 inline-flex flex-wrap items-center gap-4 rounded-full bg-white/10 px-5 py-2.5 text-white ring-1 ring-white/15 backdrop-blur">
                     <div className="flex items-center gap-2">
@@ -973,16 +976,16 @@ export default function PublicTutorPage() {
           </div>
         </section>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2 lg:items-stretch">
+        <div className="mt-7 grid gap-5 lg:grid-cols-2 lg:items-stretch">
           <div className={cn(panelCardClass, 'flex h-full flex-col')}>
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
-                <User className="h-4 w-4 text-slate-700" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
+                <User className="h-3.5 w-3.5 text-slate-700" />
               </div>
-              <div className="text-lg font-semibold text-slate-900">About Me</div>
+              <div className="text-base font-semibold text-slate-900">Bio</div>
             </div>
 
-            <div className="mt-4 flex min-h-0 flex-1 flex-col text-base text-slate-700">
+            <div className="mt-3 flex min-h-0 flex-1 flex-col text-base text-slate-700">
               <div className="flex-1">
                 {tutor.bio?.trim() ? (
                   <p className="whitespace-pre-wrap leading-relaxed">{tutor.bio}</p>
@@ -1011,17 +1014,17 @@ export default function PublicTutorPage() {
             </div>
           </div>
 
-          <div className="flex h-full flex-col gap-6">
+          <div className="flex h-full flex-col gap-5">
             <div className={panelCardClass}>
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
-                  <ExternalLink className="h-4 w-4 text-slate-700" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
+                  <ExternalLink className="h-3.5 w-3.5 text-slate-700" />
                 </div>
-                <div className="text-lg font-semibold text-slate-900">My Public Page</div>
+                <div className="text-base font-semibold text-slate-900">My Public Page</div>
               </div>
 
               {publicUrl ? (
-                <div className="mt-4">
+                <div className="mt-3">
                   <div className="break-all text-lg font-semibold text-slate-900">{publicUrl}</div>
                   <div className="mt-1 text-sm font-semibold text-[#F17623]">@{tutor.username}</div>
                   <div className="mt-4 flex items-center gap-3">
@@ -1057,14 +1060,14 @@ export default function PublicTutorPage() {
 
             <div className={panelCardClass}>
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
-                  <LayoutGrid className="h-4 w-4 text-slate-700" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
+                  <LayoutGrid className="h-3.5 w-3.5 text-slate-700" />
                 </div>
-                <div className="text-lg font-semibold text-slate-900">Social Media Accounts</div>
+                <div className="text-base font-semibold text-slate-900">Social Media Accounts</div>
               </div>
 
-              <div className="mt-4">
-                <div className="grid gap-4 sm:grid-cols-2">
+              <div className="mt-3">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {[
                     {
                       key: 'tiktok',
@@ -1131,13 +1134,13 @@ export default function PublicTutorPage() {
 
             <div className={panelCardClass}>
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
-                  <PanelsTopLeft className="h-4 w-4 text-slate-700" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
+                  <PanelsTopLeft className="h-3.5 w-3.5 text-slate-700" />
                 </div>
-                <div className="text-lg font-semibold text-slate-900">Categories</div>
+                <div className="text-base font-semibold text-slate-900">Categories</div>
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {tutor.specialties.length > 0 ? (
                   tutor.specialties.map((s, i) => (
                     <span
@@ -1158,12 +1161,12 @@ export default function PublicTutorPage() {
         <div
           className={cn(
             panelCardClass,
-            'mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'
+            'mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'
           )}
         >
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">
-              <UserCheck className="h-5 w-5 text-emerald-700" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50">
+              <UserCheck className="h-4 w-4 text-emerald-700" />
             </div>
             <div>
               <div className="text-sm font-semibold text-slate-900">Verified Tutor</div>

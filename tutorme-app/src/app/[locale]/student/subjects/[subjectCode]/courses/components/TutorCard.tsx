@@ -47,6 +47,10 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
     )
   }
 
+  const bioText = tutor.bio || 'Experienced tutor ready to help you improve quickly.'
+  const bioCharCount = bioText.length
+  const bioMaxChars = 500
+
   return (
     <div
       className={cn(
@@ -79,50 +83,35 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
             <p className="text-xs font-medium text-slate-300">
               @{tutor.username || tutor.name.toLowerCase().replace(/\s+/g, '')}
             </p>
-            <p className="mt-1 truncate text-xs text-slate-300">
-              {subjectCode ? `${subjectCode} Tutor` : 'Experienced tutor ready to help'}
-            </p>
+
+            {/* Rating below username */}
+            <div className="mt-1.5 flex items-center gap-1">
+              <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+              <span className="text-sm font-medium text-slate-100">{tutor.rating.toFixed(1)}</span>
+              <span className="text-xs text-slate-400">({tutor.reviewCount})</span>
+            </div>
+
+            {/* Subject category pills beside username area */}
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className="rounded-full border border-[rgba(255,255,255,0.2)] px-2 py-0.5 text-[11px] text-slate-200">
+                IGCSE Physics
+              </span>
+              <span className="rounded-full border border-[rgba(255,255,255,0.2)] px-2 py-0.5 text-[11px] text-slate-200">
+                TOEFL iBT
+              </span>
+              <span className="rounded-full border border-[rgba(255,255,255,0.2)] px-2 py-0.5 text-[11px] text-slate-200">
+                General
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Bio — supports up to ~500 chars */}
-        <div className="mt-3 text-sm leading-relaxed text-slate-100">
-          {tutor.bio || 'Experienced tutor ready to help you improve quickly.'}
-        </div>
-
-        {/* Rating */}
-        <div className="mt-3 flex items-center gap-1">
-          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-          <span className="ml-1 text-base font-medium text-slate-100">
-            {tutor.rating.toFixed(1)}
-          </span>
-          <span className="ml-1 text-slate-400">({tutor.reviewCount})</span>
-        </div>
-
-        {/* Tags */}
-        <div className="mt-3 space-y-2">
-          <div className="flex flex-wrap gap-1.5">
-            <span className="rounded-full border border-[rgba(255,255,255,0.2)] px-2.5 py-0.5 text-[11px] text-slate-200">
-              IGCSE Physics
-            </span>
-            <span className="rounded-full border border-[rgba(255,255,255,0.2)] px-2.5 py-0.5 text-[11px] text-slate-200">
-              TOEFL iBT
-            </span>
-            <span className="rounded-full border border-[rgba(255,255,255,0.2)] px-2.5 py-0.5 text-[11px] text-slate-200">
-              General
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            <span className="rounded-full border border-[rgba(255,255,255,0.2)] px-2.5 py-0.5 text-[11px] text-slate-200">
-              Kuwait
-            </span>
-            <span className="rounded-full border border-[rgba(255,255,255,0.2)] px-2.5 py-0.5 text-[11px] text-slate-200">
-              Qatar
-            </span>
-            <span className="rounded-full border border-[rgba(255,255,255,0.2)] px-2.5 py-0.5 text-[11px] text-slate-200">
-              Global
-            </span>
-          </div>
+        {/* Bio — expanded area supporting up to 500 chars */}
+        <div className="mt-3 rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] p-3">
+          <p className="text-sm leading-relaxed text-slate-100">{bioText}</p>
+          <p className="mt-1.5 text-right text-[10px] text-slate-400">
+            {bioCharCount} / {bioMaxChars}
+          </p>
         </div>
 
         {/* Divider */}
@@ -148,15 +137,19 @@ export function TutorCard({ tutor, subjectCode }: TutorCardProps) {
 
         {/* Action Buttons */}
         <div className="mt-3 grid grid-cols-2 gap-3">
-          <Button asChild variant="solocorn-book" className="h-auto rounded-xl py-2.5 text-sm">
+          <Button
+            asChild
+            variant="outline"
+            className="h-auto rounded-xl border-white/30 bg-white py-2.5 text-sm text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+          >
             <Link href={`/u/${tutor.username || tutor.id}?book=1`}>
-              <Video className="h-4 w-4" />
+              <Video className="mr-1.5 h-4 w-4" />
               Book 1 on 1
             </Link>
           </Button>
           <Button asChild variant="solocorn-follow" className="h-auto rounded-xl py-2.5 text-sm">
             <Link href={`/u/${tutor.username || tutor.id}`}>
-              <UserPlus className="h-4 w-4" />
+              <UserPlus className="mr-1.5 h-4 w-4" />
               Follow
             </Link>
           </Button>

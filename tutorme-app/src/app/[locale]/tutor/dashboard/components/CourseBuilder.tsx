@@ -5053,7 +5053,7 @@ FEEDBACK: [your explanation]`
     return (
       <div
         className={cn(
-          'flex h-full w-full flex-col items-stretch',
+          'course-builder-density flex h-full w-full flex-col items-stretch',
           panelMode === 'live-class' && 'pt-3'
         )}
       >
@@ -5385,7 +5385,7 @@ FEEDBACK: [your explanation]`
                                     id={node.id}
                                     depth={0}
                                     isLast={nodeIdx === nodes.length - 1}
-                                    inlineDragHandle
+                                    dragHandle={false}
                                     className="lesson-card mb-2 ml-0 overflow-hidden rounded-[24px] border border-[rgba(37,99,235,0.35)] bg-white pl-0 shadow-[0_14px_32px_rgba(0,0,0,0.16),0_4px_10px_rgba(37,99,235,0.10)] transition-[box-shadow,border-color] duration-[160ms] ease-[ease]"
                                   >
                                     <div className="group">
@@ -5500,11 +5500,14 @@ FEEDBACK: [your explanation]`
                                               </DropdownMenuContent>
                                             </DropdownMenu>
                                           )}
+                                          <div onClick={e => e.stopPropagation()}>
+                                            <DragHandle className="shrink-0" />
+                                          </div>
                                         </div>
                                       </div>
 
                                       {expandedCourseBuilderNodes.has(node.id) && (
-                                        <div className="mt-1 flex flex-col gap-1.5 px-2 pb-2">
+                                        <div className="mt-1 flex flex-col gap-1.5 bg-white px-2 pb-2">
                                           {/* Tasks - droppable so homework can be moved here */}
                                           <TreeItem
                                             depth={0}
@@ -8108,37 +8111,7 @@ FEEDBACK: [your explanation]`
                                                 >
                                                   <ChevronLeft className="h-5 w-5" />
                                                 </Button>
-                                                <div className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                      setExtractedTextFontSize(
-                                                        Math.max(10, extractedTextFontSize - 2)
-                                                      )
-                                                    }
-                                                    className="h-6 w-6 rounded-md p-0 text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm"
-                                                    title="Decrease font size"
-                                                  >
-                                                    A-
-                                                  </Button>
-                                                  <span className="w-6 text-center text-xs font-semibold text-slate-600">
-                                                    {extractedTextFontSize}
-                                                  </span>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                      setExtractedTextFontSize(
-                                                        Math.min(32, extractedTextFontSize + 2)
-                                                      )
-                                                    }
-                                                    className="h-6 w-6 rounded-md p-0 text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm"
-                                                    title="Increase font size"
-                                                  >
-                                                    A+
-                                                  </Button>
-                                                </div>
+
                                                 {!taskPdfVisible ? (
                                                   <Button
                                                     variant="ghost"
@@ -8234,6 +8207,40 @@ FEEDBACK: [your explanation]`
                                                 }
                                               }}
                                             />
+                                            {/* Floating font size control */}
+                                            <div
+                                              className="absolute bottom-6 right-6 z-20 flex items-center gap-1 rounded-md px-2 py-1 text-white"
+                                              style={{
+                                                background: 'rgba(40,40,40,0.78)',
+                                                backdropFilter: 'blur(8px)',
+                                              }}
+                                            >
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  setExtractedTextFontSize(
+                                                    Math.max(10, extractedTextFontSize - 2)
+                                                  )
+                                                }
+                                                className="cursor-pointer px-1 py-0.5 text-xs opacity-80 hover:opacity-100"
+                                              >
+                                                -
+                                              </button>
+                                              <span className="min-w-[1.5rem] text-center text-[11px] font-medium">
+                                                {extractedTextFontSize}px
+                                              </span>
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  setExtractedTextFontSize(
+                                                    Math.min(32, extractedTextFontSize + 2)
+                                                  )
+                                                }
+                                                className="cursor-pointer px-1 py-0.5 text-xs opacity-80 hover:opacity-100"
+                                              >
+                                                +
+                                              </button>
+                                            </div>
                                           </div>
                                         )}
 
@@ -8614,37 +8621,7 @@ FEEDBACK: [your explanation]`
                                                 >
                                                   <ChevronLeft className="h-5 w-5" />
                                                 </Button>
-                                                <div className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center gap-1 rounded-lg border border-[#E5E7EB] bg-slate-50/50 p-1">
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                      setExtractedTextFontSize(
-                                                        Math.max(10, extractedTextFontSize - 2)
-                                                      )
-                                                    }
-                                                    className="h-6 w-6 rounded-md p-0 text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm"
-                                                    title="Decrease font size"
-                                                  >
-                                                    A-
-                                                  </Button>
-                                                  <span className="w-6 text-center text-xs font-semibold text-slate-600">
-                                                    {extractedTextFontSize}
-                                                  </span>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() =>
-                                                      setExtractedTextFontSize(
-                                                        Math.min(32, extractedTextFontSize + 2)
-                                                      )
-                                                    }
-                                                    className="h-6 w-6 rounded-md p-0 text-slate-500 hover:bg-white hover:text-slate-800 hover:shadow-sm"
-                                                    title="Increase font size"
-                                                  >
-                                                    A+
-                                                  </Button>
-                                                </div>
+
                                                 {!assessmentPdfVisible ? (
                                                   <Button
                                                     variant="ghost"
@@ -8695,6 +8672,40 @@ FEEDBACK: [your explanation]`
                                                 }))
                                               }}
                                             />
+                                            {/* Floating font size control */}
+                                            <div
+                                              className="absolute bottom-6 right-6 z-20 flex items-center gap-1 rounded-md px-2 py-1 text-white"
+                                              style={{
+                                                background: 'rgba(40,40,40,0.78)',
+                                                backdropFilter: 'blur(8px)',
+                                              }}
+                                            >
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  setExtractedTextFontSize(
+                                                    Math.max(10, extractedTextFontSize - 2)
+                                                  )
+                                                }
+                                                className="cursor-pointer px-1 py-0.5 text-xs opacity-80 hover:opacity-100"
+                                              >
+                                                -
+                                              </button>
+                                              <span className="min-w-[1.5rem] text-center text-[11px] font-medium">
+                                                {extractedTextFontSize}px
+                                              </span>
+                                              <button
+                                                type="button"
+                                                onClick={() =>
+                                                  setExtractedTextFontSize(
+                                                    Math.min(32, extractedTextFontSize + 2)
+                                                  )
+                                                }
+                                                className="cursor-pointer px-1 py-0.5 text-xs opacity-80 hover:opacity-100"
+                                              >
+                                                +
+                                              </button>
+                                            </div>
                                           </div>
                                         )}
 

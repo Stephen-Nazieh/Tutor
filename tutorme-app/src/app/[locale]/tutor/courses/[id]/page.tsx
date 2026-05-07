@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -47,6 +47,8 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { ScheduleItem } from './constants'
 import { DAYS, TIME_SLOT_OPTIONS } from './constants'
 import {
@@ -147,6 +149,25 @@ export default function TutorCoursePage() {
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [selectedCountries, setSelectedCountries] = useState<string[]>([])
   const [categoryTab, setCategoryTab] = useState('global')
+
+  const regionTriggerRef = useRef<HTMLButtonElement>(null)
+  const countryTriggerRef = useRef<HTMLButtonElement>(null)
+  const [regionDropdownWidth, setRegionDropdownWidth] = useState(0)
+  const [countryDropdownWidth, setCountryDropdownWidth] = useState(0)
+
+  useLayoutEffect(() => {
+    const measure = () => {
+      if (regionTriggerRef.current) {
+        setRegionDropdownWidth(regionTriggerRef.current.offsetWidth)
+      }
+      if (countryTriggerRef.current) {
+        setCountryDropdownWidth(countryTriggerRef.current.offsetWidth)
+      }
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
 
   const totalLessons = useMemo(
     () => course?.modules?.reduce((sum, m) => sum + (m.lessons?.length ?? 0), 0) ?? 0,
@@ -724,6 +745,7 @@ export default function TutorCoursePage() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
+                            ref={regionTriggerRef}
                             variant="outline"
                             className="w-full justify-between border-slate-200 bg-white font-normal"
                           >
@@ -732,7 +754,11 @@ export default function TutorCoursePage() {
                               : `${selectedRegions.length} Region${selectedRegions.length === 1 ? '' : 's'} Selected`}
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="start">
+                        <DropdownMenuContent
+                          style={{ width: regionDropdownWidth }}
+                          align="start"
+                          sideOffset={6}
+                        >
                           <ScrollArea className="h-[200px]">
                             {REGIONS.map(region => (
                               <DropdownMenuCheckboxItem
@@ -754,9 +780,10 @@ export default function TutorCoursePage() {
                         <MapPin className="h-4 w-4 text-[#F17623]" />
                         Country
                       </Label>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                      <Popover>
+                        <PopoverTrigger asChild>
                           <Button
+                            ref={countryTriggerRef}
                             variant="outline"
                             className="w-full justify-between border-slate-200 bg-white font-normal"
                             disabled={selectedRegions.length === 0}
@@ -767,27 +794,44 @@ export default function TutorCoursePage() {
                                 ? 'Select Countries...'
                                 : `${selectedCountries.length} Countr${selectedCountries.length === 1 ? 'y' : 'ies'} Selected`}
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-56" align="start">
-                          <ScrollArea className="h-[200px]">
-                            {availableCountries.length === 0 ? (
-                              <div className="p-4 text-center text-xs text-slate-500">
-                                No countries available
+                        </PopoverTrigger>
+                        <PopoverContent
+                          variant="metallic"
+                          align="start"
+                          sideOffset={6}
+                          style={{ width: countryDropdownWidth }}
+                          className="max-h-[320px] overflow-y-auto p-4"
+                        >
+                          {availableCountries.length === 0 ? (
+                            <div className="py-4 text-center text-xs text-white/70">
+                              No countries available
+                            </div>
+                          ) : (
+                            <>
+                              <div className="grid grid-cols-2 gap-x-6 gap-y-3 lg:grid-cols-3">
+                                {availableCountries.map(country => (
+                                  <label
+                                    key={country.code}
+                                    className="flex cursor-pointer items-center gap-2.5 text-sm text-white"
+                                  >
+                                    <Checkbox
+                                      checked={selectedCountries.includes(country.code)}
+                                      onCheckedChange={() => toggleCountry(country.code)}
+                                      className="border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-slate-900"
+                                    />
+                                    <span>{country.name}</span>
+                                  </label>
+                                ))}
                               </div>
-                            ) : (
-                              availableCountries.map(country => (
-                                <DropdownMenuCheckboxItem
-                                  key={country.code}
-                                  checked={selectedCountries.includes(country.code)}
-                                  onCheckedChange={() => toggleCountry(country.code)}
-                                >
-                                  {country.name}
-                                </DropdownMenuCheckboxItem>
-                              ))
-                            )}
-                          </ScrollArea>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                              <div className="mt-4 border-t border-white/10 pt-3 text-xs text-white/60">
+                                {selectedCountries.length > 0
+                                  ? `${selectedCountries.length} selected`
+                                  : 'Select one or more countries'}
+                              </div>
+                            </>
+                          )}
+                        </PopoverContent>
+                      </Popover>
                     </div>
                   </div>
 
@@ -1159,6 +1203,16 @@ export default function TutorCoursePage() {
             <Button
               size="lg"
               variant="default"
+              onClick={handleSaveAll}
+              disabled={saving}
+              className="h-11 w-full rounded-full bg-[#1D4ED8] px-8 text-white shadow-[0_10px_24px_rgba(31,41,51,0.16),0_2px_6px_rgba(31,41,51,0.08)] sm:w-[220px]"
+            >
+              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {saving ? 'Saving…' : 'Save'}
+            </Button>
+            <Button
+              size="lg"
+              variant="default"
               onClick={async () => {
                 if (publishingVariants) return
                 setPublishingVariants(true)
@@ -1169,20 +1223,10 @@ export default function TutorCoursePage() {
                 }
               }}
               disabled={variantStats.total === 0 || publishingVariants}
-              className="h-11 w-full rounded-full bg-[#6D59D8] px-8 text-white hover:translate-y-0 hover:bg-white hover:text-[#6D59D8] hover:shadow-[0_0_0_2px_rgba(109,89,216,0.10)] hover:ring-2 hover:ring-[#6D59D8] active:scale-100 sm:w-[220px]"
+              className="h-11 w-full rounded-full bg-[#6D59D8] px-8 text-white shadow-[0_10px_24px_rgba(31,41,51,0.16),0_2px_6px_rgba(31,41,51,0.08)] sm:w-[220px]"
             >
               {publishingVariants ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {publishingVariants ? 'Publishing…' : 'Publish'}
-            </Button>
-            <Button
-              size="lg"
-              variant="default"
-              onClick={handleSaveAll}
-              disabled={saving}
-              className="h-11 w-full rounded-full bg-[#1D4ED8] px-8 text-white hover:translate-y-0 hover:bg-white hover:text-[#1D4ED8] hover:shadow-[0_0_0_2px_rgba(29,78,216,0.10)] hover:ring-2 hover:ring-[#1D4ED8] active:scale-100 sm:w-[220px]"
-            >
-              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {saving ? 'Saving…' : 'Save'}
             </Button>
           </div>
         </div>

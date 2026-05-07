@@ -123,13 +123,13 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       {/* Left Navigation Sidebar - Desktop */}
       <aside
         className={cn(
-          'relative z-40 hidden h-screen shrink-0 flex-col transition-all duration-300 lg:flex',
+          'relative z-40 hidden min-h-screen shrink-0 flex-col transition-all duration-300 lg:flex',
           desktopNavOpen ? 'w-64' : 'w-0 overflow-hidden'
         )}
       >
         <div
           className={cn(
-            'fixed bottom-4 left-4 top-4 z-40 hidden flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-300 lg:flex',
+            'sticky top-0 z-40 hidden h-screen flex-col rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/5 transition-all duration-300 lg:ml-4 lg:flex',
             desktopNavOpen ? 'w-60' : 'w-0 overflow-hidden ring-0'
           )}
         >

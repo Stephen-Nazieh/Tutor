@@ -59,7 +59,7 @@ import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 
 function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-gray-50 px-8 pb-3 pt-8">
       <div className="w-full space-y-6">
         <div className="h-8 w-1/3 animate-pulse rounded bg-gray-200" />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -595,7 +595,7 @@ function TutorDashboardContent() {
 
   return (
     <div className="bg-background text-foreground min-h-screen" style={themeStyle}>
-      <div className="mx-auto w-full px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full px-4 pb-3 pt-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-end">
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground text-xs uppercase tracking-[0.2em]">Theme</span>

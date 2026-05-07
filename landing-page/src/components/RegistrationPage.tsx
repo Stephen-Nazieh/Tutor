@@ -76,7 +76,7 @@ export const RegistrationPage = ({ onSubmit }: { onSubmit: (data: any) => void }
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Bio and Service Description</label>
+                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Bio</label>
                 <div className="relative">
                   <FileText className="absolute left-4 top-4 w-4 h-4 text-zinc-500" />
                   <textarea 

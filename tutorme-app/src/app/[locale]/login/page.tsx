@@ -12,11 +12,10 @@ import { signIn, getSession } from 'next-auth/react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { AlertCircle, Info, Loader2, Eye, EyeOff } from 'lucide-react'
+import { AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react'
 
 function LoginForm() {
   const router = useRouter()
@@ -88,21 +87,32 @@ function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Login to Solocorn</CardTitle>
-        <CardDescription>Enter your email and password to continue</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div
+      className="w-full max-w-sm overflow-hidden rounded-[24px] px-6 py-8"
+      style={{
+        background:
+          'linear-gradient(135deg, rgba(241,118,35,0.72) 0%, rgba(241,118,35,0.58) 50%, rgba(241,118,35,0.68) 100%)',
+        boxShadow:
+          '0 24px 48px rgba(0,0,0,0.12), 0 10px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.25)',
+        backdropFilter: 'blur(20px) saturate(140%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(140%)',
+      }}
+    >
+      <div className="text-center">
+        <h1 className="text-xl font-bold text-white drop-shadow-sm">Sign In</h1>
+        <p className="mt-1 text-sm text-white/75">Enter your email and password to continue</p>
+      </div>
+
+      <div className="mt-6">
         {registered && (
-          <div className="mb-4 rounded-lg bg-green-50 p-3 text-sm text-green-700">
+          <div className="mb-4 rounded-lg bg-white/20 p-3 text-sm text-white">
             Registration successful! Please log in.
           </div>
         )}
 
         {(error || authError) && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-            <AlertCircle className="h-4 w-4" />
+          <div className="mb-4 flex items-center gap-2 rounded-lg bg-white/15 p-3 text-sm text-white">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             {error ||
               (authError === 'SessionRequired'
                 ? 'Session expired or not found. Please log in again.'
@@ -111,8 +121,10 @@ function LoginForm() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="email" className="text-xs font-medium text-white/85">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -121,15 +133,18 @@ function LoginForm() {
               onChange={e => setEmail(e.target.value)}
               required
               disabled={isLoading}
+              className="h-10 border-0 bg-white/90 text-[#1F2933] shadow-sm ring-0 placeholder:text-gray-400 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-white/50"
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-xs font-medium text-white/85">
+                Password
+              </Label>
               <Link
                 href={`${localePrefix}/forgot-password`}
-                className="text-sm text-[#1D4ED8] hover:underline"
+                className="text-xs text-white/80 hover:text-white hover:underline"
               >
                 Forgot Password?
               </Link>
@@ -143,6 +158,7 @@ function LoginForm() {
                 onChange={e => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                className="h-10 border-0 bg-white/90 pr-10 text-[#1F2933] shadow-sm ring-0 placeholder:text-gray-400 focus-visible:bg-white focus-visible:ring-2 focus-visible:ring-white/50"
               />
               <button
                 type="button"
@@ -161,15 +177,16 @@ function LoginForm() {
               checked={rememberMe}
               onCheckedChange={checked => setRememberMe(checked as boolean)}
               disabled={isLoading}
+              className="border-white/50 data-[state=checked]:border-white data-[state=checked]:bg-white data-[state=checked]:text-[#F17623]"
             />
-            <Label htmlFor="remember" className="text-sm font-normal text-gray-600">
+            <Label htmlFor="remember" className="text-sm font-normal text-white/80">
               Remember me
             </Label>
           </div>
 
           <Button
             type="submit"
-            className="w-full bg-[#1D4ED8] hover:bg-[#1e40af]"
+            className="w-full bg-[#1D4ED8] text-white shadow-lg hover:bg-[#1B45C2]"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -183,39 +200,47 @@ function LoginForm() {
           </Button>
         </form>
 
-        <div className="mt-6 text-center text-sm">
-          <span className="text-gray-600">Don&apos;t have an account?</span>{' '}
+        <div className="mt-5 text-center text-sm">
+          <span className="text-white/70">Don&apos;t have an account?</span>{' '}
           <Link
             href={`${localePrefix}/register`}
-            className="font-medium text-[#1D4ED8] hover:underline"
+            className="font-medium text-white underline underline-offset-2 hover:text-white/90"
           >
             Sign up
           </Link>
         </div>
 
-        <div className="mt-4 border-t pt-4 text-center">
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
+        <div className="mt-4 border-t border-white/15 pt-4 text-center">
+          <Link href="/" className="text-sm text-white/60 hover:text-white/90">
             ← Back to home
           </Link>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
 function LoginFormFallback() {
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Login to Solocorn</CardTitle>
-        <CardDescription>Enter your email and password to continue</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-[#1D4ED8]" />
-        </div>
-      </CardContent>
-    </Card>
+    <div
+      className="w-full max-w-sm overflow-hidden rounded-[24px] px-6 py-8"
+      style={{
+        background:
+          'linear-gradient(135deg, rgba(241,118,35,0.72) 0%, rgba(241,118,35,0.58) 50%, rgba(241,118,35,0.68) 100%)',
+        boxShadow:
+          '0 24px 48px rgba(0,0,0,0.12), 0 10px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.25)',
+        backdropFilter: 'blur(20px) saturate(140%)',
+        WebkitBackdropFilter: 'blur(20px) saturate(140%)',
+      }}
+    >
+      <div className="text-center">
+        <h1 className="text-xl font-bold text-white">Sign In</h1>
+        <p className="mt-1 text-sm text-white/75">Enter your email and password to continue</p>
+      </div>
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-white/80" />
+      </div>
+    </div>
   )
 }
 

@@ -64,7 +64,7 @@ export function CourseScheduleCard({
           />
         ))}
         <Button type="button" variant="outline" onClick={addSlot}>
-          Add class slot
+          Add Session
         </Button>
       </CardContent>
     </Card>

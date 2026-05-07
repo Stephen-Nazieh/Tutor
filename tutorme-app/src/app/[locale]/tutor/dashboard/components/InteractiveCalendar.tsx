@@ -243,7 +243,7 @@ function DraggableEvent({
         'group absolute left-1 right-1 cursor-pointer overflow-hidden rounded p-2 text-xs',
         event.color || 'bg-blue-500',
         event.status === 'cancelled' && 'opacity-50',
-        hasConflict && 'ring-2 ring-red-500 ring-offset-1'
+        hasConflict && 'ring-2 ring-red-500'
       )}
       onClick={(e: any) => {
         e.stopPropagation()
@@ -1716,7 +1716,7 @@ function MonthView({
                   {getEventsForDate(date)
                     .slice(0, 3)
                     .map((event: CalendarEvent) => {
-                      const hasConflict = conflicts.find((e: CalendarEvent) => e.id === event.id)
+                      const hasConflict = !!conflicts.find((e: CalendarEvent) => e.id === event.id)
                       return (
                         <div
                           key={event.id}
@@ -1822,7 +1822,7 @@ function WeekView({
                   const minute = event.date.getMinutes()
                   const top = hour * 64 + (minute / 60) * 64
                   const height = (event.duration / 60) * 64
-                  const hasConflict = conflicts.find((e: CalendarEvent) => e.id === event.id)
+                  const hasConflict = !!conflicts.find((e: CalendarEvent) => e.id === event.id)
 
                   return (
                     <DraggableEvent
@@ -1874,7 +1874,7 @@ function DayView({ currentDate, events, onEventClick, conflicts, readOnly = fals
           const minute = event.date.getMinutes()
           const top = hour * 80 + (minute / 60) * 80
           const height = (event.duration / 60) * 80
-          const hasConflict = conflicts.find((e: CalendarEvent) => e.id === event.id)
+          const hasConflict = !!conflicts.find((e: CalendarEvent) => e.id === event.id)
 
           return (
             <DraggableEvent

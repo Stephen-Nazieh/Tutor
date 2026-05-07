@@ -1,6 +1,14 @@
 'use client'
 
-import { useEffect, useMemo, useState, useCallback, forwardRef, useImperativeHandle } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -117,6 +125,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
     const [variants, setVariants] = useState<VariantConfig[]>([])
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
     const [scheduleDialogIndex, setScheduleDialogIndex] = useState<number | null>(null)
+    const modalContentRef = useRef<HTMLDivElement>(null)
     const [globalDefaultsOpen, setGlobalDefaultsOpen] = useState(true)
     const [generatedVariantsOpen, setGeneratedVariantsOpen] = useState(true)
 
@@ -344,7 +353,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                   <Globe className="h-5 w-5 text-slate-900" />
                 </div>
                 <div>
-                  <div className="panel-header-title">Global Defaults</div>
+                  <div className="panel-header-title">Defaults</div>
                   <div className="panel-header-subtext">
                     Set default pricing, currency, and language for all variants.
                   </div>
@@ -445,9 +454,9 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                   <Calendar className="h-5 w-5 text-slate-900" />
                 </div>
                 <div>
-                  <div className="panel-header-title">Generated Variants</div>
+                  <div className="panel-header-title">Courses</div>
                   <div className="panel-header-subtext">
-                    Variants for each category and country combination.
+                    Edit the schedule, pricing, currency, and language for your course(s).
                   </div>
                 </div>
               </div>
@@ -621,7 +630,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                         >
                           {Array.isArray(variant.schedule) && variant.schedule.length > 0
                             ? 'Edit Schedule'
-                            : 'Add Class Slot'}
+                            : 'Add Session'}
                         </Button>
                       </div>
                     </div>
@@ -673,7 +682,10 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
               </DialogHeader>
 
               {dialogVariant && (
-                <div className="scrollbar-hide mt-6 flex-1 overflow-y-auto pr-2">
+                <div
+                  ref={modalContentRef}
+                  className="scrollbar-hide mt-6 flex-1 overflow-y-auto pr-2"
+                >
                   <VariantScheduleEditor
                     key={scheduleEditorKey}
                     schedule={Array.isArray(dialogVariant?.schedule) ? dialogVariant.schedule : []}
@@ -693,6 +705,9 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                         weeksToSchedule: weeks,
                       }))
                     }
+                    onWheelScroll={deltaY => {
+                      modalContentRef.current?.scrollBy({ top: deltaY, behavior: 'auto' })
+                    }}
                   />
                 </div>
               )}

@@ -746,198 +746,223 @@ export default function TutorRegistrationPage() {
       <div className="mx-auto max-w-4xl">
         <BackButton href="/register" className="mb-4" />
 
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#F17623]/10">
-            <GraduationCap className="h-8 w-8 text-[#F17623]" />
-          </div>
-          <h1 className="text-3xl font-bold text-[#1F2933]">Become a Solocorn Tutor</h1>
-          <p className="mt-2 text-gray-600">
-            Complete your application to start tutoring on the platform
-          </p>
-        </div>
-
-        <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
-          {steps.map(s => (
-            <div key={s.number} className="flex items-center gap-2">
+        <div className="mb-6">
+          <div className="relative flex items-center justify-between">
+            {/* Connecting line */}
+            <div className="absolute left-0 right-0 top-[18px] h-[2px]">
+              <div className="h-full w-full bg-gray-200" />
               <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold ${step >= s.number ? 'bg-[#F17623] text-white' : 'bg-gray-200 text-gray-500'}`}
-              >
-                {s.number}
-              </div>
-              <span className={`text-sm ${step >= s.number ? 'text-[#F17623]' : 'text-gray-400'}`}>
-                {s.title}
-              </span>
+                className="absolute left-0 top-0 h-full bg-[#F17623] transition-all duration-300"
+                style={{ width: `${((step - 1) / (steps.length - 1)) * 100}%` }}
+              />
             </div>
-          ))}
+            {steps.map((s, idx) => (
+              <div key={s.number} className="relative z-10 flex flex-col items-center">
+                <span
+                  className={`mb-2 text-[11px] font-medium ${step >= s.number ? 'text-[#F17623]' : 'text-gray-400'}`}
+                >
+                  {s.title}
+                </span>
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold transition-all duration-200 ${step > s.number ? 'bg-[#F17623] text-white shadow-[0_0_12px_rgba(241,118,35,0.35)]' : step === s.number ? 'bg-[#F17623] text-white shadow-[0_0_16px_rgba(241,118,35,0.45)]' : 'bg-gray-200 text-gray-500'}`}
+                >
+                  {s.number}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {step === 1 && 'Become a Solocorn Tutor'}
-              {step === 2 && 'Profile'}
-              {step === 3 && 'Review'}
-              {step === 4 && 'Terms and Agreements'}
-            </CardTitle>
-            <CardDescription>
-              {step === 1 && 'Tell us who you are'}
-              {step === 2 && 'Complete your profile information'}
-              {step === 3 && 'Review your application before registering'}
-              {step === 4 && 'Accept the terms to finalize your application'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <div
+          className="overflow-hidden rounded-[20px]"
+          style={{
+            background:
+              'linear-gradient(145deg, rgba(45,55,65,0.95) 0%, rgba(35,45,55,0.96) 40%, rgba(28,38,48,0.97) 100%)',
+            boxShadow:
+              '0 20px 50px rgba(0,0,0,0.18), 0 8px 20px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.08)',
+          }}
+        >
+          {step >= 3 && (
+            <div className="border-b border-white/10 px-5 pb-3 pt-5">
+              <h2 className="text-lg font-semibold text-white/90">
+                {step === 3 && 'Review'}
+                {step === 4 && 'Terms and Agreements'}
+              </h2>
+              <p className="text-xs text-white/50">
+                {step === 3 && 'Review your application before registering'}
+                {step === 4 && 'Accept the terms to finalize your application'}
+              </p>
+            </div>
+          )}
+          <div className="space-y-5 px-5 py-5">
             {step === 1 && (
               <>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label>First Name</Label>
-                    <Input
-                      value={formData.firstName}
-                      onChange={e => setFormData({ ...formData, firstName: e.target.value })}
-                      placeholder="John"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Middle Name</Label>
-                    <Input
-                      value={formData.middleName}
-                      onChange={e => setFormData({ ...formData, middleName: e.target.value })}
-                      placeholder="Optional"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Last Name</Label>
-                    <Input
-                      value={formData.lastName}
-                      onChange={e => setFormData({ ...formData, lastName: e.target.value })}
-                      placeholder="Doe"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="tutor@example.com"
-                  />
-                  {emailStatus.status === 'checking' && (
-                    <p className="text-xs text-gray-500">Checking availability...</p>
-                  )}
-                  {emailStatus.status === 'available' && (
-                    <p className="text-xs text-green-600">{emailStatus.message}</p>
-                  )}
-                  {emailStatus.status === 'taken' && (
-                    <p className="text-xs text-red-600">{emailStatus.message}</p>
-                  )}
-                  {emailStatus.status === 'invalid' && (
-                    <p className="text-xs text-red-600">{emailStatus.message}</p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Password</Label>
-                    <div className="relative">
+                <form autoComplete="off" onSubmit={e => e.preventDefault()}>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-white/70">First Name</Label>
                       <Input
-                        type={showPassword ? 'text' : 'password'}
-                        value={formData.password}
-                        onChange={e => setFormData({ ...formData, password: e.target.value })}
-                        placeholder="Create a password"
+                        className="h-8 border-white/10 bg-white text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#F17623]/40"
+                        value={formData.firstName}
+                        onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                        placeholder="John"
+                        autoComplete="off"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(prev => !prev)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-white/70">Middle Name</Label>
+                      <Input
+                        className="h-8 border-white/10 bg-white text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#F17623]/40"
+                        value={formData.middleName}
+                        onChange={e => setFormData({ ...formData, middleName: e.target.value })}
+                        placeholder="Optional"
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-white/70">Last Name</Label>
+                      <Input
+                        className="h-8 border-white/10 bg-white text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#F17623]/40"
+                        value={formData.lastName}
+                        onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                        placeholder="Doe"
+                        autoComplete="off"
+                      />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Confirm Password</Label>
-                    <div className="relative">
-                      <Input
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        value={formData.confirmPassword}
-                        onChange={e =>
-                          setFormData({ ...formData, confirmPassword: e.target.value })
-                        }
-                        placeholder="Confirm your password"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(prev => !prev)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                    {passwordMismatch && (
-                      <p className="text-xs text-red-500">Passwords do not match.</p>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs text-white/70">Email</Label>
+                    <Input
+                      className="h-8 border-white/10 bg-white text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#F17623]/40"
+                      type="email"
+                      name="tutor_registration_email"
+                      autoComplete="off"
+                      value={formData.email}
+                      onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="tutor@example.com"
+                    />
+                    {emailStatus.status === 'checking' && (
+                      <p className="text-xs text-gray-500">Checking availability...</p>
+                    )}
+                    {emailStatus.status === 'available' && (
+                      <p className="text-xs text-green-600">{emailStatus.message}</p>
+                    )}
+                    {emailStatus.status === 'taken' && (
+                      <p className="text-xs text-red-600">{emailStatus.message}</p>
+                    )}
+                    {emailStatus.status === 'invalid' && (
+                      <p className="text-xs text-red-600">{emailStatus.message}</p>
                     )}
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label>Nationality</Label>
-                  <Select
-                    value={formData.nationality}
-                    onValueChange={value => {
-                      setFormData(prev => ({
-                        ...prev,
-                        nationality: value,
-                      }))
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select your nationality" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ALL_COUNTRIES.map(country => (
-                        <SelectItem key={country.code} value={country.name}>
-                          {country.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs text-white/70">Password</Label>
+                      <div className="relative">
+                        <Input
+                          className="h-8 border-white/10 bg-white pr-9 text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#F17623]/40"
+                          type={showPassword ? 'text' : 'password'}
+                          name="tutor_registration_password"
+                          autoComplete="new-password"
+                          value={formData.password}
+                          onChange={e => setFormData({ ...formData, password: e.target.value })}
+                          placeholder="Create a password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(prev => !prev)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-3.5 w-3.5" />
+                          ) : (
+                            <Eye className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs text-white/70">Confirm Password</Label>
+                      <div className="relative">
+                        <Input
+                          className="h-8 border-white/10 bg-white pr-9 text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#F17623]/40"
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          name="tutor_registration_confirm_password"
+                          autoComplete="new-password"
+                          value={formData.confirmPassword}
+                          onChange={e =>
+                            setFormData({ ...formData, confirmPassword: e.target.value })
+                          }
+                          placeholder="Confirm your password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(prev => !prev)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-3.5 w-3.5" />
+                          ) : (
+                            <Eye className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+                      </div>
+                      {passwordMismatch && (
+                        <p className="text-xs text-red-400">Passwords do not match.</p>
+                      )}
+                    </div>
+                  </div>
 
-                <div className="flex gap-3">
-                  <Button
-                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
-                    onClick={async () => {
-                      if (await validateStepOne()) setStep(2)
-                    }}
-                  >
-                    Next
-                  </Button>
-                </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs text-white/70">Nationality</Label>
+                    <Select
+                      value={formData.nationality}
+                      onValueChange={value => {
+                        setFormData(prev => ({
+                          ...prev,
+                          nationality: value,
+                        }))
+                      }}
+                    >
+                      <SelectTrigger className="h-8 border-white/10 bg-white text-sm text-[#1F2933] focus:ring-[#F17623]/40">
+                        <SelectValue placeholder="Select your nationality" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ALL_COUNTRIES.map(country => (
+                          <SelectItem key={country.code} value={country.name}>
+                            {country.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      className="flex-1 bg-[#F17623] text-sm font-semibold text-white shadow-[0_4px_14px_rgba(241,118,35,0.35)] hover:bg-[#e06613] hover:shadow-[0_6px_20px_rgba(241,118,35,0.45)]"
+                      onClick={async () => {
+                        if (await validateStepOne()) setStep(2)
+                      }}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </form>
               </>
             )}
 
             {step === 2 && (
               <>
-                <div className="space-y-2">
-                  <Label>Solocorn Username</Label>
+                <div className="space-y-1">
+                  <Label className="text-xs text-white/70">Solocorn Username</Label>
                   <div className="flex items-center gap-2">
-                    <div className="flex w-full items-center gap-2 rounded-md border bg-white px-3 py-2">
-                      <span className="text-gray-500">@</span>
+                    <div className="flex w-full items-center gap-2 rounded-md border border-white/10 bg-white px-3 py-1.5">
+                      <span className="text-sm text-gray-500">@</span>
                       <Input
-                        className="h-auto border-0 p-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        className="h-auto border-0 bg-transparent p-0 text-sm text-[#1F2933] focus-visible:ring-0 focus-visible:ring-offset-0"
                         value={formData.username}
                         onChange={e => {
                           setFormData({
@@ -948,21 +973,22 @@ export default function TutorRegistrationPage() {
                           setUsernameStatus({ status: 'idle' })
                         }}
                         placeholder="your_username"
+                        autoComplete="off"
                       />
                     </div>
                   </div>
                   {usernameStatus.status === 'checking' && (
-                    <p className="text-xs text-gray-500">Checking availability...</p>
+                    <p className="text-xs text-white/50">Checking availability...</p>
                   )}
                   {usernameStatus.status === 'available' && (
-                    <p className="text-xs text-green-600">{usernameStatus.message}</p>
+                    <p className="text-xs text-green-400">{usernameStatus.message}</p>
                   )}
                   {usernameStatus.status === 'taken' && (
-                    <div className="text-xs text-red-600">
+                    <div className="text-xs text-red-400">
                       <p>{usernameStatus.message}</p>
                       {usernameStatus.suggestion && (
                         <button
-                          className="text-[#1D4ED8] underline"
+                          className="text-blue-400 underline"
                           type="button"
                           onClick={applySuggestion}
                         >
@@ -972,17 +998,18 @@ export default function TutorRegistrationPage() {
                     </div>
                   )}
                   {usernameStatus.status === 'invalid' && (
-                    <p className="text-xs text-red-600">{usernameStatus.message}</p>
+                    <p className="text-xs text-red-400">{usernameStatus.message}</p>
                   )}
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-white/50">
                     3-15 characters. Only letters, numbers, and underscores allowed.
                   </p>
                 </div>
 
-                <div className="space-y-3">
-                  <Label>Social Media Accounts</Label>
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-xs text-white/70">Social Media Accounts</Label>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                     <Input
+                      className="h-8 border-white/10 bg-white text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#F17623]/40"
                       value={formData.socialLinks.instagram}
                       onChange={e =>
                         setFormData({
@@ -991,8 +1018,10 @@ export default function TutorRegistrationPage() {
                         })
                       }
                       placeholder="Instagram"
+                      autoComplete="off"
                     />
                     <Input
+                      className="h-8 border-white/10 bg-white text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#F17623]/40"
                       value={formData.socialLinks.tiktok}
                       onChange={e =>
                         setFormData({
@@ -1001,8 +1030,10 @@ export default function TutorRegistrationPage() {
                         })
                       }
                       placeholder="TikTok"
+                      autoComplete="off"
                     />
                     <Input
+                      className="h-8 border-white/10 bg-white text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#F17623]/40"
                       value={formData.socialLinks.youtube}
                       onChange={e =>
                         setFormData({
@@ -1011,8 +1042,10 @@ export default function TutorRegistrationPage() {
                         })
                       }
                       placeholder="YouTube"
+                      autoComplete="off"
                     />
                     <Input
+                      className="h-8 border-white/10 bg-white text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#F17623]/40"
                       value={formData.socialLinks.facebook}
                       onChange={e =>
                         setFormData({
@@ -1021,16 +1054,21 @@ export default function TutorRegistrationPage() {
                         })
                       }
                       placeholder="Facebook"
+                      autoComplete="off"
                     />
                   </div>
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(1)}>
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-white/20 bg-white/5 text-sm text-white hover:bg-white/10 hover:text-white"
+                    onClick={() => setStep(1)}
+                  >
                     Back
                   </Button>
                   <Button
-                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
+                    className="flex-1 bg-[#F17623] text-sm font-semibold text-white shadow-[0_4px_14px_rgba(241,118,35,0.35)] hover:bg-[#e06613] hover:shadow-[0_6px_20px_rgba(241,118,35,0.45)]"
                     onClick={async () => {
                       const isValid = await validateStepTwo()
                       if (isValid) setStep(3)
@@ -1045,20 +1083,21 @@ export default function TutorRegistrationPage() {
             {step === 3 && (
               <>
                 <div className="space-y-4">
-                  <div className="rounded-lg bg-gray-50 p-4">
-                    <h4 className="mb-2 flex items-center gap-2 font-semibold">
-                      <UserRound className="h-4 w-4" />
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                    <h4 className="mb-2 flex items-center gap-2 text-sm font-semibold text-white/90">
+                      <UserRound className="h-4 w-4 text-white/60" />
                       Profile Overview
                     </h4>
-                    <p className="text-sm">
-                      <strong>Name:</strong> {formData.firstName} {formData.lastName}
+                    <p className="text-sm text-white/80">
+                      <span className="text-white/50">Name:</span> {formData.firstName}{' '}
+                      {formData.lastName}
                     </p>
-                    <p className="text-sm">
-                      <strong>Username:</strong> {formData.username}
+                    <p className="text-sm text-white/80">
+                      <span className="text-white/50">Username:</span> {formData.username}
                     </p>
                     {formData.nationality && (
-                      <p className="text-sm">
-                        <strong>Nationality:</strong> {formData.nationality}
+                      <p className="text-sm text-white/80">
+                        <span className="text-white/50">Nationality:</span> {formData.nationality}
                       </p>
                     )}
                   </div>
@@ -1067,11 +1106,15 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(2)}>
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-white/20 bg-white/5 text-sm text-white hover:bg-white/10 hover:text-white"
+                    onClick={() => setStep(2)}
+                  >
                     Back
                   </Button>
                   <Button
-                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
+                    className="flex-1 bg-[#F17623] text-sm font-semibold text-white shadow-[0_4px_14px_rgba(241,118,35,0.35)] hover:bg-[#e06613] hover:shadow-[0_6px_20px_rgba(241,118,35,0.45)]"
                     onClick={() => setStep(4)}
                   >
                     Register
@@ -1090,8 +1133,9 @@ export default function TutorRegistrationPage() {
                       onCheckedChange={checked =>
                         setFormData({ ...formData, agreeToTerms: checked as boolean })
                       }
+                      className="border-white/40 data-[state=checked]:border-[#F17623] data-[state=checked]:bg-[#F17623] data-[state=checked]:text-white"
                     />
-                    <Label htmlFor="terms" className="text-sm">
+                    <Label htmlFor="terms" className="text-sm text-white/80">
                       I agree to the Terms and Agreements and confirm that the information provided
                       is accurate.
                     </Label>
@@ -1099,11 +1143,15 @@ export default function TutorRegistrationPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep(3)}>
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-white/20 bg-white/5 text-sm text-white hover:bg-white/10 hover:text-white"
+                    onClick={() => setStep(3)}
+                  >
                     Back
                   </Button>
                   <Button
-                    className="flex-1 bg-[#F17623] hover:bg-[#e06613]"
+                    className="flex-1 bg-[#F17623] text-sm font-semibold text-white shadow-[0_4px_14px_rgba(241,118,35,0.35)] hover:bg-[#e06613] hover:shadow-[0_6px_20px_rgba(241,118,35,0.45)]"
                     onClick={handleSubmit}
                     disabled={isLoading || !formData.agreeToTerms}
                   >
@@ -1112,8 +1160,8 @@ export default function TutorRegistrationPage() {
                 </div>
               </>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Username Check Modal */}
         <Dialog open={showUsernameCheckModal} onOpenChange={setShowUsernameCheckModal}>

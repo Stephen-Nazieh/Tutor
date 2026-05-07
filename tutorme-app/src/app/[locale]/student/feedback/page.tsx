@@ -44,6 +44,8 @@ import {
   ChevronDown,
   Folder,
   Video,
+  Plus,
+  Minus,
 } from 'lucide-react'
 import {
   Dialog,
@@ -127,6 +129,7 @@ function StudentFeedbackContent() {
   const [unseenHomeworkIds, setUnseenHomeworkIds] = useState<string[]>([])
   const [questionDrafts, setQuestionDrafts] = useState<Record<string, string>>({})
   const [chatInput, setChatInput] = useState('')
+  const [viewerZoom, setViewerZoom] = useState(1)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [sessionContext, setSessionContext] = useState<{
     topic: string | null
@@ -1685,29 +1688,27 @@ function StudentFeedbackContent() {
                   })()}
 
                   <TabsContent value="task" className="flex flex-1 flex-col outline-none">
-                    <Card className="flex min-h-[420px] flex-1 flex-col">
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between gap-3">
-                          <span>{activeTask?.title || 'Select a task to begin'}</span>
-                          <Button variant="ghost" size="icon">
-                            <Bell className="h-4 w-4" />
-                          </Button>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="h-[calc(100vh-280px)] min-h-[600px] flex-1 space-y-4 overflow-hidden p-0">
+                    {/* Classroom viewer */}
+                    <div className="relative flex flex-1 flex-col overflow-hidden rounded-2xl border-2 border-[rgba(241,118,35,0.5)] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all duration-200 hover:shadow-[0_12px_32px_rgba(31,41,51,0.14)]">
+                      <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-center">
+                        <span className="rounded-b-md bg-[rgba(241,118,35,0.5)] px-3 py-0.5 text-[11px] font-medium text-white">
+                          Classroom
+                        </span>
+                      </div>
+
+                      <div className="flex-1 overflow-hidden p-4 pt-6">
                         {activeTask ? (
-                          <div className="h-full w-full">
-                            {(activeTask.sourceDocument || activeTask.content) && (
-                              <div className="h-full w-full overflow-y-auto p-4">
+                          <div
+                            className="h-full w-full"
+                            style={{ zoom: viewerZoom } as React.CSSProperties}
+                          >
+                            {activeTask.sourceDocument || activeTask.content ? (
+                              <div className="h-full w-full overflow-y-auto">
                                 {activeTask.sourceDocument ? (
-                                  <div className="h-full space-y-2">
-                                    <p className="text-xs font-semibold uppercase text-gray-500">
-                                      Document
-                                    </p>
+                                  <div className="h-full w-full">
                                     {activeTask.sourceDocument.mimeType === 'application/pdf' ||
-                                    !activeTask.sourceDocument.mimeType ||
                                     !activeTask.sourceDocument.mimeType ? (
-                                      <div className="h-[calc(100%-24px)] w-full overflow-hidden rounded border">
+                                      <div className="h-full w-full overflow-hidden">
                                         <iframe
                                           src={
                                             activeTask.sourceDocument.fileUrl.includes('#')
@@ -1719,17 +1720,17 @@ function StudentFeedbackContent() {
                                         />
                                       </div>
                                     ) : activeTask.sourceDocument.mimeType.startsWith('image/') ? (
-                                      <div className="overflow-hidden rounded border">
+                                      <div className="flex h-full items-center justify-center">
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img
                                           src={activeTask.sourceDocument.fileUrl}
                                           alt={activeTask.sourceDocument.fileName}
-                                          className="h-auto max-h-[500px] w-full object-contain"
+                                          className="max-h-full max-w-full object-contain"
                                         />
                                       </div>
                                     ) : (
-                                      <div className="flex items-center gap-2 rounded border bg-white p-4">
-                                        <FileText className="h-5 w-5 text-blue-600" />
+                                      <div className="flex h-full flex-col items-center justify-center gap-2">
+                                        <FileText className="h-8 w-8 text-blue-600" />
                                         <a
                                           href={activeTask.sourceDocument.fileUrl}
                                           target="_blank"
@@ -1742,59 +1743,78 @@ function StudentFeedbackContent() {
                                     )}
                                   </div>
                                 ) : (
-                                  <div className="rounded-lg border bg-white p-4 text-sm text-gray-700">
-                                    <p className="whitespace-pre-wrap">{activeTask.content}</p>
+                                  <div className="whitespace-pre-wrap text-sm text-gray-700">
+                                    {activeTask.content}
                                   </div>
                                 )}
                               </div>
+                            ) : (
+                              <div className="flex h-full items-center justify-center" />
                             )}
                           </div>
                         ) : (
-                          <div className="flex h-full items-center justify-center p-8">
-                            <div className="rounded-lg border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500">
-                              Choose a task from the Tasks panel to view it here.
-                            </div>
-                          </div>
+                          <div className="flex h-full items-center justify-center" />
                         )}
-                      </CardContent>
-                    </Card>
-
-                    <div className="mt-4 w-full rounded-2xl border border-blue-300 bg-white/90 shadow-[0_0_15px_rgba(59,130,246,0.35)] backdrop-blur-md transition-all duration-300 focus-within:shadow-[0_0_25px_rgba(59,130,246,0.55)]">
-                      <div className="relative flex w-full flex-col p-px">
-                        <div className="flex w-full flex-col">
-                          <AutoTextarea
-                            placeholder="Type a message to the class..."
-                            className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                            value={chatInput}
-                            onChange={event => setChatInput(event.target.value)}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault()
-                                if (chatInput.trim() && socket) {
-                                  socket.emit('chat_message', { text: chatInput.trim() })
-                                  setChatInput('')
-                                }
-                              }
-                            }}
-                          />
-                          <div className="flex w-full items-center justify-end gap-2 px-2 pb-2">
-                            <Button
-                              size="icon"
-                              className="h-9 w-9 rounded-xl bg-slate-400 shadow-sm hover:bg-slate-500 disabled:opacity-30"
-                              disabled={!chatInput.trim() || !socket}
-                              onClick={() => {
-                                if (chatInput.trim() && socket) {
-                                  socket.emit('chat_message', { text: chatInput.trim() })
-                                  setChatInput('')
-                                }
-                              }}
-                              title="Send"
-                            >
-                              <Send className="h-4 w-4 text-white" />
-                            </Button>
-                          </div>
-                        </div>
                       </div>
+
+                      {/* Floating zoom controls */}
+                      <div className="absolute bottom-4 right-4 z-10 flex flex-col gap-1 rounded-full bg-white/90 p-1 shadow-md backdrop-blur-sm">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 rounded-full text-slate-600 hover:bg-slate-100"
+                          onClick={() => setViewerZoom(z => Math.min(2, z + 0.1))}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 rounded-full text-slate-600 hover:bg-slate-100"
+                          onClick={() => setViewerZoom(z => Math.max(0.5, z - 0.1))}
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Input row */}
+                    <div className="mt-3 flex items-center gap-3">
+                      <div className="relative flex-1">
+                        <Input
+                          value={chatInput}
+                          onChange={e => setChatInput(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault()
+                              if (chatInput.trim() && socket) {
+                                socket.emit('chat_message', { text: chatInput.trim() })
+                                setChatInput('')
+                              }
+                            }
+                          }}
+                          className="h-11 w-full rounded-xl border-slate-200 pr-10 text-sm focus-visible:ring-[rgba(241,118,35,0.5)]"
+                        />
+                        <Button
+                          size="icon"
+                          className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2 rounded-lg bg-slate-400 text-white hover:bg-slate-500 disabled:opacity-30"
+                          disabled={!chatInput.trim() || !socket}
+                          onClick={() => {
+                            if (chatInput.trim() && socket) {
+                              socket.emit('chat_message', { text: chatInput.trim() })
+                              setChatInput('')
+                            }
+                          }}
+                        >
+                          <Send className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <Button
+                        className="h-11 rounded-xl bg-[#F17623] px-5 text-sm font-semibold text-white hover:bg-[#d9651a]"
+                        onClick={() => toast.success('Task marked complete')}
+                      >
+                        Task Complete
+                      </Button>
                     </div>
                   </TabsContent>
 

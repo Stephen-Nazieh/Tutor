@@ -21,6 +21,7 @@ interface VariantScheduleEditorProps {
   price?: number | null
   weeksToSchedule?: number
   onWeeksChange?: (weeks: number) => void
+  onWheelScroll?: (deltaY: number) => void
 }
 
 const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -65,6 +66,7 @@ export function VariantScheduleEditor({
   price,
   weeksToSchedule = 8,
   onWeeksChange,
+  onWheelScroll,
 }: VariantScheduleEditorProps) {
   const calendarScrollRef = useRef<HTMLDivElement>(null)
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
@@ -333,8 +335,8 @@ export function VariantScheduleEditor({
             </Button>
           </div>
         </div>
-        <div className="grid grid-cols-8 border-b border-[rgba(209,213,219,0.85)] bg-white">
-          <div className="flex h-12 min-w-[150px] items-center justify-center border-r border-[rgba(209,213,219,0.85)] px-2 text-center text-xs font-semibold text-slate-700">
+        <div className="grid grid-cols-[150px_repeat(7,_1fr)] border-b border-[rgba(209,213,219,0.85)] bg-white">
+          <div className="flex h-12 items-center justify-center border-r border-[rgba(209,213,219,0.85)] px-2 text-center text-xs font-semibold text-slate-700">
             Time
           </div>
           {DAYS.map((day, i) => {
@@ -355,8 +357,15 @@ export function VariantScheduleEditor({
           })}
         </div>
         <div className="relative">
-          <div ref={calendarScrollRef} className="scrollbar-hide h-[320px] overflow-y-auto">
-            <div className="grid grid-cols-8">
+          <div
+            ref={calendarScrollRef}
+            className="scrollbar-hide h-[320px] overflow-y-auto"
+            onWheel={e => {
+              e.preventDefault()
+              onWheelScroll?.(e.deltaY)
+            }}
+          >
+            <div className="grid grid-cols-[150px_repeat(7,_1fr)]">
               {TIME_SLOT_OPTIONS.map(timeStr => {
                 const hour = parseInt(timeStr.slice(0, 2), 10)
                 const endHour = hour + 1
@@ -365,7 +374,7 @@ export function VariantScheduleEditor({
                 const displayTime = `${startLabel} \u2013 ${endLabel}`
                 return (
                   <div key={timeStr} className="contents">
-                    <div className="flex h-12 min-w-[150px] items-center justify-center border-b border-r border-[rgba(209,213,219,0.85)] px-2 text-center text-[11px] font-semibold text-slate-600">
+                    <div className="flex h-12 items-center justify-center border-b border-r border-[rgba(209,213,219,0.85)] px-2 text-center text-[11px] font-semibold text-slate-600">
                       {displayTime}
                     </div>
                     {DAYS.map((day, dayIndex) => {

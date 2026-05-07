@@ -646,6 +646,11 @@
     -webkit-text-size-adjust: 100%;
     overflow-x: hidden;
     scroll-behavior: smooth;
+    scrollbar-gutter: stable;
+  }
+  
+  html[data-scroll-locked] {
+    padding-right: 0 !important;
   }
   
   body {
@@ -959,5 +964,172 @@
   }
   .aspect-portrait {
     aspect-ratio: 3 / 4;
+  }
+}
+/* ============================================
+   COURSE BUILDER DENSITY
+   ============================================ */
+
+.course-builder-density {
+  --density-scale: 0.9;
+}
+
+/* Padding */
+.course-builder-density .p-1 {
+  padding: calc(0.25rem * var(--density-scale));
+}
+
+.course-builder-density .px-1 {
+  padding-left: calc(0.25rem * var(--density-scale));
+  padding-right: calc(0.25rem * var(--density-scale));
+}
+
+.course-builder-density .px-2 {
+  padding-left: calc(0.5rem * var(--density-scale));
+  padding-right: calc(0.5rem * var(--density-scale));
+}
+
+.course-builder-density .px-3 {
+  padding-left: calc(0.75rem * var(--density-scale));
+  padding-right: calc(0.75rem * var(--density-scale));
+}
+
+.course-builder-density .px-4 {
+  padding-left: calc(1rem * var(--density-scale));
+  padding-right: calc(1rem * var(--density-scale));
+}
+
+.course-builder-density .px-6 {
+  padding-left: calc(1.5rem * var(--density-scale));
+  padding-right: calc(1.5rem * var(--density-scale));
+}
+
+.course-builder-density .py-1 {
+  padding-top: calc(0.25rem * var(--density-scale));
+  padding-bottom: calc(0.25rem * var(--density-scale));
+}
+
+.course-builder-density .py-1\.5 {
+  padding-top: calc(0.375rem * var(--density-scale));
+  padding-bottom: calc(0.375rem * var(--density-scale));
+}
+
+.course-builder-density .py-2 {
+  padding-top: calc(0.5rem * var(--density-scale));
+  padding-bottom: calc(0.5rem * var(--density-scale));
+}
+
+.course-builder-density .py-2\.5 {
+  padding-top: calc(0.625rem * var(--density-scale));
+  padding-bottom: calc(0.625rem * var(--density-scale));
+}
+
+.course-builder-density .py-3 {
+  padding-top: calc(0.75rem * var(--density-scale));
+  padding-bottom: calc(0.75rem * var(--density-scale));
+}
+
+.course-builder-density .py-3\.5 {
+  padding-top: calc(0.875rem * var(--density-scale));
+  padding-bottom: calc(0.875rem * var(--density-scale));
+}
+
+.course-builder-density .pb-2 {
+  padding-bottom: calc(0.5rem * var(--density-scale));
+}
+
+.course-builder-density .pt-1 {
+  padding-top: calc(0.25rem * var(--density-scale));
+}
+
+.course-builder-density .pr-1\.5 {
+  padding-right: calc(0.375rem * var(--density-scale));
+}
+
+.course-builder-density .pl-3 {
+  padding-left: calc(0.75rem * var(--density-scale));
+}
+
+/* Margin */
+.course-builder-density .mb-1 {
+  margin-bottom: calc(0.25rem * var(--density-scale));
+}
+
+.course-builder-density .mb-1\.5 {
+  margin-bottom: calc(0.375rem * var(--density-scale));
+}
+
+.course-builder-density .mb-2 {
+  margin-bottom: calc(0.5rem * var(--density-scale));
+}
+
+.course-builder-density .mb-3 {
+  margin-bottom: calc(0.75rem * var(--density-scale));
+}
+
+.course-builder-density .mb-4 {
+  margin-bottom: calc(1rem * var(--density-scale));
+}
+
+.course-builder-density .mt-1 {
+  margin-top: calc(0.25rem * var(--density-scale));
+}
+
+.course-builder-density .mt-1\.5 {
+  margin-top: calc(0.375rem * var(--density-scale));
+}
+
+/* Gap */
+.course-builder-density .gap-1 {
+  gap: calc(0.25rem * var(--density-scale));
+}
+
+.course-builder-density .gap-1\.5 {
+  gap: calc(0.375rem * var(--density-scale));
+}
+
+.course-builder-density .gap-2 {
+  gap: calc(0.5rem * var(--density-scale));
+}
+
+.course-builder-density .gap-3 {
+  gap: calc(0.75rem * var(--density-scale));
+}
+
+.course-builder-density .gap-4 {
+  gap: calc(1rem * var(--density-scale));
+}
+
+/* Min-height */
+.course-builder-density .min-h-\[48px\] {
+  min-height: calc(48px * var(--density-scale));
+}
+
+.course-builder-density .min-h-\[58px\] {
+  min-height: calc(58px * var(--density-scale));
+}
+
+/* Border radius */
+.course-builder-density .rounded-\[20px\] {
+  border-radius: calc(20px * var(--density-scale));
+}
+
+.course-builder-density .rounded-\[24px\] {
+  border-radius: calc(24px * var(--density-scale));
+}
+
+.course-builder-density .rounded-xl {
+  border-radius: calc(0.75rem * var(--density-scale));
+}
+
+.course-builder-density .rounded-2xl {
+  border-radius: calc(1rem * var(--density-scale));
+}
+
+/* Responsive padding */
+@media (min-width: 640px) {
+  .course-builder-density .sm\:px-6 {
+    padding-left: calc(1.5rem * var(--density-scale));
+    padding-right: calc(1.5rem * var(--density-scale));
   }
 }

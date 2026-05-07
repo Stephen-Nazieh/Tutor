@@ -264,7 +264,7 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
 
   return (
     <Card className="border border-[#E2E8F0] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-[calc(1rem*var(--density-scale,1))]">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg text-[#1F2933]">My Courses</CardTitle>
           <Button
@@ -1167,14 +1167,17 @@ export default function TutorMyPage() {
   }
 
   const headerCardClass =
-    'group relative overflow-hidden rounded-[20px] p-[1px] shadow-[0_18px_60px_rgba(0,0,0,0.18)] transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_24px_80px_rgba(0,0,0,0.22)]'
+    'group relative overflow-hidden rounded-[20px] p-[1px] shadow-[0_18px_60px_rgba(0,0,0,0.18)] transition-all duration-200 ease-in-out hover:shadow-[0_24px_80px_rgba(0,0,0,0.22)]'
   const headerInnerClass =
-    'rounded-[20px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-8 py-6 text-white'
+    'rounded-[20px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-8 py-5 text-white'
   const panelCardClass =
-    'group rounded-[18px] bg-white p-6 shadow-[0_14px_45px_rgba(0,0,0,0.12)] transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_20px_60px_rgba(0,0,0,0.16)]'
+    'group rounded-[18px] bg-white p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)] transition-all duration-200 ease-in-out hover:shadow-[0_20px_60px_rgba(0,0,0,0.16)]'
 
   return (
-    <div className="min-h-screen bg-white text-[#1F2933]">
+    <div
+      className="min-h-screen bg-white text-[#1F2933]"
+      style={{ '--density-scale': '0.9' } as React.CSSProperties}
+    >
       <div className="border-b border-[#E2E8F0] bg-white/90 backdrop-blur">
         <div className="mx-auto flex w-full items-center justify-between px-6 py-4">
           <BackButton
@@ -1183,7 +1186,7 @@ export default function TutorMyPage() {
         </div>
       </div>
 
-      <div className="w-full space-y-8 px-6 py-8">
+      <div className="w-full space-y-[calc(2rem*var(--density-scale,1))] px-6 py-[calc(2rem*var(--density-scale,1))]">
         <section className={headerCardClass}>
           <div className={headerInnerClass}>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -1239,7 +1242,9 @@ export default function TutorMyPage() {
                       Verified
                     </span>
                   </div>
-                  <div className="mt-1 text-sm font-medium text-white/80">Solocorn Tutor</div>
+                  <div className="mt-1 text-sm font-medium text-white/80">
+                    @{normalizedUsername}
+                  </div>
 
                   <div className="mt-4 inline-flex flex-wrap items-center gap-4 rounded-full bg-white/10 px-5 py-2.5 text-white ring-1 ring-white/15 backdrop-blur">
                     <div className="flex items-center gap-2">
@@ -1280,8 +1285,7 @@ export default function TutorMyPage() {
                     >
                       <Button
                         size="lg"
-                        variant="outline"
-                        className="w-full border-white/50 bg-transparent text-white hover:bg-white/10 sm:w-auto"
+                        className="w-full border-0 bg-[#F17623] text-white shadow-[0_4px_14px_rgba(0,0,0,0.2)] hover:bg-white hover:text-[#F17623] sm:w-auto"
                       >
                         Preview My Public Page
                       </Button>
@@ -1289,9 +1293,8 @@ export default function TutorMyPage() {
                   ) : (
                     <Button
                       size="lg"
-                      variant="outline"
                       disabled
-                      className="w-full border-white/30 bg-transparent text-white/60 sm:w-auto"
+                      className="w-full border-0 bg-[#F17623]/50 text-white/70 sm:w-auto"
                     >
                       Preview My Public Page
                     </Button>
@@ -1299,7 +1302,7 @@ export default function TutorMyPage() {
 
                   <Button
                     size="lg"
-                    className="w-full bg-white text-[#0B3A9B] hover:bg-white/90 sm:w-auto"
+                    className="w-full border-0 bg-white text-[#1D4ED8] shadow-[0_4px_14px_rgba(0,0,0,0.12)] hover:bg-[#1F2933] hover:text-white sm:w-auto"
                     onClick={() => void save()}
                     disabled={loading || saving}
                   >
@@ -1311,13 +1314,13 @@ export default function TutorMyPage() {
           </div>
         </section>
 
-        <div className="grid gap-6 lg:grid-cols-2 lg:items-stretch">
+        <div className="grid gap-5 lg:grid-cols-2 lg:items-stretch">
           <div className={`${panelCardClass} flex h-full flex-col`}>
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
                 <Globe className="h-4 w-4 text-slate-700" />
               </div>
-              <div className="text-lg font-semibold text-slate-900">About Me</div>
+              <div className="text-lg font-semibold text-slate-900">Bio</div>
             </div>
 
             <div className="mt-4 flex min-h-0 flex-1 flex-col">
@@ -1332,14 +1335,14 @@ export default function TutorMyPage() {
           <div className="flex h-full flex-col gap-6">
             <div className={panelCardClass}>
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
-                  <Globe className="h-4 w-4 text-slate-700" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
+                  <Globe className="h-3.5 w-3.5 text-slate-700" />
                 </div>
-                <div className="text-lg font-semibold text-slate-900">My Public Page</div>
+                <div className="text-base font-semibold text-slate-900">My Public Page</div>
               </div>
 
               {publicUrl ? (
-                <div className="mt-4">
+                <div className="mt-3">
                   <div className="break-all text-lg font-semibold text-slate-900">{publicUrl}</div>
                   <div className="mt-1 text-sm font-semibold text-[#F17623]">
                     {normalizedUsername ? `@${normalizedUsername}` : '@username'}
@@ -1377,14 +1380,14 @@ export default function TutorMyPage() {
 
             <div className={panelCardClass}>
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
-                  <Share2 className="h-4 w-4 text-slate-700" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
+                  <Share2 className="h-3.5 w-3.5 text-slate-700" />
                 </div>
-                <div className="text-lg font-semibold text-slate-900">Social Media Accounts</div>
+                <div className="text-base font-semibold text-slate-900">Social Media Accounts</div>
               </div>
 
-              <div className="mt-4">
-                <div className="grid gap-4 sm:grid-cols-2">
+              <div className="mt-3">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {[
                     {
                       key: 'tiktok',
@@ -1443,13 +1446,13 @@ export default function TutorMyPage() {
 
             <div className={panelCardClass}>
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
-                  <BookOpen className="h-4 w-4 text-slate-700" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
+                  <BookOpen className="h-3.5 w-3.5 text-slate-700" />
                 </div>
-                <div className="text-lg font-semibold text-slate-900">Categories</div>
+                <div className="text-base font-semibold text-slate-900">Categories</div>
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {publishedCourseCategories.length > 0 ? (
                   publishedCourseCategories.map((cat, i) => (
                     <span
@@ -1595,7 +1598,7 @@ export default function TutorMyPage() {
             onClick={() => setProfileSettingsOpen(prev => !prev)}
           >
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg text-[#1F2933]">Profile Settings</CardTitle>
+              <CardTitle className="text-base text-[#1F2933]">Profile Settings</CardTitle>
               {profileSettingsOpen ? (
                 <ChevronUp className="h-4 w-4 text-[#64748B]" />
               ) : (
@@ -1604,10 +1607,10 @@ export default function TutorMyPage() {
             </div>
           </CardHeader>
           {profileSettingsOpen && (
-            <CardContent className="space-y-5 bg-white">
-              <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
-                <div className="flex min-h-[280px] flex-col gap-2 lg:min-h-0">
-                  <Label className="text-[#1F2933]">Edit Bio</Label>
+            <CardContent className="space-y-4 bg-white">
+              <div className="grid gap-3 lg:grid-cols-2 lg:items-stretch">
+                <div className="flex min-h-[250px] flex-col gap-2 lg:min-h-0">
+                  <Label className="text-sm text-[#1F2933]">Bio</Label>
                   <Textarea
                     value={bio}
                     onChange={e => setBio(e.target.value)}
@@ -1617,10 +1620,10 @@ export default function TutorMyPage() {
                   />
                 </div>
 
-                <div className="flex min-h-[280px] flex-col gap-4 lg:min-h-0">
-                  <div className="space-y-3">
-                    <Label className="text-[#1F2933]">Edit Social Media</Label>
-                    <div className="grid gap-3 md:grid-cols-2">
+                <div className="flex min-h-[250px] flex-col gap-3 lg:min-h-0">
+                  <div className="space-y-2">
+                    <Label className="text-sm text-[#1F2933]">Edit Social Media</Label>
+                    <div className="grid gap-2.5 md:grid-cols-2">
                       <div className="space-y-1">
                         <Label className="text-xs text-[#64748B]">TikTok</Label>
                         <div className="flex rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#1D4ED8] focus-within:ring-offset-0">
