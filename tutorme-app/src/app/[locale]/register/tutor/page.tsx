@@ -742,8 +742,8 @@ export default function TutorRegistrationPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white px-4 py-8">
-      <div className="mx-auto max-w-4xl">
+    <div className="flex min-h-screen items-center justify-center bg-white px-4 py-8">
+      <div className="w-full max-w-4xl">
         <BackButton href="/register" className="mb-4" />
 
         <div className="mb-6">
@@ -940,7 +940,7 @@ export default function TutorRegistrationPage() {
                     </Select>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="mt-4 flex gap-3">
                     <Button
                       className="flex-1 bg-[#F17623] text-sm font-semibold text-white shadow-[0_4px_14px_rgba(241,118,35,0.35)] hover:bg-[#e06613] hover:shadow-[0_6px_20px_rgba(241,118,35,0.45)]"
                       onClick={async () => {
