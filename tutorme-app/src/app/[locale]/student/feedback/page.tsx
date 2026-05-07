@@ -1868,9 +1868,14 @@ function StudentFeedbackContent() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="my-board" className="flex-1 outline-none">
-                    <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden">
-                      <div className="min-h-0 flex-1">
+                  <TabsContent value="my-board" className="flex flex-1 flex-col outline-none">
+                    <div className="relative flex flex-1 flex-col overflow-hidden rounded-2xl border-2 border-[#E2E8F0] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)]">
+                      <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-center">
+                        <span className="rounded-b-md bg-[#94A3B8] px-3 py-0.5 text-[11px] font-medium text-white">
+                          My Board
+                        </span>
+                      </div>
+                      <div className="min-h-0 flex-1 p-4 pt-6">
                         <EnhancedWhiteboard
                           pages={myBoardPages}
                           currentPageIndex={myBoardPageIndex}
@@ -1886,18 +1891,25 @@ function StudentFeedbackContent() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="tutor-board" className="flex-1 outline-none">
-                    <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden">
-                      <EnhancedWhiteboard
-                        readOnly
-                        pages={tutorBoardPages}
-                        currentPageIndex={tutorBoardPageIndex}
-                        onPagesChange={setTutorBoardPages}
-                        onPageIndexChange={setTutorBoardPageIndex}
-                        socket={socket}
-                        roomId={selectedSessionId ?? undefined}
-                        filterByUserId={sessionContext?.tutorId ?? undefined}
-                      />
+                  <TabsContent value="tutor-board" className="flex flex-1 flex-col outline-none">
+                    <div className="relative flex flex-1 flex-col overflow-hidden rounded-2xl border-2 border-[#E2E8F0] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)]">
+                      <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-center">
+                        <span className="rounded-b-md bg-[#94A3B8] px-3 py-0.5 text-[11px] font-medium text-white">
+                          Tutor Board
+                        </span>
+                      </div>
+                      <div className="min-h-0 flex-1 p-4 pt-6">
+                        <EnhancedWhiteboard
+                          readOnly
+                          pages={tutorBoardPages}
+                          currentPageIndex={tutorBoardPageIndex}
+                          onPagesChange={setTutorBoardPages}
+                          onPageIndexChange={setTutorBoardPageIndex}
+                          socket={socket}
+                          roomId={selectedSessionId ?? undefined}
+                          filterByUserId={sessionContext?.tutorId ?? undefined}
+                        />
+                      </div>
                     </div>
                   </TabsContent>
                 </Tabs>
