@@ -5,7 +5,14 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, user, profile, courseLesson, courseVariant } from '@/lib/db/schema'
+import {
+  course,
+  user,
+  profile,
+  courseLesson,
+  courseVariant,
+  tutorApplication,
+} from '@/lib/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
 
 export async function GET(
@@ -76,6 +83,16 @@ export async function GET(
     if (tutorUser.length === 0) {
       return NextResponse.json({ error: 'Tutor not found' }, { status: 404 })
     }
+
+    // Get tutor application data (country + social links)
+    const [tutorApp] = await drizzleDb
+      .select({
+        countryOfResidence: tutorApplication.countryOfResidence,
+        socialLinks: tutorApplication.socialLinks,
+      })
+      .from(tutorApplication)
+      .where(eq(tutorApplication.userId, tutorId))
+      .limit(1)
 
     // Get published courses for this tutor
     const publishedCoursesRows = await drizzleDb
@@ -150,6 +167,17 @@ export async function GET(
       {} as Record<string, number>
     )
 
+    // Normalize social links from tutor application
+    const rawSocial =
+      tutorApp?.socialLinks && typeof tutorApp.socialLinks === 'object'
+        ? (tutorApp.socialLinks as Record<string, unknown>)
+        : {}
+    const getSocial = (key: string): string | null => {
+      const val = rawSocial[key]
+      if (typeof val === 'string' && val.trim().length > 0) return val.trim()
+      return null
+    }
+
     // Build tutor response
     const tutorResponse = {
       id: tutorId,
@@ -160,15 +188,15 @@ export async function GET(
       specialties: derivedSpecialties,
       credentials: profileData.credentials || '',
       hourlyRate: profileData.hourlyRate,
-      oneOnOneEnabled: profileData.oneOnOneEnabled ?? true, // Default to true
+      oneOnOneEnabled: profileData.oneOnOneEnabled ?? true,
       tutorSince: tutorUser[0].createdAt?.toISOString() || null,
-      country: null,
+      country: tutorApp?.countryOfResidence || null,
       activeCourses: publishedCourses.length,
       socialLinks: {
-        tiktok: null,
-        youtube: null,
-        instagram: null,
-        facebook: null,
+        tiktok: getSocial('tiktok'),
+        youtube: getSocial('youtube'),
+        instagram: getSocial('instagram'),
+        facebook: getSocial('facebook'),
       },
     }
 

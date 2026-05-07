@@ -1868,26 +1868,24 @@ function StudentFeedbackContent() {
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="my-board" className="flex-1 outline-none">
-                    <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden">
-                      <div className="min-h-0 flex-1">
-                        <EnhancedWhiteboard
-                          pages={myBoardPages}
-                          currentPageIndex={myBoardPageIndex}
-                          onPagesChange={setMyBoardPages}
-                          onPageIndexChange={setMyBoardPageIndex}
-                          socket={socket}
-                          roomId={selectedSessionId ?? undefined}
-                          userId={session?.user?.id ?? undefined}
-                          userName={session?.user?.name || 'Student'}
-                          userColor={stringToColor(session?.user?.id || '')}
-                        />
-                      </div>
+                  <TabsContent value="my-board" className="flex flex-1 flex-col outline-none">
+                    <div className="flex flex-1 flex-col overflow-hidden">
+                      <EnhancedWhiteboard
+                        pages={myBoardPages}
+                        currentPageIndex={myBoardPageIndex}
+                        onPagesChange={setMyBoardPages}
+                        onPageIndexChange={setMyBoardPageIndex}
+                        socket={socket}
+                        roomId={selectedSessionId ?? undefined}
+                        userId={session?.user?.id ?? undefined}
+                        userName={session?.user?.name || 'Student'}
+                        userColor={stringToColor(session?.user?.id || '')}
+                      />
                     </div>
                   </TabsContent>
 
-                  <TabsContent value="tutor-board" className="flex-1 outline-none">
-                    <div className="flex h-[calc(100vh-320px)] min-h-[600px] flex-col overflow-hidden">
+                  <TabsContent value="tutor-board" className="flex flex-1 flex-col outline-none">
+                    <div className="flex flex-1 flex-col overflow-hidden">
                       <EnhancedWhiteboard
                         readOnly
                         pages={tutorBoardPages}
