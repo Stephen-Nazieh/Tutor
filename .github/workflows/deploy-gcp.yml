@@ -45,9 +45,7 @@ jobs:
       - name: Build landing page (integrated)
         run: |
           cd ../landing-page
-          rm -rf node_modules package-lock.json
-          npm install --legacy-peer-deps
-          npm install --no-save --legacy-peer-deps @rollup/rollup-linux-x64-gnu
+          npm ci
           npm run build
           cd ../tutorme-app
           cp -r ../landing-page/dist/* public/
@@ -110,9 +108,7 @@ jobs:
       - name: Build landing page (integrated)
         run: |
           cd ../landing-page
-          rm -rf node_modules package-lock.json
-          npm install --legacy-peer-deps
-          npm install --no-save --legacy-peer-deps @rollup/rollup-linux-x64-gnu
+          npm ci
           npm run build
           cd ../tutorme-app
           cp -r ../landing-page/dist/* public/
