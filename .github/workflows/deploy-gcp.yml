@@ -252,6 +252,22 @@ jobs:
                 --region="${{ env.REGION }}" \
                 --project="${{ env.PROJECT_ID }}" \
                 --format="yaml" || true
+              echo ""
+              echo "=== Task Details (${EXECUTION}) ==="
+              TASK=$(gcloud run jobs executions tasks list \
+                --execution="${EXECUTION}" \
+                --region="${{ env.REGION }}" \
+                --project="${{ env.PROJECT_ID }}" \
+                --limit=1 \
+                --format="value(name)" 2>/dev/null || true)
+              if [ -n "${TASK}" ]; then
+                gcloud run jobs executions tasks describe "${TASK}" \
+                  --region="${{ env.REGION }}" \
+                  --project="${{ env.PROJECT_ID }}" \
+                  --format="yaml" || true
+              else
+                echo "Unable to resolve task name for execution."
+              fi
             else
               echo "Unable to resolve execution name from gcloud output."
             fi
