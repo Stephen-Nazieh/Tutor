@@ -156,123 +156,16 @@ jobs:
           port: 8080
           env_vars: NODE_ENV=production,ADK_PUBLIC_HEALTH=true,ADK_AUTH_TOKEN=${{ secrets.ADK_AUTH_TOKEN }},KIMI_API_KEY=${{ secrets.KIMI_API_KEY }},NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
 
-      - name: Ensure migration job exists
+      - name: Run migrations (inline docker)
         run: |
           set -e
-          SERVICE_ACCOUNT=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
-            --region="${{ env.REGION }}" \
-            --project="${{ env.PROJECT_ID }}" \
-            --format="value(spec.template.spec.serviceAccountName)" || true)
-          VPC_CONNECTOR=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
-            --region="${{ env.REGION }}" \
-            --project="${{ env.PROJECT_ID }}" \
-            --format="value(spec.template.metadata.annotations['run.googleapis.com/vpc-access-connector'])" || true)
-          VPC_EGRESS=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
-            --region="${{ env.REGION }}" \
-            --project="${{ env.PROJECT_ID }}" \
-            --format="value(spec.template.metadata.annotations['run.googleapis.com/vpc-access-egress'])" || true)
-          CLOUDSQL_INSTANCES=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
-            --region="${{ env.REGION }}" \
-            --project="${{ env.PROJECT_ID }}" \
-            --format="value(spec.template.metadata.annotations['run.googleapis.com/cloudsql-instances'])" || true)
-
-          EXTRA_FLAGS=""
-          if [ -n "${SERVICE_ACCOUNT}" ]; then
-            EXTRA_FLAGS="${EXTRA_FLAGS} --service-account=${SERVICE_ACCOUNT}"
-          fi
-          if [ -n "${VPC_CONNECTOR}" ]; then
-            EXTRA_FLAGS="${EXTRA_FLAGS} --vpc-connector=${VPC_CONNECTOR}"
-          fi
-          if [ -n "${VPC_EGRESS}" ]; then
-            EXTRA_FLAGS="${EXTRA_FLAGS} --vpc-egress=${VPC_EGRESS}"
-          fi
-          if [ -n "${CLOUDSQL_INSTANCES}" ]; then
-            EXTRA_FLAGS="${EXTRA_FLAGS} --set-cloudsql-instances=${CLOUDSQL_INSTANCES}"
-          fi
-
-          gcloud run jobs describe "${{ env.MIGRATION_JOB_NAME }}" \
-            --region="${{ env.REGION }}" \
-            --project="${{ env.PROJECT_ID }}" 2>/dev/null || \
-          gcloud run jobs create "${{ env.MIGRATION_JOB_NAME }}" \
-            --region="${{ env.REGION }}" \
-            --project="${{ env.PROJECT_ID }}" \
-            --image="${{ env.IMAGE }}" \
-            --command="node" \
-            --args="scripts/migrate.js" \
-            --tasks=1 \
-            --max-retries=0 \
-            --set-env-vars="NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},DIRECT_URL=${{ secrets.DIRECT_URL }}" \
-            ${EXTRA_FLAGS}
-          gcloud run jobs update "${{ env.MIGRATION_JOB_NAME }}" \
-            --region="${{ env.REGION }}" \
-            --project="${{ env.PROJECT_ID }}" \
-            --image="${{ env.IMAGE }}" \
-            --command="node" \
-            --args="scripts/migrate.js" \
-            --tasks=1 \
-            --max-retries=0 \
-            --set-env-vars="NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},DIRECT_URL=${{ secrets.DIRECT_URL }}" \
-            ${EXTRA_FLAGS}
-
-      - name: Run migrations (Cloud Run Job)
-        id: run-migrations
-        run: |
-          set -e
-          echo "=== Execute migration job ==="
-          set +e
-          OUTPUT=$(gcloud run jobs execute "${{ env.MIGRATION_JOB_NAME }}" \
-            --region="${{ env.REGION }}" \
-            --project="${{ env.PROJECT_ID }}" \
-            --wait 2>&1)
-          EXIT_CODE=$?
-          set -e
-          echo "${OUTPUT}"
-
-          EXECUTION=$(echo "${OUTPUT}" | sed -n 's/.*gcloud run jobs executions describe \([^ ]*\).*/\1/p' | tail -n 1)
-          if [ -z "${EXECUTION}" ]; then
-            EXECUTION=$(gcloud run jobs executions list \
-              --job="${{ env.MIGRATION_JOB_NAME }}" \
-              --region="${{ env.REGION }}" \
-              --project="${{ env.PROJECT_ID }}" \
-              --limit=1 --format="value(metadata.name)" 2>/dev/null || true)
-          fi
-          echo "EXECUTION=${EXECUTION}" >> $GITHUB_ENV
-
-          if [ "${EXIT_CODE}" -ne 0 ]; then
-            echo ""
-            echo "=== Migration Job Logs (execution: ${EXECUTION:-unknown}) ==="
-            if [ -n "${EXECUTION}" ]; then
-              gcloud logging read "resource.type=cloud_run_job resource.labels.job_name=\"${{ env.MIGRATION_JOB_NAME }}\" resource.labels.location=\"${{ env.REGION }}\" resource.labels.execution_name=\"${EXECUTION}\"" \
-                --project="${{ env.PROJECT_ID }}" \
-                --limit=200 \
-                --format="table(timestamp,severity,textPayload,jsonPayload.message)" || true
-              echo ""
-              echo "=== Execution Details (${EXECUTION}) ==="
-              gcloud run jobs executions describe "${EXECUTION}" \
-                --region="${{ env.REGION }}" \
-                --project="${{ env.PROJECT_ID }}" \
-                --format="yaml" || true
-              echo ""
-              echo "=== Task Details (${EXECUTION}) ==="
-              TASK=$(gcloud run jobs executions tasks list \
-                --execution="${EXECUTION}" \
-                --region="${{ env.REGION }}" \
-                --project="${{ env.PROJECT_ID }}" \
-                --limit=1 \
-                --format="value(name)" 2>/dev/null || true)
-              if [ -n "${TASK}" ]; then
-                gcloud run jobs executions tasks describe "${TASK}" \
-                  --region="${{ env.REGION }}" \
-                  --project="${{ env.PROJECT_ID }}" \
-                  --format="yaml" || true
-              else
-                echo "Unable to resolve task name for execution."
-              fi
-            else
-              echo "Unable to resolve execution name from gcloud output."
-            fi
-            exit "${EXIT_CODE}"
-          fi
+          echo "=== Running migrations inline ==="
+          docker run --rm \
+            -e NODE_ENV=production \
+            -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            -e DIRECT_URL="${{ secrets.DIRECT_URL }}" \
+            "${{ env.IMAGE }}" \
+            node scripts/migrate.js
 
       - name: Deploy to Cloud Run (100% traffic)
         id: deploy-prod
