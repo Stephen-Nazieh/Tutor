@@ -90,6 +90,17 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Ensure deploy SA can read logs
+        run: |
+          set -e
+          ACCOUNT=$(gcloud config get-value account 2>/dev/null || true)
+          if [ -n "${ACCOUNT}" ]; then
+            gcloud projects add-iam-policy-binding "${{ env.PROJECT_ID }}" \
+              --member="serviceAccount:${ACCOUNT}" \
+              --role="roles/logging.viewer" \
+              --quiet || true
+          fi
+
       - name: Ensure Artifact Registry repository exists
         run: |
           gcloud artifacts repositories describe ${{ env.GAR_REPO }} \
