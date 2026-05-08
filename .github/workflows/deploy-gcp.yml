@@ -185,17 +185,20 @@ jobs:
             --limit=1
 
       - name: Fetch migration logs on failure
-        if: failure() && steps.run-migrations.outcome == 'failure'
+        if: failure()
         run: |
           echo "=== Migration Job Logs ==="
-          gcloud logging read "resource.type=cloud_run_job \
-            resource.labels.job_name=${{ env.MIGRATION_JOB_NAME }} \
-            resource.labels.location=${{ env.REGION }}" \
+          EXECUTION=$(gcloud run jobs executions list "${{ env.MIGRATION_JOB_NAME }}" \
+            --region="${{ env.REGION }}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --limit=1 --format="value(metadata.name)")
+          gcloud logging read "resource.type=cloud_run_job resource.labels.job_name=${{ env.MIGRATION_JOB_NAME }} resource.labels.location=${{ env.REGION }}" \
             --project="${{ env.PROJECT_ID }}" \
             --limit=100 \
             --format="table(timestamp,severity,textPayload)" || true
-          echo "=== Execution Details ==="
-          gcloud run jobs executions describe "${{ env.EXECUTION }}" \
+          echo ""
+          echo "=== Execution Details (${EXECUTION}) ==="
+          gcloud run jobs executions describe "${EXECUTION}" \
             --region="${{ env.REGION }}" \
             --project="${{ env.PROJECT_ID }}" \
             --format="yaml" || true
