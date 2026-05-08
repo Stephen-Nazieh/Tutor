@@ -179,7 +179,8 @@ jobs:
             --project="${{ env.PROJECT_ID }}" \
             --wait --format="value(metadata.name)")
           echo "EXECUTION=${EXECUTION}" >> $GITHUB_ENV
-          gcloud run jobs executions list "${{ env.MIGRATION_JOB_NAME }}" \
+          gcloud run jobs executions list \
+            --job="${{ env.MIGRATION_JOB_NAME }}" \
             --region="${{ env.REGION }}" \
             --project="${{ env.PROJECT_ID }}" \
             --limit=1
@@ -188,11 +189,12 @@ jobs:
         if: failure()
         run: |
           echo "=== Migration Job Logs ==="
-          EXECUTION=$(gcloud run jobs executions list "${{ env.MIGRATION_JOB_NAME }}" \
+          EXECUTION=$(gcloud run jobs executions list \
+            --job="${{ env.MIGRATION_JOB_NAME }}" \
             --region="${{ env.REGION }}" \
             --project="${{ env.PROJECT_ID }}" \
             --limit=1 --format="value(metadata.name)")
-          gcloud logging read "resource.type=cloud_run_job resource.labels.job_name=${{ env.MIGRATION_JOB_NAME }} resource.labels.location=${{ env.REGION }}" \
+          gcloud logging read "resource.type=cloud_run_job resource.labels.job_name=\"${{ env.MIGRATION_JOB_NAME }}\" resource.labels.location=\"${{ env.REGION }}\"" \
             --project="${{ env.PROJECT_ID }}" \
             --limit=100 \
             --format="table(timestamp,severity,textPayload)" || true
