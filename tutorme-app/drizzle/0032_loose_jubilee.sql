@@ -121,87 +121,87 @@ CREATE TABLE "BuilderTaskDmiVersion" (
 	"createdAt" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "Achievement" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "Badge" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "Clinic" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "ClinicBooking" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "CourseBatch" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "Curriculum" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "CurriculumCatalog" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "CurriculumEnrollment" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "CurriculumLesson" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "CurriculumLessonProgress" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "CurriculumModule" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "CurriculumProgress" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "CurriculumShare" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "GeneratedTask" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "LeaderboardEntry" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "MathAIInteraction" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "MathWhiteboardPage" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "MathWhiteboardParticipant" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "MathWhiteboardSession" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "MathWhiteboardSnapshot" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "Mission" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "MissionProgress" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "QuestionBankItem" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "Quiz" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "QuizAssignment" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "QuizAttempt" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "StudyGroup" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "StudyGroupMember" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "UserBadge" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "UserDailyQuest" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "UserGamification" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "Whiteboard" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "WhiteboardPage" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "WhiteboardSession" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-ALTER TABLE "WhiteboardSnapshot" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
-DROP TABLE "Achievement" CASCADE;--> statement-breakpoint
-DROP TABLE "Badge" CASCADE;--> statement-breakpoint
-DROP TABLE "Clinic" CASCADE;--> statement-breakpoint
-DROP TABLE "ClinicBooking" CASCADE;--> statement-breakpoint
-DROP TABLE "CourseBatch" CASCADE;--> statement-breakpoint
-DROP TABLE "Curriculum" CASCADE;--> statement-breakpoint
-DROP TABLE "CurriculumCatalog" CASCADE;--> statement-breakpoint
-DROP TABLE "CurriculumEnrollment" CASCADE;--> statement-breakpoint
-DROP TABLE "CurriculumLesson" CASCADE;--> statement-breakpoint
-DROP TABLE "CurriculumLessonProgress" CASCADE;--> statement-breakpoint
-DROP TABLE "CurriculumModule" CASCADE;--> statement-breakpoint
-DROP TABLE "CurriculumProgress" CASCADE;--> statement-breakpoint
-DROP TABLE "CurriculumShare" CASCADE;--> statement-breakpoint
-DROP TABLE "GeneratedTask" CASCADE;--> statement-breakpoint
-DROP TABLE "LeaderboardEntry" CASCADE;--> statement-breakpoint
-DROP TABLE "MathAIInteraction" CASCADE;--> statement-breakpoint
-DROP TABLE "MathWhiteboardPage" CASCADE;--> statement-breakpoint
-DROP TABLE "MathWhiteboardParticipant" CASCADE;--> statement-breakpoint
-DROP TABLE "MathWhiteboardSession" CASCADE;--> statement-breakpoint
-DROP TABLE "MathWhiteboardSnapshot" CASCADE;--> statement-breakpoint
-DROP TABLE "Mission" CASCADE;--> statement-breakpoint
-DROP TABLE "MissionProgress" CASCADE;--> statement-breakpoint
-DROP TABLE "QuestionBankItem" CASCADE;--> statement-breakpoint
-DROP TABLE "Quiz" CASCADE;--> statement-breakpoint
-DROP TABLE "QuizAssignment" CASCADE;--> statement-breakpoint
-DROP TABLE "QuizAttempt" CASCADE;--> statement-breakpoint
-DROP TABLE "StudyGroup" CASCADE;--> statement-breakpoint
-DROP TABLE "StudyGroupMember" CASCADE;--> statement-breakpoint
-DROP TABLE "UserBadge" CASCADE;--> statement-breakpoint
-DROP TABLE "UserDailyQuest" CASCADE;--> statement-breakpoint
-DROP TABLE "UserGamification" CASCADE;--> statement-breakpoint
-DROP TABLE "Whiteboard" CASCADE;--> statement-breakpoint
-DROP TABLE "WhiteboardPage" CASCADE;--> statement-breakpoint
-DROP TABLE "WhiteboardSession" CASCADE;--> statement-breakpoint
-DROP TABLE "WhiteboardSnapshot" CASCADE;--> statement-breakpoint
-DROP INDEX "BuilderTask_curriculumId_idx";--> statement-breakpoint
-DROP INDEX "BuilderTask_moduleId_idx";--> statement-breakpoint
-DROP INDEX "BuilderTask_curriculumId_lessonId_idx";--> statement-breakpoint
-DROP INDEX "CalendarEvent_curriculumId_idx";--> statement-breakpoint
-DROP INDEX "CalendarEvent_batchId_idx";--> statement-breakpoint
-DROP INDEX "LiveSession_curriculumId_idx";--> statement-breakpoint
-DROP INDEX "LlmModel_providerId_modelId_key";--> statement-breakpoint
-DROP INDEX "StudentPerformance_curriculumId_idx";--> statement-breakpoint
-DROP INDEX "StudentPerformance_studentId_curriculumId_key";--> statement-breakpoint
-DROP INDEX "StudentLearningState_studentId_idx";--> statement-breakpoint
-DROP INDEX "StudentMemoryProfile_studentId_idx";--> statement-breakpoint
+ALTER TABLE IF EXISTS "Achievement" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "Badge" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "Clinic" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "ClinicBooking" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "CourseBatch" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "Curriculum" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "CurriculumCatalog" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "CurriculumEnrollment" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "CurriculumLesson" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "CurriculumLessonProgress" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "CurriculumModule" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "CurriculumProgress" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "CurriculumShare" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "GeneratedTask" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "LeaderboardEntry" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "MathAIInteraction" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "MathWhiteboardPage" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "MathWhiteboardParticipant" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "MathWhiteboardSession" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "MathWhiteboardSnapshot" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "Mission" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "MissionProgress" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "QuestionBankItem" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "Quiz" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "QuizAssignment" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "QuizAttempt" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "StudyGroup" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "StudyGroupMember" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "UserBadge" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "UserDailyQuest" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "UserGamification" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "Whiteboard" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "WhiteboardPage" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "WhiteboardSession" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE IF EXISTS "WhiteboardSnapshot" DISABLE ROW LEVEL SECURITY;--> statement-breakpoint
+DROP TABLE IF EXISTS "Achievement" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "Badge" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "Clinic" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "ClinicBooking" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "CourseBatch" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "Curriculum" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "CurriculumCatalog" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "CurriculumEnrollment" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "CurriculumLesson" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "CurriculumLessonProgress" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "CurriculumModule" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "CurriculumProgress" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "CurriculumShare" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "GeneratedTask" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "LeaderboardEntry" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "MathAIInteraction" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "MathWhiteboardPage" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "MathWhiteboardParticipant" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "MathWhiteboardSession" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "MathWhiteboardSnapshot" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "Mission" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "MissionProgress" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "QuestionBankItem" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "Quiz" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "QuizAssignment" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "QuizAttempt" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "StudyGroup" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "StudyGroupMember" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "UserBadge" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "UserDailyQuest" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "UserGamification" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "Whiteboard" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "WhiteboardPage" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "WhiteboardSession" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "WhiteboardSnapshot" CASCADE;--> statement-breakpoint
+DROP INDEX IF EXISTS "BuilderTask_curriculumId_idx";--> statement-breakpoint
+DROP INDEX IF EXISTS "BuilderTask_moduleId_idx";--> statement-breakpoint
+DROP INDEX IF EXISTS "BuilderTask_curriculumId_lessonId_idx";--> statement-breakpoint
+DROP INDEX IF EXISTS "CalendarEvent_curriculumId_idx";--> statement-breakpoint
+DROP INDEX IF EXISTS "CalendarEvent_batchId_idx";--> statement-breakpoint
+DROP INDEX IF EXISTS "LiveSession_curriculumId_idx";--> statement-breakpoint
+DROP INDEX IF EXISTS "LlmModel_providerId_modelId_key";--> statement-breakpoint
+DROP INDEX IF EXISTS "StudentPerformance_curriculumId_idx";--> statement-breakpoint
+DROP INDEX IF EXISTS "StudentPerformance_studentId_curriculumId_key";--> statement-breakpoint
+DROP INDEX IF EXISTS "StudentLearningState_studentId_idx";--> statement-breakpoint
+DROP INDEX IF EXISTS "StudentMemoryProfile_studentId_idx";--> statement-breakpoint
 ALTER TABLE "Payment" ALTER COLUMN "metadata" SET DEFAULT '{}'::jsonb;--> statement-breakpoint
 ALTER TABLE "Profile" ALTER COLUMN "timezone" SET DEFAULT 'UTC';--> statement-breakpoint
 ALTER TABLE "Profile" ALTER COLUMN "emailNotifications" SET DEFAULT true;--> statement-breakpoint

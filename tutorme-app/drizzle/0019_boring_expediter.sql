@@ -1,2 +1,2 @@
-DROP TABLE "StudentCoursePreference" CASCADE;--> statement-breakpoint
-DROP TABLE "StudentCoursePreferenceSlot" CASCADE;
+DROP TABLE IF EXISTS "StudentCoursePreference" CASCADE;--> statement-breakpoint
+DROP TABLE IF EXISTS "StudentCoursePreferenceSlot" CASCADE;
