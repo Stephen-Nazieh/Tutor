@@ -142,7 +142,8 @@ jobs:
             --memory=1Gi
             --min-instances=0
             --max-instances=10
-          env_vars: NODE_ENV=production,PORT=8080,ADK_PUBLIC_HEALTH=true,ADK_AUTH_TOKEN=${{ secrets.ADK_AUTH_TOKEN }},KIMI_API_KEY=${{ secrets.KIMI_API_KEY }},NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+          port: 8080
+          env_vars: NODE_ENV=production,ADK_PUBLIC_HEALTH=true,ADK_AUTH_TOKEN=${{ secrets.ADK_AUTH_TOKEN }},KIMI_API_KEY=${{ secrets.KIMI_API_KEY }},NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
 
       - name: Ensure migration job exists
         run: |
