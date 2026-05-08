@@ -4,9 +4,20 @@
  * Usage: node scripts/migrate.js
  */
 const path = require('node:path')
+const fs = require('node:fs')
 const { Pool } = require('pg')
 const { drizzle } = require('drizzle-orm/node-postgres')
 const { migrate } = require('drizzle-orm/node-postgres/migrator')
+
+function writeTerminationMessage(message) {
+  try {
+    const filePath = '/dev/termination-log'
+    const trimmed = String(message || '')
+      .replace(/:\/\/([^:]+):([^@]+)@/g, '://***:***@')
+      .slice(0, 3800)
+    fs.writeFileSync(filePath, trimmed, { encoding: 'utf8' })
+  } catch {}
+}
 
 async function runMigrations() {
   const databaseUrl = process.env.DIRECT_URL || process.env.DATABASE_URL
@@ -25,7 +36,9 @@ async function runMigrations() {
     await migrate(db, { migrationsFolder })
     console.log('[Migrations] Completed successfully')
   } catch (error) {
-    console.error('[Migrations] Failed:', error.message)
+    const message = error && error.stack ? error.stack : error && error.message ? error.message : error
+    console.error('[Migrations] Failed:', message)
+    writeTerminationMessage(`[Migrations] Failed\n${message}`)
     throw error
   } finally {
     await pool.end()
@@ -37,6 +50,8 @@ runMigrations()
     process.exit(0)
   })
   .catch(error => {
-    console.error('[Migrations] Fatal error:', error)
+    const message = error && error.stack ? error.stack : error && error.message ? error.message : error
+    console.error('[Migrations] Fatal error:', message)
+    writeTerminationMessage(`[Migrations] Fatal error\n${message}`)
     process.exit(1)
   })
