@@ -148,6 +148,37 @@ jobs:
       - name: Ensure migration job exists
         run: |
           set -e
+          SERVICE_ACCOUNT=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
+            --region="${{ env.REGION }}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --format="value(spec.template.spec.serviceAccountName)" || true)
+          VPC_CONNECTOR=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
+            --region="${{ env.REGION }}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --format="value(spec.template.metadata.annotations['run.googleapis.com/vpc-access-connector'])" || true)
+          VPC_EGRESS=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
+            --region="${{ env.REGION }}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --format="value(spec.template.metadata.annotations['run.googleapis.com/vpc-access-egress'])" || true)
+          CLOUDSQL_INSTANCES=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
+            --region="${{ env.REGION }}" \
+            --project="${{ env.PROJECT_ID }}" \
+            --format="value(spec.template.metadata.annotations['run.googleapis.com/cloudsql-instances'])" || true)
+
+          EXTRA_FLAGS=""
+          if [ -n "${SERVICE_ACCOUNT}" ]; then
+            EXTRA_FLAGS="${EXTRA_FLAGS} --service-account=${SERVICE_ACCOUNT}"
+          fi
+          if [ -n "${VPC_CONNECTOR}" ]; then
+            EXTRA_FLAGS="${EXTRA_FLAGS} --vpc-connector=${VPC_CONNECTOR}"
+          fi
+          if [ -n "${VPC_EGRESS}" ]; then
+            EXTRA_FLAGS="${EXTRA_FLAGS} --vpc-egress=${VPC_EGRESS}"
+          fi
+          if [ -n "${CLOUDSQL_INSTANCES}" ]; then
+            EXTRA_FLAGS="${EXTRA_FLAGS} --set-cloudsql-instances=${CLOUDSQL_INSTANCES}"
+          fi
+
           gcloud run jobs describe "${{ env.MIGRATION_JOB_NAME }}" \
             --region="${{ env.REGION }}" \
             --project="${{ env.PROJECT_ID }}" 2>/dev/null || \
@@ -159,7 +190,8 @@ jobs:
             --args="scripts/migrate.js" \
             --tasks=1 \
             --max-retries=0 \
-            --set-env-vars="NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},DIRECT_URL=${{ secrets.DIRECT_URL }}"
+            --set-env-vars="NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},DIRECT_URL=${{ secrets.DIRECT_URL }}" \
+            ${EXTRA_FLAGS}
           gcloud run jobs update "${{ env.MIGRATION_JOB_NAME }}" \
             --region="${{ env.REGION }}" \
             --project="${{ env.PROJECT_ID }}" \
@@ -168,7 +200,8 @@ jobs:
             --args="scripts/migrate.js" \
             --tasks=1 \
             --max-retries=0 \
-            --set-env-vars="NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},DIRECT_URL=${{ secrets.DIRECT_URL }}"
+            --set-env-vars="NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},DIRECT_URL=${{ secrets.DIRECT_URL }}" \
+            ${EXTRA_FLAGS}
 
       - name: Run migrations (Cloud Run Job)
         id: run-migrations
@@ -194,7 +227,7 @@ jobs:
             --region="${{ env.REGION }}" \
             --project="${{ env.PROJECT_ID }}" \
             --limit=1 --format="value(metadata.name)")
-          gcloud logging read "resource.type=cloud_run_job resource.labels.job_name=\"${{ env.MIGRATION_JOB_NAME }}\" resource.labels.location=\"${{ env.REGION }}\"" \
+          gcloud logging read "resource.type=cloud_run_job resource.labels.job_name=\"${{ env.MIGRATION_JOB_NAME }}\" resource.labels.location=\"${{ env.REGION }}\" resource.labels.execution_name=\"${EXECUTION}\"" \
             --project="${{ env.PROJECT_ID }}" \
             --limit=100 \
             --format="table(timestamp,severity,textPayload)" || true
