@@ -38,6 +38,10 @@ async function runMigrations() {
   } catch (error) {
     const message = error && error.stack ? error.stack : error && error.message ? error.message : error
     console.error('[Migrations] Failed:', message)
+    if (error.cause) {
+      const causeMessage = error.cause.stack || error.cause.message || error.cause
+      console.error('[Migrations] Cause:', causeMessage)
+    }
     writeTerminationMessage(`[Migrations] Failed\n${message}`)
     throw error
   } finally {
