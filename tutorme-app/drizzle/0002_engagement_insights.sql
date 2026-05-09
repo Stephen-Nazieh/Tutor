@@ -1,0 +1,1 @@
+-- Placeholder migration: 0002_engagement_insights

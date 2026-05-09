@@ -1,0 +1,1 @@
+-- Placeholder migration: 0017_fix_curriculum_columns_permanent

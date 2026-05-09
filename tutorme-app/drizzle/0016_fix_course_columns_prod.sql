@@ -1,0 +1,1 @@
+-- Placeholder migration: 0016_fix_course_columns_prod

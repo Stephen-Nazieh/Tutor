@@ -1,0 +1,1 @@
+-- Placeholder migration: 0015_course_columns_guard

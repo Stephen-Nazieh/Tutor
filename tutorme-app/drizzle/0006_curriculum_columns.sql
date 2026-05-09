@@ -1,0 +1,1 @@
+-- Placeholder migration: 0006_curriculum_columns

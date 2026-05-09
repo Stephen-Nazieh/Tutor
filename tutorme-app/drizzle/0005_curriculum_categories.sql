@@ -1,0 +1,1 @@
+-- Placeholder migration: 0005_curriculum_categories
