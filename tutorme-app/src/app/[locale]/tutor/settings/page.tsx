@@ -259,7 +259,7 @@ function OneOnOneSettingsCard() {
 }
 
 export default function TutorSettings() {
-  const { data: session } = useSession()
+  const { data: session, update: updateSession } = useSession()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState('profile')
@@ -465,6 +465,7 @@ export default function TutorSettings() {
           ? `${window.location.origin}${newUrl}`
           : newUrl
       setFormData(prev => ({ ...prev, avatarUrl: fullUrl }))
+      await updateSession({ image: fullUrl })
       toast.success('Profile photo updated')
     } catch {
       toast.error('Failed to upload photo')
@@ -498,6 +499,7 @@ export default function TutorSettings() {
         return
       }
       setFormData(prev => ({ ...prev, avatarUrl: '' }))
+      await updateSession({ image: null })
       toast.success('Profile photo deleted')
     } catch {
       toast.error('Failed to delete photo')

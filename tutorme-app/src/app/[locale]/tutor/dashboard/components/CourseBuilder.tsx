@@ -466,6 +466,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     {
       courseId,
       courseName,
+      courseDescription,
       panelMode = 'default',
       initialLessons,
       hideCourseNameInTabs = false,
@@ -1605,9 +1606,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [coursePropsModal, setCoursePropsModal] = useState({
       isOpen: false,
       name: courseName || '',
-      description: '',
+      description: courseDescription || '',
       isLive: false,
     })
+
+    // Sync external course description into modal state when course changes
+    useEffect(() => {
+      setCoursePropsModal(prev => ({
+        ...prev,
+        name: courseName || prev.name,
+        description: courseDescription || prev.description,
+      }))
+    }, [courseName, courseDescription])
 
     const doSave = useCallback(() => {
       // If courseName is missing (e.g. builder-draft), prompt for properties

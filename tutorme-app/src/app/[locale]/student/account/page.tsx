@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -76,6 +77,8 @@ export default function StudentAccount() {
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
+
+  const { update: updateSession } = useSession()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -237,6 +240,8 @@ export default function StudentAccount() {
 
       // Stored URLs can be relative (`/uploads/...`) or absolute (GCS). `img` can handle both.
       setFormData(prev => ({ ...prev, avatarUrl: newUrl }))
+      // Refresh next-auth session so JWT token contains new avatar URL
+      await updateSession({ image: newUrl })
       toast.success('Profile photo updated')
     } catch {
       toast.error('Failed to upload photo')
@@ -434,7 +439,32 @@ export default function StudentAccount() {
                           </label>
                           <button
                             type="button"
-                            onClick={() => setFormData({ ...formData, avatarUrl: '' })}
+                            onClick={async () => {
+                              try {
+                                const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+                                const csrfData = await csrfRes.json().catch(() => ({}))
+                                const csrfToken = csrfData?.token ?? null
+
+                                const res = await fetch('/api/user/avatar', {
+                                  method: 'DELETE',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+                                  },
+                                  credentials: 'include',
+                                })
+                                const data = await res.json().catch(() => ({}))
+                                if (!res.ok) {
+                                  toast.error(data?.error || 'Failed to delete photo')
+                                  return
+                                }
+                                setFormData(prev => ({ ...prev, avatarUrl: '' }))
+                                await updateSession({ image: null })
+                                toast.success('Profile photo deleted')
+                              } catch {
+                                toast.error('Failed to delete photo')
+                              }
+                            }}
                             className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500/90 text-white transition-colors hover:bg-red-600"
                             title="Delete photo"
                           >

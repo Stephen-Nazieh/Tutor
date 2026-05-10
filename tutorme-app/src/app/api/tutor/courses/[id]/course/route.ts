@@ -9,6 +9,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession, authOptions } from '@/lib/auth'
 import { CourseBuilderService } from '@/lib/services/course-builder.service'
+import { drizzleDb } from '@/lib/db/drizzle'
+import { course } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 
 // ---- GET — Load builder tree from DB ----
 
@@ -49,9 +52,19 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const body = await req.json().catch(() => ({}))
   const lessons = (body as { lessons?: unknown }).lessons
+  const description = (body as { description?: string }).description
 
   try {
     await CourseBuilderService.updateCourseBuilderData(courseId, userId, lessons)
+
+    // Update course description if provided
+    if (typeof description === 'string') {
+      await drizzleDb
+        .update(course)
+        .set({ description: description || null })
+        .where(and(eq(course.courseId, courseId), eq(course.creatorId, userId)))
+    }
+
     return NextResponse.json({ success: true })
   } catch (err: unknown) {
     const error = err instanceof Error ? err : new Error('Unknown error')

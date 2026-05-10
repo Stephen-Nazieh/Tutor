@@ -65,3 +65,32 @@ export const POST = withCsrf(
     { role: 'STUDENT' }
   )
 )
+
+export const DELETE = withCsrf(
+  withAuth(
+    async (_req: NextRequest, session) => {
+      try {
+        const existing = await drizzleDb
+          .select({ avatarUrl: profile.avatarUrl })
+          .from(profile)
+          .where(eq(profile.userId, session.user.id))
+          .limit(1)
+
+        if (existing[0]?.avatarUrl) {
+          await deleteAvatar(existing[0].avatarUrl)
+        }
+
+        await drizzleDb
+          .update(profile)
+          .set({ avatarUrl: null })
+          .where(eq(profile.userId, session.user.id))
+
+        return NextResponse.json({ success: true })
+      } catch (error) {
+        console.error('Avatar delete error:', error)
+        return NextResponse.json({ error: 'Failed to delete photo' }, { status: 500 })
+      }
+    },
+    { role: 'STUDENT' }
+  )
+)

@@ -108,9 +108,14 @@ export const authOptions: NextAuthOptions = {
         }
       }
 
-      // Handle session update (e.g., after onboarding completes)
+      // Handle session update (e.g., after onboarding completes or avatar changes)
       if (trigger === 'update' && session) {
-        token.onboardingComplete = true
+        if ((session as any).onboardingComplete !== undefined) {
+          token.onboardingComplete = (session as any).onboardingComplete
+        }
+        if ((session as any).image !== undefined) {
+          token.picture = (session as any).image || null
+        }
       }
 
       return token

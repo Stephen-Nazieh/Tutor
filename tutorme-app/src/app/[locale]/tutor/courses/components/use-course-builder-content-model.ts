@@ -228,6 +228,7 @@ export function useCourseBuilderContentModel({
           lessons,
           developmentMode: options?.developmentMode ?? 'single',
           previewDifficulty: options?.previewDifficulty ?? 'all',
+          description: options?.courseDescription,
         }),
       })
 

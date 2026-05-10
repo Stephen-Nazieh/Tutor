@@ -30,7 +30,7 @@ export const ProfilePage = ({ tutor }: { tutor: any }) => {
                 <img src={tutor.photo} alt={tutor.username} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               </div>
               {tutor.isVerified && (
-                <div className="absolute bottom-2 right-2 bg-emerald-500 p-1.5 rounded-full border-4 border-zinc-950">
+                <div className="absolute bottom-2 right-2 bg-emerald-500 p-1.5 rounded-full border-4 border-blue-800">
                   <CheckCircle2 className="w-5 h-5 text-white" />
                 </div>
               )}

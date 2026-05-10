@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Timer, UserPlus, GraduationCap, School, Building2, Mail, CheckCircle2, Globe, Camera, BookOpen, Presentation } from 'lucide-react';
+import { Timer, UserPlus, GraduationCap, School, Building2, Mail, CheckCircle2, Globe, Camera, BookOpen, Presentation, Users, BookOpenText, Search, QrCode } from 'lucide-react';
 
 // --- Types ---
 export type View = 'home' | 'register' | 'profile';
@@ -30,32 +30,85 @@ const CELEBRITY_TUTORS = [
 // --- Components ---
 
 export const CountdownTimer = () => {
-  const [timeLeft, setTimeLeft] = useState({ days: 12, hours: 5, minutes: 45, seconds: 30 });
+  const [timeLeft, setTimeLeft] = useState({ days: 14, hours: 5, minutes: 40, seconds: 1 });
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0) return { ...prev, seconds: 59, minutes: prev.minutes - 1 };
-        return prev; // Simplified for demo
+        let { days, hours, minutes, seconds } = prev;
+        seconds -= 1;
+        if (seconds < 0) {
+          seconds = 59;
+          minutes -= 1;
+        }
+        if (minutes < 0) {
+          minutes = 59;
+          hours -= 1;
+        }
+        if (hours < 0) {
+          hours = 23;
+          days -= 1;
+        }
+        if (days < 0) {
+          return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+        }
+        return { days, hours, minutes, seconds };
       });
     }, 1000);
     return () => clearInterval(timer);
   }, []);
 
+  const units = [
+    { value: timeLeft.days, label: 'DAYS' },
+    { value: timeLeft.hours, label: 'HOURS' },
+    { value: timeLeft.minutes, label: 'MINUTES' },
+    { value: timeLeft.seconds, label: 'SECONDS' },
+  ];
+
   return (
-    <div className="flex gap-4 md:gap-8 justify-center items-center font-display">
-      {Object.entries(timeLeft).map(([unit, value]) => (
-        <div key={unit} className="flex flex-col items-center">
-          <div className="text-4xl md:text-6xl font-bold text-white tabular-nums">
-            {value.toString().padStart(2, '0')}
+    <div className="flex gap-3 md:gap-4 justify-center items-start font-display">
+      {units.map((unit, i) => (
+        <React.Fragment key={unit.label}>
+          <div className="flex flex-col items-center">
+            <div className="text-3xl md:text-4xl font-bold text-white tabular-nums leading-none">
+              {unit.value.toString().padStart(2, '0')}
+            </div>
+            <div className="text-[10px] uppercase tracking-wider text-white/60 mt-1">{unit.label}</div>
           </div>
-          <div className="text-xs uppercase tracking-widest text-zinc-500 mt-2">{unit}</div>
-        </div>
+          {i < units.length - 1 && (
+            <div className="text-3xl md:text-4xl font-bold text-white/30 leading-none pt-0">:</div>
+          )}
+        </React.Fragment>
       ))}
     </div>
   );
 };
+
+export const LaunchCard = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.5, duration: 0.6 }}
+    className="glass-card p-5 md:p-6 w-[280px] md:w-[320px]"
+  >
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2 text-white/90">
+        <Users className="w-4 h-4" />
+        <span className="text-sm font-medium">5 Tutors</span>
+      </div>
+      <div className="flex items-center gap-2 text-white/90">
+        <BookOpenText className="w-4 h-4" />
+        <span className="text-sm font-medium">36 Courses</span>
+      </div>
+    </div>
+    <div className="mb-3">
+      <CountdownTimer />
+    </div>
+    <div className="text-center text-sm text-white/70 font-medium">
+      Until Launch
+    </div>
+  </motion.div>
+);
 
 export const TutorStrip = () => {
   return (
@@ -81,7 +134,7 @@ export const TutorStrip = () => {
 };
 
 export const ActionCard = ({ title, copy, buttonText, icon: Icon, onClick }: any) => (
-  <motion.div 
+  <motion.div
     whileHover={{ y: -5 }}
     className="glass p-8 rounded-2xl flex flex-col items-start justify-between h-full group"
   >
@@ -92,7 +145,7 @@ export const ActionCard = ({ title, copy, buttonText, icon: Icon, onClick }: any
       <h3 className="text-2xl font-display font-bold mb-3">{title}</h3>
       {copy && <p className="text-zinc-400 leading-relaxed">{copy}</p>}
     </div>
-    <button 
+    <button
       onClick={onClick}
       className="w-full py-3 px-6 rounded-xl bg-white text-black font-semibold hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2"
     >
@@ -106,35 +159,31 @@ const MAIN_APP_URL = import.meta.env.VITE_MAIN_APP_URL || 'http://localhost:3003
 
 export const Navbar = ({ setView }: { setView: (v: View) => void }) => (
   <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
-    <div className="max-w-7xl mx-auto flex justify-between items-center glass rounded-2xl px-6 py-3">
-      <div 
-        className="text-2xl font-display font-bold tracking-tighter cursor-pointer flex items-center gap-2"
+    <div className="max-w-7xl mx-auto flex justify-between items-center">
+      <div
+        className="text-xl font-sans font-semibold tracking-tight cursor-pointer flex items-center gap-2.5 text-white"
         onClick={() => setView('home')}
       >
-        <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-          <div className="w-4 h-4 bg-white rounded-sm rotate-45" />
-        </div>
-        SOLOCORN
+        <img
+          src="/solocornlogo.png"
+          alt="Solocorn"
+          className="w-7 h-7 object-contain brightness-0 invert"
+        />
+        Solocorn
       </div>
       <div className="flex items-center gap-4">
-        <button 
+        <button
           onClick={() => setView('register')}
-          className="text-sm font-medium hover:text-emerald-400 transition-colors hidden sm:block"
+          className="text-sm font-medium text-white hover:text-white/80 transition-colors"
         >
-          Become a Tutor
+          JOIN
         </button>
-        <a 
+        <a
           href={MAIN_APP_URL}
-          className="px-5 py-2 bg-emerald-500 text-white rounded-lg text-sm font-bold hover:bg-emerald-400 transition-colors"
+          className="px-5 py-2 bg-white text-blue-700 rounded-full text-sm font-semibold hover:bg-white/90 transition-colors"
         >
-          Get Started
+          Sign In
         </a>
-        <button 
-          onClick={() => setView('register')}
-          className="px-5 py-2 bg-white text-black rounded-lg text-sm font-bold hover:bg-emerald-400 transition-colors"
-        >
-          Register
-        </button>
       </div>
     </div>
   </nav>
