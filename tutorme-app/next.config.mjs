@@ -74,12 +74,14 @@ const nextConfig = {
   },
   // Serve the Vite landing page at root instead of the Next.js App Router page
   async rewrites() {
-    return [
-      {
-        source: '/',
-        destination: '/index.html',
-      },
-    ]
+    return {
+      beforeFiles: [
+        {
+          source: '/',
+          destination: '/index.html',
+        },
+      ],
+    }
   },
 
   // Security headers (CSP, X-Frame-Options, etc.) are set by proxy.ts
