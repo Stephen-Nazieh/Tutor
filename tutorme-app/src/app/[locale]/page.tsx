@@ -2879,16 +2879,19 @@ export default function LandingPage() {
       </AnimatePresence>
 
       <motion.main initial={{ opacity: 1 }} animate={{ opacity: 1 }} className="relative">
-        <section
-          className="relative min-h-screen overflow-hidden"
-          style={{
-            backgroundImage:
-              'radial-gradient(1200px 900px at 14% 10%, rgba(154, 208, 255, 0.92) 0%, rgba(97, 163, 255, 0.68) 28%, rgba(45, 122, 248, 0.35) 52%, rgba(15, 72, 198, 0.00) 76%), linear-gradient(135deg, #2F75FF 0%, #1C63F3 32%, #0F4DDA 62%, #0A3AB7 100%)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          <div className="absolute inset-0" />
+        <section className="relative min-h-screen overflow-hidden bg-black">
+          {/* Background Video */}
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover"
+          >
+            <source src="/landing-bg-video.mp4" type="video/mp4" />
+          </video>
+          {/* Gradient overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/80 via-blue-600/80 to-blue-800/80" />
           <header className="relative z-10 flex items-center justify-between px-8 pt-8">
             <div className="flex items-center gap-3">
               <img src="/solocornlogo.png" alt="Solocorn" className="h-9 w-9" />
