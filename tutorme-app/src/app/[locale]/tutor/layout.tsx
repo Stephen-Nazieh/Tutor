@@ -123,17 +123,17 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Left Navigation Sidebar - Desktop */}
       <aside
         className={cn(
-          'relative z-40 hidden min-h-screen shrink-0 flex-col transition-all duration-300 lg:flex',
+          'relative z-40 hidden h-screen shrink-0 flex-col transition-all duration-300 lg:flex',
           desktopNavOpen ? 'w-64' : 'w-0 overflow-hidden'
         )}
       >
         <div
           className={cn(
-            'sticky top-0 z-40 hidden h-screen flex-col rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/5 transition-all duration-300 lg:ml-4 lg:flex',
+            'z-40 hidden h-full flex-col rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/5 transition-all duration-300 lg:ml-4 lg:flex',
             desktopNavOpen ? 'w-60' : 'w-0 overflow-hidden ring-0'
           )}
         >
@@ -279,7 +279,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* Main Content */}
-      <main className="min-h-screen flex-1 pt-16 lg:pt-0">{children}</main>
+      <main className="h-screen flex-1 overflow-y-auto pt-16 lg:pt-0">{children}</main>
     </div>
   )
 }
