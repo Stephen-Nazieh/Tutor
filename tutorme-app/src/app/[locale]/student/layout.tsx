@@ -87,7 +87,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Left Navigation Sidebar - Desktop */}
       {!isFeedbackRoute && (
         <aside
@@ -280,7 +280,9 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       )}
 
       {/* Main Content */}
-      <main className={cn('min-h-screen flex-1', 'pt-0')}>{children}</main>
+      <main className={cn('h-screen flex-1 overflow-hidden', 'pt-0')}>
+        <div className="h-full overflow-y-auto">{children}</div>
+      </main>
     </div>
   )
 }

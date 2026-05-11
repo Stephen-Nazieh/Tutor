@@ -47,7 +47,6 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Checkbox } from '@/components/ui/checkbox'
 import type { ScheduleItem } from './constants'
 import { DAYS, TIME_SLOT_OPTIONS } from './constants'
@@ -781,8 +780,8 @@ export default function TutorCoursePage() {
                         <MapPin className="h-4 w-4 text-[#F17623]" />
                         Country
                       </Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
                           <Button
                             ref={countryTriggerRef}
                             variant="outline"
@@ -795,44 +794,32 @@ export default function TutorCoursePage() {
                                 ? 'Select Countries...'
                                 : `${selectedCountries.length} Countr${selectedCountries.length === 1 ? 'y' : 'ies'} Selected`}
                           </Button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          variant="metallic"
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          style={{ width: countryDropdownWidth || undefined }}
                           align="start"
                           sideOffset={6}
-                          style={{ width: countryDropdownWidth || undefined }}
-                          className="max-h-[320px] overflow-y-auto rounded-[16px] p-4"
+                          className="rounded-[16px]"
                         >
-                          {availableCountries.length === 0 ? (
-                            <div className="py-4 text-center text-xs text-white/70">
-                              No countries available
-                            </div>
-                          ) : (
-                            <>
-                              <div className="grid grid-cols-2 gap-x-6 gap-y-3 lg:grid-cols-3">
-                                {availableCountries.map(country => (
-                                  <label
-                                    key={country.code}
-                                    className="flex cursor-pointer items-center gap-2.5 text-sm text-white"
-                                  >
-                                    <Checkbox
-                                      checked={selectedCountries.includes(country.code)}
-                                      onCheckedChange={() => toggleCountry(country.code)}
-                                      className="border-white/40 data-[state=checked]:bg-white data-[state=checked]:text-slate-900"
-                                    />
-                                    <span>{country.name}</span>
-                                  </label>
-                                ))}
+                          <ScrollArea className="h-[200px]">
+                            {availableCountries.length === 0 ? (
+                              <div className="py-4 text-center text-xs text-white/70">
+                                No countries available
                               </div>
-                              <div className="mt-4 border-t border-white/10 pt-3 text-xs text-white/60">
-                                {selectedCountries.length > 0
-                                  ? `${selectedCountries.length} selected`
-                                  : 'Select one or more countries'}
-                              </div>
-                            </>
-                          )}
-                        </PopoverContent>
-                      </Popover>
+                            ) : (
+                              availableCountries.map(country => (
+                                <DropdownMenuCheckboxItem
+                                  key={country.code}
+                                  checked={selectedCountries.includes(country.code)}
+                                  onCheckedChange={() => toggleCountry(country.code)}
+                                >
+                                  {country.name}
+                                </DropdownMenuCheckboxItem>
+                              ))
+                            )}
+                          </ScrollArea>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
 

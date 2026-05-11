@@ -842,18 +842,20 @@ export default function TutorRegistrationPage() {
                       onChange={e => setFormData({ ...formData, email: e.target.value })}
                       placeholder="tutor@example.com"
                     />
-                    {emailStatus.status === 'checking' && (
-                      <p className="text-xs text-gray-500">Checking availability...</p>
-                    )}
-                    {emailStatus.status === 'available' && (
-                      <p className="text-xs text-green-600">{emailStatus.message}</p>
-                    )}
-                    {emailStatus.status === 'taken' && (
-                      <p className="text-xs text-red-600">{emailStatus.message}</p>
-                    )}
-                    {emailStatus.status === 'invalid' && (
-                      <p className="text-xs text-red-600">{emailStatus.message}</p>
-                    )}
+                    <p
+                      className={cn(
+                        'min-h-[18px] text-xs',
+                        emailStatus.status === 'checking' && 'text-gray-500',
+                        emailStatus.status === 'available' && 'text-green-600',
+                        (emailStatus.status === 'taken' || emailStatus.status === 'invalid') && 'text-red-600'
+                      )}
+                    >
+                      {emailStatus.status === 'checking'
+                        ? 'Checking availability...'
+                        : emailStatus.status === 'idle'
+                          ? '\u00A0'
+                          : emailStatus.message}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -910,9 +912,9 @@ export default function TutorRegistrationPage() {
                           )}
                         </button>
                       </div>
-                      {passwordMismatch && (
-                        <p className="text-xs text-red-400">Passwords do not match.</p>
-                      )}
+                      <p className="min-h-[18px] text-xs text-red-400">
+                        {passwordMismatch ? 'Passwords do not match.' : '\u00A0'}
+                      </p>
                     </div>
                   </div>
 
@@ -978,29 +980,32 @@ export default function TutorRegistrationPage() {
                     </div>
                   </div>
                   <div className="space-y-0.5">
-                    {usernameStatus.status === 'checking' && (
-                      <p className="text-xs text-white/50">Checking availability...</p>
-                    )}
-                    {usernameStatus.status === 'available' && (
-                      <p className="text-xs text-green-400">{usernameStatus.message}</p>
-                    )}
-                    {usernameStatus.status === 'taken' && (
-                      <div className="text-xs text-red-400">
-                        <p>{usernameStatus.message}</p>
-                        {usernameStatus.suggestion && (
-                          <button
-                            className="text-blue-400 underline"
-                            type="button"
-                            onClick={applySuggestion}
-                          >
-                            Use {usernameStatus.suggestion}
-                          </button>
-                        )}
-                      </div>
-                    )}
-                    {usernameStatus.status === 'invalid' && (
-                      <p className="text-xs text-red-400">{usernameStatus.message}</p>
-                    )}
+                    <div className="min-h-[18px]">
+                      {usernameStatus.status === 'checking' && (
+                        <p className="text-xs text-white/50">Checking availability...</p>
+                      )}
+                      {usernameStatus.status === 'available' && (
+                        <p className="text-xs text-green-400">{usernameStatus.message}</p>
+                      )}
+                      {usernameStatus.status === 'taken' && (
+                        <div className="text-xs text-red-400">
+                          <p>{usernameStatus.message}</p>
+                          {usernameStatus.suggestion && (
+                            <button
+                              className="text-blue-400 underline"
+                              type="button"
+                              onClick={applySuggestion}
+                            >
+                              Use {usernameStatus.suggestion}
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      {usernameStatus.status === 'invalid' && (
+                        <p className="text-xs text-red-400">{usernameStatus.message}</p>
+                      )}
+                      {usernameStatus.status === 'idle' && <p className="text-xs">\u00A0</p>}
+                    </div>
                     <p className="text-xs text-white/50">
                       3-15 characters. Letters, numbers, underscores only.
                     </p>
