@@ -15,10 +15,13 @@ export const POST = withCsrf(
       }
 
       const formData = await req.formData()
-      const file = formData.get('avatar')
-      if (!(file instanceof File)) {
+      const fileEntry = formData.get('avatar')
+      // Use duck-typing instead of instanceof File to avoid issues with
+      // different File constructors in Node.js / Next.js runtimes.
+      if (!fileEntry || typeof (fileEntry as any).arrayBuffer !== 'function') {
         return NextResponse.json({ error: 'Avatar file is required' }, { status: 400 })
       }
+      const file = fileEntry as File
 
       let crop: AvatarCropPayload | null = null
       const cropRaw = formData.get('crop')
@@ -39,8 +42,11 @@ export const POST = withCsrf(
           .limit(1)
         const oldAvatarUrl = existing?.avatarUrl || null
 
+        console.log('[avatar upload] Starting upload for user', session.user.id, 'crop:', !!crop)
+
         // 1. Save new avatar FIRST (never delete old before we know the new one is ready)
         const avatarUrl = await saveAvatar(session.user.id, file, crop)
+        console.log('[avatar upload] saveAvatar returned URL:', avatarUrl)
 
         // 2. Update DB with the new URL
         const [updated] = await drizzleDb
@@ -48,11 +54,12 @@ export const POST = withCsrf(
           .set({ avatarUrl })
           .where(eq(profile.userId, session.user.id))
           .returning({ avatarUrl: profile.avatarUrl })
+        console.log('[avatar upload] DB updated, new avatarUrl:', updated?.avatarUrl)
 
         // 3. Only after DB update succeeds, delete the old avatar from storage
         if (oldAvatarUrl) {
           await deleteAvatar(oldAvatarUrl).catch((err: unknown) => {
-            console.warn('Failed to clean up old avatar:', err)
+            console.warn('[avatar upload] Failed to clean up old avatar:', err)
           })
         }
 
@@ -62,9 +69,10 @@ export const POST = withCsrf(
         })
       } catch (error) {
         if (error instanceof ValidationError) {
+          console.warn('[avatar upload] Validation error:', error.message)
           return NextResponse.json({ error: error.message }, { status: 400 })
         }
-        console.error('Avatar upload error:', error)
+        console.error('[avatar upload] Unexpected error:', error)
         return NextResponse.json({ error: 'Failed to upload photo' }, { status: 500 })
       }
     },

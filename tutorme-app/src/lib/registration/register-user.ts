@@ -84,8 +84,15 @@ export async function saveAvatar(
   }
 
   const bytes = Buffer.from(await avatarFile.arrayBuffer())
-  const sharpMod = await import('sharp')
-  const sharp = sharpMod.default ?? sharpMod
+
+  let sharp: any
+  try {
+    const sharpMod = await import('sharp')
+    sharp = sharpMod.default ?? sharpMod
+  } catch (err) {
+    console.error('[saveAvatar] Failed to import sharp:', err)
+    throw new ValidationError('Image processing is temporarily unavailable. Please try again later.')
+  }
 
   const meta = await sharp(bytes, { failOnError: false }).metadata()
   const orientation = meta.orientation ?? 1
@@ -177,26 +184,44 @@ export async function saveAvatar(
     return { left, top, width: side, height: side }
   }
 
-  // If crop data exists, try extracting from both the rotated and raw
-  // coordinate systems. Then choose the candidate that passes moderation
-  // for the extracted region. This helps with EXIF orientation mismatches
-  // between browser and backend.
+  // Apply crop if provided. The frontend sends crop coordinates based on the
+  // browser-oriented image dimensions (after EXIF auto-rotation). We compute
+  // the backend scale factor and try both the rotated and raw coordinate
+  // systems to handle any browser↔backend EXIF orientation mismatch.
+  //
+  // Reliability fix: instead of picking the candidate with the highest
+  // luminance (which can be wrong), we pick the one whose input dimensions
+  // most closely match the frontend's reported originalWidth/originalHeight.
   let pipeline: any = inputRotated.clone()
   if (crop) {
     let rotatedCandidate: any | null = null
     let rawCandidate: any | null = null
+    let rotatedScaleError = Infinity
+    let rawScaleError = Infinity
+
     try {
       const extractRotated = getCropExtract(width, height)
-      if (extractRotated) rotatedCandidate = inputRotated.clone().extract(extractRotated)
-    } catch {
-      // Ignore and try other candidate.
+      if (extractRotated) {
+        rotatedCandidate = inputRotated.clone().extract(extractRotated)
+        // How far are the oriented dimensions from the frontend's reported dims?
+        rotatedScaleError =
+          Math.abs(width - (crop.originalWidth ?? width)) +
+          Math.abs(height - (crop.originalHeight ?? height))
+      }
+    } catch (err) {
+      console.warn('[saveAvatar] Rotated crop extraction failed:', err)
     }
 
     try {
       const extractRaw = getCropExtract(rawWidth, rawHeight)
-      if (extractRaw) rawCandidate = inputRaw.clone().extract(extractRaw).rotate()
-    } catch {
-      // Ignore and try other candidate.
+      if (extractRaw) {
+        rawCandidate = inputRaw.clone().extract(extractRaw).rotate()
+        rawScaleError =
+          Math.abs(rawWidth - (crop.originalWidth ?? rawWidth)) +
+          Math.abs(rawHeight - (crop.originalHeight ?? rawHeight))
+      }
+    } catch (err) {
+      console.warn('[saveAvatar] Raw crop extraction failed:', err)
     }
 
     const rotatedEval = rotatedCandidate ? await analyzeCandidate(rotatedCandidate) : null
@@ -212,11 +237,20 @@ export async function saveAvatar(
     }
 
     if (rotatedPass && rawPass) {
-      // Pick the candidate with a wider luminance range (more likely to contain useful image detail).
-      const pickRotated = (rotatedEval?.lumRange ?? -Infinity) >= (rawEval?.lumRange ?? -Infinity)
+      // Pick the candidate whose dimensions match the frontend report.
+      // This is deterministic and avoids the old luminance-based lottery.
+      const pickRotated = rotatedScaleError <= rawScaleError
       pipeline = pickRotated ? rotatedCandidate : rawCandidate
+      console.log(
+        '[saveAvatar] Both crop candidates pass moderation; picking',
+        pickRotated ? 'rotated' : 'raw',
+        '(scaleError: rotated=%d raw=%d)',
+        rotatedScaleError,
+        rawScaleError
+      )
     } else {
       pipeline = rotatedPass ? rotatedCandidate : rawCandidate
+      console.log('[saveAvatar] Picking', rotatedPass ? 'rotated' : 'raw', 'crop candidate')
     }
   } else {
     const eval0 = await analyzeCandidate(pipeline)
