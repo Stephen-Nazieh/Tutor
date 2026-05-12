@@ -10,6 +10,58 @@ import {
   useImperativeHandle,
   type ComponentProps,
 } from 'react'
+
+/**
+ * Recursively sanitize lesson data by removing blob URLs from sourceDocument.fileUrl.
+ * Blob URLs are client-side only and become invalid after page refresh.
+ * Returns the sanitized data and a list of paths where blob URLs were removed.
+ */
+function sanitizeBlobUrls(obj: unknown, path = ''): { sanitized: unknown; removedPaths: string[] } {
+  const removedPaths: string[] = []
+
+  if (typeof obj === 'string') {
+    if (obj.startsWith('blob:')) {
+      removedPaths.push(path || '<root>')
+      return { sanitized: '', removedPaths }
+    }
+    return { sanitized: obj, removedPaths }
+  }
+
+  if (Array.isArray(obj)) {
+    const sanitized: unknown[] = []
+    obj.forEach((item, idx) => {
+      const result = sanitizeBlobUrls(item, `${path}[${idx}]`)
+      sanitized.push(result.sanitized)
+      removedPaths.push(...result.removedPaths)
+    })
+    return { sanitized, removedPaths }
+  }
+
+  if (obj !== null && typeof obj === 'object') {
+    const sanitized: Record<string, unknown> = {}
+    for (const [key, value] of Object.entries(obj)) {
+      const newPath = path ? `${path}.${key}` : key
+      // Special handling: if this is a sourceDocument object with a blob fileUrl,
+      // remove the entire sourceDocument rather than just the URL
+      if (
+        key === 'sourceDocument' &&
+        value !== null &&
+        typeof value === 'object' &&
+        (value as Record<string, unknown>).fileUrl &&
+        String((value as Record<string, unknown>).fileUrl).startsWith('blob:')
+      ) {
+        removedPaths.push(newPath)
+        continue // Skip adding this key — removes the entire sourceDocument
+      }
+      const result = sanitizeBlobUrls(value, newPath)
+      sanitized[key] = result.sanitized
+      removedPaths.push(...result.removedPaths)
+    }
+    return { sanitized, removedPaths }
+  }
+
+  return { sanitized: obj, removedPaths }
+}
 import NextImage from 'next/image'
 import { createPortal } from 'react-dom'
 import {
@@ -510,7 +562,16 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     }, [])
 
     const resolvedInitialCourseBuilderNodes = useMemo(() => {
-      return (initialLessons || []).map((lesson, idx) => ({
+      const lessons = initialLessons || []
+      const { sanitized: sanitizedLessons, removedPaths } = sanitizeBlobUrls(lessons, 'lessons')
+      if (removedPaths.length > 0) {
+        console.warn('[CourseBuilder] Removed blob URLs from loaded lessons:', removedPaths)
+        toast.error(
+          `Some attached documents were not properly saved (blob URLs detected in ${removedPaths.length} location${removedPaths.length === 1 ? '' : 's'}). Please re-upload them.`
+        )
+      }
+      const safeLessons = Array.isArray(sanitizedLessons) ? sanitizedLessons : lessons
+      return safeLessons.map((lesson: any, idx: number) => ({
         id: `node-${lesson.id || idx}`,
         title: lesson.title || `Lesson ${idx + 1}`,
         description: lesson.description || '',

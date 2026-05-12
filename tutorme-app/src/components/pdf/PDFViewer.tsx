@@ -32,6 +32,9 @@ export function PDFViewer({
   const [loading, setLoading] = useState<boolean>(true)
   const [useFallback, setUseFallback] = useState<boolean>(false)
 
+  // Detect blob URLs immediately — they are client-side only and break after refresh
+  const isBlobUrl = typeof fileUrl === 'string' && fileUrl.startsWith('blob:')
+
   const isScrollMode = numPages > 0 && numPages <= MAX_SCROLL_PAGES
 
   const onDocumentLoadSuccess = useCallback(({ numPages: total }: { numPages: number }) => {
@@ -73,8 +76,18 @@ export function PDFViewer({
 
   return (
     <div className={`flex h-full w-full flex-col overflow-hidden bg-gray-100 ${className}`}>
+      {/* Blob URL error — file was not properly persisted */}
+      {isBlobUrl && (
+        <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
+          <p className="max-w-md text-sm text-red-600">
+            This document was not properly saved. The file reference is a temporary browser URL
+            that becomes invalid after refreshing. Please remove this document and re-upload it.
+          </p>
+        </div>
+      )}
+
       {/* Loading state */}
-      {loading && (
+      {loading && !isBlobUrl && (
         <div className="flex h-full flex-col items-center justify-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
           <span className="text-sm text-gray-600">Loading PDF…</span>
@@ -82,7 +95,7 @@ export function PDFViewer({
       )}
 
       {/* Error state */}
-      {error && !loading && (
+      {error && !loading && !isBlobUrl && (
         <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
           <p className="max-w-md text-sm text-red-600">Failed to load PDF: {error}</p>
           <div className="flex gap-2">
@@ -177,7 +190,7 @@ export function PDFViewer({
       )}
 
       {/* Document pages */}
-      {!error && (
+      {!error && !isBlobUrl && (
         <div className={`flex-1 overflow-y-auto ${loading ? 'hidden' : 'block'}`}>
           <Document
             file={fileUrl}

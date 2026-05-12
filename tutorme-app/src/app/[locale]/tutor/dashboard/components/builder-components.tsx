@@ -153,32 +153,25 @@ export function ResourceImportPanel<
     setExtracting(true)
     try {
       const extractedText = await extractTextFromFile(file)
-      const localObjectUrl = URL.createObjectURL(file)
-      let fileUrl = localObjectUrl
-      let isServerPdf = false
-      try {
-        const formData = new FormData()
-        formData.append('file', file)
-        const uploadRes = await fetch('/api/uploads/documents', {
-          method: 'POST',
-          credentials: 'include',
-          body: formData,
-        })
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json()
-          if (typeof uploadData?.url === 'string' && uploadData.url.length > 0) {
-            fileUrl = uploadData.url
-            isServerPdf = uploadData.isPdf === true
-            URL.revokeObjectURL(localObjectUrl)
-          }
-        }
-      } catch {
-        // Fallback to local object URL if upload endpoint is unavailable.
+      const formData = new FormData()
+      formData.append('file', file)
+      const uploadRes = await fetch('/api/uploads/documents', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      })
+      if (!uploadRes.ok) {
+        const errData = await uploadRes.json().catch(() => ({}))
+        throw new Error(errData.error || `Upload failed (${uploadRes.status})`)
+      }
+      const uploadData = await uploadRes.json()
+      if (typeof uploadData?.url !== 'string' || uploadData.url.length === 0) {
+        throw new Error('Upload succeeded but no file URL was returned')
       }
       const sourceDocument: ImportedLearningResource = {
         fileName: file.name,
-        mimeType: isServerPdf ? 'application/pdf' : file.type || 'application/octet-stream',
-        fileUrl,
+        mimeType: uploadData.isPdf === true ? 'application/pdf' : file.type || 'application/octet-stream',
+        fileUrl: uploadData.url,
         extractedText: extractedText || '',
         uploadedAt: new Date().toISOString(),
       }
@@ -189,8 +182,8 @@ export function ResourceImportPanel<
         setData({ ...data, sourceDocument } as T)
       }
       toast.success('Document imported. PDF and extracted text are available.')
-    } catch {
-      toast.error('Failed to process file')
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to upload document. Please try again.')
     } finally {
       setExtracting(false)
     }

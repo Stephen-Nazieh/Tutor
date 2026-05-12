@@ -46,6 +46,27 @@ export interface BuilderLessonData {
   variants?: Record<string, unknown>
 }
 
+/**
+ * Recursively scan an object for blob URLs in sourceDocument.fileUrl fields.
+ * Returns an array of paths where blob URLs were found.
+ */
+function findBlobUrls(obj: unknown, path = ''): string[] {
+  const results: string[] = []
+  if (typeof obj === 'string' && obj.startsWith('blob:')) {
+    results.push(path || '<root>')
+  } else if (Array.isArray(obj)) {
+    obj.forEach((item, idx) => {
+      results.push(...findBlobUrls(item, `${path}[${idx}]`))
+    })
+  } else if (obj !== null && typeof obj === 'object') {
+    for (const [key, value] of Object.entries(obj)) {
+      const newPath = path ? `${path}.${key}` : key
+      results.push(...findBlobUrls(value, newPath))
+    }
+  }
+  return results
+}
+
 export class CourseBuilderService {
   /**
    * Retrieves the full builder tree (lessons) for a given course.
@@ -129,6 +150,17 @@ export class CourseBuilderService {
 
     if (!Array.isArray(lessons)) {
       throw new Error('Invalid payload: expected lessons array')
+    }
+
+    // Reject any lessons that contain blob URLs in sourceDocument.fileUrl.
+    // Blob URLs are client-side only and become invalid after page refresh.
+    const blobPaths = findBlobUrls(lessons)
+    if (blobPaths.length > 0) {
+      throw new Error(
+        `Invalid payload: blob URLs found in task/assessment documents. ` +
+        `Please re-upload the files so they are stored persistently. ` +
+        `Found at: ${blobPaths.slice(0, 3).join(', ')}${blobPaths.length > 3 ? '...' : ''}`
+      )
     }
 
     await drizzleDb.transaction(async tx => {
