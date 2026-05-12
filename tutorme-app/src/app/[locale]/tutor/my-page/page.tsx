@@ -11,6 +11,7 @@ import {
 } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -426,6 +427,7 @@ export default function TutorMyPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const locale = typeof params?.locale === 'string' ? params.locale : 'en'
+  const { update: updateSession } = useSession()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [username, setUsername] = useState('')
@@ -992,6 +994,9 @@ export default function TutorMyPage() {
       setAvatarUrl(fullUrl)
       setAvatarPreview(null)
       setAvatarFile(null)
+      await updateSession({ image: fullUrl }).catch(() => {
+        // Non-critical: session will refresh on next page load
+      })
       toast.success('Profile photo updated')
     } catch {
       toast.error('Failed to upload photo')
@@ -1065,6 +1070,9 @@ export default function TutorMyPage() {
         return
       }
       setAvatarUrl(null)
+      await updateSession({ image: null }).catch(() => {
+        // Non-critical: session will refresh on next page load
+      })
       toast.success('Profile photo deleted')
     } catch {
       toast.error('Failed to delete photo')

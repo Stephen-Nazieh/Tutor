@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { withAuth, withCsrf, ValidationError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
+import { cache } from '@/lib/db'
 import { profile } from '@/lib/db/schema'
 import { saveAvatar, deleteAvatar, type AvatarCropPayload } from '@/lib/registration/register-user'
 
@@ -62,6 +63,11 @@ export const POST = withCsrf(
           })
         }
 
+        // 4. Invalidate cached user/profile data so fresh avatar URLs appear immediately
+        await cache.delete(`user:${session.user.id}`).catch(() => {})
+        await cache.invalidatePattern(`profiles:*${session.user.id}*`).catch(() => {})
+        await cache.invalidatePattern(`users:*${session.user.id}*`).catch(() => {})
+
         return NextResponse.json({
           success: true,
           avatarUrl: updated?.avatarUrl ?? avatarUrl,
@@ -97,6 +103,11 @@ export const DELETE = withCsrf(
           .update(profile)
           .set({ avatarUrl: null })
           .where(eq(profile.userId, session.user.id))
+
+        // Invalidate cached user/profile data
+        await cache.delete(`user:${session.user.id}`).catch(() => {})
+        await cache.invalidatePattern(`profiles:*${session.user.id}*`).catch(() => {})
+        await cache.invalidatePattern(`users:*${session.user.id}*`).catch(() => {})
 
         return NextResponse.json({ success: true })
       } catch (error) {
