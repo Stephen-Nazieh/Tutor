@@ -321,9 +321,18 @@ export async function saveAvatar(
 
 /**
  * Delete a previously saved avatar from storage (GCS or local filesystem).
+ *
+ * @param deleteFromDb - When false, skips deleting from avatarStorage. Use false
+ *   during avatar replacement because saveAvatar already overwrites the DB row
+ *   via onConflictDoUpdate; deleting afterward would remove the new avatar.
  */
-export async function deleteAvatar(avatarUrl: string | null | undefined): Promise<void> {
+export async function deleteAvatar(
+  avatarUrl: string | null | undefined,
+  options?: { deleteFromDb?: boolean }
+): Promise<void> {
   if (!avatarUrl || typeof avatarUrl !== 'string') return
+
+  const deleteFromDb = options?.deleteFromDb !== false
 
   // GCS deletion
   if (avatarUrl.includes('storage.googleapis.com')) {
@@ -383,7 +392,11 @@ export async function deleteAvatar(avatarUrl: string | null | undefined): Promis
       // Extract userId from path: /api/public/avatar/{userId}/{filename}
       const parts = relativePart.split('/')
       const userIdFromUrl = parts[0]
-      if (userIdFromUrl) {
+
+      // Only delete from avatarStorage when explicitly requested (e.g., user
+      // deletes their avatar). During replacement, saveAvatar already overwrites
+      // the row via onConflictDoUpdate, so deleting here would wipe the new avatar.
+      if (deleteFromDb && userIdFromUrl) {
         const { avatarStorage } = await import('@/lib/db/schema')
         await drizzleDb.delete(avatarStorage).where(eq(avatarStorage.userId, userIdFromUrl)).catch(() => {})
       }

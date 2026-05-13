@@ -55,11 +55,17 @@ export const POST = withCsrf(
           .set({ avatarUrl })
           .where(eq(profile.userId, session.user.id))
           .returning({ avatarUrl: profile.avatarUrl })
+        if (!updated) {
+          console.error('[avatar upload] Profile update returned no rows for user', session.user.id)
+          return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+        }
         console.log('[avatar upload] DB updated, new avatarUrl:', updated?.avatarUrl)
 
-        // 3. Only after DB update succeeds, delete the old avatar from storage
+        // 3. Only after DB update succeeds, delete the old avatar from storage.
+        //    deleteFromDb: false because saveAvatar already overwrites avatarStorage
+        //    via onConflictDoUpdate; deleting the row now would wipe the new avatar.
         if (oldAvatarUrl) {
-          await deleteAvatar(oldAvatarUrl).catch((err: unknown) => {
+          await deleteAvatar(oldAvatarUrl, { deleteFromDb: false }).catch((err: unknown) => {
             console.warn('[avatar upload] Failed to clean up old avatar:', err)
           })
         }

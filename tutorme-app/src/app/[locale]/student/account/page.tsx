@@ -241,7 +241,9 @@ export default function StudentAccount() {
       // Stored URLs can be relative (`/uploads/...`) or absolute (GCS). `img` can handle both.
       setFormData(prev => ({ ...prev, avatarUrl: newUrl }))
       // Refresh next-auth session so JWT token contains new avatar URL
-      await updateSession({ image: newUrl })
+      await updateSession({ image: newUrl }).catch(() => {
+        // Non-critical: session will refresh on next page load
+      })
       toast.success('Profile photo updated')
     } catch {
       toast.error('Failed to upload photo')
@@ -459,7 +461,9 @@ export default function StudentAccount() {
                                   return
                                 }
                                 setFormData(prev => ({ ...prev, avatarUrl: '' }))
-                                await updateSession({ image: null })
+                                await updateSession({ image: null }).catch(() => {
+                                  // Non-critical: session will refresh on next page load
+                                })
                                 toast.success('Profile photo deleted')
                               } catch {
                                 toast.error('Failed to delete photo')

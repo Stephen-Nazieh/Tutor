@@ -464,7 +464,9 @@ export default function TutorSettings() {
           ? `${window.location.origin}${newUrl}`
           : newUrl
       setFormData(prev => ({ ...prev, avatarUrl: fullUrl }))
-      await updateSession({ image: fullUrl })
+      await updateSession({ image: fullUrl }).catch(() => {
+        // Non-critical: session will refresh on next page load
+      })
       toast.success('Profile photo updated')
     } catch {
       toast.error('Failed to upload photo')
@@ -498,7 +500,9 @@ export default function TutorSettings() {
         return
       }
       setFormData(prev => ({ ...prev, avatarUrl: '' }))
-      await updateSession({ image: null })
+      await updateSession({ image: null }).catch(() => {
+        // Non-critical: session will refresh on next page load
+      })
       toast.success('Profile photo deleted')
     } catch {
       toast.error('Failed to delete photo')
