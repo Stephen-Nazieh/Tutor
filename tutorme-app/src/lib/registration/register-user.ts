@@ -139,7 +139,8 @@ export async function saveAvatar(
       })
     dbStored = true
   } catch (dbError: any) {
-    dbErrorMsg = dbError?.message || String(dbError)
+    const causeMsg = dbError?.cause?.message || dbError?.cause?.detail || ''
+    dbErrorMsg = causeMsg ? `${dbError?.message || ''} | cause: ${causeMsg}` : dbError?.message || String(dbError)
     console.warn('[saveAvatar] DB storage failed:', dbErrorMsg)
   }
 
@@ -160,9 +161,28 @@ export async function saveAvatar(
     gcsErrorMsg = 'GCS not configured (GCS_BUCKET env var missing)'
   }
 
+  // Fallback: local filesystem (ephemeral, but keeps uploads working when DB/GCS are down).
+  let localStored = false
+  let localErrorMsg = ''
   if (!dbStored && !gcsStored) {
+    try {
+      const path = await import('path')
+      const os = await import('os')
+      const { writeFile, mkdir } = await import('fs/promises')
+      const localDir = path.join(os.tmpdir(), 'tutorme_uploads', 'avatars', userId)
+      await mkdir(localDir, { recursive: true })
+      const localPath = path.join(localDir, `${baseName}-256.${ext}`)
+      await writeFile(localPath, bytes)
+      localStored = true
+    } catch (error: any) {
+      localErrorMsg = error?.message || String(error)
+      console.warn('[saveAvatar] Local filesystem storage failed:', localErrorMsg)
+    }
+  }
+
+  if (!dbStored && !gcsStored && !localStored) {
     throw new ValidationError(
-      `Storage failed — DB: ${dbErrorMsg || 'unknown'} | GCS: ${gcsErrorMsg || 'unknown'}`
+      `Storage failed — DB: ${dbErrorMsg || 'unknown'} | GCS: ${gcsErrorMsg || 'unknown'} | Local: ${localErrorMsg || 'unknown'}`
     )
   }
 
