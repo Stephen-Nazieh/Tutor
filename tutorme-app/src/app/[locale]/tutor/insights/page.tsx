@@ -1162,7 +1162,9 @@ function TutorInsightsPageInner() {
         setIsDeleteDialogOpen={setIsDeleteDialogOpen}
         onDeleteCourseConfirm={handleDeleteCourse}
         courses={courses}
-        draftCourses={draftCourses}
+        draftCourses={draftCourses.filter(draft =>
+          !courses.some(live => live.name.startsWith(draft.name + ' —'))
+        )}
         courseName={courseName}
         onCourseNameChange={handleCourseNameChange}
         saveMode={saveMode}
