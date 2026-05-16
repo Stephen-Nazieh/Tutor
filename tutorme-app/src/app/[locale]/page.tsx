@@ -1331,7 +1331,11 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
               <div className="mt-1 text-xs font-medium text-slate-300">
                 @{item?.tutor?.username || 'tutor'}
               </div>
-              {Array.isArray(item?.categories) && item.categories[0] ? (
+              {item?.variantNationality && item.variantNationality !== 'Global' ? (
+                <div className="mt-2 w-fit rounded-full border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-[10px] font-semibold text-slate-100">
+                  {item.variantCategory || (Array.isArray(item?.categories) ? item.categories[0] : '') || 'General'} — {item.variantNationality}
+                </div>
+              ) : Array.isArray(item?.categories) && item.categories[0] ? (
                 <div className="mt-2 w-fit rounded-full border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] px-3 py-1 text-[10px] font-semibold text-slate-100">
                   {item.categories[0]}
                 </div>

@@ -360,8 +360,9 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                       </p>
                     )}
                     <p className="mt-1 text-sm text-[#64748B]">
-                      {(course.categories || [])[0] || 'Untitled'} • {course.studentCount || 0}{' '}
-                      students • Updated {new Date(course.updatedAt).toLocaleDateString()}
+                      {course.nationality && course.nationality !== 'Global'
+                        ? `${course.studentCount || 0} students • Updated ${new Date(course.updatedAt).toLocaleDateString()}`
+                        : `${(course.categories || [])[0] || 'Untitled'} • ${course.studentCount || 0} students • Updated ${new Date(course.updatedAt).toLocaleDateString()}`}
                     </p>
                     {activeTab === 'catalogued' && course.lastSessionDate && (
                       <p className="mt-1 text-xs text-gray-500">
