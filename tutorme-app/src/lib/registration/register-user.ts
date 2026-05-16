@@ -132,7 +132,7 @@ export async function saveAvatar(
     const { avatarStorage } = await import('@/lib/db/schema')
     await drizzleDb
       .insert(avatarStorage)
-      .values({ userId, data: dataUrl })
+      .values({ userId, data: dataUrl, updatedAt: new Date() })
       .onConflictDoUpdate({
         target: avatarStorage.userId,
         set: { data: dataUrl, updatedAt: new Date() },
