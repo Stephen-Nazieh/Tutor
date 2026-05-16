@@ -139,7 +139,11 @@ export function AssignCourseModal({
                   {courses.map(course => (
                     <SelectItem key={course.id} value={course.id}>
                       <div className="flex items-center gap-2">
-                        <span>{course.name}</span>
+                        <span>
+                          {course.nationality && course.nationality !== 'Global'
+                            ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
+                            : course.name}
+                        </span>
                         <Badge variant="secondary" className="text-xs">
                           {course.stats.moduleCount} modules
                         </Badge>
@@ -228,7 +232,11 @@ export function AssignCourseModal({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{selectedCourse?.name}</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {selectedCourse?.nationality && selectedCourse.nationality !== 'Global'
+                        ? `${selectedCourse.name} — ${selectedCourse.variantCategory || (selectedCourse.categories || [])[0] || 'General'} — ${selectedCourse.nationality}`
+                        : selectedCourse?.name}
+                    </p>
                     <p className="text-xs text-gray-600">Course</p>
                   </div>
                   <ArrowRight className="h-4 w-4 text-gray-600" />

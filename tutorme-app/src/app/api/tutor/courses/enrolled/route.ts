@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 import { desc, eq, sql, inArray, and } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseEnrollment, liveSession } from '@/lib/db/schema'
+import { course, courseEnrollment, liveSession, courseVariant } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (_req, session) => {
@@ -70,19 +70,37 @@ export const GET = withAuth(
       }))
     }
 
-    const coursesWithSessionCount = courses.map(c => ({
-      id: c.courseId,
-      name: c.name,
-      categories: c.categories,
-      isPublished: c.isPublished,
-      price: c.price,
-      currency: c.currency,
-      schedule: c.schedule,
-      enrollmentCount: c.enrollmentCount,
-      // Map categories to subject for backward compatibility
-      subject: c.categories?.[0] ?? null,
-      upcomingSessionsCount: sessionCounts.find(s => s.courseId === c.courseId)?.count ?? 0,
-    }))
+    // Fetch variant info
+    const variantRows =
+      courseIds.length > 0
+        ? await drizzleDb
+            .select({
+              publishedCourseId: courseVariant.publishedCourseId,
+              nationality: courseVariant.nationality,
+              category: courseVariant.category,
+            })
+            .from(courseVariant)
+            .where(inArray(courseVariant.publishedCourseId, courseIds))
+        : []
+    const variantMap = new Map(variantRows.map(v => [v.publishedCourseId, { nationality: v.nationality, category: v.category }]))
+
+    const coursesWithSessionCount = courses.map(c => {
+      const variant = variantMap.get(c.courseId)
+      return {
+        id: c.courseId,
+        name: c.name,
+        categories: c.categories,
+        isPublished: c.isPublished,
+        price: c.price,
+        currency: c.currency,
+        schedule: c.schedule,
+        enrollmentCount: c.enrollmentCount,
+        subject: c.categories?.[0] ?? null,
+        upcomingSessionsCount: sessionCounts.find(s => s.courseId === c.courseId)?.count ?? 0,
+        nationality: variant?.nationality ?? undefined,
+        variantCategory: variant?.category ?? undefined,
+      }
+    })
 
     return NextResponse.json({ courses: coursesWithSessionCount })
   },

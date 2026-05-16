@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/api/middleware'
 import { verifyCourseOwnership } from '@/lib/api/course-helpers'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseEnrollment, courseLesson, payment, refund } from '@/lib/db/schema'
+import { course, courseEnrollment, courseLesson, payment, refund, courseVariant } from '@/lib/db/schema'
 import { eq, and, isNull, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { notifyMany } from '@/lib/notifications/notify'
@@ -81,6 +81,16 @@ export const GET = withAuth(
         .from(courseEnrollment)
         .where(eq(courseEnrollment.courseId, id))
 
+      // Fetch variant info
+      const [variantRow] = await drizzleDb
+        .select({
+          nationality: courseVariant.nationality,
+          category: courseVariant.category,
+        })
+        .from(courseVariant)
+        .where(eq(courseVariant.publishedCourseId, id))
+        .limit(1)
+
       // Transform to expected format
       const responseCourse = {
         id: courseRow.courseId,
@@ -93,7 +103,6 @@ export const GET = withAuth(
         isFree: courseRow.isFree ?? false,
         schedule: courseRow.schedule || [],
         categories: courseRow.categories || [],
-        // Group lessons into a single module for compatibility
         modules: [
           {
             id: 'default-module',
@@ -110,6 +119,8 @@ export const GET = withAuth(
           },
         ],
         studentCount: enrollmentAgg?.count ?? 0,
+        nationality: variantRow?.nationality ?? undefined,
+        variantCategory: variantRow?.category ?? undefined,
       }
 
       return NextResponse.json({ course: responseCourse })

@@ -47,6 +47,8 @@ interface PublicCourse {
   price?: number | null
   currency?: string | null
   estimatedHours?: number
+  nationality?: string
+  variantCategory?: string
 }
 
 interface ClassItem {
@@ -357,7 +359,11 @@ function MyPageTabsSectionInner() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="truncate font-medium">{course.name}</h3>
+                          <h3 className="truncate font-medium">
+                            {course.nationality && course.nationality !== 'Global'
+                              ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
+                              : course.name}
+                          </h3>
                           <Badge variant={course.isPublished ? 'default' : 'secondary'}>
                             {course.isPublished ? 'Published' : 'Draft'}
                           </Badge>
@@ -476,7 +482,11 @@ function MyPageTabsSectionInner() {
                       {course.isPublished ? 'Published' : 'Draft'}
                     </Badge>
                   </div>
-                  <CardTitle className="mt-3 text-lg">{course.name}</CardTitle>
+                  <CardTitle className="mt-3 text-lg">
+                    {course.nationality && course.nationality !== 'Global'
+                      ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
+                      : course.name}
+                  </CardTitle>
                   <CardDescription className="line-clamp-2">
                     {course.description || 'No description'}
                   </CardDescription>
@@ -693,7 +703,11 @@ function MyPageTabsSectionInner() {
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate font-medium">{course.name}</span>
+                        <span className="truncate font-medium">
+                          {course.nationality && course.nationality !== 'Global'
+                            ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
+                            : course.name}
+                        </span>
                         <Badge variant="secondary">
                           {(course.categories || [])[0] || 'Untitled'}
                         </Badge>

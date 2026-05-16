@@ -97,6 +97,8 @@ type EnrolledCourse = {
   sessionCount?: number
   upcomingSessionsCount?: number
   schedule?: ScheduleSlot[] | null
+  nationality?: string
+  variantCategory?: string
 }
 
 type CourseSession = {
@@ -743,7 +745,11 @@ function TutorDashboardContent() {
                         >
                           <div className="min-w-0 space-y-1">
                             <div className="flex items-center gap-2">
-                              <p className="truncate font-semibold text-slate-900">{course.name}</p>
+                              <p className="truncate font-semibold text-slate-900">
+                                {course.nationality && course.nationality !== 'Global'
+                                  ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
+                                  : course.name}
+                              </p>
                             </div>
                             <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
                               <span>{(course.categories || [])[0] || 'Untitled'}</span>
@@ -841,7 +847,7 @@ function TutorDashboardContent() {
               <DialogDescription>
                 {selectedCourseForCancel && (
                   <>
-                    Manage sessions for <strong>{selectedCourseForCancel.name}</strong>
+                    Manage sessions for <strong>{selectedCourseForCancel.nationality && selectedCourseForCancel.nationality !== 'Global' ? `${selectedCourseForCancel.name} — ${selectedCourseForCancel.variantCategory || (selectedCourseForCancel.categories || [])[0] || 'General'} — ${selectedCourseForCancel.nationality}` : selectedCourseForCancel.name}</strong>
                   </>
                 )}
               </DialogDescription>

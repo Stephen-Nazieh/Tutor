@@ -119,6 +119,8 @@ interface CourseItem {
   isPublished: boolean
   createdAt: string
   updatedAt: string
+  nationality?: string
+  variantCategory?: string
 }
 
 interface ChatMessage {
@@ -635,7 +637,7 @@ function ItemAIChat({
       <div className="flex shrink-0 items-center justify-between border-b border-[rgba(0,0,0,0.04)] p-6">
         <span className="text-sm font-bold uppercase tracking-wider text-slate-800">
           {isCourse
-            ? `ASK AI ABOUT ${course.name}`
+            ? `ASK AI ABOUT ${course.nationality && course.nationality !== 'Global' ? `${course.name} — ${course.variantCategory || course.categories[0] || 'General'} — ${course.nationality}` : course.name}`
             : isSession
               ? `ASK AI ABOUT ${session.title}`
               : 'ASK AI ABOUT YOUR COURSES & STUDENTS'}
@@ -776,6 +778,8 @@ function CoursesAndClassesTab() {
           isPublished: c.isPublished,
           createdAt: c.createdAt,
           updatedAt: c.updatedAt,
+          nationality: c.nationality,
+          variantCategory: c.variantCategory,
         }))
         // Filter to published courses only
         setCourses(allCourses.filter(c => c.isPublished))
@@ -916,7 +920,11 @@ function CoursesAndClassesTab() {
                     onClick={() => handleCourseClick(course.id)}
                   >
                     <div className="flex items-start justify-between">
-                      <div className="text-sm font-semibold text-slate-800">{course.name}</div>
+                      <div className="text-sm font-semibold text-slate-800">
+                        {course.nationality && course.nationality !== 'Global'
+                          ? `${course.name} — ${course.variantCategory || course.categories[0] || 'General'} — ${course.nationality}`
+                          : course.name}
+                      </div>
                       <Badge
                         variant="secondary"
                         className="border-0 bg-indigo-100 text-[10px] text-indigo-700 hover:bg-indigo-200"
@@ -939,7 +947,7 @@ function CoursesAndClassesTab() {
                 Sessions
                 {selectedCourse && (
                   <span className="ml-2 text-xs font-normal text-slate-500">
-                    ({displayedSessions.length} for {selectedCourse.name})
+                    ({displayedSessions.length} for {selectedCourse.nationality && selectedCourse.nationality !== 'Global' ? `${selectedCourse.name} — ${selectedCourse.variantCategory || selectedCourse.categories[0] || 'General'} — ${selectedCourse.nationality}` : selectedCourse.name})
                   </span>
                 )}
               </h3>
@@ -953,7 +961,7 @@ function CoursesAndClassesTab() {
               ) : displayedSessions.length === 0 ? (
                 <div className="flex h-full items-center justify-center py-10 text-center text-sm text-slate-500">
                   {selectedCourse
-                    ? `No sessions found for ${selectedCourse.name}.`
+                    ? `No sessions found for ${selectedCourse.nationality && selectedCourse.nationality !== 'Global' ? `${selectedCourse.name} — ${selectedCourse.variantCategory || selectedCourse.categories[0] || 'General'} — ${selectedCourse.nationality}` : selectedCourse.name}.`
                     : 'No sessions found.'}
                 </div>
               ) : (
@@ -1012,7 +1020,7 @@ function CoursesAndClassesTab() {
               {/* Course summary */}
               <div className="flex shrink-0 items-center gap-2 border-r border-slate-100 pr-6 font-bold text-indigo-600">
                 <BarChart3 className="h-5 w-5" />
-                <span className="text-base">{selectedCourse.name}</span>
+                <span className="text-base">{selectedCourse.nationality && selectedCourse.nationality !== 'Global' ? `${selectedCourse.name} — ${selectedCourse.variantCategory || selectedCourse.categories[0] || 'General'} — ${selectedCourse.nationality}` : selectedCourse.name}</span>
               </div>
               <div className="flex items-center gap-8 text-sm">
                 <div className="flex flex-col">
@@ -1086,7 +1094,7 @@ function CoursesAndClassesTab() {
             <>
               <div className="flex shrink-0 items-center gap-2 border-r border-slate-100 pr-6 font-bold text-indigo-600">
                 <BarChart3 className="h-5 w-5" />
-                <span className="text-base">{selectedCourse.name}</span>
+                <span className="text-base">{selectedCourse.nationality && selectedCourse.nationality !== 'Global' ? `${selectedCourse.name} — ${selectedCourse.variantCategory || selectedCourse.categories[0] || 'General'} — ${selectedCourse.nationality}` : selectedCourse.name}</span>
               </div>
               <div className="flex items-center gap-8 text-sm">
                 <div className="flex flex-col">

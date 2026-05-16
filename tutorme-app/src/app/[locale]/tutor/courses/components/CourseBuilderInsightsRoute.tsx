@@ -73,8 +73,8 @@ type Props = UseCourseBuilderContentArgs & {
   isDeleteDialogOpen?: boolean
   setIsDeleteDialogOpen?: (v: boolean) => void
   onDeleteCourseConfirm?: () => void
-  courses?: { id: string; name: string }[]
-  draftCourses?: { id: string; name: string }[]
+  courses?: { id: string; name: string; nationality?: string; variantCategory?: string }[]
+  draftCourses?: { id: string; name: string; nationality?: string; variantCategory?: string }[]
   courseName?: string
   onCourseNameChange?: (name: string) => void
   saveMode?: 'live' | 'draft'
@@ -349,7 +349,9 @@ function CourseBuilderInsightsRouteInner({
                         )}
                         {courses?.map(c => (
                           <SelectItem key={c.id} value={c.id}>
-                            {c.name}
+                            {c.nationality && c.nationality !== 'Global'
+                              ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
+                              : c.name}
                           </SelectItem>
                         ))}
                         {draftCourses && draftCourses.length > 0 && (
@@ -363,7 +365,9 @@ function CourseBuilderInsightsRouteInner({
                         )}
                         {draftCourses?.map(c => (
                           <SelectItem key={c.id} value={c.id}>
-                            {c.name}
+                            {c.nationality && c.nationality !== 'Global'
+                              ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
+                              : c.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

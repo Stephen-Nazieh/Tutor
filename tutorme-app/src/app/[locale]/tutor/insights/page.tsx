@@ -30,6 +30,8 @@ interface CourseSummary {
   updatedAt: string
   categories?: string[]
   isPublished?: boolean
+  nationality?: string
+  variantCategory?: string
 }
 
 interface InsightsSessionOption {
@@ -1067,6 +1069,11 @@ function TutorInsightsPageInner() {
                       >
                         <div>
                           <p className="text-sm font-semibold text-gray-900">{course.name}</p>
+                          {course.nationality && course.nationality !== 'Global' && (
+                            <p className="text-xs font-medium text-blue-600">
+                              {course.variantCategory || (course.categories || [])[0] || 'General'} — {course.nationality}
+                            </p>
+                          )}
                           <p className="text-muted-foreground text-xs">
                             Last updated{' '}
                             {course.updatedAt
@@ -1105,6 +1112,8 @@ function TutorInsightsPageInner() {
             name: course.name,
             categories: course.categories,
             isPublished: course.isPublished,
+            nationality: course.nationality,
+            variantCategory: course.variantCategory,
           })),
           onCourseChange: value => {
             setCourseId(value)

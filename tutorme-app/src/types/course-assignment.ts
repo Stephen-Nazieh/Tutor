@@ -120,6 +120,8 @@ export interface CourseWithAssignments {
   isPublished: boolean
   createdAt: string
   updatedAt: string
+  nationality?: string
+  variantCategory?: string
 
   /** Adaptive variant batches (if any) */
   variants?: {
