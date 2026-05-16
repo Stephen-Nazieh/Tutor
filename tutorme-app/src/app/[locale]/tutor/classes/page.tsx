@@ -115,6 +115,7 @@ export default function TutorClassesPage() {
       scheduledAt: string
       duration: number
       status: string
+      courseName?: string
     }>
   >([])
 
@@ -834,6 +835,7 @@ export default function TutorClassesPage() {
                               href={`/tutor/insights?sessionId=${event.id}`}
                               className="block truncate rounded bg-blue-100 p-1 text-xs hover:bg-blue-200"
                             >
+                              {event.courseName ? `${event.courseName} — ` : ''}
                               {event.title}
                             </Link>
                           ))}
@@ -865,7 +867,10 @@ export default function TutorClassesPage() {
                       className="flex items-center justify-between rounded-lg border p-3"
                     >
                       <div>
-                        <p className="font-medium">{event.title}</p>
+                        <p className="font-medium">
+                          {event.courseName ? `${event.courseName} — ` : ''}
+                          {event.title}
+                        </p>
                         <p className="text-sm text-gray-500">
                           {new Date(event.scheduledAt).toLocaleDateString()} • {event.subject}
                         </p>

@@ -252,7 +252,10 @@ function DraggableEvent({
     >
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
-          <p className="truncate font-medium text-white">{event.title}</p>
+          <p className="truncate font-medium text-white">
+            {event.courseName ? `${event.courseName} — ` : ''}
+            {event.title}
+          </p>
           <p className="text-white/80">
             {event.date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </p>
@@ -1208,7 +1211,10 @@ export function InteractiveCalendar({
                   <div className="flex items-center gap-3">
                     <div className={cn('h-3 w-3 rounded-full', event.color || 'bg-blue-500')} />
                     <div className="flex-1">
-                      <p className="font-medium">{event.title}</p>
+                      <p className="font-medium">
+                        {event.courseName ? `${event.courseName} — ` : ''}
+                        {event.title}
+                      </p>
                       <p className="text-sm text-gray-500">
                         {event.date.toLocaleTimeString('en-US', {
                           hour: '2-digit',
@@ -1740,7 +1746,9 @@ function MonthView({
                             />
                             <span className="truncate font-medium">
                               {event.date.getHours()}:
-                              {event.date.getMinutes().toString().padStart(2, '0')} {event.title}
+                              {event.date.getMinutes().toString().padStart(2, '0')}{' '}
+                              {event.courseName ? `${event.courseName} — ` : ''}
+                              {event.title}
                             </span>
                           </div>
                         </div>

@@ -401,7 +401,10 @@ export const POST = withCsrf(
             const key = `${v.category}|${v.nationality}`
             requestedKeys.add(key)
             const existing = existingMap.get(key)
-            const courseName = templateCourse.name
+            const courseName =
+              v.nationality === 'Global'
+                ? templateCourse.name
+                : `${templateCourse.name} — ${v.nationality}`
             const isFree =
               typeof v.isFree === 'boolean' ? v.isFree : (templateCourse.isFree ?? false)
             const price = isFree ? 0 : typeof v.price === 'number' ? v.price : null
