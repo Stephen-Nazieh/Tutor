@@ -160,24 +160,27 @@ TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 // TABS CONTENT
 // ============================================
 
-const tabsContentVariants = cva('ring-offset-background focus-visible:outline-none', {
-  variants: {
-    animate: {
-      true: ['data-[state=inactive]:animate-fade-out', 'data-[state=active]:animate-fade-in'],
-      false: '',
+const tabsContentVariants = cva(
+  'ring-offset-background focus-visible:outline-none data-[state=inactive]:hidden',
+  {
+    variants: {
+      animate: {
+        true: ['data-[state=inactive]:animate-fade-out', 'data-[state=active]:animate-fade-in'],
+        false: '',
+      },
+      padding: {
+        none: '',
+        sm: 'pt-3',
+        default: 'pt-4',
+        lg: 'pt-6',
+      },
     },
-    padding: {
-      none: '',
-      sm: 'pt-3',
-      default: 'pt-4',
-      lg: 'pt-6',
+    defaultVariants: {
+      animate: false,
+      padding: 'default',
     },
-  },
-  defaultVariants: {
-    animate: false,
-    padding: 'default',
-  },
-})
+  }
+)
 
 interface TabsContentProps
   extends

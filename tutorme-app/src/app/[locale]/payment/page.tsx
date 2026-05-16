@@ -54,7 +54,7 @@ function PaymentPageInner() {
   useEffect(() => {
     if (courseId) {
       // Load course details
-      fetch(`/api/course/${courseId}`)
+      fetch(`/api/courses/${courseId}`)
         .then(res => (res.ok ? res.json() : null))
         .then(data => {
           if (data?.course) {

@@ -85,7 +85,7 @@ function CourseEnrollPageInner() {
       const bodyPayload: any = { startDate }
       if (batchId) bodyPayload.batchId = batchId
 
-      const res = await fetch(`/api/course/${encodeURIComponent(courseId)}/enroll`, {
+      const res = await fetch(`/api/courses/${encodeURIComponent(courseId)}/enroll`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
         credentials: 'include',

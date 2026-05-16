@@ -80,7 +80,7 @@ export default function StudentFavoritesPage() {
 
       // Fetch course details
       if (courseIds.length > 0) {
-        const coursesRes = await fetch('/api/course/batch?ids=' + courseIds.join(','))
+        const coursesRes = await fetch('/api/courses/batch?ids=' + courseIds.join(','))
         if (coursesRes.ok) {
           const data = await coursesRes.json()
           setFavoriteCourses(data.curricula || [])

@@ -14,8 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { handleApiError } from '@/lib/api/middleware'
-import { getServerSession, authOptions } from '@/lib/auth'
+import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import {
   courseEnrollment,
@@ -36,12 +35,7 @@ const SkillBreakdownSchema = z.record(z.string(), z.unknown()).default({})
 
 const CACHE_TTL = parseInt(process.env.CACHE_TTL_STUDENT_PROGRESS || '180', 10)
 
-export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions, req)
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withAuth(async (req: NextRequest, session) => {
   const studentId = session.user.id
   const startTime = Date.now()
 
@@ -198,7 +192,7 @@ export async function GET(req: NextRequest) {
     console.error('Failed to fetch student progress:', error)
     return handleApiError(error, 'Failed to fetch progress', 'api/student/progress/route.ts')
   }
-}
+})
 
 function countFrequency(items: string[]): Array<{ topic: string; count: number }> {
   const freq: Record<string, number> = {}

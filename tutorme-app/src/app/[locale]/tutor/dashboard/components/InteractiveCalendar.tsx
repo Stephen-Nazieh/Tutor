@@ -1937,7 +1937,7 @@ function AvailabilityView({ availability, onToggle, onSave }: any) {
           <TabsContent
             key={day.full}
             value={day.full}
-            className="mt-4 flex-1 data-[state=inactive]:hidden"
+            className="mt-4 flex-1"
           >
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-base font-medium">{day.full}</h3>

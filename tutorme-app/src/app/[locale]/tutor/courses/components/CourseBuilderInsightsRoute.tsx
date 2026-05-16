@@ -55,6 +55,7 @@ import {
   useCourseBuilderContentModel,
   type UseCourseBuilderContentArgs,
 } from './use-course-builder-content-model'
+import { saveCourse, resolveLessonDmis } from './save-course'
 
 type Props = UseCourseBuilderContentArgs & {
   insightsProps: CourseBuilderInsightsProps
@@ -272,37 +273,10 @@ function CourseBuilderInsightsRouteInner({
     const getLessonsCb = (model.courseBuilderRef.current as any)?.getLessons
     const rawLessons = typeof getLessonsCb === 'function' ? getLessonsCb() : []
 
-    let hasNoDmis = false
-    const lessons = rawLessons.map((lesson: any) => ({
-      ...lesson,
-      homework: (lesson.homework || []).map((hw: any) => {
-        if (!hw.dmiVersions || hw.dmiVersions.length === 0) {
-          hasNoDmis = true
-          return hw
-        }
-        const activeVersionId = hw.activeDmiVersionId || hw.dmiVersions[0].id
-        const activeVersion =
-          hw.dmiVersions.find((v: any) => v.id === activeVersionId) || hw.dmiVersions[0]
-        return {
-          ...hw,
-          dmiItems: activeVersion.items,
-        }
-      }),
-      tasks: (lesson.tasks || []).map((task: any) => {
-        if (!task.dmiVersions || task.dmiVersions.length === 0) {
-          return task
-        }
-        const activeVersionId = task.activeDmiVersionId || task.dmiVersions[0].id
-        const activeVersion =
-          task.dmiVersions.find((v: any) => v.id === activeVersionId) || task.dmiVersions[0]
-        return {
-          ...task,
-          dmiItems: activeVersion.items,
-        }
-      }),
-    }))
+    // 3. Resolve active DMI versions
+    const { lessons, hasMissingDmis } = resolveLessonDmis(rawLessons)
 
-    if (hasNoDmis) {
+    if (hasMissingDmis) {
       if (
         !window.confirm(
           'Some assessments have no DMIs. Are you sure you want to proceed and publish?'
@@ -313,86 +287,23 @@ function CourseBuilderInsightsRouteInner({
     }
 
     const isExistingDbCourse = courses?.some((c: any) => c.id === courseId)
-    const courseTitle = courseName || detachedCourseName || 'Untitled Course'
 
-    try {
-      let csrfToken: string | null = null
-      try {
-        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
-        const csrfData = await csrfRes.json().catch(() => ({}))
-        csrfToken = csrfData?.token ?? null
-      } catch {
-        // proceed without CSRF
-      }
+    // 4. Publish via shared save function
+    const result = await saveCourse({
+      courseId,
+      lessons,
+      mode: 'publish',
+      courseName,
+      detachedCourseName,
+      developmentMode: 'single',
+      previewDifficulty: 'all',
+      isExistingDbCourse,
+    })
 
-      let targetCourseId = courseId
-
-      // If this is a draft-only course, create it in the DB first
-      if (!isExistingDbCourse) {
-        const createRes = await fetch('/api/tutor/courses', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            title: courseTitle,
-            categories: [],
-            schedule: [],
-            isLiveOnline: false,
-          }),
-        })
-
-        if (!createRes.ok) {
-          const err = await createRes.json().catch(() => ({}))
-          toast.error(err.error || 'Failed to create course')
-          return
-        }
-
-        const newCourseData = await createRes.json()
-        targetCourseId = newCourseData.courses?.[0]?.id
-        if (!targetCourseId) {
-          toast.error('Course created but ID is missing')
-          return
-        }
-      }
-
-      // Save lessons to the course (existing or newly created)
-      const saveRes = await fetch(`/api/tutor/courses/${targetCourseId}/course`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
-        },
-        credentials: 'include',
-        body: JSON.stringify(
-          {
-            lessons,
-            developmentMode: 'single',
-            previewDifficulty: 'all',
-          },
-          (key, value) => {
-            // Remove any DOM nodes or Window objects
-            if (value && (value instanceof Window || value instanceof Node)) {
-              return undefined
-            }
-            return value
-          }
-        ),
-      })
-
-      if (!saveRes.ok) {
-        const err = await saveRes.json().catch(() => ({}))
-        toast.error(err.error || 'Failed to save course content')
-        return
-      }
-
-      model.router.push(`/tutor/courses/${targetCourseId}`)
-    } catch (err: any) {
-      console.error('Publish draft error:', err)
-      const errMsg = err?.message || String(err) || 'Unknown error'
-      toast.error(`Failed to publish course: ${errMsg}`)
+    if (result.success && result.courseId) {
+      model.router.push(`/tutor/courses/${result.courseId}`)
+    } else {
+      toast.error(result.error || 'Failed to publish course')
     }
   }
 

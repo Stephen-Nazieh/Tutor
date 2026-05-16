@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
-import { fetchWithCsrf } from '@/lib/api/fetch-csrf'
+import { saveCourse } from './save-course'
 import type {
   CourseBuilderRef,
   Lesson as CourseBuilderLesson,
@@ -163,83 +163,46 @@ export function useCourseBuilderContentModel({
     }
   ) => {
     const isDetached = dataMode === 'detached'
-    if (isDetached) {
-      const storageKey = detachedStorageKey || `insights-course-builder:${courseId ?? 'default'}`
-      try {
-        localStorage.setItem(
-          storageKey,
-          JSON.stringify({
-            lessons,
-            savedAt: new Date().toISOString(),
-            options: {
-              developmentMode: options?.developmentMode ?? 'single',
-              previewDifficulty: options?.previewDifficulty ?? 'all',
-            },
-          })
-        )
-        if (!options?.isAutoSave) toast.success('Insights draft saved')
-      } catch {
-        if (!options?.isAutoSave) toast.error('Failed to save Insights draft')
-      }
-      return
-    }
-    if (!options?.isAutoSave) setSaving(true)
-    try {
-      let currentCourseId = courseId
+    if (!options?.isAutoSave && !isDetached) setSaving(true)
 
-      if (courseId === 'builder-draft' && options?.courseName) {
-        const createRes = await fetchWithCsrf('/api/tutor/courses', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: options.courseName,
-            description: options.courseDescription || '',
-          }),
-        })
+    const result = await saveCourse({
+      courseId,
+      lessons,
+      mode: isDetached ? 'draft' : 'live',
+      storageKey: detachedStorageKey,
+      courseName: options?.courseName,
+      courseDescription: options?.courseDescription,
+      developmentMode: options?.developmentMode,
+      previewDifficulty: options?.previewDifficulty,
+      isAutoSave: options?.isAutoSave,
+    })
 
-        if (!createRes.ok) {
-          const err = await createRes.json().catch(() => ({}))
-          throw new Error(err.error ?? 'Failed to create course')
-        }
+    if (!options?.isAutoSave && !isDetached) setSaving(false)
 
-        const newCourseData = await createRes.json()
-        currentCourseId = newCourseData.courses?.[0]?.id
-        if (!currentCourseId) {
-          throw new Error('Course creation response missing course ID')
-        }
-        router.replace(`/tutor/insights?tab=builder&courseId=${currentCourseId}`)
+    if (result.success) {
+      if (!options?.isAutoSave) {
+        toast.success(isDetached ? 'Insights draft saved' : 'Course Saved')
       }
 
-      const res = await fetchWithCsrf(`/api/tutor/courses/${currentCourseId}/course`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          lessons,
-          developmentMode: options?.developmentMode ?? 'single',
-          previewDifficulty: options?.previewDifficulty ?? 'all',
-          description: options?.courseDescription,
-        }),
-      })
+      // Redirect after creating a new course from builder-draft
+      if (courseId === 'builder-draft' && options?.courseName && result.courseId) {
+        router.replace(`/tutor/insights?tab=builder&courseId=${result.courseId}`)
+      }
 
-      if (res.ok) {
-        const data = await res.json()
-        if (!options?.isAutoSave) toast.success('Course Saved')
-        const ordered = normalizeVariantLinks(data.variants)
+      // Extract adaptive variants on successful API save
+      if (!isDetached) {
+        const ordered = normalizeVariantLinks((result.data as any)?.variants)
         if (ordered.length > 0) {
           setSavedVariants(ordered)
-          if (!options?.isAutoSave)
+          if (!options?.isAutoSave) {
             toast.success(`Adaptive variants ready: ${ordered.map(v => v.difficulty).join(', ')}`)
+          }
         } else {
           setSavedVariants([])
         }
-      } else {
-        const err = await res.json().catch(() => ({}))
-        if (!options?.isAutoSave) toast.error(err.error ?? 'Failed to save course')
       }
-    } catch {
-      if (!options?.isAutoSave) toast.error('Failed to save course')
-    } finally {
-      if (!options?.isAutoSave) setSaving(false)
+    } else {
+      if (!options?.isAutoSave) toast.error(result.error || 'Failed to save course')
     }
   }
 

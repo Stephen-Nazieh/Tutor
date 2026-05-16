@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Loader2, Wrench } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSocket } from '@/hooks/use-socket'
+import { saveCourse } from '../courses/components/save-course'
 import { fetchWithCsrf } from '@/lib/api/fetch-csrf'
 import type { LiveTask } from '@/lib/socket'
 import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
@@ -307,51 +308,27 @@ function TutorInsightsPageInner() {
   const handleSave = useCallback(
     async (lessons: any[], options?: any) => {
       if (!courseId || courseId === 'insights-draft') return
-      if (saveMode === 'draft') {
-        try {
-          // Save builder content to the detached builder key (matches load path)
-          const builderKey = `insights-course-builder:${courseId}`
-          localStorage.setItem(
-            builderKey,
-            JSON.stringify({
-              lessons,
-              savedAt: new Date().toISOString(),
-            })
-          )
-          // Also update metadata timestamp in the draft list
-          const raw = localStorage.getItem(draftStorageKey)
-          const parsed = raw ? JSON.parse(raw) : []
-          const updated = parsed.map((c: any) =>
-            c.id === courseId ? { ...c, updatedAt: new Date().toISOString() } : c
-          )
-          localStorage.setItem(draftStorageKey, JSON.stringify(updated))
-          if (!options?.isAutoSave) toast.success('Draft saved')
-        } catch {
-          if (!options?.isAutoSave) toast.error('Failed to save draft')
-        }
-        return
-      }
-      try {
-        const res = await fetchWithCsrf(`/api/tutor/courses/${courseId}/course`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lessons }),
-        })
 
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}))
-          console.error('[Insights] Save failed:', data)
-          if (!options?.isAutoSave) {
-            toast.error(data.details || data.error || 'Failed to save course')
-          }
-        } else {
-          if (!options?.isAutoSave) toast.success('Course saved successfully')
-        }
-      } catch {
-        if (!options?.isAutoSave) toast.error('Failed to save course')
+      const result = await saveCourse({
+        courseId,
+        lessons,
+        mode: saveMode,
+        draftListStorageKey: draftStorageKey,
+        isAutoSave: options?.isAutoSave,
+      })
+
+      if (options?.isAutoSave) return
+
+      if (result.success) {
+        toast.success(saveMode === 'draft' ? 'Draft saved' : 'Course saved successfully')
+      } else {
+        console.error('[Insights] Save failed:', result.error)
+        toast.error(
+          result.error || (saveMode === 'draft' ? 'Failed to save draft' : 'Failed to save course')
+        )
       }
     },
-    [courseId, saveMode]
+    [courseId, saveMode, draftStorageKey]
   )
 
   const handleCreateNewCourse = useCallback(async () => {

@@ -23,10 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { FileQuestion, Plus, X, Shield, FileText } from 'lucide-react'
+import { FileQuestion, Plus, X, Shield } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Quiz, CourseBuilderNodeQuiz, QuizQuestion, BuilderModalProps } from './builder-types'
 import { ResourceImportPanel, QuestionsPreview, formatMatchingExplanation } from './builder-components'
+import { SourceDocumentPreview } from './SourceDocumentPreview'
 import { DEFAULT_QUIZ, DEFAULT_NODE_QUIZ } from './builder-utils'
 import { QuestionEditor } from './QuestionEditor'
 
@@ -170,34 +171,7 @@ export function QuizBuilderModal({
                   <p className="text-muted-foreground text-sm">{data.description}</p>
                 )}
                 {data.sourceDocument && (
-                  <div className="space-y-2">
-                    <p className="text-muted-foreground text-xs font-medium">Uploaded document</p>
-                    {data.sourceDocument.mimeType === 'application/pdf' ? (
-                      <div className="overflow-hidden rounded border">
-                        <iframe
-                          src={
-                            data.sourceDocument.fileUrl.includes('#')
-                              ? `${data.sourceDocument.fileUrl}&toolbar=0&navpanes=0`
-                              : `${data.sourceDocument.fileUrl}#toolbar=0&navpanes=0`
-                          }
-                          title={data.sourceDocument.fileName}
-                          className="h-64 w-full"
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 rounded border bg-white p-3">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        <a
-                          href={data.sourceDocument.fileUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs text-blue-600 underline"
-                        >
-                          Open {data.sourceDocument.fileName}
-                        </a>
-                      </div>
-                    )}
-                  </div>
+                  <SourceDocumentPreview sourceDocument={data.sourceDocument} />
                 )}
                 <p className="text-muted-foreground text-xs">
                   {data.timeLimit != null ? `${data.timeLimit} min limit · ` : ''}
