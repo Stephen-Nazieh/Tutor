@@ -12,7 +12,7 @@ import { getParamAsync } from '@/lib/api/params'
 
 export const GET = withAuth(
   async (req: NextRequest, session, context) => {
-    const courseId = await getParamAsync(context.params, 'courseId')
+    const courseId = await getParamAsync(context.params, 'id')
 
     if (!courseId) {
       return NextResponse.json({ error: 'Course ID is required' }, { status: 400 })

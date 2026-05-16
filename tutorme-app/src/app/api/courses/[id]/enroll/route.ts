@@ -10,7 +10,7 @@ import { enrollStudentInCourse, enrollmentPaymentRequiredResponse } from '@/lib/
 
 export const POST = withCsrf(
   withAuth(async (req: NextRequest, session, context) => {
-    const courseId = await getParamAsync(context.params, 'courseId')
+    const courseId = await getParamAsync(context.params, 'id')
 
     if (!courseId) {
       throw new ValidationError('Course ID is required')
