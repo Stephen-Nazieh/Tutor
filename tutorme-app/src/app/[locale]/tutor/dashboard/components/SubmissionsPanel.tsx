@@ -94,13 +94,22 @@ export function SubmissionsPanel({
 
   useEffect(() => {
     if (!courseId) return
+    // Skip fetch for draft/placeholder course IDs
+    if (courseId === 'insights-draft' || courseId === 'builder-draft') {
+      setError(null)
+      setData(null)
+      return
+    }
     setLoading(true)
     setError(null)
     fetch(`/api/tutor/courses/${courseId}/submissions-tree`, { cache: 'no-store' })
-      .then(res => res.json())
-      .then(json => {
-        if (json?.error) {
-          setError(String(json.error))
+      .then(async res => {
+        const json = await res.json()
+        if (!res.ok || json?.error) {
+          const message = res.status === 404
+            ? 'No submissions data available for this course yet.'
+            : (json?.error || 'Failed to load submissions')
+          setError(message)
           setData(null)
           return
         }
