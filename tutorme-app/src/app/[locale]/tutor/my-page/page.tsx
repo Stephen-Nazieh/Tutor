@@ -12,6 +12,7 @@ import {
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -876,6 +877,11 @@ export default function TutorMyPage() {
   }
 
   const save = async () => {
+    const trimmedBio = bio.trim()
+    if (trimmedBio.length > 500) {
+      toast.error('Bio must be 500 characters or less')
+      return
+    }
     setSaving(true)
     try {
       const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
@@ -889,7 +895,7 @@ export default function TutorMyPage() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          bio,
+          bio: sanitizeHtmlWithMax(trimmedBio, 500),
           socialLinks: {
             instagram: socialAccounts.instagram.trim().replace(/^@+/, ''),
             tiktok: socialAccounts.tiktok.trim().replace(/^@+/, ''),
@@ -1688,12 +1694,23 @@ export default function TutorMyPage() {
             <CardContent className="space-y-4 bg-white">
               <div className="grid gap-3 lg:grid-cols-2 lg:items-stretch">
                 <div className="flex min-h-[250px] flex-col gap-2 lg:min-h-0">
-                  <Label className="text-sm text-[#1F2933]">Bio</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm text-[#1F2933]">Bio</Label>
+                    <span className={bio.length > 500 ? 'text-xs font-medium text-red-500' : 'text-xs text-slate-400'}>
+                      {bio.length}/500
+                    </span>
+                  </div>
                   <Textarea
                     value={bio}
-                    onChange={e => setBio(e.target.value)}
+                    onChange={e => {
+                      const val = e.target.value
+                      if (val.length <= 500) {
+                        setBio(val)
+                      }
+                    }}
                     disabled={loading || saving}
                     placeholder="Short bio for your public page..."
+                    maxLength={500}
                     className="min-h-0 flex-1 resize-none border-[#E2E8F0] focus-visible:ring-[#1D4ED8]"
                   />
                 </div>

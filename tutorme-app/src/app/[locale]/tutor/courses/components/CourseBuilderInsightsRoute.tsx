@@ -484,68 +484,60 @@ function CourseBuilderInsightsRouteInner({
                     </SelectContent>
                   </Select>
                 )}
-                {activeMainTab === 'builder' &&
-                  (onSaveCourse ||
-                    (onCreateCourse && !insightsProps.sessionId) ||
-                    (onDeleteCourse && !insightsProps.sessionId) ||
-                    (onCourseNameChange && courseId && courseId !== 'insights-draft')) && (
-                    <>
-                      {onSaveCourse && (
-                        <Button
-                          variant="outline"
-                          className="gap-2 font-medium text-slate-700 hover:text-slate-900"
-                          onClick={async () => {
-                            const cb = (model.courseBuilderRef.current as any)?.saveAll
-                            if (typeof cb === 'function') {
-                              await cb()
-                            } else {
-                              toast.error('Builder not ready to save')
-                            }
-                          }}
+                {activeMainTab === 'builder' && onSaveCourse && (
+                  <Button
+                    variant="outline"
+                    className="gap-2 font-medium text-slate-700 hover:text-slate-900"
+                    onClick={async () => {
+                      const cb = (model.courseBuilderRef.current as any)?.saveAll
+                      if (typeof cb === 'function') {
+                        await cb()
+                      } else {
+                        toast.error('Builder not ready to save')
+                      }
+                    }}
+                  >
+                    <Save className="h-4 w-4" />
+                    Save
+                  </Button>
+                )}
+                {activeMainTab === 'builder' && courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
+                  <Button
+                    variant="default"
+                    className="gap-2 bg-blue-600 font-medium text-white hover:bg-blue-700"
+                    onClick={handlePublishDraft}
+                  >
+                    <Calendar className="h-4 w-4" />
+                    Schedule
+                  </Button>
+                )}
+                {/* Kebab menu — always visible for real courses when no active session */}
+                {activeMainTab === 'builder' && courseId && courseId !== 'insights-draft' && !insightsProps.sessionId && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon" className="shrink-0">
+                        <MoreVertical className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {saveMode === 'draft' && (
+                        <DropdownMenuItem onClick={handleStartSessionClick}>
+                          <VideoIcon className="mr-2 h-4 w-4 text-green-600" />
+                          Go Live
+                        </DropdownMenuItem>
+                      )}
+                      {onDeleteCourse && (
+                        <DropdownMenuItem
+                          onClick={onDeleteCourse}
+                          className="text-destructive focus:text-destructive focus:bg-destructive/10"
                         >
-                          <Save className="h-4 w-4" />
-                          Save
-                        </Button>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Course
+                        </DropdownMenuItem>
                       )}
-                      {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
-                        <Button
-                          variant="default"
-                          className="gap-2 bg-blue-600 font-medium text-white hover:bg-blue-700"
-                          onClick={handlePublishDraft}
-                        >
-                          <Calendar className="h-4 w-4" />
-                          Schedule
-                        </Button>
-                      )}
-                      {/* Kebab menu with Go Live and Delete Course */}
-                      {courseId && courseId !== 'insights-draft' && !insightsProps.sessionId && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon">
-                              <MoreVertical className="h-5 w-5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {courseId && courseId !== 'insights-draft' && saveMode === 'draft' && (
-                              <DropdownMenuItem onClick={handleStartSessionClick}>
-                                <VideoIcon className="mr-2 h-4 w-4 text-green-600" />
-                                Go Live
-                              </DropdownMenuItem>
-                            )}
-                            {onDeleteCourse && (
-                              <DropdownMenuItem
-                                onClick={onDeleteCourse}
-                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Course
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </>
-                  )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
           </div>

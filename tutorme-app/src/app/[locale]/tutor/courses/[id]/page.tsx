@@ -40,6 +40,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { fetchWithCsrf } from '@/lib/api/fetch-csrf'
+import { sanitizeHtmlWithMax } from '@/lib/security/sanitize'
+import { cn } from '@/lib/utils'
 import { BackButton } from '@/components/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -408,7 +410,14 @@ export default function TutorCoursePage() {
       }
 
       const trimmedDescription = description.trim()
-      if (trimmedDescription) payload.description = trimmedDescription
+      if (trimmedDescription) {
+        if (trimmedDescription.length > 200) {
+          toast.error('Description must be 200 characters or less')
+          setSaving(false)
+          return false
+        }
+        payload.description = sanitizeHtmlWithMax(trimmedDescription, 200)
+      }
 
       const trimmedLanguage = languageOfInstruction.trim()
       if (trimmedLanguage) payload.languageOfInstruction = trimmedLanguage
@@ -668,14 +677,25 @@ export default function TutorCoursePage() {
                   </div>
 
                   <div className="form-group space-y-2">
-                    <Label className="form-label font-semibold text-slate-700">
-                      Course Description
-                    </Label>
+                    <div className="flex items-center justify-between">
+                      <Label className="form-label font-semibold text-slate-700">
+                        Course Description
+                      </Label>
+                      <span className={cn('text-xs', description.length > 200 ? 'text-red-500 font-medium' : 'text-slate-400')}>
+                        {description.length}/200
+                      </span>
+                    </div>
                     <Textarea
                       value={description}
-                      onChange={e => setDescription(e.target.value)}
+                      onChange={e => {
+                        const val = e.target.value
+                        if (val.length <= 200) {
+                          setDescription(val)
+                        }
+                      }}
                       placeholder="What will students learn in this course?"
                       rows={2}
+                      maxLength={200}
                       className="h-full min-h-[80px] resize-none bg-white text-slate-900"
                     />
                   </div>
