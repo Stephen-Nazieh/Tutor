@@ -184,7 +184,7 @@ function TutorInsightsPageInner() {
   const handleCourseNameChange = useCallback(
     async (newName: string) => {
       setCourseName(newName)
-      if (!courseId || courseId === 'insights-draft' || !newName.trim()) return
+      if (!courseId || courseId === 'insights-draft') return
 
       // Optimistically update BOTH lists so dropdown matches instantly
       // regardless of which saveMode is currently active

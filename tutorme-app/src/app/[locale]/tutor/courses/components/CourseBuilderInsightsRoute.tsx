@@ -407,10 +407,7 @@ function CourseBuilderInsightsRouteInner({
                       value={courseName || ''}
                       readOnly={isCoursePublished}
                       onChange={e => {
-                        const newName = e.target.value
-                        if (newName.trim() !== '') {
-                          onCourseNameChange(newName)
-                        }
+                        onCourseNameChange(e.target.value)
                       }}
                       placeholder="Course Name..."
                       title={isCoursePublished ? 'Published variant names cannot be edited' : undefined}

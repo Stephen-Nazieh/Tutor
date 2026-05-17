@@ -1495,14 +1495,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     useEffect(() => {
       setCoursePropsModal(prev => ({
         ...prev,
-        name: courseName || prev.name,
-        description: courseDescription || prev.description,
+        name: courseName !== undefined ? courseName : prev.name,
+        description: courseDescription !== undefined ? courseDescription : prev.description,
       }))
     }, [courseName, courseDescription])
 
     const doSave = useCallback(() => {
       // If courseName is missing (e.g. builder-draft), prompt for properties
-      if (!courseName && !coursePropsModal.name) {
+      if (!courseName?.trim() && !coursePropsModal.name?.trim()) {
         setCoursePropsModal(prev => ({ ...prev, isOpen: true }))
         return
       }
@@ -3063,7 +3063,7 @@ FEEDBACK: [your explanation]`
     const saveNodesIfPossible = async (nextNodes: CourseBuilderNode[]) => {
       if (isStudentView) return
       if (!onSave) return
-      if (!courseName && !coursePropsModal.name) {
+      if (!courseName?.trim() && !coursePropsModal.name?.trim()) {
         setCoursePropsModal(prev => ({ ...prev, isOpen: true }))
         return
       }
