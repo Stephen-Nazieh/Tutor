@@ -131,6 +131,7 @@ export const GET = withAuth(
             upcomingSessionsCount: sessionMeta?.upcomingSessionsCount ?? 0,
             nationality: variant?.nationality ?? undefined,
             variantCategory: variant?.category ?? undefined,
+            isVariant: variant !== undefined,
           }
         })
 

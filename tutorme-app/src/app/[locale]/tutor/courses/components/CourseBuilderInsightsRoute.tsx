@@ -73,8 +73,8 @@ type Props = UseCourseBuilderContentArgs & {
   isDeleteDialogOpen?: boolean
   setIsDeleteDialogOpen?: (v: boolean) => void
   onDeleteCourseConfirm?: () => void
-  courses?: { id: string; name: string; nationality?: string; variantCategory?: string; isPublished?: boolean }[]
-  draftCourses?: { id: string; name: string; nationality?: string; variantCategory?: string; isPublished?: boolean }[]
+  courses?: { id: string; name: string; nationality?: string; variantCategory?: string; isPublished?: boolean; isVariant?: boolean }[]
+  draftCourses?: { id: string; name: string; nationality?: string; variantCategory?: string; isPublished?: boolean; isVariant?: boolean }[]
   courseName?: string
   onCourseNameChange?: (name: string) => void
   saveMode?: 'live' | 'draft'
@@ -363,7 +363,9 @@ function CourseBuilderInsightsRouteInner({
                           <SelectItem key={c.id} value={c.id}>
                             {c.nationality && c.nationality !== 'Global'
                               ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
-                              : c.name}
+                              : c.isVariant
+                                ? `${c.name} — Global`
+                                : c.name}
                           </SelectItem>
                         ))}
                         {draftCourses && draftCourses.length > 0 && (
@@ -379,7 +381,9 @@ function CourseBuilderInsightsRouteInner({
                           <SelectItem key={c.id} value={c.id}>
                             {c.nationality && c.nationality !== 'Global'
                               ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
-                              : c.name}
+                              : c.isVariant
+                                ? `${c.name} — Global`
+                                : c.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

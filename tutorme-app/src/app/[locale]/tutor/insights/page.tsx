@@ -32,6 +32,7 @@ interface CourseSummary {
   isPublished?: boolean
   nationality?: string
   variantCategory?: string
+  isVariant?: boolean
 }
 
 interface InsightsSessionOption {
@@ -315,17 +316,20 @@ function TutorInsightsPageInner() {
   const isPublishedVariant = useMemo(() => {
     if (!courseId) return false
     const course = courses.find(c => c.id === courseId)
-    return course?.isPublished === true && (course?.nationality !== undefined || course?.variantCategory !== undefined)
+    return course?.isPublished === true && course?.isVariant === true
   }, [courseId, courses])
 
   const executeSave = useCallback(
     async (lessons: any[], options?: any, propagateToVariants?: boolean, setIndependent?: boolean) => {
       if (!courseId || courseId === 'insights-draft') return
 
+      // Published variants always persist to the DB (mode='live') even when the UI is in 'draft' edit mode
+      const persistMode = isPublishedVariant ? 'live' : saveMode
+
       const result = await saveCourse({
         courseId,
         lessons,
-        mode: saveMode,
+        mode: persistMode,
         draftListStorageKey: draftStorageKey,
         isAutoSave: options?.isAutoSave,
         propagateToVariants,
@@ -335,15 +339,15 @@ function TutorInsightsPageInner() {
       if (options?.isAutoSave) return
 
       if (result.success) {
-        toast.success(saveMode === 'draft' ? 'Draft saved' : 'Course saved successfully')
+        toast.success(persistMode === 'draft' ? 'Draft saved' : 'Course saved successfully')
       } else {
         console.error('[Insights] Save failed:', result.error)
         toast.error(
-          result.error || (saveMode === 'draft' ? 'Failed to save draft' : 'Failed to save course')
+          result.error || (persistMode === 'draft' ? 'Failed to save draft' : 'Failed to save course')
         )
       }
     },
-    [courseId, saveMode, draftStorageKey]
+    [courseId, saveMode, draftStorageKey, isPublishedVariant]
   )
 
   const handleSave = useCallback(
