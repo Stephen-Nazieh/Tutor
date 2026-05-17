@@ -359,6 +359,11 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                         {course.variantCategory || (course.categories || [])[0] || 'General'} — {course.nationality}
                       </p>
                     )}
+                    {course.isPublished && course.description && (
+                      <p className="mt-0.5 line-clamp-2 text-sm text-[#64748B]">
+                        {course.description}
+                      </p>
+                    )}
                     <p className="mt-1 text-sm text-[#64748B]">
                       {course.nationality && course.nationality !== 'Global'
                         ? `${course.studentCount || 0} students • Updated ${new Date(course.updatedAt).toLocaleDateString()}`

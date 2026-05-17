@@ -436,23 +436,27 @@ export default function TutorCoursePage() {
         toast.error(data.error ?? 'Failed to save')
         return false
       }
-      setCourse(prev =>
-        prev
-          ? {
-              ...prev,
-              name: courseName.trim() || prev.name,
-              description: description.trim() || prev.description,
-              languageOfInstruction: languageOfInstruction || null,
-              price: isFree ? 0 : price === '' ? null : Number(price),
-              currency: 'USD',
-              isFree,
-              categories: selectedCategories,
-              schedule,
-            }
-          : null
-      )
+      // Update local course state from API response to keep UI in sync without full reload
+      if (data.course) {
+        setCourse(data.course)
+      } else {
+        setCourse(prev =>
+          prev
+            ? {
+                ...prev,
+                name: courseName.trim() || prev.name,
+                description: description.trim() || prev.description,
+                languageOfInstruction: languageOfInstruction || null,
+                price: isFree ? 0 : price === '' ? null : Number(price),
+                currency: 'USD',
+                isFree,
+                categories: selectedCategories,
+                schedule,
+              }
+            : null
+        )
+      }
       toast.success('All changes saved')
-      loadCourse()
       return true
     } catch (err) {
       console.error('[SaveAll] Error:', err)
@@ -1218,7 +1222,11 @@ export default function TutorCoursePage() {
                 if (publishingVariants) return
                 setPublishingVariants(true)
                 try {
-                  await variantManagerRef.current?.publish()
+                  // Auto-save course details first, then publish variants
+                  const saved = await handleSaveAll()
+                  if (saved) {
+                    await variantManagerRef.current?.publish()
+                  }
                 } finally {
                   setPublishingVariants(false)
                 }
