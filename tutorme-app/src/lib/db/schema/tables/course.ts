@@ -353,6 +353,7 @@ export const courseVariant = pgTable(
       .references(() => course.courseId, { onDelete: 'cascade' }),
     nationality: text('nationality').notNull(),
     category: text('category').notNull(),
+    isIndependent: boolean('isIndependent').notNull().default(false),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()

@@ -88,6 +88,8 @@ function TutorInsightsPageInner() {
   const [newCourseName, setNewCourseName] = useState('')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [propagationDialogOpen, setPropagationDialogOpen] = useState(false)
+  const [pendingSavePayload, setPendingSavePayload] = useState<{ lessons: any[]; options?: any } | null>(null)
   const [saveMode, setSaveMode] = useState<'live' | 'draft'>(
     searchParams.get('sessionId') ? 'live' : searchParams.get('mode') === 'edit' ? 'draft' : 'live'
   )
@@ -310,8 +312,14 @@ function TutorInsightsPageInner() {
     }
   }, [isRecording, persistRecordingState, handleStopRecording, sessionId, sessions])
 
-  const handleSave = useCallback(
-    async (lessons: any[], options?: any) => {
+  const isPublishedVariant = useMemo(() => {
+    if (!courseId) return false
+    const course = courses.find(c => c.id === courseId)
+    return course?.isPublished === true && (course?.nationality !== undefined || course?.variantCategory !== undefined)
+  }, [courseId, courses])
+
+  const executeSave = useCallback(
+    async (lessons: any[], options?: any, propagateToVariants?: boolean, setIndependent?: boolean) => {
       if (!courseId || courseId === 'insights-draft') return
 
       const result = await saveCourse({
@@ -320,6 +328,8 @@ function TutorInsightsPageInner() {
         mode: saveMode,
         draftListStorageKey: draftStorageKey,
         isAutoSave: options?.isAutoSave,
+        propagateToVariants,
+        setIndependent,
       })
 
       if (options?.isAutoSave) return
@@ -334,6 +344,22 @@ function TutorInsightsPageInner() {
       }
     },
     [courseId, saveMode, draftStorageKey]
+  )
+
+  const handleSave = useCallback(
+    async (lessons: any[], options?: any) => {
+      if (!courseId || courseId === 'insights-draft') return
+
+      // For published variants on manual save, show propagation dialog
+      if (isPublishedVariant && !options?.isAutoSave) {
+        setPendingSavePayload({ lessons, options })
+        setPropagationDialogOpen(true)
+        return
+      }
+
+      await executeSave(lessons, options)
+    },
+    [courseId, isPublishedVariant, executeSave]
   )
 
   const handleCreateNewCourse = useCallback(async () => {
@@ -1217,6 +1243,61 @@ function TutorInsightsPageInner() {
             </Button>
             <Button variant="destructive" onClick={handleDeleteCourse}>
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save Propagation Dialog */}
+      <Dialog open={propagationDialogOpen} onOpenChange={setPropagationDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Apply Changes</DialogTitle>
+            <DialogDescription>
+              This is a published course variant. How would you like to apply your changes?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-2">
+            <Button
+              variant="outline"
+              className="justify-start text-left h-auto py-3 px-4"
+              onClick={async () => {
+                setPropagationDialogOpen(false)
+                if (pendingSavePayload) {
+                  await executeSave(pendingSavePayload.lessons, pendingSavePayload.options, true, false)
+                  setPendingSavePayload(null)
+                }
+              }}
+            >
+              <div className="flex flex-col items-start">
+                <span className="font-semibold">Apply to all variants</span>
+                <span className="text-sm text-muted-foreground">
+                  Copy these changes to all sibling variants (except independent ones)
+                </span>
+              </div>
+            </Button>
+            <Button
+              variant="outline"
+              className="justify-start text-left h-auto py-3 px-4"
+              onClick={async () => {
+                setPropagationDialogOpen(false)
+                if (pendingSavePayload) {
+                  await executeSave(pendingSavePayload.lessons, pendingSavePayload.options, false, true)
+                  setPendingSavePayload(null)
+                }
+              }}
+            >
+              <div className="flex flex-col items-start">
+                <span className="font-semibold">Only this variant</span>
+                <span className="text-sm text-muted-foreground">
+                  Save changes to this variant only and mark it as independent
+                </span>
+              </div>
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setPropagationDialogOpen(false); setPendingSavePayload(null) }}>
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>

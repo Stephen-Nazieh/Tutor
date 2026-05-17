@@ -73,8 +73,8 @@ type Props = UseCourseBuilderContentArgs & {
   isDeleteDialogOpen?: boolean
   setIsDeleteDialogOpen?: (v: boolean) => void
   onDeleteCourseConfirm?: () => void
-  courses?: { id: string; name: string; nationality?: string; variantCategory?: string }[]
-  draftCourses?: { id: string; name: string; nationality?: string; variantCategory?: string }[]
+  courses?: { id: string; name: string; nationality?: string; variantCategory?: string; isPublished?: boolean }[]
+  draftCourses?: { id: string; name: string; nationality?: string; variantCategory?: string; isPublished?: boolean }[]
   courseName?: string
   onCourseNameChange?: (name: string) => void
   saveMode?: 'live' | 'draft'
@@ -313,6 +313,7 @@ function CourseBuilderInsightsRouteInner({
   const currentCourse = [...(courses || []), ...(draftCourses || [])].find(
     c => c.id === courseId
   )
+  const isCoursePublished = currentCourse?.isPublished === true
 
   return (
     <div
@@ -399,8 +400,12 @@ function CourseBuilderInsightsRouteInner({
 
                   {onCourseNameChange && courseId && courseId !== 'insights-draft' && (
                     <input
-                      className="h-9 min-w-[200px] rounded-md border-none bg-transparent px-2 text-sm font-semibold transition-colors placeholder:text-gray-400 hover:bg-slate-100 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      className={cn(
+                        'h-9 min-w-[200px] rounded-md border-none bg-transparent px-2 text-sm font-semibold transition-colors placeholder:text-gray-400 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0',
+                        isCoursePublished ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'
+                      )}
                       value={courseName || ''}
+                      readOnly={isCoursePublished}
                       onChange={e => {
                         const newName = e.target.value
                         if (newName.trim() !== '') {
@@ -408,6 +413,7 @@ function CourseBuilderInsightsRouteInner({
                         }
                       }}
                       placeholder="Course Name..."
+                      title={isCoursePublished ? 'Published variant names cannot be edited' : undefined}
                     />
                   )}
 

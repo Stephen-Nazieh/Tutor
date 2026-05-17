@@ -15,6 +15,8 @@ export interface SaveCourseOptions {
   isAutoSave?: boolean
   isExistingDbCourse?: boolean
   detachedCourseName?: string
+  propagateToVariants?: boolean
+  setIndependent?: boolean
 }
 
 export interface SaveCourseResult {
@@ -112,6 +114,8 @@ export async function saveCourse(options: SaveCourseOptions): Promise<SaveCourse
     previewDifficulty = 'all',
     isExistingDbCourse = false,
     detachedCourseName,
+    propagateToVariants,
+    setIndependent,
   } = options
 
   // ---- DRAFT MODE ----
@@ -206,6 +210,8 @@ export async function saveCourse(options: SaveCourseOptions): Promise<SaveCourse
         developmentMode,
         previewDifficulty,
         description: courseDescription,
+        propagateToVariants,
+        setIndependent,
       }),
     })
 

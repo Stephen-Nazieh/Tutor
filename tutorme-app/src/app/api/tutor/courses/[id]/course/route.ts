@@ -11,8 +11,8 @@ import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { verifyCourseOwnership } from '@/lib/api/course-helpers'
 import { CourseBuilderService } from '@/lib/services/course-builder.service'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
+import { course, courseVariant } from '@/lib/db/schema'
+import { eq, and, inArray } from 'drizzle-orm'
 
 // ---- GET — Load builder tree from DB ----
 
@@ -51,6 +51,8 @@ export const PUT = withCsrf(
       const body = await req.json().catch(() => ({}))
       const lessons = (body as { lessons?: unknown }).lessons
       const description = (body as { description?: string }).description
+      const propagateToVariants = (body as { propagateToVariants?: boolean }).propagateToVariants === true
+      const setIndependent = (body as { setIndependent?: boolean }).setIndependent === true
 
       try {
         // Verify ownership
@@ -67,6 +69,48 @@ export const PUT = withCsrf(
             .update(course)
             .set({ description: description || null })
             .where(eq(course.courseId, courseId))
+        }
+
+        // Find variant info for this course
+        const [variantRow] = await drizzleDb
+          .select({
+            variantId: courseVariant.variantId,
+            templateCourseId: courseVariant.templateCourseId,
+            publishedCourseId: courseVariant.publishedCourseId,
+          })
+          .from(courseVariant)
+          .where(eq(courseVariant.publishedCourseId, courseId))
+
+        if (variantRow) {
+          // Mark this variant as independent if requested
+          if (setIndependent) {
+            await drizzleDb
+              .update(courseVariant)
+              .set({ isIndependent: true })
+              .where(eq(courseVariant.variantId, variantRow.variantId))
+          }
+
+          // Propagate builderData to sibling variants that are not independent
+          if (propagateToVariants) {
+            const siblingVariants = await drizzleDb
+              .select({ publishedCourseId: courseVariant.publishedCourseId })
+              .from(courseVariant)
+              .where(
+                and(
+                  eq(courseVariant.templateCourseId, variantRow.templateCourseId),
+                  eq(courseVariant.isIndependent, false),
+                )
+              )
+
+            for (const sibling of siblingVariants) {
+              if (sibling.publishedCourseId === courseId) continue
+              await CourseBuilderService.updateCourseBuilderData(
+                sibling.publishedCourseId,
+                userId,
+                lessons
+              )
+            }
+          }
         }
 
         return NextResponse.json({ success: true })
