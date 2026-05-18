@@ -60,11 +60,21 @@ function rebuildAttrs(rawAttrs: string, allowedSet: Set<string>): string {
  * subset of formatting tags.  Operates entirely with string replacements so
  * it is safe to import in both client components and API routes.
  */
+// Dangerous tags whose entire content must be removed (not just the wrapper)
+const DANGEROUS_BLOCKS = ['script', 'style', 'iframe', 'object', 'embed', 'form', 'textarea']
+const DANGEROUS_BLOCK_REGEX = new RegExp(
+  `<(${DANGEROUS_BLOCKS.join('|')})\\b[^>]*>[\\s\\S]*?<\\/\\1>`,
+  'gi'
+)
+
 export function sanitizeHtml(input: string): string {
   if (typeof input !== 'string') return ''
 
+  // First pass: remove dangerous blocks entirely (tag + content)
+  let text = input.replace(DANGEROUS_BLOCK_REGEX, '')
+
   // Strip dangerous protocols from raw text
-  let text = input.replace(JS_PROTOCOL_REGEX, '').replace(DATA_PROTOCOL_REGEX, '')
+  text = text.replace(JS_PROTOCOL_REGEX, '').replace(DATA_PROTOCOL_REGEX, '')
 
   // Remove event-handler attributes from every tag first
   text = text.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, '')
