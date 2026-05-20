@@ -534,36 +534,34 @@ function CourseBuilderInsightsRouteInner({
                       Schedule
                     </Button>
                   )}
-                {/* Kebab menu — always visible for real courses when no active session */}
-                {activeMainTab === 'builder' &&
-                  courseId &&
-                  courseId !== 'insights-draft' &&
-                  !insightsProps.sessionId && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon" className="shrink-0">
-                          <MoreVertical className="h-5 w-5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {saveMode === 'draft' && (
-                          <DropdownMenuItem onClick={handleStartSessionClick}>
-                            <VideoIcon className="mr-2 h-4 w-4 text-green-600" />
-                            Go Live
-                          </DropdownMenuItem>
-                        )}
-                        {onDeleteCourse && (
-                          <DropdownMenuItem
-                            onClick={onDeleteCourse}
-                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Course
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
+                {/* Kebab menu — visible for all real courses on the builder tab */}
+                {activeMainTab === 'builder' && courseId && courseId !== 'insights-draft' && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon" className="shrink-0">
+                        <MoreVertical className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {/* Go Live only when in draft mode and no active session */}
+                      {saveMode === 'draft' && !insightsProps.sessionId && (
+                        <DropdownMenuItem onClick={handleStartSessionClick}>
+                          <VideoIcon className="mr-2 h-4 w-4 text-green-600" />
+                          Go Live
+                        </DropdownMenuItem>
+                      )}
+                      {onDeleteCourse && (
+                        <DropdownMenuItem
+                          onClick={onDeleteCourse}
+                          className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Course
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
           </div>
