@@ -345,62 +345,72 @@ function CourseBuilderInsightsRouteInner({
 
               <div className="flex flex-col justify-center">
                 <div className="flex items-center gap-2">
-                  {activeMainTab !== 'live' && insightsProps.onCourseChange && (
-                    <Select
-                      value={courseId ?? ''}
-                      onValueChange={v => insightsProps.onCourseChange?.(v)}
-                    >
-                      <SelectTrigger className="h-9 min-w-[160px] max-w-[320px] border-none bg-transparent text-sm font-semibold shadow-none transition-colors hover:bg-slate-100 focus:ring-0">
-                        <SelectValue placeholder="Select course">
-                          {(() => {
-                            const c = currentCourse
-                            if (!c) return 'Select course'
-                            return c.nationality && c.nationality !== 'Global'
-                              ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
-                              : c.name
-                          })()}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {courses && courses.length > 0 && (
-                          <SelectItem
-                            value="__live-header__"
-                            disabled
-                            className="text-muted-foreground text-xs font-semibold"
-                          >
-                            Live Courses
-                          </SelectItem>
-                        )}
-                        {courses?.map(c => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.nationality && c.nationality !== 'Global'
-                              ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
-                              : c.isVariant
-                                ? `${c.name} — Global`
-                                : c.name}
-                          </SelectItem>
-                        ))}
-                        {draftCourses && draftCourses.length > 0 && (
-                          <SelectItem
-                            value="__draft-header__"
-                            disabled
-                            className="text-muted-foreground text-xs font-semibold"
-                          >
-                            Draft Courses
-                          </SelectItem>
-                        )}
-                        {draftCourses?.map(c => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.nationality && c.nationality !== 'Global'
-                              ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
-                              : c.isVariant
-                                ? `${c.name} — Global`
-                                : c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  {/* Course selector — locked to read-only when a session is active */}
+                  {activeMainTab !== 'live' && insightsProps.sessionId && currentCourse && (
+                    <div className="flex h-9 min-w-[160px] max-w-[320px] items-center px-2 text-sm font-semibold text-slate-700">
+                      {currentCourse.nationality && currentCourse.nationality !== 'Global'
+                        ? `${currentCourse.name} — ${currentCourse.variantCategory || ''} — ${currentCourse.nationality}`
+                        : currentCourse.name}
+                    </div>
                   )}
+                  {activeMainTab !== 'live' &&
+                    !insightsProps.sessionId &&
+                    insightsProps.onCourseChange && (
+                      <Select
+                        value={courseId ?? ''}
+                        onValueChange={v => insightsProps.onCourseChange?.(v)}
+                      >
+                        <SelectTrigger className="h-9 min-w-[160px] max-w-[320px] border-none bg-transparent text-sm font-semibold shadow-none transition-colors hover:bg-slate-100 focus:ring-0">
+                          <SelectValue placeholder="Select course">
+                            {(() => {
+                              const c = currentCourse
+                              if (!c) return 'Select course'
+                              return c.nationality && c.nationality !== 'Global'
+                                ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
+                                : c.name
+                            })()}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {courses && courses.length > 0 && (
+                            <SelectItem
+                              value="__live-header__"
+                              disabled
+                              className="text-muted-foreground text-xs font-semibold"
+                            >
+                              Live Courses
+                            </SelectItem>
+                          )}
+                          {courses?.map(c => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.nationality && c.nationality !== 'Global'
+                                ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
+                                : c.isVariant
+                                  ? `${c.name} — Global`
+                                  : c.name}
+                            </SelectItem>
+                          ))}
+                          {draftCourses && draftCourses.length > 0 && (
+                            <SelectItem
+                              value="__draft-header__"
+                              disabled
+                              className="text-muted-foreground text-xs font-semibold"
+                            >
+                              Draft Courses
+                            </SelectItem>
+                          )}
+                          {draftCourses?.map(c => (
+                            <SelectItem key={c.id} value={c.id}>
+                              {c.nationality && c.nationality !== 'Global'
+                                ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
+                                : c.isVariant
+                                  ? `${c.name} — Global`
+                                  : c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
 
                   {activeMainTab === 'builder' && saveMode === 'draft' && onCreateCourse && (
                     <Button
