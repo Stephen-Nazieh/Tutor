@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense } from 'react'
-import { useEffect, useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { CourseBuilderInsightsRoute } from '../courses/components/CourseBuilderInsightsRoute'
@@ -765,10 +765,20 @@ function TutorInsightsPageInner() {
 
   // Track whether the current session has received the ending-soon alert
   const [endingAlertShown, setEndingAlertShown] = useState(false)
+  const hasAutoSyncedRef = useRef<string | null>(null)
 
   useEffect(() => {
     setEndingAlertShown(false)
   }, [sessionId])
+
+  // Auto-sync course content when entering a live session from URL
+  useEffect(() => {
+    if (!sessionId || !socket || !courseId || courseId === 'insights-draft') return
+    if (hasAutoSyncedRef.current === sessionId) return
+    hasAutoSyncedRef.current = sessionId
+    socket.emit('course:sync', { roomId: sessionId, courseId })
+    toast.success('Course content auto-synced to students')
+  }, [sessionId, socket, courseId])
 
   useEffect(() => {
     if (!socket) return
@@ -785,6 +795,26 @@ function TutorInsightsPageInner() {
 
     const handleTaskUpdated = (payload: { task: LiveTask }) => {
       setLiveTasks(prev => prev.map(item => (item.id === payload.task.id ? payload.task : item)))
+    }
+
+    const handleTaskCompleted = (data: {
+      taskId: string
+      studentId: string
+      studentName: string
+      completedAt: number
+      totalCompleted: number
+    }) => {
+      toast.success(`${data.studentName} completed a task`, {
+        description: `${data.totalCompleted} student${data.totalCompleted === 1 ? '' : 's'} completed this task`,
+      })
+      // Also update the task in liveTasks so the completedBy count is available
+      setLiveTasks(prev =>
+        prev.map(item =>
+          item.id === data.taskId
+            ? { ...item, completedBy: [...(item.completedBy || []), data.studentId] }
+            : item
+        )
+      )
     }
 
     const handleSessionEndingSoon = (data: { sessionId: string; minutesRemaining: number }) => {
@@ -961,6 +991,7 @@ function TutorInsightsPageInner() {
 
     socket.on('task:deployed', handleTaskDeployed)
     socket.on('task:updated', handleTaskUpdated)
+    socket.on('task:completed', handleTaskCompleted)
     socket.on('session:ending-soon', handleSessionEndingSoon)
     socket.on('session:ended', handleSessionEnded)
     socket.on('task:deploy:error', handleDeployError)
@@ -973,6 +1004,7 @@ function TutorInsightsPageInner() {
     return () => {
       socket.off('task:deployed', handleTaskDeployed)
       socket.off('task:updated', handleTaskUpdated)
+      socket.off('task:completed', handleTaskCompleted)
       socket.off('session:ending-soon', handleSessionEndingSoon)
       socket.off('session:ended', handleSessionEnded)
       socket.off('task:deploy:error', handleDeployError)
@@ -1334,3 +1366,6 @@ export default function TutorInsightsPage() {
     </Suspense>
   )
 }
+
+// Exported for reuse by /tutor/classroom
+export { TutorInsightsPageInner }

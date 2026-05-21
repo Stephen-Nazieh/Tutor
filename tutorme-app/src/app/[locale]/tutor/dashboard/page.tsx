@@ -424,7 +424,7 @@ function TutorDashboardContent() {
           toast.error('Session started but no session ID returned')
           return
         }
-        router.push(withLocalePath(`/tutor/insights?sessionId=${updatedSessionId}`))
+        router.push(withLocalePath(`/tutor/classroom?sessionId=${updatedSessionId}`))
       } catch {
         toast.error('Failed to start session')
       } finally {
@@ -481,7 +481,7 @@ function TutorDashboardContent() {
           return
         }
         // Navigate directly to live session page (Live tab)
-        router.push(withLocalePath(`/tutor/insights?sessionId=${sessionId}`))
+        router.push(withLocalePath(`/tutor/classroom?sessionId=${sessionId}`))
       } catch {
         toast.error('Failed to launch classroom')
       } finally {
@@ -1062,7 +1062,7 @@ function TutorDashboardContent() {
                                 size="sm"
                                 onClick={() =>
                                   router.push(
-                                    withLocalePath(`/tutor/insights?sessionId=${session.id}`)
+                                    withLocalePath(`/tutor/classroom?sessionId=${session.id}`)
                                   )
                                 }
                               >

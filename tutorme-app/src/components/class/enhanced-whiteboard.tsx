@@ -421,48 +421,8 @@ export function EnhancedWhiteboard({
   const cursorFlushTimerRef = useRef<number | null>(null)
   const remoteCursorsRef = useRef<Map<string, CursorDelta>>(new Map())
 
-  // Mock students fallback
-  const mockStudents: Student[] = [
-    {
-      id: '1',
-      name: 'Zhang Wei',
-      status: 'active',
-      engagement: 85,
-      understanding: 80,
-      frustration: 10,
-      lastActive: new Date(),
-    },
-    {
-      id: '2',
-      name: 'Li Na',
-      status: 'struggling',
-      engagement: 60,
-      understanding: 45,
-      frustration: 60,
-      lastActive: new Date(),
-    },
-    {
-      id: '3',
-      name: 'Wang Tao',
-      status: 'active',
-      engagement: 90,
-      understanding: 85,
-      frustration: 5,
-      lastActive: new Date(),
-    },
-    {
-      id: '4',
-      name: 'Chen Xi',
-      status: 'needs_help',
-      engagement: 70,
-      understanding: 55,
-      frustration: 70,
-      lastActive: new Date(),
-    },
-  ]
-
-  // Use external students or mock
-  const students = externalStudents ?? mockStudents
+  // Use external students if provided; otherwise empty (no mock data in production)
+  const students = externalStudents ?? []
 
   // Asset sidebar state
   const [showAssetSidebar, setShowAssetSidebar] = useState(false)

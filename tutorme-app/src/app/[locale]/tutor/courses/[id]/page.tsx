@@ -386,7 +386,7 @@ export default function TutorCoursePage() {
       if (!sessionId) throw new Error('Live session created but session ID is missing')
 
       toast.success('Live session created. Redirecting…')
-      router.push(`/tutor/insights?sessionId=${sessionId}`)
+      router.push(`/tutor/classroom?sessionId=${sessionId}`)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to open live session')
     } finally {

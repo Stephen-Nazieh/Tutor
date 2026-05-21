@@ -126,6 +126,7 @@ export interface LiveTask {
   sourceDocument?: LiveTaskSourceDocument
   parentId?: string
   isExtension?: boolean
+  completedBy?: string[]
 }
 
 // Environment validation
@@ -1019,6 +1020,42 @@ export async function initEnhancedSocketServer(server: NetServer) {
       } catch (err) {
         console.error('Failed to persist deployed material to DB:', err)
       }
+    })
+
+    // Student marks a task as complete
+    socket.on('task:complete', (data: { roomId: string; taskId: string }) => {
+      const { roomId, taskId } = data
+      if (!roomId || !taskId) return
+      const room = activeRooms.get(roomId)
+      if (!room) return
+      const studentId = socket.data.userId
+      if (!studentId || !room.students.has(studentId)) {
+        socket.emit('task:complete:error', { error: 'Not enrolled in this session' })
+        return
+      }
+      const task = room.tasks.find(t => t.id === taskId)
+      if (!task) {
+        socket.emit('task:complete:error', { error: 'Task not found' })
+        return
+      }
+      const completed = new Set(task.completedBy || [])
+      if (completed.has(studentId)) {
+        socket.emit('task:complete:error', { error: 'Already marked complete' })
+        return
+      }
+      completed.add(studentId)
+      task.completedBy = Array.from(completed)
+      room.lastActivity = Date.now()
+      void persistRoomToRedis(roomId, room)
+      const studentName = room.students.get(studentId)?.name || 'A student'
+      io.to(roomId).emit('task:completed', {
+        taskId,
+        studentId,
+        studentName,
+        completedAt: Date.now(),
+        totalCompleted: task.completedBy.length,
+      })
+      io.to(roomId).emit('task:updated', { task })
     })
 
     // Tutor assigns homework during live class

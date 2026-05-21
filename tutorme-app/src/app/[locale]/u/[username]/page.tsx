@@ -827,7 +827,7 @@ export default function PublicTutorPage() {
         toast.error('Classroom created but no session ID returned')
         return
       }
-      router.push(`/${locale}/tutor/insights?sessionId=${sessionId}&courseId=${course.id}`)
+      router.push(`/${locale}/tutor/classroom?sessionId=${sessionId}&courseId=${course.id}`)
     } catch {
       toast.error('Unable to launch classroom')
     } finally {

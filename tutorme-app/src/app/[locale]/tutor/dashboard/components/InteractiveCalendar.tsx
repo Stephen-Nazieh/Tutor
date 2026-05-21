@@ -1181,7 +1181,7 @@ export function InteractiveCalendar({
                         withLocalePath(
                           isStudent
                             ? `/student/feedback?sessionId=${selectedEvent.sessionId}`
-                            : `/tutor/insights?sessionId=${selectedEvent.sessionId}`
+                            : `/tutor/classroom?sessionId=${selectedEvent.sessionId}`
                         )
                       )
                       setSelectedEvent(null)

@@ -5,7 +5,7 @@
 
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -45,7 +45,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { CourseBuilder } from '../../dashboard/components/CourseBuilder'
 import { GoLiveDialog } from '../../dashboard/components/GoLiveDialog'
@@ -134,9 +134,11 @@ function CourseBuilderInsightsRouteInner({
 
   const [endingSession, setEndingSession] = useState(false)
   const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const isClassroomMode = pathname?.startsWith('/tutor/classroom') ?? false
   const tabFromUrl = searchParams.get('tab') as 'live' | 'builder' | 'test-pci' | null
   const [activeMainTab, setActiveMainTab] = useState<'live' | 'builder' | 'test-pci'>(
-    tabFromUrl ?? (insightsProps.sessionId ? 'live' : 'builder')
+    isClassroomMode ? 'live' : (tabFromUrl ?? (insightsProps.sessionId ? 'live' : 'builder'))
   )
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
   const [goLiveDialogOpen, setGoLiveDialogOpen] = useState(false)
@@ -144,10 +146,26 @@ function CourseBuilderInsightsRouteInner({
   const [leftPanelHidden, setLeftPanelHidden] = useState(false)
 
   useEffect(() => {
+    if (isClassroomMode) {
+      setActiveMainTab('live')
+      return
+    }
     if (insightsProps.sessionId && !tabFromUrl) {
       setActiveMainTab('live')
     }
-  }, [insightsProps.sessionId, tabFromUrl])
+  }, [insightsProps.sessionId, tabFromUrl, isClassroomMode])
+
+  // Prevent tab switching away from live in classroom mode
+  const handleMainTabChange = useCallback(
+    (tab: 'live' | 'builder' | 'test-pci') => {
+      if (isClassroomMode) {
+        setActiveMainTab('live')
+        return
+      }
+      setActiveMainTab(tab)
+    },
+    [isClassroomMode]
+  )
 
   const [now, setNow] = useState(new Date())
   useEffect(() => {
@@ -207,7 +225,7 @@ function CourseBuilderInsightsRouteInner({
 
       const data = await res.json()
       toast.success('Teaching session started!')
-      model.router.push(`/tutor/insights?sessionId=${data.sessionId}`)
+      model.router.push(`/tutor/classroom?sessionId=${data.sessionId}`)
     } catch (err) {
       toast.error('Could not start teaching session')
     }
@@ -237,7 +255,7 @@ function CourseBuilderInsightsRouteInner({
 
       const resData = await res.json()
       toast.success('Training session started!')
-      model.router.push(`/tutor/insights?sessionId=${resData.sessionId}`)
+      model.router.push(`/tutor/classroom?sessionId=${resData.sessionId}`)
     } catch (err) {
       const error = err as Error
       toast.error(error.message || 'Could not start training session')
@@ -576,6 +594,14 @@ function CourseBuilderInsightsRouteInner({
             </div>
           </div>
 
+          {/* Live classroom banner */}
+          {isClassroomMode && (
+            <div className="flex items-center justify-center bg-red-600 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm">
+              <div className="mr-2 h-2 w-2 animate-pulse rounded-full bg-white" />
+              Live Classroom — Students can see your screen
+            </div>
+          )}
+
           {/* The outer container for Course Builder Tabs */}
           <div id="course-builder-tabs-portal" className="w-full"></div>
         </div>
@@ -646,8 +672,8 @@ function CourseBuilderInsightsRouteInner({
               onStartSession: handleStartSessionClick,
               endingSession,
             }}
-            onMainTabChange={setActiveMainTab}
-            initialMainTab={tabFromUrl ?? 'builder'}
+            onMainTabChange={handleMainTabChange}
+            initialMainTab={isClassroomMode ? 'live' : (tabFromUrl ?? 'builder')}
             leftPanelHidden={leftPanelHidden}
             onLeftPanelHiddenChange={setLeftPanelHidden}
             saveMode={saveMode}

@@ -78,7 +78,7 @@ export const POST = withCsrf(
 
         let room
         try {
-          const maxParticipants = Math.min(data.maxStudents + 1, 10) // +1 for tutor, capped at 10
+          const maxParticipants = Math.min(data.maxStudents + 1, 50) // +1 for tutor, capped at 50
           room = await dailyProvider.createRoom(userId, {
             maxParticipants,
             durationMinutes: data.durationMinutes,

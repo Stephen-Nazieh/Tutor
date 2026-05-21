@@ -133,7 +133,7 @@ export function CreateClassDialog({
         onOpenChange(false)
         onClassCreated?.(data.session)
         if (redirectToClass && data.session?.id) {
-          router.push(`/tutor/insights?sessionId=${data.session.id}`)
+          router.push(`/tutor/classroom?sessionId=${data.session.id}`)
         }
       } else {
         const message = data.error || 'Room creation failed. Please try again.'

@@ -124,7 +124,7 @@ function StudentFeedbackContent() {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
   const [requestingSessionId, setRequestingSessionId] = useState<string | null>(null)
   const [showTasksPanel, setShowTasksPanel] = useState(false)
-  const [rightPanelTab, setRightPanelTab] = useState<'dmi' | 'interactions'>('interactions')
+  const [rightPanelTab, setRightPanelTab] = useState<'dmi' | 'interactions' | 'board'>('interactions')
   const [unseenTaskIds, setUnseenTaskIds] = useState<string[]>([])
   const [unseenHomeworkIds, setUnseenHomeworkIds] = useState<string[]>([])
   const [questionDrafts, setQuestionDrafts] = useState<Record<string, string>>({})
@@ -666,6 +666,30 @@ function StudentFeedbackContent() {
       // ignore
     }
   }, [selectedSessionId, followTutor])
+
+  // Mirror to Tutor persistence
+  useEffect(() => {
+    if (!selectedSessionId || typeof window === 'undefined') return
+    try {
+      const raw = window.localStorage.getItem(`student-mirror-tutor:${selectedSessionId}`)
+      if (raw === '0') setIsMirroringToTutor(false)
+      if (raw === '1') setIsMirroringToTutor(true)
+    } catch {
+      // ignore
+    }
+  }, [selectedSessionId])
+
+  useEffect(() => {
+    if (!selectedSessionId || typeof window === 'undefined') return
+    try {
+      window.localStorage.setItem(
+        `student-mirror-tutor:${selectedSessionId}`,
+        isMirroringToTutor ? '1' : '0'
+      )
+    } catch {
+      // ignore
+    }
+  }, [selectedSessionId, isMirroringToTutor])
 
   // Sync Student state to Tutor (always, so tutor monitor can track presence)
   useEffect(() => {
@@ -1640,7 +1664,7 @@ function StudentFeedbackContent() {
                           <div
                             className={cn(
                               'mr-2 h-2 w-2 rounded-full',
-                              followTutor ? 'bg-white' : 'bg-slate-500'
+                              followTutor ? 'animate-pulse bg-white' : 'bg-slate-500'
                             )}
                           />
                           {followTutor ? 'Following Tutor' : 'Follow Tutor'}
@@ -1704,7 +1728,13 @@ function StudentFeedbackContent() {
                         </Button>
                       </div>
 
-                      <TabsList className="flex h-8 items-center gap-2 border-0 bg-transparent p-0 shadow-none">
+                      <TabsList
+                        className={cn(
+                          'flex h-8 items-center gap-2 border-0 bg-transparent p-0 shadow-none transition-opacity',
+                          followTutor && 'pointer-events-none opacity-40'
+                        )}
+                        title={followTutor ? 'Unfollow tutor to switch tabs manually' : undefined}
+                      >
                         <TabsTrigger
                           value="task"
                           className="h-8 rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=inactive]:text-[#1F2933]"
@@ -1859,7 +1889,15 @@ function StudentFeedbackContent() {
                   </div>
                   <Button
                     className="h-11 rounded-xl bg-[#F17623] px-5 text-sm font-semibold text-white hover:bg-[#d9651a]"
-                    onClick={() => toast.success('Task marked complete')}
+                    disabled={!activeTaskId || !socket}
+                    onClick={() => {
+                      if (!activeTaskId || !socket || !selectedSessionId) return
+                      socket.emit('task:complete', {
+                        roomId: selectedSessionId,
+                        taskId: activeTaskId,
+                      })
+                      toast.success('Task marked complete')
+                    }}
                   >
                     Task Complete
                   </Button>
@@ -1937,10 +1975,23 @@ function StudentFeedbackContent() {
                 >
                   DMI
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setRightPanelTab('board')}
+                  className={cn(
+                    'h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all',
+                    rightPanelTab === 'board'
+                      ? 'bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
+                      : 'text-gray-500 hover:text-gray-900'
+                  )}
+                >
+                  Board
+                </Button>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className={cn('flex-1', rightPanelTab === 'board' ? 'overflow-hidden' : 'overflow-y-auto p-4')
               {rightPanelTab === 'dmi' ? (
                 <div className="space-y-4">
                   <div className="mb-4 border-b border-gray-100 pb-2">
@@ -1966,6 +2017,20 @@ function StudentFeedbackContent() {
                       ))}
                     </div>
                   )}
+                </div>
+              ) : rightPanelTab === 'board' ? (
+                <div className="flex h-full min-h-0 flex-col overflow-hidden">
+                  <EnhancedWhiteboard
+                    pages={myBoardPages}
+                    currentPageIndex={myBoardPageIndex}
+                    onPagesChange={setMyBoardPages}
+                    onPageIndexChange={setMyBoardPageIndex}
+                    socket={socket}
+                    roomId={selectedSessionId ?? undefined}
+                    userId={session?.user?.id ?? undefined}
+                    userName={session?.user?.name || 'Student'}
+                    userColor={stringToColor(session?.user?.id || '')}
+                  />
                 </div>
               ) : (
                 <div className="space-y-6">

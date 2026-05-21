@@ -30,7 +30,7 @@ export default function SessionEntryPage() {
         router.replace(`/student/feedback?sessionId=${sessionId}`)
         break
       case 'TUTOR':
-        router.replace(`/tutor/insights?sessionId=${sessionId}`)
+        router.replace(`/tutor/classroom?sessionId=${sessionId}`)
         break
       case 'ADMIN':
         router.replace(`/admin/dashboard`)

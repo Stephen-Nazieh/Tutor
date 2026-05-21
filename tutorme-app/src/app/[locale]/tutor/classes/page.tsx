@@ -280,14 +280,14 @@ export default function TutorClassesPage() {
     })
     if (data) {
       toast.success('Instant session created!')
-      router.push(`/tutor/insights?sessionId=${data.session.sessionId}`)
+      router.push(`/tutor/classroom?sessionId=${data.session.sessionId}`)
     }
   }
 
   const handleGoLive = async (cls: TutorClass) => {
     if (!cls.courseId) {
       // No course association; navigate directly to the existing session
-      router.push(`/tutor/insights?sessionId=${cls.id}`)
+      router.push(`/tutor/classroom?sessionId=${cls.id}`)
       return
     }
 
@@ -332,7 +332,7 @@ export default function TutorClassesPage() {
           scheduledAt: cls.scheduledAt,
         })
         if (data) {
-          router.push(`/tutor/insights?sessionId=${data.session.sessionId}`)
+          router.push(`/tutor/classroom?sessionId=${data.session.sessionId}`)
         }
         resetDialog()
       } else {
@@ -343,7 +343,7 @@ export default function TutorClassesPage() {
       }
     } catch {
       toast.error('Failed to load course details')
-      router.push(`/tutor/insights?sessionId=${cls.id}`)
+      router.push(`/tutor/classroom?sessionId=${cls.id}`)
     } finally {
       setDialogLoading(false)
     }
@@ -369,7 +369,7 @@ export default function TutorClassesPage() {
     if (data) {
       setSessionDialogOpen(false)
       resetDialog()
-      router.push(`/tutor/insights?sessionId=${data.session.sessionId}`)
+      router.push(`/tutor/classroom?sessionId=${data.session.sessionId}`)
     }
   }
 
@@ -541,7 +541,7 @@ export default function TutorClassesPage() {
             <Copy className="h-4 w-4" />
           </Button>
           {isLive ? (
-            <Link href={`/tutor/insights?sessionId=${cls.id}`}>
+            <Link href={`/tutor/classroom?sessionId=${cls.id}`}>
               <Button size="sm" className={cn(isLive && 'bg-red-600 hover:bg-red-700')}>
                 <Play className="mr-1 h-4 w-4" /> Enter
               </Button>
@@ -834,7 +834,7 @@ export default function TutorClassesPage() {
                           {dayEvents.slice(0, 2).map(event => (
                             <Link
                               key={event.id}
-                              href={`/tutor/insights?sessionId=${event.id}`}
+                              href={`/tutor/classroom?sessionId=${event.id}`}
                               className="block truncate rounded bg-blue-100 p-1 text-xs hover:bg-blue-200"
                             >
                               {event.courseName
@@ -881,7 +881,7 @@ export default function TutorClassesPage() {
                           {new Date(event.scheduledAt).toLocaleDateString()} • {event.subject}
                         </p>
                       </div>
-                      <Link href={`/tutor/insights?sessionId=${event.id}`}>
+                      <Link href={`/tutor/classroom?sessionId=${event.id}`}>
                         <Button size="sm">
                           <Play className="mr-1 h-3 w-3" /> Go Live
                         </Button>
