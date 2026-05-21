@@ -1488,8 +1488,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       isLive: false,
     })
 
-    // Editing is only allowed in draft ("Edit") mode
-    const canEdit = saveMode !== undefined ? saveMode === 'draft' : !coursePropsModal.isLive
+    // Editing is allowed in all modes (tutors can edit even during live sessions)
+    const canEdit = true
 
     // Sync external course description into modal state when course changes
     useEffect(() => {
