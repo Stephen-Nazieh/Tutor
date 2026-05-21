@@ -135,7 +135,9 @@ function CourseBuilderInsightsRouteInner({
   const [endingSession, setEndingSession] = useState(false)
   const searchParams = useSearchParams()
   const pathname = usePathname()
-  const isClassroomMode = pathname?.startsWith('/tutor/classroom') ?? false
+  const isClassroomMode =
+    (pathname?.startsWith('/tutor/classroom') ?? false) ||
+    searchParams.get('view') === 'classroom'
   const tabFromUrl = searchParams.get('tab') as 'live' | 'builder' | 'test-pci' | null
   const [activeMainTab, setActiveMainTab] = useState<'live' | 'builder' | 'test-pci'>(
     isClassroomMode ? 'live' : (tabFromUrl ?? (insightsProps.sessionId ? 'live' : 'builder'))

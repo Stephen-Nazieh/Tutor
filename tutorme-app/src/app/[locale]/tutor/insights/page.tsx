@@ -1366,6 +1366,3 @@ export default function TutorInsightsPage() {
     </Suspense>
   )
 }
-
-// Exported for reuse by /tutor/classroom
-export { TutorInsightsPageInner }

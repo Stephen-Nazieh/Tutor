@@ -80,6 +80,10 @@ const nextConfig = {
           source: '/',
           destination: '/index.html',
         },
+        {
+          source: '/tutor/classroom',
+          destination: '/tutor/insights?view=classroom',
+        },
       ],
     }
   },
