@@ -2075,7 +2075,12 @@ FEEDBACK: [your explanation]`
     // Helper: render PDF pages to base64 PNG images
     const renderPdfToImages = async (pdfUrl: string, maxPages = 3): Promise<string[]> => {
       try {
-        const response = await fetch(pdfUrl)
+        // Proxy external URLs through our API to avoid CORS issues (e.g. GCS)
+        const fetchUrl =
+          pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')
+            ? `/api/proxy-file?url=${encodeURIComponent(pdfUrl)}`
+            : pdfUrl
+        const response = await fetch(fetchUrl)
         if (!response.ok) throw new Error('Failed to fetch PDF')
         const arrayBuffer = await response.arrayBuffer()
         const pdfjs = await import('pdfjs-dist')
@@ -4021,7 +4026,12 @@ FEEDBACK: [your explanation]`
 
                       if (isPdf && assetToLoad.url) {
                         // Fetch original PDF and split it physically
-                        const pdfBytes = await fetch(assetToLoad.url).then(res => res.arrayBuffer())
+                        // Proxy external URLs to avoid CORS
+                        const fetchUrl =
+                          assetToLoad.url.startsWith('http://') || assetToLoad.url.startsWith('https://')
+                            ? `/api/proxy-file?url=${encodeURIComponent(assetToLoad.url)}`
+                            : assetToLoad.url
+                        const pdfBytes = await fetch(fetchUrl).then(res => res.arrayBuffer())
                         const pdfDoc = await PDFDocument.load(pdfBytes)
                         const pageCount = pdfDoc.getPageCount()
 
