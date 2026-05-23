@@ -13,7 +13,7 @@ export interface EnrollmentResult {
 
 /**
  * Enroll a student in a course. Shared logic used by both
- * POST /api/student/enrollments and POST /api/course/[courseId]/enroll.
+ * POST /api/student/enrollments and POST /api/courses/[courseId]/enroll.
  */
 export async function enrollStudentInCourse(
   studentId: string,

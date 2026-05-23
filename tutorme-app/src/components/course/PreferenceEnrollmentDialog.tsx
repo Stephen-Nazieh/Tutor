@@ -110,7 +110,7 @@ export function PreferenceEnrollmentDialog({
     try {
       const csrf = await getCsrfToken()
       // Call standard enrollment API
-      const res = await fetch(`/api/course/${courseId}/enroll`, {
+      const res = await fetch(`/api/courses/${courseId}/enroll`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
