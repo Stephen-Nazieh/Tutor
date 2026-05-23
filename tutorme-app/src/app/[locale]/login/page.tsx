@@ -48,7 +48,14 @@ function LoginForm() {
       })
 
       if (result?.error) {
-        setError('Invalid email or password')
+        // Distinguish credential errors from system errors by checking if the session endpoint is reachable
+        const healthRes = await fetch('/api/health', { method: 'GET', cache: 'no-store' }).catch(() => null)
+        const healthOk = healthRes?.ok ?? false
+        if (!healthOk) {
+          setError('Unable to reach the server. The database may be temporarily unavailable. Please try again later.')
+        } else {
+          setError('Invalid email or password')
+        }
       } else {
         // Get the session to check user role and onboarding status
         const session = await getSession()
@@ -116,12 +123,14 @@ function LoginForm() {
         )}
 
         {(error || authError) && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg bg-white/15 p-3 text-sm text-white">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            {error ||
-              (authError === 'SessionRequired'
-                ? 'Session expired or not found. Please log in again.'
-                : 'An authentication error occurred.')}
+          <div className="mb-4 flex items-start gap-2 rounded-lg bg-white/15 p-3 text-sm text-white">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span className="leading-snug">
+              {error ||
+                (authError === 'SessionRequired'
+                  ? 'Session expired or not found. Please log in again.'
+                  : 'An authentication error occurred.')}
+            </span>
           </div>
         )}
 

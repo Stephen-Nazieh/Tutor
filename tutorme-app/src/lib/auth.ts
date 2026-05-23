@@ -36,45 +36,54 @@ export const authOptions: NextAuthOptions = {
 
         const normalizedEmail = credentials.email.trim().toLowerCase()
 
-        // Find user by email (Drizzle)
-        const [userRow] = await drizzleDb
-          .select()
-          .from(user)
-          .where(eq(user.email, normalizedEmail))
-          .limit(1)
-        if (!userRow?.password) {
-          return null
-        }
+        try {
+          // Find user by email (Drizzle)
+          const [userRow] = await drizzleDb
+            .select()
+            .from(user)
+            .where(eq(user.email, normalizedEmail))
+            .limit(1)
+          if (!userRow?.password) {
+            return null
+          }
 
-        // Get profile for onboarding/tos
-        const [profileRow] = await drizzleDb
-          .select()
-          .from(profile)
-          .where(eq(profile.userId, userRow.userId))
-          .limit(1)
+          // Get profile for onboarding/tos
+          const [profileRow] = await drizzleDb
+            .select()
+            .from(profile)
+            .where(eq(profile.userId, userRow.userId))
+            .limit(1)
 
-        const isValid = await bcrypt.compare(credentials.password, userRow.password)
-        if (!isValid) {
-          const { logFailedLogin } = await import('@/lib/security/suspicious-activity')
-          await logFailedLogin(null, normalizedEmail)
-          return null
-        }
+          const isValid = await bcrypt.compare(credentials.password, userRow.password)
+          if (!isValid) {
+            const { logFailedLogin } = await import('@/lib/security/suspicious-activity')
+            await logFailedLogin(null, normalizedEmail)
+            return null
+          }
 
-        const onboardingComplete = checkOnboardingComplete({ profile: profileRow ?? undefined })
-        const tosAccepted = profileRow?.tosAccepted ?? false
+          const onboardingComplete = checkOnboardingComplete({ profile: profileRow ?? undefined })
+          const tosAccepted = profileRow?.tosAccepted ?? false
 
-        // Pass rememberMe flag through the user object
-        const rememberMe = credentials.rememberMe === 'true'
+          // Pass rememberMe flag through the user object
+          const rememberMe = credentials.rememberMe === 'true'
 
-        return {
-          id: userRow.userId,
-          email: userRow.email,
-          name: profileRow?.name ?? userRow.email,
-          role: userRow.role,
-          image: profileRow?.avatarUrl ?? undefined,
-          onboardingComplete,
-          tosAccepted,
-          rememberMe,
+          return {
+            id: userRow.userId,
+            email: userRow.email,
+            name: profileRow?.name ?? userRow.email,
+            role: userRow.role,
+            image: profileRow?.avatarUrl ?? undefined,
+            onboardingComplete,
+            tosAccepted,
+            rememberMe,
+          }
+        } catch (dbError: any) {
+          const msg = dbError?.message || String(dbError)
+          const code = dbError?.code
+          console.error('[Auth] Database error during login:', { message: msg, code, email: normalizedEmail })
+          // Throw a specific error so NextAuth redirects with ?error=Configuration
+          // and the login page can show a DB-specific message
+          throw new Error(`DATABASE_ERROR|${msg}`)
         }
       },
     }),
