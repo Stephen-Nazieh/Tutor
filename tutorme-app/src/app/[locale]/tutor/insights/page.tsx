@@ -108,11 +108,17 @@ function TutorInsightsPageInner() {
   )
 
   // Auto-detect saveMode when courseId is set from URL or dropdown
+  // BUT respect explicit mode=edit query param (set by Create Course / Course Builder nav)
   useEffect(() => {
     if (!courseId || courseId === 'insights-draft') return
     // If a sessionId is in the URL, force live mode
     if (searchParams.get('sessionId')) {
       setSaveMode('live')
+      return
+    }
+    // If mode=edit was explicitly passed, stay in draft (don't auto-detect)
+    if (searchParams.get('mode') === 'edit') {
+      setSaveMode('draft')
       return
     }
     // Otherwise detect from which list the course belongs to
