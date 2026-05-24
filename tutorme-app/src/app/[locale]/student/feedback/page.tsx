@@ -6,11 +6,9 @@ import {
   useRef,
   useState,
   useCallback,
-  useLayoutEffect,
   Suspense,
   type ComponentProps,
 } from 'react'
-import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
 import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -31,7 +29,6 @@ import { useSocket } from '@/hooks/use-socket'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import {
-  ListTodo,
   MessageSquare,
   Send,
   Bell,
@@ -124,7 +121,7 @@ function StudentFeedbackContent() {
   const [selectedDirectoryItem, setSelectedDirectoryItem] = useState<LiveTask | null>(null)
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null)
   const [requestingSessionId, setRequestingSessionId] = useState<string | null>(null)
-  const [showTasksPanel, setShowTasksPanel] = useState(false)
+  const [showDirectoryPanel, setShowDirectoryPanel] = useState(false)
   const [activeTab, setActiveTab] = useState<'task' | 'tutor-board'>('task')
   const [rightPanelTab, setRightPanelTab] = useState<'dmi' | 'interactions' | 'my-board'>('interactions')
   const [unseenTaskIds, setUnseenTaskIds] = useState<string[]>([])
@@ -224,8 +221,6 @@ function StudentFeedbackContent() {
     recordedSessions: true,
   })
 
-  const portalRef = useRef<HTMLDivElement | null>(null)
-  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null)
   useEffect(() => {
     const loadDirectory = async () => {
       setDirectoryLoading(true)
@@ -312,9 +307,6 @@ function StudentFeedbackContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useLayoutEffect(() => {
-    if (portalRef.current) setPortalTarget(portalRef.current)
-  }, [])
 
   useEffect(() => {
     if (!leftPanelResizing) return
@@ -949,7 +941,7 @@ function StudentFeedbackContent() {
           taskNotifMap.current.delete(item.id)
           hwNotifMap.current.delete(item.id)
         }
-        setShowTasksPanel(false)
+        setShowDirectoryPanel(false)
         return
       }
       if (
@@ -975,7 +967,7 @@ function StudentFeedbackContent() {
             taskNotifMap.current.delete(parsed.id)
             hwNotifMap.current.delete(parsed.id)
           }
-          setShowTasksPanel(false)
+          setShowDirectoryPanel(false)
         } catch (e) {
           console.error('Failed to parse task content', e)
         }
@@ -992,7 +984,7 @@ function StudentFeedbackContent() {
       void markNotificationsRead([notifId])
       taskNotifMap.current.delete(taskId)
     }
-    setShowTasksPanel(false)
+    setShowDirectoryPanel(false)
   }
 
   const handlePollVote = (poll: LiveTaskPoll, value: number) => {
@@ -1074,16 +1066,11 @@ function StudentFeedbackContent() {
               <div className="mt-0 flex shrink-0 items-center gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => setShowTasksPanel(true)}
+                  onClick={() => setShowDirectoryPanel(true)}
                   className="gap-2 font-medium text-slate-700 hover:text-slate-900"
                 >
-                  <ListTodo className="h-4 w-4" />
-                  Lessons
-                  {unseenTaskIds.length > 0 && (
-                    <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
-                      {unseenTaskIds.length}
-                    </span>
-                  )}
+                  <Folder className="h-4 w-4" />
+                  Directory
                 </Button>
               </div>
             </div>
@@ -1111,7 +1098,6 @@ function StudentFeedbackContent() {
             </div>
           )}
 
-          <div id="student-live-tabs-portal" ref={portalRef} className="mt-4 w-full" />
         </div>
 
         {/* Content Wrapper */}
@@ -1121,7 +1107,7 @@ function StudentFeedbackContent() {
             className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
             style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
             onClick={() => setLeftPanelHidden(!leftPanelHidden)}
-            title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
+            title={leftPanelHidden ? 'Show lessons' : 'Hide lessons'}
           >
             {leftPanelHidden ? (
               <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
@@ -1137,517 +1123,42 @@ function StudentFeedbackContent() {
               style={{ width: leftPanelWidth }}
             >
               <div className="flex shrink-0 items-center justify-between border-b border-[#E5E7EB] px-4 py-3">
-                <h2 className="text-sm font-semibold text-[#1F2933]">Directory</h2>
+                <h2 className="text-sm font-semibold text-[#1F2933]">Lessons</h2>
+                {unseenTaskIds.length > 0 && (
+                  <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
+                    {unseenTaskIds.length}
+                  </span>
+                )}
               </div>
               <ScrollArea className="flex-1 p-3">
-                <div className="space-y-1">
-                  {directoryLoading ? (
-                    <div className="flex justify-center px-2 py-8">
-                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
-                    </div>
-                  ) : directoryError ? (
-                    <div className="rounded-lg bg-red-50 px-2 py-4 text-center">
-                      <p className="text-xs font-medium text-red-700">Failed to load directory</p>
-                      <p className="mt-1 text-[11px] text-red-600">{directoryError}</p>
-                    </div>
-                  ) : Object.keys(studentDirectory).length === 0 ? (
-                    <div className="px-2 py-4 text-center text-sm text-slate-500">
-                      No enrolled courses found.
-                    </div>
-                  ) : (
-                    <>
-                      {directoryWarnings.length > 0 && (
-                        <div className="mb-2 rounded-md bg-amber-50 p-2">
-                          <p className="text-[11px] font-medium text-amber-800">
-                            Some items couldn&apos;t load:
-                          </p>
-                          {directoryWarnings.map((w, i) => (
-                            <p key={i} className="text-[10px] text-amber-700">
-                              {w}
-                            </p>
-                          ))}
-                        </div>
-                      )}
-                      {Object.entries(studentDirectory).map(([tutorUsername, coursesDict]) => {
-                        const tutorKey = `tutor_${tutorUsername}`
-                        const isTutorOpen = foldersOpen[tutorKey]
-
-                        return (
-                          <div key={tutorUsername}>
-                            <button
-                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                              onClick={() =>
-                                setFoldersOpen(prev => ({ ...prev, [tutorKey]: !prev[tutorKey] }))
-                              }
-                            >
-                              {isTutorOpen ? (
-                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                              )}
-                              <Folder
-                                className="h-4 w-4 shrink-0 text-slate-400"
-                                fill="currentColor"
-                              />
-                              <span className="truncate text-sm font-medium text-slate-700">
-                                {tutorUsername}
-                              </span>
-                            </button>
-
-                            {isTutorOpen && (
-                              <div className="mt-1 flex flex-col gap-1 pl-4">
-                                {Object.entries(coursesDict).map(([courseName, courseData]) => {
-                                  const catKey = `cat_${tutorUsername}_${courseName}`
-                                  const isCatOpen = foldersOpen[catKey]
-                                  const isCurrentCategory =
-                                    sessionContext?.courseName === courseName &&
-                                    sessionContext?.tutorUsername &&
-                                    tutorUsername ===
-                                      `Tutor@${sessionContext.tutorUsername.replace(/\s+/g, '')}`
-
-                                  return (
-                                    <div key={courseName}>
-                                      <button
-                                        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                                        onClick={() =>
-                                          setFoldersOpen(prev => ({
-                                            ...prev,
-                                            [catKey]: !prev[catKey],
-                                          }))
-                                        }
-                                      >
-                                        {isCatOpen ? (
-                                          <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                                        ) : (
-                                          <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                                        )}
-                                        <Folder
-                                          className="h-4 w-4 shrink-0 text-indigo-400"
-                                          fill="currentColor"
-                                        />
-                                        <span className="truncate text-sm font-medium text-slate-700">
-                                          {courseName}
-                                        </span>
-                                      </button>
-
-                                      {isCatOpen && (
-                                        <div className="mt-1 flex flex-col gap-1 pl-4">
-                                          {/* 1. Tasks */}
-                                          <div>
-                                            <button
-                                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                                              onClick={() =>
-                                                setFoldersOpen(prev => ({
-                                                  ...prev,
-                                                  tasks: !prev.tasks,
-                                                }))
-                                              }
-                                            >
-                                              {foldersOpen.tasks ? (
-                                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                                              ) : (
-                                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                                              )}
-                                              <Folder
-                                                className="h-4 w-4 shrink-0 text-blue-400"
-                                                fill="currentColor"
-                                              />
-                                              <span className="text-sm font-medium text-slate-700">
-                                                Tasks
-                                              </span>
-                                              {unseenTaskIds.length > 0 && (
-                                                <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] text-white">
-                                                  {unseenTaskIds.length}
-                                                </span>
-                                              )}
-                                            </button>
-                                            {foldersOpen.tasks && (
-                                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                                {(!courseData.tasks ||
-                                                  courseData.tasks.length === 0) && (
-                                                  <span className="px-2 py-1 text-xs text-slate-500">
-                                                    Empty folder
-                                                  </span>
-                                                )}
-                                                {courseData.tasks &&
-                                                  [...courseData.tasks].reverse().map(task => (
-                                                    <button
-                                                      key={task.id}
-                                                      onClick={() =>
-                                                        handleSelectDirectoryItem(task)
-                                                      }
-                                                      className={cn(
-                                                        'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
-                                                        activeTaskId === (task.itemId || task.id)
-                                                          ? 'bg-blue-50 font-medium text-blue-700'
-                                                          : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
-                                                      )}
-                                                    >
-                                                      <FileText className="h-3.5 w-3.5 shrink-0" />
-                                                      <span className="truncate">{task.title}</span>
-                                                      {unseenTaskIds.includes(
-                                                        task.itemId || task.id
-                                                      ) && (
-                                                        <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
-                                                      )}
-                                                    </button>
-                                                  ))}
-                                              </div>
-                                            )}
-                                          </div>
-
-                                          {/* 2. Assessments */}
-                                          <div>
-                                            <button
-                                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                                              onClick={() =>
-                                                setFoldersOpen(prev => ({
-                                                  ...prev,
-                                                  assessments: !prev.assessments,
-                                                }))
-                                              }
-                                            >
-                                              {foldersOpen.assessments ? (
-                                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                                              ) : (
-                                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                                              )}
-                                              <Folder
-                                                className="h-4 w-4 shrink-0 text-purple-400"
-                                                fill="currentColor"
-                                              />
-                                              <span className="text-sm font-medium text-slate-700">
-                                                Assessments
-                                              </span>
-                                            </button>
-                                            {foldersOpen.assessments && (
-                                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                                {(!courseData.assessments ||
-                                                  courseData.assessments.length === 0) && (
-                                                  <span className="px-2 py-1 text-xs text-slate-500">
-                                                    Empty folder
-                                                  </span>
-                                                )}
-                                                {courseData.assessments &&
-                                                  [...courseData.assessments]
-                                                    .reverse()
-                                                    .map(task => (
-                                                      <button
-                                                        key={task.id}
-                                                        onClick={() =>
-                                                          handleSelectDirectoryItem(task)
-                                                        }
-                                                        className={cn(
-                                                          'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
-                                                          activeTaskId === (task.itemId || task.id)
-                                                            ? 'bg-purple-50 font-medium text-purple-700'
-                                                            : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
-                                                        )}
-                                                      >
-                                                        <FileText className="h-3.5 w-3.5 shrink-0 text-purple-400" />
-                                                        <span className="truncate">
-                                                          {task.title}
-                                                        </span>
-                                                      </button>
-                                                    ))}
-                                              </div>
-                                            )}
-                                          </div>
-
-                                          {/* 3. Homework */}
-                                          <div>
-                                            <button
-                                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                                              onClick={() => {
-                                                setFoldersOpen(prev => ({
-                                                  ...prev,
-                                                  homework: !prev.homework,
-                                                }))
-                                                // Mark homework as seen when folder is opened
-                                                setUnseenHomeworkIds([])
-                                                const hwNotifIds = Array.from(
-                                                  hwNotifMap.current.values()
-                                                )
-                                                if (hwNotifIds.length > 0) {
-                                                  void markNotificationsRead(hwNotifIds)
-                                                  hwNotifMap.current.clear()
-                                                }
-                                              }}
-                                            >
-                                              {foldersOpen.homework ? (
-                                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                                              ) : (
-                                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                                              )}
-                                              <Folder
-                                                className="h-4 w-4 shrink-0 text-emerald-400"
-                                                fill="currentColor"
-                                              />
-                                              <span className="text-sm font-medium text-slate-700">
-                                                Homework
-                                              </span>
-                                              {unseenHomeworkIds.length > 0 && (
-                                                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1.5 text-[10px] font-bold text-white">
-                                                  {unseenHomeworkIds.length}
-                                                </span>
-                                              )}
-                                            </button>
-                                            {foldersOpen.homework && (
-                                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                                {(!courseData.homework ||
-                                                  courseData.homework.length === 0) &&
-                                                  liveHomework.length === 0 && (
-                                                    <span className="px-2 py-1 text-xs text-slate-500">
-                                                      Empty folder
-                                                    </span>
-                                                  )}
-                                                {/* Directory homework */}
-                                                {courseData.homework &&
-                                                  [...courseData.homework].reverse().map(task => (
-                                                    <button
-                                                      key={task.id}
-                                                      onClick={() =>
-                                                        handleSelectDirectoryItem(task)
-                                                      }
-                                                      className={cn(
-                                                        'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
-                                                        activeTaskId === (task.itemId || task.id)
-                                                          ? 'bg-emerald-50 font-medium text-emerald-700'
-                                                          : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
-                                                      )}
-                                                    >
-                                                      <FileText className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
-                                                      <span className="truncate">{task.title}</span>
-                                                    </button>
-                                                  ))}
-                                                {/* Live homework from socket */}
-                                                {liveHomework.map(hw => (
-                                                  <button
-                                                    key={hw.id}
-                                                    onClick={() => handleSelectDirectoryItem(hw)}
-                                                    className={cn(
-                                                      'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
-                                                      activeTaskId === hw.id
-                                                        ? 'bg-emerald-50 font-medium text-emerald-700'
-                                                        : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
-                                                    )}
-                                                  >
-                                                    <FileText className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
-                                                    <span className="truncate">{hw.title}</span>
-                                                    {unseenHomeworkIds.includes(hw.id) && (
-                                                      <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
-                                                    )}
-                                                  </button>
-                                                ))}
-                                              </div>
-                                            )}
-                                          </div>
-
-                                          {/* 4. Reports */}
-                                          <div>
-                                            <button
-                                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                                              onClick={() =>
-                                                setFoldersOpen(prev => ({
-                                                  ...prev,
-                                                  reports: !prev.reports,
-                                                }))
-                                              }
-                                            >
-                                              {foldersOpen.reports ? (
-                                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                                              ) : (
-                                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                                              )}
-                                              <Folder
-                                                className="h-4 w-4 shrink-0 text-orange-400"
-                                                fill="currentColor"
-                                              />
-                                              <span className="text-sm font-medium text-slate-700">
-                                                Reports
-                                              </span>
-                                            </button>
-                                            {foldersOpen.reports && (
-                                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                                {(!courseData.reports ||
-                                                  courseData.reports.length === 0) && (
-                                                  <div className="flex flex-col gap-2 px-2 py-2">
-                                                    <span className="text-xs text-slate-500">
-                                                      No reports yet.
-                                                    </span>
-                                                    <Button
-                                                      variant="outline"
-                                                      size="sm"
-                                                      className="h-7 w-full justify-start text-xs"
-                                                      onClick={async () => {
-                                                        const cId =
-                                                          sessionContext?.courseId ||
-                                                          searchParams?.get('courseId') ||
-                                                          courseData.tasks?.[0]?.courseId ||
-                                                          courseData.recordedSessions?.[0]?.courseId
-                                                        if (!cId) {
-                                                          toast.error(
-                                                            'Could not determine course. Please try again.'
-                                                          )
-                                                          return
-                                                        }
-                                                        try {
-                                                          const res = await fetch(
-                                                            '/api/student/reports/request',
-                                                            {
-                                                              method: 'POST',
-                                                              headers: {
-                                                                'Content-Type': 'application/json',
-                                                              },
-                                                              body: JSON.stringify({
-                                                                courseId: cId,
-                                                                type: 'master',
-                                                              }),
-                                                            }
-                                                          )
-                                                          if (res.ok)
-                                                            toast.success(
-                                                              'Report request sent to tutor'
-                                                            )
-                                                          else
-                                                            toast.error('Failed to request report')
-                                                        } catch (e) {
-                                                          toast.error('An error occurred')
-                                                        }
-                                                      }}
-                                                    >
-                                                      Request Report
-                                                    </Button>
-                                                  </div>
-                                                )}
-                                                {courseData.reports &&
-                                                  [...courseData.reports]
-                                                    .reverse()
-                                                    .map(
-                                                      (report: {
-                                                        id: string
-                                                        title?: string
-                                                        status?: string
-                                                        score?: number
-                                                        content?: any
-                                                        createdAt?: string
-                                                      }) => (
-                                                        <button
-                                                          key={report.id}
-                                                          onClick={() => {
-                                                            setSelectedReport(report)
-                                                            setReportModalOpen(true)
-                                                          }}
-                                                          className="flex w-full items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100"
-                                                        >
-                                                          <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                                                          <span className="truncate text-xs font-medium text-slate-600">
-                                                            {report.title}
-                                                          </span>
-                                                        </button>
-                                                      )
-                                                    )}
-                                              </div>
-                                            )}
-                                          </div>
-
-                                          {/* 5. Recorded Sessions */}
-                                          <div>
-                                            <button
-                                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
-                                              onClick={() =>
-                                                setFoldersOpen(prev => ({
-                                                  ...prev,
-                                                  recordedSessions: !prev.recordedSessions,
-                                                }))
-                                              }
-                                            >
-                                              {foldersOpen.recordedSessions ? (
-                                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
-                                              ) : (
-                                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
-                                              )}
-                                              <Folder
-                                                className="h-4 w-4 shrink-0 text-rose-400"
-                                                fill="currentColor"
-                                              />
-                                              <span className="text-sm font-medium text-slate-700">
-                                                Recorded sessions
-                                              </span>
-                                            </button>
-                                            {foldersOpen.recordedSessions && (
-                                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
-                                                {(!courseData.recordedSessions ||
-                                                  courseData.recordedSessions.length === 0) && (
-                                                  <span className="px-2 py-1 text-xs text-slate-500">
-                                                    Empty folder
-                                                  </span>
-                                                )}
-                                                {courseData.recordedSessions &&
-                                                  [...courseData.recordedSessions]
-                                                    .reverse()
-                                                    .map(session => (
-                                                      <button
-                                                        key={session.id}
-                                                        onClick={() =>
-                                                          handleSelectDirectoryItem(session)
-                                                        }
-                                                        className={cn(
-                                                          'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
-                                                          activeTaskId ===
-                                                            (session.itemId || session.id)
-                                                            ? 'bg-rose-50 font-medium text-rose-700'
-                                                            : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
-                                                        )}
-                                                      >
-                                                        <Video className="h-3.5 w-3.5 shrink-0 text-rose-400" />
-                                                        <span className="truncate">
-                                                          {session.title}
-                                                        </span>
-                                                      </button>
-                                                    ))}
-                                              </div>
-                                            )}
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </>
+                  <div className="space-y-2">
+                  {tasks.length === 0 && (
+                    <p className="text-sm text-gray-500">No tasks deployed yet.</p>
                   )}
-                  {/* Legacy Assets Mapping - Fallback to Course Category root for now */}
-                  {courseAssets.length > 0 && (
-                    <div className="mt-4 flex flex-col gap-0.5">
-                      <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                        Shared Assets
+                  {[...tasks].reverse().map(task => (
+                    <button
+                      key={task.id}
+                      type="button"
+                      onClick={() => handleSelectTask(task.id)}
+                      className={`flex w-full flex-col gap-1 rounded-lg border px-3 py-2 text-left transition-colors ${
+                        activeTaskId === task.id
+                          ? 'border-blue-200 bg-blue-50'
+                          : 'border-gray-200 hover:border-blue-100 hover:bg-blue-50/40'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium text-gray-900">{task.title}</span>
+                        {unseenTaskIds.includes(task.id) && (
+                          <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
+                            New
+                          </span>
+                        )}
                       </div>
-                      {assetsLoading ? (
-                        <span className="flex items-center gap-2 px-2 py-1 text-xs text-slate-500">
-                          <Loader2 className="h-3 w-3 animate-spin" /> Loading...
-                        </span>
-                      ) : (
-                        courseAssets.map(asset => (
-                          <a
-                            key={asset.resourceId}
-                            href={asset.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
-                            title={asset.name}
-                          >
-                            <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                            <span className="truncate">{asset.name}</span>
-                          </a>
-                        ))
-                      )}
-                    </div>
-                  )}
+                      <span className="text-xs text-gray-500">
+                        Deployed {new Date(task.deployedAt).toLocaleTimeString()}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </ScrollArea>
 
@@ -1668,115 +1179,28 @@ function StudentFeedbackContent() {
               onValueChange={v => setActiveTab(v as 'task' | 'tutor-board')}
               className="flex h-full min-h-0 flex-1 flex-col"
             >
-              {(() => {
-                const controlRow = (
-                  <div className="sticky top-3 z-50 w-full px-4">
-                    <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center justify-between gap-3">
-                      <div className="flex flex-wrap items-center gap-2 rounded-full border border-slate-200 bg-white/85 px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.12)] backdrop-blur-md">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => setFollowTutor(!followTutor)}
-                          className={cn(
-                            'h-8 rounded-full px-3 text-xs font-semibold shadow-sm',
-                            followTutor
-                              ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                              : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              'mr-2 h-2 w-2 rounded-full',
-                              followTutor ? 'animate-pulse bg-white' : 'bg-slate-500'
-                            )}
-                          />
-                          {followTutor ? 'Following Tutor' : 'Follow Tutor'}
-                        </Button>
-
-                        <div
-                          className={cn(
-                            'flex h-8 items-center gap-2 rounded-full border px-3 text-xs font-semibold',
-                            isConnected
-                              ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                              : error
-                                ? 'border-red-200 bg-red-50 text-red-700'
-                                : 'border-slate-200 bg-slate-50 text-slate-700'
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              'h-2 w-2 rounded-full',
-                              isConnected ? 'bg-emerald-500' : error ? 'bg-red-500' : 'bg-slate-400'
-                            )}
-                          />
-                          {isConnected ? 'Connected' : error ? 'Disconnected' : 'Connecting'}
-                        </div>
-
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => setIsMirroringToTutor(!isMirroringToTutor)}
-                          className={cn(
-                            'h-8 rounded-full px-3 text-xs font-semibold shadow-sm',
-                            isMirroringToTutor
-                              ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                              : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                          )}
-                        >
-                          <div
-                            className={cn(
-                              'mr-2 h-2 w-2 rounded-full',
-                              isMirroringToTutor ? 'bg-white' : 'bg-slate-500'
-                            )}
-                          />
-                          {isMirroringToTutor ? 'Mirroring On' : 'Mirror to Tutor'}
-                        </Button>
-
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={!sessionContext?.roomUrl}
-                          onClick={() => {
-                            if (!sessionContext?.roomUrl) return
-                            openVideoOverlay({
-                              roomUrl: sessionContext.roomUrl,
-                              token: sessionContext.token,
-                              autoRecord: false,
-                            })
-                          }}
-                          className="h-8 gap-2 rounded-full px-3 text-xs font-semibold shadow-sm"
-                        >
-                          <Video className="h-4 w-4" />
-                          Video
-                        </Button>
-                      </div>
-
-                      <TabsList
-                        className={cn(
-                          'flex h-8 items-center gap-2 border-0 bg-transparent p-0 shadow-none transition-opacity',
-                          followTutor && 'pointer-events-none opacity-40'
-                        )}
-                        title={followTutor ? 'Unfollow tutor to switch tabs manually' : undefined}
-                      >
-                        <TabsTrigger
-                          value="task"
-                          className="h-8 rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=inactive]:text-[#1F2933]"
-                        >
-                          Classroom
-                        </TabsTrigger>
-                        <TabsTrigger
-                          value="tutor-board"
-                          className="h-8 rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=inactive]:text-[#1F2933]"
-                        >
-                          Tutor Board
-                        </TabsTrigger>
-                      </TabsList>
-                    </div>
-                  </div>
-                )
-
-                return portalTarget ? createPortal(controlRow, portalTarget) : controlRow
-              })()}
+              <div className="flex shrink-0 items-center justify-center px-4 pt-3">
+                <TabsList
+                  className={cn(
+                    'flex h-8 items-center gap-2 border-0 bg-transparent p-0 shadow-none transition-opacity',
+                    followTutor && 'pointer-events-none opacity-40'
+                  )}
+                  title={followTutor ? 'Unfollow tutor to switch tabs manually' : undefined}
+                >
+                  <TabsTrigger
+                    value="task"
+                    className="h-8 rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=inactive]:text-[#1F2933]"
+                  >
+                    Classroom
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="tutor-board"
+                    className="h-8 rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=inactive]:text-[#1F2933]"
+                  >
+                    Tutor Board
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent
                 value="task"
@@ -1959,6 +1383,89 @@ function StudentFeedbackContent() {
             >
               <div className="h-8 w-0.5 rounded-full bg-slate-300" />
             </div>
+
+            {/* Capsule */}
+            <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 px-3 py-2">
+              <div className="flex flex-wrap items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setFollowTutor(!followTutor)}
+                  className={cn(
+                    'h-8 rounded-full px-3 text-xs font-semibold shadow-sm',
+                    followTutor
+                      ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                      : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'mr-2 h-2 w-2 rounded-full',
+                      followTutor ? 'animate-pulse bg-white' : 'bg-slate-500'
+                    )}
+                  />
+                  {followTutor ? 'Following Tutor' : 'Follow Tutor'}
+                </Button>
+
+                <div
+                  className={cn(
+                    'flex h-8 items-center gap-2 rounded-full border px-3 text-xs font-semibold',
+                    isConnected
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : error
+                        ? 'border-red-200 bg-red-50 text-red-700'
+                        : 'border-slate-200 bg-slate-50 text-slate-700'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'h-2 w-2 rounded-full',
+                      isConnected ? 'bg-emerald-500' : error ? 'bg-red-500' : 'bg-slate-400'
+                    )}
+                  />
+                  {isConnected ? 'Connected' : error ? 'Disconnected' : 'Connecting'}
+                </div>
+
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setIsMirroringToTutor(!isMirroringToTutor)}
+                  className={cn(
+                    'h-8 rounded-full px-3 text-xs font-semibold shadow-sm',
+                    isMirroringToTutor
+                      ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                      : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'mr-2 h-2 w-2 rounded-full',
+                      isMirroringToTutor ? 'bg-white' : 'bg-slate-500'
+                    )}
+                  />
+                  {isMirroringToTutor ? 'Mirroring On' : 'Mirror to Tutor'}
+                </Button>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={!sessionContext?.roomUrl}
+                  onClick={() => {
+                    if (!sessionContext?.roomUrl) return
+                    openVideoOverlay({
+                      roomUrl: sessionContext.roomUrl,
+                      token: sessionContext.token,
+                      autoRecord: false,
+                    })
+                  }}
+                  className="h-8 gap-2 rounded-full px-3 text-xs font-semibold shadow-sm"
+                >
+                  <Video className="h-4 w-4" />
+                  Video
+                </Button>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
               <div className="flex w-full items-center gap-2 rounded-lg bg-gray-100 p-1">
                 <Button
@@ -2130,40 +1637,522 @@ function StudentFeedbackContent() {
             </div>
           </div>
 
-          <Sheet open={showTasksPanel} onOpenChange={setShowTasksPanel}>
+          <Sheet open={showDirectoryPanel} onOpenChange={setShowDirectoryPanel}>
             <SheetContent side="right" className="w-[340px] sm:w-[380px]">
               <SheetHeader>
-                <SheetTitle>Tasks & Assessments</SheetTitle>
+                <SheetTitle>Directory</SheetTitle>
               </SheetHeader>
-              <div className="mt-4 space-y-2">
-                {tasks.length === 0 && (
-                  <p className="text-sm text-gray-500">No tasks deployed yet.</p>
+              <ScrollArea className="mt-4 h-[calc(100vh-140px)]">
+              <div className="space-y-1">
+                {directoryLoading ? (
+                  <div className="flex justify-center px-2 py-8">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
+                  </div>
+                ) : directoryError ? (
+                  <div className="rounded-lg bg-red-50 px-2 py-4 text-center">
+                    <p className="text-xs font-medium text-red-700">Failed to load directory</p>
+                    <p className="mt-1 text-[11px] text-red-600">{directoryError}</p>
+                  </div>
+                ) : Object.keys(studentDirectory).length === 0 ? (
+                  <div className="px-2 py-4 text-center text-sm text-slate-500">
+                    No enrolled courses found.
+                  </div>
+                ) : (
+                  <>
+                    {directoryWarnings.length > 0 && (
+                      <div className="mb-2 rounded-md bg-amber-50 p-2">
+                        <p className="text-[11px] font-medium text-amber-800">
+                          Some items couldn&apos;t load:
+                        </p>
+                        {directoryWarnings.map((w, i) => (
+                          <p key={i} className="text-[10px] text-amber-700">
+                            {w}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                    {Object.entries(studentDirectory).map(([tutorUsername, coursesDict]) => {
+                      const tutorKey = `tutor_${tutorUsername}`
+                      const isTutorOpen = foldersOpen[tutorKey]
+
+                      return (
+                        <div key={tutorUsername}>
+                          <button
+                            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                            onClick={() =>
+                              setFoldersOpen(prev => ({ ...prev, [tutorKey]: !prev[tutorKey] }))
+                            }
+                          >
+                            {isTutorOpen ? (
+                              <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                            )}
+                            <Folder
+                              className="h-4 w-4 shrink-0 text-slate-400"
+                              fill="currentColor"
+                            />
+                            <span className="truncate text-sm font-medium text-slate-700">
+                              {tutorUsername}
+                            </span>
+                          </button>
+
+                          {isTutorOpen && (
+                            <div className="mt-1 flex flex-col gap-1 pl-4">
+                              {Object.entries(coursesDict).map(([courseName, courseData]) => {
+                                const catKey = `cat_${tutorUsername}_${courseName}`
+                                const isCatOpen = foldersOpen[catKey]
+                                const isCurrentCategory =
+                                  sessionContext?.courseName === courseName &&
+                                  sessionContext?.tutorUsername &&
+                                  tutorUsername ===
+                                    `Tutor@${sessionContext.tutorUsername.replace(/\s+/g, '')}`
+
+                                return (
+                                  <div key={courseName}>
+                                    <button
+                                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                      onClick={() =>
+                                        setFoldersOpen(prev => ({
+                                          ...prev,
+                                          [catKey]: !prev[catKey],
+                                        }))
+                                      }
+                                    >
+                                      {isCatOpen ? (
+                                        <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                      ) : (
+                                        <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                      )}
+                                      <Folder
+                                        className="h-4 w-4 shrink-0 text-indigo-400"
+                                        fill="currentColor"
+                                      />
+                                      <span className="truncate text-sm font-medium text-slate-700">
+                                        {courseName}
+                                      </span>
+                                    </button>
+
+                                    {isCatOpen && (
+                                      <div className="mt-1 flex flex-col gap-1 pl-4">
+                                        {/* 1. Tasks */}
+                                        <div>
+                                          <button
+                                            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                            onClick={() =>
+                                              setFoldersOpen(prev => ({
+                                                ...prev,
+                                                tasks: !prev.tasks,
+                                              }))
+                                            }
+                                          >
+                                            {foldersOpen.tasks ? (
+                                              <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                            ) : (
+                                              <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                            )}
+                                            <Folder
+                                              className="h-4 w-4 shrink-0 text-blue-400"
+                                              fill="currentColor"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700">
+                                              Tasks
+                                            </span>
+                                            {unseenTaskIds.length > 0 && (
+                                              <span className="ml-auto rounded-full bg-blue-600 px-1.5 py-0.5 text-[10px] text-white">
+                                                {unseenTaskIds.length}
+                                              </span>
+                                            )}
+                                          </button>
+                                          {foldersOpen.tasks && (
+                                            <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                              {(!courseData.tasks ||
+                                                courseData.tasks.length === 0) && (
+                                                <span className="px-2 py-1 text-xs text-slate-500">
+                                                  Empty folder
+                                                </span>
+                                              )}
+                                              {courseData.tasks &&
+                                                [...courseData.tasks].reverse().map(task => (
+                                                  <button
+                                                    key={task.id}
+                                                    onClick={() =>
+                                                      handleSelectDirectoryItem(task)
+                                                    }
+                                                    className={cn(
+                                                      'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                      activeTaskId === (task.itemId || task.id)
+                                                        ? 'bg-blue-50 font-medium text-blue-700'
+                                                        : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+                                                    )}
+                                                  >
+                                                    <FileText className="h-3.5 w-3.5 shrink-0" />
+                                                    <span className="truncate">{task.title}</span>
+                                                    {unseenTaskIds.includes(
+                                                      task.itemId || task.id
+                                                    ) && (
+                                                      <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                                                    )}
+                                                  </button>
+                                                ))}
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* 2. Assessments */}
+                                        <div>
+                                          <button
+                                            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                            onClick={() =>
+                                              setFoldersOpen(prev => ({
+                                                ...prev,
+                                                assessments: !prev.assessments,
+                                              }))
+                                            }
+                                          >
+                                            {foldersOpen.assessments ? (
+                                              <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                            ) : (
+                                              <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                            )}
+                                            <Folder
+                                              className="h-4 w-4 shrink-0 text-purple-400"
+                                              fill="currentColor"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700">
+                                              Assessments
+                                            </span>
+                                          </button>
+                                          {foldersOpen.assessments && (
+                                            <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                              {(!courseData.assessments ||
+                                                courseData.assessments.length === 0) && (
+                                                <span className="px-2 py-1 text-xs text-slate-500">
+                                                  Empty folder
+                                                </span>
+                                              )}
+                                              {courseData.assessments &&
+                                                [...courseData.assessments]
+                                                  .reverse()
+                                                  .map(task => (
+                                                    <button
+                                                      key={task.id}
+                                                      onClick={() =>
+                                                        handleSelectDirectoryItem(task)
+                                                      }
+                                                      className={cn(
+                                                        'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                        activeTaskId === (task.itemId || task.id)
+                                                          ? 'bg-purple-50 font-medium text-purple-700'
+                                                          : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+                                                      )}
+                                                    >
+                                                      <FileText className="h-3.5 w-3.5 shrink-0 text-purple-400" />
+                                                      <span className="truncate">
+                                                        {task.title}
+                                                      </span>
+                                                    </button>
+                                                  ))}
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* 3. Homework */}
+                                        <div>
+                                          <button
+                                            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                            onClick={() => {
+                                              setFoldersOpen(prev => ({
+                                                ...prev,
+                                                homework: !prev.homework,
+                                              }))
+                                              // Mark homework as seen when folder is opened
+                                              setUnseenHomeworkIds([])
+                                              const hwNotifIds = Array.from(
+                                                hwNotifMap.current.values()
+                                              )
+                                              if (hwNotifIds.length > 0) {
+                                                void markNotificationsRead(hwNotifIds)
+                                                hwNotifMap.current.clear()
+                                              }
+                                            }}
+                                          >
+                                            {foldersOpen.homework ? (
+                                              <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                            ) : (
+                                              <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                            )}
+                                            <Folder
+                                              className="h-4 w-4 shrink-0 text-emerald-400"
+                                              fill="currentColor"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700">
+                                              Homework
+                                            </span>
+                                            {unseenHomeworkIds.length > 0 && (
+                                              <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1.5 text-[10px] font-bold text-white">
+                                                {unseenHomeworkIds.length}
+                                              </span>
+                                            )}
+                                          </button>
+                                          {foldersOpen.homework && (
+                                            <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                              {(!courseData.homework ||
+                                                courseData.homework.length === 0) &&
+                                                liveHomework.length === 0 && (
+                                                  <span className="px-2 py-1 text-xs text-slate-500">
+                                                    Empty folder
+                                                  </span>
+                                                )}
+                                              {/* Directory homework */}
+                                              {courseData.homework &&
+                                                [...courseData.homework].reverse().map(task => (
+                                                  <button
+                                                    key={task.id}
+                                                    onClick={() =>
+                                                      handleSelectDirectoryItem(task)
+                                                    }
+                                                    className={cn(
+                                                      'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                      activeTaskId === (task.itemId || task.id)
+                                                        ? 'bg-emerald-50 font-medium text-emerald-700'
+                                                        : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+                                                    )}
+                                                  >
+                                                    <FileText className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                                                    <span className="truncate">{task.title}</span>
+                                                  </button>
+                                                ))}
+                                              {/* Live homework from socket */}
+                                              {liveHomework.map(hw => (
+                                                <button
+                                                  key={hw.id}
+                                                  onClick={() => handleSelectDirectoryItem(hw)}
+                                                  className={cn(
+                                                    'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                    activeTaskId === hw.id
+                                                      ? 'bg-emerald-50 font-medium text-emerald-700'
+                                                      : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+                                                  )}
+                                                >
+                                                  <FileText className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                                                  <span className="truncate">{hw.title}</span>
+                                                  {unseenHomeworkIds.includes(hw.id) && (
+                                                    <div className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                                                  )}
+                                                </button>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* 4. Reports */}
+                                        <div>
+                                          <button
+                                            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                            onClick={() =>
+                                              setFoldersOpen(prev => ({
+                                                ...prev,
+                                                reports: !prev.reports,
+                                              }))
+                                            }
+                                          >
+                                            {foldersOpen.reports ? (
+                                              <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                            ) : (
+                                              <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                            )}
+                                            <Folder
+                                              className="h-4 w-4 shrink-0 text-orange-400"
+                                              fill="currentColor"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700">
+                                              Reports
+                                            </span>
+                                          </button>
+                                          {foldersOpen.reports && (
+                                            <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                              {(!courseData.reports ||
+                                                courseData.reports.length === 0) && (
+                                                <div className="flex flex-col gap-2 px-2 py-2">
+                                                  <span className="text-xs text-slate-500">
+                                                    No reports yet.
+                                                  </span>
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-7 w-full justify-start text-xs"
+                                                    onClick={async () => {
+                                                      const cId =
+                                                        sessionContext?.courseId ||
+                                                        searchParams?.get('courseId') ||
+                                                        courseData.tasks?.[0]?.courseId ||
+                                                        courseData.recordedSessions?.[0]?.courseId
+                                                      if (!cId) {
+                                                        toast.error(
+                                                          'Could not determine course. Please try again.'
+                                                        )
+                                                        return
+                                                      }
+                                                      try {
+                                                        const res = await fetch(
+                                                          '/api/student/reports/request',
+                                                          {
+                                                            method: 'POST',
+                                                            headers: {
+                                                              'Content-Type': 'application/json',
+                                                            },
+                                                            body: JSON.stringify({
+                                                              courseId: cId,
+                                                              type: 'master',
+                                                            }),
+                                                          }
+                                                        )
+                                                        if (res.ok)
+                                                          toast.success(
+                                                            'Report request sent to tutor'
+                                                          )
+                                                        else
+                                                          toast.error('Failed to request report')
+                                                      } catch (e) {
+                                                        toast.error('An error occurred')
+                                                      }
+                                                    }}
+                                                  >
+                                                    Request Report
+                                                  </Button>
+                                                </div>
+                                              )}
+                                              {courseData.reports &&
+                                                [...courseData.reports]
+                                                  .reverse()
+                                                  .map(
+                                                    (report: {
+                                                      id: string
+                                                      title?: string
+                                                      status?: string
+                                                      score?: number
+                                                      content?: any
+                                                      createdAt?: string
+                                                    }) => (
+                                                      <button
+                                                        key={report.id}
+                                                        onClick={() => {
+                                                          setSelectedReport(report)
+                                                          setReportModalOpen(true)
+                                                        }}
+                                                        className="flex w-full items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-100"
+                                                      >
+                                                        <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                                                        <span className="truncate text-xs font-medium text-slate-600">
+                                                          {report.title}
+                                                        </span>
+                                                      </button>
+                                                    )
+                                                  )}
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        {/* 5. Recorded Sessions */}
+                                        <div>
+                                          <button
+                                            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                            onClick={() =>
+                                              setFoldersOpen(prev => ({
+                                                ...prev,
+                                                recordedSessions: !prev.recordedSessions,
+                                              }))
+                                            }
+                                          >
+                                            {foldersOpen.recordedSessions ? (
+                                              <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                            ) : (
+                                              <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                            )}
+                                            <Folder
+                                              className="h-4 w-4 shrink-0 text-rose-400"
+                                              fill="currentColor"
+                                            />
+                                            <span className="text-sm font-medium text-slate-700">
+                                              Recorded sessions
+                                            </span>
+                                          </button>
+                                          {foldersOpen.recordedSessions && (
+                                            <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                              {(!courseData.recordedSessions ||
+                                                courseData.recordedSessions.length === 0) && (
+                                                <span className="px-2 py-1 text-xs text-slate-500">
+                                                  Empty folder
+                                                </span>
+                                              )}
+                                              {courseData.recordedSessions &&
+                                                [...courseData.recordedSessions]
+                                                  .reverse()
+                                                  .map(session => (
+                                                    <button
+                                                      key={session.id}
+                                                      onClick={() =>
+                                                        handleSelectDirectoryItem(session)
+                                                      }
+                                                      className={cn(
+                                                        'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                        activeTaskId ===
+                                                          (session.itemId || session.id)
+                                                          ? 'bg-rose-50 font-medium text-rose-700'
+                                                          : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+                                                      )}
+                                                    >
+                                                      <Video className="h-3.5 w-3.5 shrink-0 text-rose-400" />
+                                                      <span className="truncate">
+                                                        {session.title}
+                                                      </span>
+                                                    </button>
+                                                  ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </>
                 )}
-                {[...tasks].reverse().map(task => (
-                  <button
-                    key={task.id}
-                    type="button"
-                    onClick={() => handleSelectTask(task.id)}
-                    className={`flex w-full flex-col gap-1 rounded-lg border px-3 py-2 text-left transition-colors ${
-                      activeTaskId === task.id
-                        ? 'border-blue-200 bg-blue-50'
-                        : 'border-gray-200 hover:border-blue-100 hover:bg-blue-50/40'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium text-gray-900">{task.title}</span>
-                      {unseenTaskIds.includes(task.id) && (
-                        <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] text-white">
-                          New
-                        </span>
-                      )}
+                {/* Legacy Assets Mapping - Fallback to Course Category root for now */}
+                {courseAssets.length > 0 && (
+                  <div className="mt-4 flex flex-col gap-0.5">
+                    <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                      Shared Assets
                     </div>
-                    <span className="text-xs text-gray-500">
-                      Deployed {new Date(task.deployedAt).toLocaleTimeString()}
-                    </span>
-                  </button>
-                ))}
+                    {assetsLoading ? (
+                      <span className="flex items-center gap-2 px-2 py-1 text-xs text-slate-500">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Loading...
+                      </span>
+                    ) : (
+                      courseAssets.map(asset => (
+                        <a
+                          key={asset.resourceId}
+                          href={asset.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                          title={asset.name}
+                        >
+                          <FileText className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                          <span className="truncate">{asset.name}</span>
+                        </a>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
+              </ScrollArea>
             </SheetContent>
           </Sheet>
 
