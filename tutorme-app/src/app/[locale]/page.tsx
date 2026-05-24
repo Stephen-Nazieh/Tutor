@@ -1204,14 +1204,14 @@ const CountdownTimer = () => {
     { value: timeLeft.seconds, label: 'SECONDS' },
   ]
   return (
-    <div className="font-display flex items-start justify-center gap-3 md:gap-4">
+    <div className="font-display flex items-start justify-center gap-2 md:gap-3">
       {units.map((unit, i) => (
         <React.Fragment key={unit.label}>
           <div className="flex flex-col items-center">
             <div className="text-3xl font-bold tabular-nums leading-none text-white md:text-4xl">
               {unit.value.toString().padStart(2, '0')}
             </div>
-            <div className="mt-1 text-[10px] uppercase tracking-wider text-white/60">
+            <div className="mt-1 text-[9px] uppercase tracking-wider text-white/60 md:text-[10px]">
               {unit.label}
             </div>
           </div>
@@ -2948,7 +2948,7 @@ export default function LandingPage() {
 
           {/* Bottom-right stats + countdown card */}
           <div className="absolute bottom-6 right-6 z-10">
-            <div className="w-[280px] rounded-2xl border border-white/20 bg-white/10 p-5 shadow-lg backdrop-blur-xl md:w-[320px]">
+            <div className="w-[300px] rounded-2xl border border-white/20 bg-white/10 px-6 py-5 shadow-lg backdrop-blur-xl sm:w-[360px] md:w-[400px] md:px-8 md:py-6">
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-white/90">
                   <Users className="h-4 w-4" />
