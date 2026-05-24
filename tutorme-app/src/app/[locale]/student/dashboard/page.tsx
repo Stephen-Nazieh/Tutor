@@ -131,7 +131,7 @@ export default function StudentDashboard() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="bg-background text-foreground min-h-screen" style={themeStyle}>
+      <div className="text-foreground min-h-screen" style={themeStyle}>
         <DashboardSkeleton loadingLabel={strings.loadingDashboard} />
       </div>
     )
@@ -186,9 +186,9 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="text-foreground min-h-screen bg-[#FFFFFF]">
+    <div className="text-foreground min-h-screen">
       {/* Main Content */}
-      <main className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8" aria-busy={loading}>
+      <main className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8" aria-busy={loading}>
         {fetchError && (
           <div
             role="alert"
