@@ -36,6 +36,7 @@ interface VariantScheduleEditorProps {
   weeksToSchedule?: number
   onWeeksChange?: (weeks: number) => void
   onWheelScroll?: (deltaY: number) => void
+  allVariantsSchedules?: ScheduleItem[][]
 }
 
 const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -105,6 +106,7 @@ export function VariantScheduleEditor({
   weeksToSchedule = 8,
   onWeeksChange,
   onWheelScroll,
+  allVariantsSchedules,
 }: VariantScheduleEditorProps) {
   const calendarScrollRef = useRef<HTMLDivElement>(null)
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
@@ -238,9 +240,26 @@ export function VariantScheduleEditor({
         }
       }
 
+      // 5. Check other variants for same day/time conflict
+      for (const otherSchedule of allVariantsSchedules ?? []) {
+        for (const s of otherSchedule) {
+          if (!s || s.dayOfWeek !== day) continue
+          // If the other slot has a specific date, only conflict on that exact date
+          if (s.date && s.date !== dateKey) continue
+          const [sh, sm] = (s.startTime || '00:00').split(':').map(Number)
+          const sStartM = sh * 60 + sm
+          const sEndM = sStartM + (s.durationMinutes || 60)
+          const cellStartM = timeToMinutes(timeStr)
+          const cellEndM = cellStartM + durationMinutes
+          if (cellStartM < sEndM && cellEndM > sStartM) {
+            return { available: false, reason: 'Already scheduled in another variant' }
+          }
+        }
+      }
+
       return { available: true, reason: '' }
     },
-    [availabilityData]
+    [availabilityData, allVariantsSchedules]
   )
 
   const effectiveWeeks =

@@ -742,6 +742,13 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                     onWheelScroll={deltaY => {
                       modalContentRef.current?.scrollBy({ top: deltaY, behavior: 'auto' })
                     }}
+                    allVariantsSchedules={
+                      scheduleDialogIndex != null
+                        ? variants
+                            .filter((_, i) => i !== scheduleDialogIndex)
+                            .map(v => (Array.isArray(v.schedule) ? v.schedule : []))
+                        : undefined
+                    }
                   />
                 </div>
               )}
