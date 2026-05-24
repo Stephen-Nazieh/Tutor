@@ -41,7 +41,6 @@ import {
   QrCode,
   Users,
   User,
-  Bot,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -1527,72 +1526,42 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
       }}
     >
       <div className="mx-auto w-full max-w-[1400px] px-8 py-10">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
-          <div className="flex flex-wrap items-center gap-4 lg:col-span-4">
-            <Select
-              value={selectedRegion}
-              onValueChange={value => {
-                setSelectedRegion(value)
-                setSelectedCountryCode('')
-              }}
-            >
-              <SelectTrigger className="h-11 w-[170px] rounded-full border border-white/60 bg-white/90 shadow-[0_10px_26px_rgba(0,0,0,0.12)]">
-                <SelectValue placeholder="Region" />
-              </SelectTrigger>
-              <SelectContent>
-                {REGIONS.map(region => (
-                  <SelectItem key={region.id} value={region.id}>
-                    {region.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          <Select
+            value={selectedRegion}
+            onValueChange={value => {
+              setSelectedRegion(value)
+              setSelectedCountryCode('')
+            }}
+          >
+            <SelectTrigger className="h-11 w-[170px] rounded-full border border-white/60 bg-white/90 shadow-[0_10px_26px_rgba(0,0,0,0.12)]">
+              <SelectValue placeholder="Region" />
+            </SelectTrigger>
+            <SelectContent>
+              {REGIONS.map(region => (
+                <SelectItem key={region.id} value={region.id}>
+                  {region.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            <Select
-              value={selectedCountryCode}
-              onValueChange={setSelectedCountryCode}
-              disabled={!selectedRegion}
-            >
-              <SelectTrigger className="h-11 w-[170px] rounded-full border border-white/60 bg-white/90 shadow-[0_10px_26px_rgba(0,0,0,0.12)]">
-                <SelectValue placeholder="Country" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCountries.map(country => (
-                  <SelectItem key={country.code} value={country.code}>
-                    {country.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="lg:col-span-8">
-            <div className="mx-auto flex w-full max-w-[720px] flex-col gap-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                <Bot className="h-4 w-4" />
-                AI Assistant
-              </div>
-              <div className="min-h-[44px] text-xs leading-relaxed text-slate-600">
-                {q
-                  ? `Showing results for “${q}”. Tap a course or tutor to refine recommendations.`
-                  : 'Browse popular tutors and courses. Tap a card to view details.'}
-              </div>
-              <div className="flex h-11 w-full items-center rounded-full bg-white shadow-[0_12px_30px_rgba(0,0,0,0.16)]">
-                <input
-                  type="text"
-                  placeholder="Ask the assistant..."
-                  className="h-full flex-1 rounded-full bg-transparent px-5 text-sm text-slate-700 outline-none placeholder:text-slate-400"
-                />
-                <button
-                  type="button"
-                  className="mr-2 inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#1D4ED8] text-white"
-                  aria-label="Send"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
+          <Select
+            value={selectedCountryCode}
+            onValueChange={setSelectedCountryCode}
+            disabled={!selectedRegion}
+          >
+            <SelectTrigger className="h-11 w-[170px] rounded-full border border-white/60 bg-white/90 shadow-[0_10px_26px_rgba(0,0,0,0.12)]">
+              <SelectValue placeholder="Country" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableCountries.map(country => (
+                <SelectItem key={country.code} value={country.code}>
+                  {country.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="mt-8 space-y-10">
