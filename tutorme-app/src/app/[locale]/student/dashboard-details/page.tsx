@@ -75,7 +75,7 @@ export default function StudentDashboardDetails() {
       }
 
       const [contentData, recsData, subjectsData, reviewsData] = await Promise.all(
-        responses.map(r => r.json())
+        responses.map(r => (r.ok ? r.json() : Promise.resolve({})))
       )
 
       const subjects = subjectsData?.subjects ?? []
