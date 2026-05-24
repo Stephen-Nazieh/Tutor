@@ -52,7 +52,7 @@ import { ModernHeroSection } from './components/ModernHeroSection'
 
 function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 px-8 pb-3 pt-8">
+    <div className="min-h-screen">
       <div className="w-full space-y-6">
         <div className="h-8 w-1/3 animate-pulse rounded bg-gray-200" />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -579,8 +579,8 @@ function TutorDashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto w-full px-4 pb-3 pt-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen">
+      <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8">
         {/* Modern Hero Section */}
         <div className="mb-8">
           <ModernHeroSection
@@ -609,7 +609,7 @@ function TutorDashboardContent() {
 
         {/* Dashboard Stats */}
         <div className="mb-8 space-y-4">
-          <Card className="border-border bg-card/95 border shadow-xl backdrop-blur-md">
+          <Card className="overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 gap-6 divide-y divide-gray-100 md:grid-cols-2 md:divide-x md:divide-y-0">
                 <div className="py-2 text-center md:py-0">
@@ -627,7 +627,7 @@ function TutorDashboardContent() {
 
         {/* 1-on-1 Requests */}
         <div className="mb-8">
-          <Card className="border-border bg-card/95 border shadow-xl backdrop-blur-md">
+          <Card className="overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
             <CardHeader className="flex flex-row items-center justify-between gap-3">
               <div>
                 <CardTitle>1-on-1 Requests</CardTitle>
@@ -718,7 +718,7 @@ function TutorDashboardContent() {
               />
             </TabsContent>
             <TabsContent value="courses">
-              <Card className="border-border bg-card/95 border shadow-xl backdrop-blur-md">
+              <Card className="overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
                 <CardHeader>
                   <CardTitle>Courses With Enrolled Students</CardTitle>
                 </CardHeader>

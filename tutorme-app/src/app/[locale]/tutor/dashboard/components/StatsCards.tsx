@@ -47,12 +47,12 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
 
   return (
     <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-      <Card className="border border-slate-200 shadow-lg">
+      <Card className="overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Total Classes</p>
-              <p className="text-3xl font-bold">{stats.totalClasses}</p>
+              <p className="text-sm text-slate-500">Total Classes</p>
+              <p className="text-3xl font-bold text-slate-800">{stats.totalClasses}</p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
               <Calendar className="h-6 w-6 text-blue-600" />
@@ -61,12 +61,12 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
         </CardContent>
       </Card>
 
-      <Card className="border border-slate-200 shadow-lg">
+      <Card className="overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Total Students</p>
-              <p className="text-3xl font-bold">{stats.totalStudents}</p>
+              <p className="text-sm text-slate-500">Total Students</p>
+              <p className="text-3xl font-bold text-slate-800">{stats.totalStudents}</p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
               <Users className="h-6 w-6 text-green-600" />
@@ -75,17 +75,17 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
         </CardContent>
       </Card>
 
-      <Card className="border border-slate-200 shadow-lg">
+      <Card className="overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
               <p
-                className="text-sm text-gray-500"
+                className="text-sm text-slate-500"
                 title="Scheduled (any future date) and currently active sessions"
               >
                 Upcoming
               </p>
-              <p className="text-3xl font-bold">{stats.upcomingClasses}</p>
+              <p className="text-3xl font-bold text-slate-800">{stats.upcomingClasses}</p>
             </div>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
               <TrendingUp className="h-6 w-6 text-orange-600" />
@@ -94,12 +94,12 @@ export function StatsCards({ stats, loading }: StatsCardsProps) {
         </CardContent>
       </Card>
 
-      <Card className="border border-slate-200 shadow-lg">
+      <Card className="overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">Earnings</p>
-              <p className="text-3xl font-bold">
+              <p className="text-sm text-slate-500">Earnings</p>
+              <p className="text-3xl font-bold text-slate-800">
                 {formatEarnings(stats.earnings, stats.currency ?? 'SGD')}
               </p>
             </div>

@@ -37,8 +37,7 @@ export function GlassCard({
   return (
     <Card
       className={cn(
-        'overflow-hidden border bg-white/80 backdrop-blur-xl',
-        gradient !== 'none' && `bg-gradient-to-br ${gradientStyles[gradient]}`,
+        'overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] shadow-[0_8px_24px_rgba(0,0,0,0.10)]',
         className
       )}
     >

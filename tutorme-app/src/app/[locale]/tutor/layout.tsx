@@ -133,12 +133,12 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       >
         <div
           className={cn(
-            'z-40 hidden h-full flex-col rounded-2xl bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)] ring-1 ring-black/5 transition-all duration-300 lg:ml-4 lg:flex',
+            'fixed bottom-4 left-4 top-4 z-40 hidden flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-300 lg:flex',
             desktopNavOpen ? 'w-60' : 'w-0 overflow-hidden ring-0'
           )}
         >
           <div className="flex h-full w-60 flex-col">
-            <div className="flex min-w-[240px] shrink-0 items-center justify-between p-4">
+            <div className="flex min-w-[240px] shrink-0 items-center justify-between px-4 py-2">
               <div className="flex items-center gap-2">
                 <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
               </div>
@@ -152,7 +152,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
 
-            <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto p-4">
+            <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 pt-2 pb-4">
               {navItems.map(item => {
                 const Icon = item.icon
                 const href =
@@ -180,7 +180,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
               })}
             </nav>
 
-            <div className="shrink-0 space-y-1 p-4">
+            <div className="shrink-0 space-y-1 px-4 pb-4">
               {bottomNavItems.map(item => {
                 const Icon = item.icon
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -281,7 +281,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* Main Content */}
-      <main className="h-screen flex-1 overflow-hidden pt-16 lg:pt-0">
+      <main className="h-screen flex-1 overflow-hidden pt-4 pb-4">
         <div className="h-full overflow-y-auto">{children}</div>
       </main>
     </div>

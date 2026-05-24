@@ -117,7 +117,7 @@ export function ModernHeroSection({
 
   if (loading) {
     return (
-      <div className="from-background via-secondary to-card relative overflow-hidden rounded-3xl bg-gradient-to-br p-8">
+      <div className="relative overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] p-8 shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
         <div className="animate-pulse space-y-4">
           <div className="bg-muted h-8 w-1/3 rounded" />
           <div className="bg-muted/70 h-4 w-1/4 rounded" />
@@ -132,22 +132,15 @@ export function ModernHeroSection({
   }
 
   return (
-    <div className="border-border from-background via-secondary to-card relative overflow-hidden rounded-3xl border bg-gradient-to-br p-8 shadow-2xl">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-40">
-        <div className="bg-primary/20 absolute left-0 top-0 h-96 w-96 animate-pulse rounded-full opacity-50 mix-blend-multiply blur-[100px] filter" />
-        <div className="bg-accent/40 absolute right-0 top-0 h-96 w-96 animate-pulse rounded-full opacity-50 mix-blend-multiply blur-[100px] filter delay-1000" />
-        <div className="delay-2000 bg-secondary/40 absolute bottom-0 left-1/2 h-96 w-96 animate-pulse rounded-full opacity-50 mix-blend-multiply blur-[100px] filter" />
-      </div>
-
+    <div className="relative overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] p-8 shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
       {/* Content */}
-      <div className="relative z-10">
+      <div>
         {/* Header Row */}
-        <div className="mb-8 flex items-start justify-between">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-6">
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <Sparkles className="text-primary h-5 w-5" />
-              <span className="text-muted-foreground text-sm font-medium">
+              <Sparkles className="h-5 w-5 text-slate-500" />
+              <span className="text-sm font-medium text-slate-500">
                 {greeting}, @
                 {username ??
                   session?.user?.name ??
@@ -155,15 +148,15 @@ export function ModernHeroSection({
                   'username'}
               </span>
             </div>
-            <h1 className="text-foreground mb-2 text-4xl font-bold">Welcome Back!</h1>
-            <p className="text-muted-foreground">
+            <h1 className="mb-2 text-4xl font-bold text-slate-800">Welcome Back!</h1>
+            <p className="text-slate-500">
               {formatDate(currentTime)} • {formatTime(currentTime)}
             </p>
           </div>
         </div>
 
         {/* One Week Calendar Schedule */}
-        <div className="border-border bg-card/70 mb-8 grid grid-cols-7 gap-2 rounded-2xl border p-4 shadow-2xl backdrop-blur-md">
+        <div className="mb-8 grid grid-cols-7 gap-2 rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] p-4 shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
           {Array.from({ length: 7 }, (_, i) => {
             const d = new Date(currentTime)
             d.setDate(currentTime.getDate() + i)
@@ -176,15 +169,15 @@ export function ModernHeroSection({
                 onClick={() => handleDayClick(d)}
                 className="hover:bg-accent/40 group flex cursor-pointer flex-col items-center justify-center rounded-xl p-2 transition-colors"
               >
-                <span className="text-muted-foreground mb-1 text-xs font-medium">
+                <span className="mb-1 text-xs font-medium text-slate-500">
                   {d.toLocaleDateString('en-US', { weekday: 'short' })}
                 </span>
                 <span
                   className={cn(
                     'mt-1 flex h-8 w-8 items-center justify-center rounded-full text-lg font-bold',
                     i === 0
-                      ? 'bg-primary text-primary-foreground shadow-primary/30 shadow-md'
-                      : 'text-foreground group-hover:bg-accent/30'
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                      : 'text-slate-700 group-hover:bg-indigo-50'
                   )}
                 >
                   {d.getDate()}
@@ -192,18 +185,18 @@ export function ModernHeroSection({
                 {/* Show class times instead of dots */}
                 <div className="mt-2 flex flex-col items-center gap-0.5">
                   {dayClasses.slice(0, 1).map((cls, idx) => (
-                    <span key={idx} className="text-primary text-[10px] font-medium">
+                    <span key={idx} className="text-[10px] font-medium text-indigo-600">
                       {cls.time}
                     </span>
                   ))}
                   {dayClasses.length > 1 && (
-                    <span className="text-muted-foreground text-[8px]">
+                    <span className="text-[8px] text-slate-500">
                       +{dayClasses.length - 1} more
                     </span>
                   )}
                   {!hasClasses && (
                     <div className="flex h-1.5 gap-1">
-                      <div className="bg-muted-foreground/60 h-1.5 w-1.5 rounded-full" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-slate-200" />
                     </div>
                   )}
                 </div>
@@ -261,8 +254,7 @@ export function ModernHeroSection({
         {/* Action Bar */}
         <div className="flex flex-wrap items-center gap-4">
           <Button
-            variant="outline"
-            className="border-border bg-card/60 text-foreground hover:bg-muted/60"
+            className="bg-[#1F2933] text-white hover:bg-[#2d3748]"
             onClick={() => toast.info('Coming soon...')}
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -270,7 +262,7 @@ export function ModernHeroSection({
           </Button>
           <Button
             variant="outline"
-            className="border-border bg-card/60 text-foreground hover:bg-muted/60"
+            className="border-slate-200 text-slate-700 hover:bg-slate-50"
             onClick={() => toast.info('Coming soon...')}
           >
             <Video className="mr-2 h-4 w-4" />
@@ -301,13 +293,7 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, label, value, sublabel, trend, trendUp, color }: StatCardProps) {
   return (
-    <div className="border-border bg-card/70 hover:bg-muted/60 group relative cursor-pointer overflow-hidden rounded-2xl border p-4 shadow-2xl backdrop-blur-md transition-all">
-      <div
-        className={cn(
-          'absolute right-0 top-0 h-20 w-20 rounded-bl-full bg-gradient-to-br opacity-20',
-          color
-        )}
-      />
+    <div className="group relative cursor-pointer overflow-hidden rounded-[18px] border border-[rgba(0,0,0,0.05)] bg-[#FFFFFF] p-4 shadow-[0_8px_24px_rgba(0,0,0,0.10)] transition-all hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
       <div className="relative">
         <div
           className={cn(
@@ -315,17 +301,17 @@ function StatCard({ icon: Icon, label, value, sublabel, trend, trendUp, color }:
             color
           )}
         >
-          <Icon className="text-primary-foreground h-5 w-5" />
+          <Icon className="h-5 w-5 text-white" />
         </div>
-        <p className="text-muted-foreground mb-1 text-xs font-medium">{label}</p>
+        <p className="mb-1 text-xs font-medium text-slate-500">{label}</p>
         <div className="flex items-end justify-between">
-          <p className="text-foreground text-2xl font-bold">{value}</p>
-          {sublabel && <p className="text-muted-foreground text-xs">{sublabel}</p>}
+          <p className="text-2xl font-bold text-slate-800">{value}</p>
+          {sublabel && <p className="text-xs text-slate-500">{sublabel}</p>}
           {trend && (
             <div
               className={cn(
                 'flex items-center text-xs font-medium',
-                trendUp ? 'text-primary' : 'text-destructive'
+                trendUp ? 'text-indigo-600' : 'text-red-500'
               )}
             >
               <TrendingUp className={cn('mr-0.5 h-3 w-3', !trendUp && 'rotate-180')} />
