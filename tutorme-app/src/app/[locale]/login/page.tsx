@@ -91,8 +91,16 @@ function LoginForm() {
         }
         router.refresh()
       }
-    } catch {
-      setError('An error occurred. Please try again.')
+    } catch (err: any) {
+      console.error('[Login] Unexpected error:', err)
+      const msg = err?.message || String(err)
+      if (msg.includes('fetch') || msg.includes('network')) {
+        setError('Network error. Please check your connection and try again.')
+      } else if (msg.includes('timeout') || msg.includes('aborted')) {
+        setError('Request timed out. The server may be busy. Please try again.')
+      } else {
+        setError(`An error occurred: ${msg.slice(0, 120)}`)
+      }
     } finally {
       setIsLoading(false)
     }
