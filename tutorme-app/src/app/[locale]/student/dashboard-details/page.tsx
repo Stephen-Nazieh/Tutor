@@ -46,36 +46,29 @@ export default function StudentDashboardDetails() {
 
     try {
       const responses = await Promise.all([
-        fetch('/api/content').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ contents: [] }),
-        })),
-        fetch('/api/recommendations').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ recommendations: [] }),
-        })),
-        fetch('/api/student/subjects').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ subjects: [] }),
-        })),
-        fetch('/api/student/reviews').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ success: false, data: null }),
-        })),
+        fetch('/api/content').catch(() => null),
+        fetch('/api/recommendations').catch(() => null),
+        fetch('/api/student/subjects').catch(() => null),
+        fetch('/api/student/reviews').catch(() => null),
       ])
 
-      const authErrors = responses.filter(r => r.status === 401)
+      const authErrors = responses.filter(r => r && r.status === 401)
       if (authErrors.length > 0) {
         router.replace('/login')
         return
       }
 
+      const safeJson = async (res: Response | null) => {
+        if (!res || !res.ok) return {}
+        try {
+          return await res.json()
+        } catch {
+          return {}
+        }
+      }
+
       const [contentData, recsData, subjectsData, reviewsData] = await Promise.all(
-        responses.map(r => (r.ok ? r.json() : Promise.resolve({})))
+        responses.map(r => safeJson(r))
       )
 
       const subjects = subjectsData?.subjects ?? []

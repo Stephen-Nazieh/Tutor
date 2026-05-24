@@ -45,33 +45,30 @@ export default function StudentDashboard() {
 
     try {
       const responses = await Promise.all([
-        fetch('/api/content').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ contents: [] }),
-        })),
-        fetch('/api/recommendations').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ recommendations: [] }),
-        })),
-        fetch('/api/student/subjects').catch(() => ({
-          ok: true,
-          status: 200,
-          json: () => Promise.resolve({ subjects: [] }),
-        })),
+        fetch('/api/content').catch(() => null),
+        fetch('/api/recommendations').catch(() => null),
+        fetch('/api/student/subjects').catch(() => null),
       ])
 
       // Check for auth errors
-      const authErrors = responses.filter(r => r.status === 401)
+      const authErrors = responses.filter(r => r && r.status === 401)
       if (authErrors.length > 0) {
         // User not authenticated, redirect to login
         router.replace('/login')
         return
       }
 
+      const safeJson = async (res: Response | null) => {
+        if (!res || !res.ok) return {}
+        try {
+          return await res.json()
+        } catch {
+          return {}
+        }
+      }
+
       const [contentData, recsData, subjectsData] = await Promise.all(
-        responses.map(r => (r.ok ? r.json() : Promise.resolve({})))
+        responses.map(r => safeJson(r))
       )
 
       const subjects = subjectsData?.subjects ?? []
