@@ -66,14 +66,14 @@ export const CountdownTimer = () => {
   ];
 
   return (
-    <div className="flex gap-3 md:gap-4 justify-center items-start font-display">
+    <div className="flex gap-2 md:gap-3 justify-center items-start font-display">
       {units.map((unit, i) => (
         <React.Fragment key={unit.label}>
           <div className="flex flex-col items-center">
             <div className="text-3xl md:text-4xl font-bold text-white tabular-nums leading-none">
               {unit.value.toString().padStart(2, '0')}
             </div>
-            <div className="text-[10px] uppercase tracking-wider text-white/60 mt-1">{unit.label}</div>
+            <div className="text-[9px] md:text-[10px] uppercase tracking-wider text-white/60 mt-1">{unit.label}</div>
           </div>
           {i < units.length - 1 && (
             <div className="text-3xl md:text-4xl font-bold text-white/30 leading-none pt-0">:</div>
@@ -89,7 +89,7 @@ export const LaunchCard = () => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: 0.5, duration: 0.6 }}
-    className="glass-card p-5 md:p-6 w-[280px] md:w-[320px]"
+    className="glass-card px-6 py-5 md:px-8 md:py-6 w-[300px] sm:w-[360px] md:w-[400px]"
   >
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2 text-white/90">
