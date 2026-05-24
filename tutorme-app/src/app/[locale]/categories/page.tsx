@@ -44,6 +44,7 @@ import {
   A_LEVEL_CATEGORIES,
   IB_CATEGORIES,
   IGCSE_CATEGORIES,
+  SPECIALTY_CATEGORIES,
   type ExamCategory,
 } from '@/lib/data/tutor-categories'
 
@@ -304,7 +305,7 @@ export default function CategoriesPage() {
             <Card className="flex h-[500px] flex-col">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full flex-col">
                 <CardHeader className="pb-0">
-                  <TabsList className="grid w-full grid-cols-6">
+                  <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
                     <TabsTrigger value="global" className="text-xs md:text-sm">
                       <Globe className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
                       Global
@@ -331,6 +332,10 @@ export default function CategoriesPage() {
                     >
                       <Flag className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
                       National
+                    </TabsTrigger>
+                    <TabsTrigger value="specialties" className="text-xs md:text-sm">
+                      <Sparkles className="mr-1 h-3 w-3 md:mr-2 md:h-4 md:w-4" />
+                      Specialties
                     </TabsTrigger>
                   </TabsList>
                 </CardHeader>
@@ -411,6 +416,15 @@ export default function CategoriesPage() {
                           ) : (
                             nationalExams.map(renderCategorySection)
                           )}
+                        </div>
+                      </ScrollArea>
+                    </TabsContent>
+
+                    {/* Specialties Tab */}
+                    <TabsContent value="specialties" className="m-0 h-full">
+                      <ScrollArea className="h-full pr-4">
+                        <div className="space-y-6 pb-4">
+                          {SPECIALTY_CATEGORIES.map(renderCategorySection)}
                         </div>
                       </ScrollArea>
                     </TabsContent>

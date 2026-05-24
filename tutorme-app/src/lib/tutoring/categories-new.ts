@@ -1172,18 +1172,32 @@ export const OTHER_COUNTRY: Country = {
   subjectCourses: [],
 }
 
-// Get all available categories for a country (Global + National)
+// Specialty categories (Universities, Languages, Professional)
+import {
+  SPECIALTY_CATEGORIES,
+} from './specialty-categories'
+
+export {
+  SPECIALTY_CATEGORIES,
+  UNIVERSITY_CATEGORIES,
+  LANGUAGE_CATEGORIES,
+  PROFESSIONAL_CATEGORIES,
+} from './specialty-categories'
+
+// Get all available categories for a country (Global + National + Specialties)
 export function getCategoriesForCountry(countryCode: string | null): {
   global: ExamCategory[]
   national: ExamCategory[]
+  specialties: ExamCategory[]
 } {
   if (!countryCode || countryCode === 'OTHER') {
-    return { global: GLOBAL_EXAM_CATEGORIES, national: [] }
+    return { global: GLOBAL_EXAM_CATEGORIES, national: [], specialties: SPECIALTY_CATEGORIES }
   }
 
   const country = getCountryByCode(countryCode)
   return {
     global: GLOBAL_EXAM_CATEGORIES,
     national: country?.nationalExams || [],
+    specialties: SPECIALTY_CATEGORIES,
   }
 }

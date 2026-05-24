@@ -22,7 +22,7 @@ import {
   type ExamCategory,
   getCategoriesForCountry,
 } from '@/lib/tutoring/categories-new'
-import { Globe, MapPin, BookOpen, GraduationCap, Check } from 'lucide-react'
+import { Globe, MapPin, BookOpen, GraduationCap, Check, Sparkles } from 'lucide-react'
 
 interface CategorySelectorProps {
   selectedCountry: string | null
@@ -41,7 +41,7 @@ export function CategorySelector({
   className,
   maxHeight = '400px',
 }: CategorySelectorProps) {
-  const [examType, setExamType] = useState<'global' | 'national'>('global')
+  const [examType, setExamType] = useState<'global' | 'national' | 'specialties'>('global')
   const [selectedRegion, setSelectedRegion] = useState<string>('')
 
   // Get available countries based on region selection
@@ -52,7 +52,11 @@ export function CategorySelector({
   }, [selectedRegion])
 
   // Get categories for selected country
-  const { global: globalCategories, national: nationalCategories } = useMemo(() => {
+  const {
+    global: globalCategories,
+    national: nationalCategories,
+    specialties: specialtyCategories,
+  } = useMemo(() => {
     return getCategoriesForCountry(selectedCountry)
   }, [selectedCountry])
 
@@ -68,10 +72,10 @@ export function CategorySelector({
   }
 
   // Handle exam type change
-  const handleExamTypeChange = (type: 'global' | 'national') => {
+  const handleExamTypeChange = (type: 'global' | 'national' | 'specialties') => {
     setExamType(type)
-    if (type === 'global') {
-      // Clear country selection when switching to global
+    if (type === 'global' || type === 'specialties') {
+      // Clear country selection when switching to global or specialties
       onCountryChange(null)
       setSelectedRegion('')
     }
@@ -131,6 +135,16 @@ export function CategorySelector({
             >
               <MapPin className="mr-2 h-4 w-4" />
               National Exams
+            </Button>
+            <Button
+              type="button"
+              variant={examType === 'specialties' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => handleExamTypeChange('specialties')}
+              className={cn('flex-1', examType === 'specialties' && 'bg-[#059669] hover:bg-[#047857]')}
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              Specialties
             </Button>
           </div>
         </div>
@@ -201,7 +215,7 @@ export function CategorySelector({
       </div>
 
       {/* Categories Display */}
-      {examType === 'global' ? (
+      {examType === 'global' && (
         /* Global Exams Display */
         <div className="m-0">
           <div className="flex items-center gap-2 border-b bg-gray-50/50 px-4 py-3">
@@ -226,7 +240,9 @@ export function CategorySelector({
             </div>
           </ScrollArea>
         </div>
-      ) : (
+      )}
+
+      {examType === 'national' && (
         /* National Exams Display */
         <div className="m-0">
           <div className="flex items-center gap-2 border-b bg-gray-50/50 px-4 py-3">
@@ -266,6 +282,33 @@ export function CategorySelector({
                   />
                 ))
               )}
+            </div>
+          </ScrollArea>
+        </div>
+      )}
+
+      {examType === 'specialties' && (
+        /* Specialties Display */
+        <div className="m-0">
+          <div className="flex items-center gap-2 border-b bg-gray-50/50 px-4 py-3">
+            <Sparkles className="h-4 w-4 text-[#059669]" />
+            <span className="font-medium text-gray-700">Specialties</span>
+            <Badge variant="secondary" className="ml-auto text-xs">
+              {specialtyCategories.reduce((acc, cat) => acc + cat.exams.length, 0)} items
+            </Badge>
+          </div>
+          <ScrollArea className="h-[400px]" style={{ maxHeight }}>
+            <div className="space-y-6 p-4">
+              {specialtyCategories.map(category => (
+                <ExamCategorySection
+                  key={category.id}
+                  category={category}
+                  selectedCategories={selectedCategories}
+                  onToggle={toggleCategory}
+                  onSelectAll={() => selectAllInCategory(category.exams)}
+                  onClearAll={() => clearAllInCategory(category.exams)}
+                />
+              ))}
             </div>
           </ScrollArea>
         </div>

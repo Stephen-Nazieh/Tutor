@@ -1022,3 +1022,11 @@ export const IGCSE_CATEGORIES: ExamCategory[] = [
     ],
   },
 ]
+
+// Re-export specialty categories from the centralized file
+export {
+  UNIVERSITY_CATEGORIES,
+  LANGUAGE_CATEGORIES,
+  PROFESSIONAL_CATEGORIES,
+  SPECIALTY_CATEGORIES,
+} from '../tutoring/specialty-categories'
