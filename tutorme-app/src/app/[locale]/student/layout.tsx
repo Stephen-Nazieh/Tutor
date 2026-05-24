@@ -104,7 +104,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             )}
           >
             <div className="flex h-full w-60 flex-col">
-              <div className="flex min-w-[240px] shrink-0 items-center justify-between p-4">
+              <div className="flex min-w-[240px] shrink-0 items-center justify-between px-4 py-2">
                 <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
@@ -126,7 +126,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 </div>
               </div>
 
-              <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto p-4">
+              <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 pt-2 pb-4">
                 {isLiveClassRoute ? (
                   <div>
                     <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
@@ -280,7 +280,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       )}
 
       {/* Main Content */}
-      <main className={cn('h-screen flex-1 overflow-hidden', 'pt-4')}>
+      <main className={cn('h-screen flex-1 overflow-hidden', 'pt-4 pb-4')}>
         <div className="h-full overflow-y-auto">{children}</div>
       </main>
     </div>
