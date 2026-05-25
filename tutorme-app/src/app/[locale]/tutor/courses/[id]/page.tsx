@@ -60,6 +60,9 @@ import {
   A_LEVEL_CATEGORIES,
   IB_CATEGORIES,
   IGCSE_CATEGORIES,
+  UNIVERSITY_CATEGORIES,
+  LANGUAGE_CATEGORIES,
+  PROFESSIONAL_CATEGORIES,
   type CountryData,
   type ExamCategory,
 } from '@/lib/data/tutor-categories'
@@ -72,6 +75,9 @@ const ALL_CATEGORIES = [
   ...A_LEVEL_CATEGORIES.flatMap(c => c.exams),
   ...IB_CATEGORIES.flatMap(c => c.exams),
   ...IGCSE_CATEGORIES.flatMap(c => c.exams),
+  ...UNIVERSITY_CATEGORIES.flatMap(c => c.exams),
+  ...LANGUAGE_CATEGORIES.flatMap(c => c.exams),
+  ...PROFESSIONAL_CATEGORIES.flatMap(c => c.exams),
 ]
 
 interface OutlineItem {
@@ -881,6 +887,27 @@ export default function TutorCoursePage() {
                             <Flag className="mr-2 h-4 w-4" />
                             National
                           </TabsTrigger>
+                          <TabsTrigger
+                            value="universities"
+                            className="rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none"
+                          >
+                            <GraduationCap className="mr-2 h-4 w-4" />
+                            Universities
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="languages"
+                            className="rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none"
+                          >
+                            <Globe className="mr-2 h-4 w-4" />
+                            Languages
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="professional"
+                            className="rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none"
+                          >
+                            <Award className="mr-2 h-4 w-4" />
+                            Professional
+                          </TabsTrigger>
                         </TabsList>
                       </div>
 
@@ -1164,6 +1191,135 @@ export default function TutorCoursePage() {
                                   </div>
                                 ))
                             )}
+                          </div>
+                        </TabsContent>
+
+                        {/* Universities Tab */}
+                        <TabsContent value="universities" className="mt-0">
+                          <div className="space-y-6">
+                            {UNIVERSITY_CATEGORIES.filter(
+                              cat =>
+                                !categorySearch ||
+                                cat.exams.some(e =>
+                                  e.toLowerCase().includes(categorySearch.toLowerCase())
+                                )
+                            ).map(category => (
+                              <div key={category.id} className="space-y-3">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                  <GraduationCap className="h-4 w-4 text-indigo-600" />
+                                  {category.label}
+                                </h4>
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                                  {category.exams
+                                    .filter(
+                                      exam =>
+                                        !categorySearch ||
+                                        exam.toLowerCase().includes(categorySearch.toLowerCase())
+                                    )
+                                    .map(exam => (
+                                      <label
+                                        key={exam}
+                                        className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
+                                      >
+                                        <input
+                                          type="radio"
+                                          name="category"
+                                          checked={selectedCategories[0] === exam}
+                                          onChange={() => selectCategory(exam)}
+                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                        <span className="text-sm text-slate-700">{exam}</span>
+                                      </label>
+                                    ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        {/* Languages Tab */}
+                        <TabsContent value="languages" className="mt-0">
+                          <div className="space-y-6">
+                            {LANGUAGE_CATEGORIES.filter(
+                              cat =>
+                                !categorySearch ||
+                                cat.exams.some(e =>
+                                  e.toLowerCase().includes(categorySearch.toLowerCase())
+                                )
+                            ).map(category => (
+                              <div key={category.id} className="space-y-3">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                  <Globe className="h-4 w-4 text-indigo-600" />
+                                  {category.label}
+                                </h4>
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                                  {category.exams
+                                    .filter(
+                                      exam =>
+                                        !categorySearch ||
+                                        exam.toLowerCase().includes(categorySearch.toLowerCase())
+                                    )
+                                    .map(exam => (
+                                      <label
+                                        key={exam}
+                                        className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
+                                      >
+                                        <input
+                                          type="radio"
+                                          name="category"
+                                          checked={selectedCategories[0] === exam}
+                                          onChange={() => selectCategory(exam)}
+                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                        <span className="text-sm text-slate-700">{exam}</span>
+                                      </label>
+                                    ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </TabsContent>
+
+                        {/* Professional Tab */}
+                        <TabsContent value="professional" className="mt-0">
+                          <div className="space-y-6">
+                            {PROFESSIONAL_CATEGORIES.filter(
+                              cat =>
+                                !categorySearch ||
+                                cat.exams.some(e =>
+                                  e.toLowerCase().includes(categorySearch.toLowerCase())
+                                )
+                            ).map(category => (
+                              <div key={category.id} className="space-y-3">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                  <Award className="h-4 w-4 text-indigo-600" />
+                                  {category.label}
+                                </h4>
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                                  {category.exams
+                                    .filter(
+                                      exam =>
+                                        !categorySearch ||
+                                        exam.toLowerCase().includes(categorySearch.toLowerCase())
+                                    )
+                                    .map(exam => (
+                                      <label
+                                        key={exam}
+                                        className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
+                                      >
+                                        <input
+                                          type="radio"
+                                          name="category"
+                                          checked={selectedCategories[0] === exam}
+                                          onChange={() => selectCategory(exam)}
+                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                        <span className="text-sm text-slate-700">{exam}</span>
+                                      </label>
+                                    ))}
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </TabsContent>
                       </div>
