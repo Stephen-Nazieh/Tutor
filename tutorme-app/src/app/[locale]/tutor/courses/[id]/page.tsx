@@ -37,6 +37,7 @@ import {
   Flag,
   MapPin,
   Search,
+  Wrench,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { fetchWithCsrf } from '@/lib/api/fetch-csrf'
@@ -150,6 +151,8 @@ export default function TutorCoursePage() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([])
   const [launchingLiveClass, setLaunchingLiveClass] = useState(false)
   const [tutorProfile, setTutorProfile] = useState<{
+    userId?: string
+    id?: string
     currency?: string | null
     categories?: string[]
   } | null>(null)
@@ -157,6 +160,8 @@ export default function TutorCoursePage() {
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [selectedCountries, setSelectedCountries] = useState<string[]>([])
   const [categoryTab, setCategoryTab] = useState('global')
+  const [customCategories, setCustomCategories] = useState<string[]>([])
+  const [customCategoryInput, setCustomCategoryInput] = useState('')
 
   const regionTriggerRef = useRef<HTMLButtonElement>(null)
   const countryTriggerRef = useRef<HTMLButtonElement>(null)
@@ -277,6 +282,19 @@ export default function TutorCoursePage() {
           // Load tutor's categories from profile if available (single category only)
           if (data.profile.categories && Array.isArray(data.profile.categories) && data.profile.categories.length > 0) {
             setSelectedCategories([data.profile.categories[0]])
+          }
+          // Load custom categories from localStorage
+          const userId = data.profile?.userId || data.profile?.id
+          if (userId && typeof window !== 'undefined') {
+            try {
+              const raw = window.localStorage.getItem(`tutor-custom-categories:${userId}`)
+              if (raw) {
+                const parsed = JSON.parse(raw)
+                if (Array.isArray(parsed)) setCustomCategories(parsed)
+              }
+            } catch {
+              // ignore
+            }
           }
         }
       })
@@ -513,6 +531,53 @@ export default function TutorCoursePage() {
   // Select a single category (replaces any previously selected category)
   const selectCategory = (category: string) => {
     setSelectedCategories([category])
+  }
+
+  // Add a custom category
+  const addCustomCategory = () => {
+    const name = customCategoryInput.trim()
+    if (!name) return
+    if (customCategories.some(c => c.toLowerCase() === name.toLowerCase())) {
+      toast.error('This custom category already exists')
+      return
+    }
+    if (name.length > 100) {
+      toast.error('Category name must be 100 characters or less')
+      return
+    }
+    const updated = [...customCategories, name]
+    setCustomCategories(updated)
+    setCustomCategoryInput('')
+    // Persist to localStorage
+    const userId = tutorProfile?.userId || tutorProfile?.id
+    if (userId && typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(`tutor-custom-categories:${userId}`, JSON.stringify(updated))
+      } catch {
+        // ignore
+      }
+    }
+    // Auto-select the newly created category
+    setSelectedCategories([name])
+  }
+
+  // Remove a custom category
+  const removeCustomCategory = (category: string) => {
+    const updated = customCategories.filter(c => c !== category)
+    setCustomCategories(updated)
+    // If the removed category was selected, clear selection
+    if (selectedCategories[0] === category) {
+      setSelectedCategories([])
+    }
+    // Persist to localStorage
+    const userId = tutorProfile?.userId || tutorProfile?.id
+    if (userId && typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(`tutor-custom-categories:${userId}`, JSON.stringify(updated))
+      } catch {
+        // ignore
+      }
+    }
   }
 
   // Toggle region selection
@@ -907,6 +972,13 @@ export default function TutorCoursePage() {
                           >
                             <Award className="mr-2 h-4 w-4" />
                             Professional
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="diy"
+                            className="rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none"
+                          >
+                            <Wrench className="mr-2 h-4 w-4" />
+                            DIY
                           </TabsTrigger>
                         </TabsList>
                       </div>
@@ -1320,6 +1392,91 @@ export default function TutorCoursePage() {
                                 </div>
                               </div>
                             ))}
+                          </div>
+                        </TabsContent>
+
+                        {/* DIY Tab */}
+                        <TabsContent value="diy" className="mt-0">
+                          <div className="space-y-6">
+                            {/* Add custom category input */}
+                            <div className="flex items-center gap-3">
+                              <div className="relative flex-1 max-w-md">
+                                <Input
+                                  placeholder="Enter custom category name..."
+                                  value={customCategoryInput}
+                                  onChange={e => setCustomCategoryInput(e.target.value)}
+                                  onKeyDown={e => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault()
+                                      addCustomCategory()
+                                    }
+                                  }}
+                                  className="h-10 border-slate-200 bg-white"
+                                  maxLength={100}
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={addCustomCategory}
+                                disabled={!customCategoryInput.trim()}
+                                className="h-10 gap-1"
+                              >
+                                <Plus className="h-4 w-4" />
+                                Add
+                              </Button>
+                            </div>
+
+                            {/* Custom categories list */}
+                            {customCategories.length === 0 ? (
+                              <div className="py-8 text-center text-slate-500">
+                                <Wrench className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                                <p>No custom categories yet.</p>
+                                <p className="text-sm text-slate-400">Create your own category above.</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                                  <Wrench className="h-4 w-4 text-indigo-600" />
+                                  Your Custom Categories
+                                </h4>
+                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                                  {customCategories
+                                    .filter(
+                                      exam =>
+                                        !categorySearch ||
+                                        exam.toLowerCase().includes(categorySearch.toLowerCase())
+                                    )
+                                    .map(exam => (
+                                      <label
+                                        key={exam}
+                                        className="group flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
+                                      >
+                                        <input
+                                          type="radio"
+                                          name="category"
+                                          checked={selectedCategories[0] === exam}
+                                          onChange={() => selectCategory(exam)}
+                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                        <span className="flex-1 text-sm text-slate-700">{exam}</span>
+                                        <button
+                                          type="button"
+                                          onClick={e => {
+                                            e.preventDefault()
+                                            e.stopPropagation()
+                                            removeCustomCategory(exam)
+                                          }}
+                                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-slate-400 hover:text-red-500 transition-opacity"
+                                          title="Remove"
+                                        >
+                                          <X className="h-3.5 w-3.5" />
+                                        </button>
+                                      </label>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </TabsContent>
                       </div>
