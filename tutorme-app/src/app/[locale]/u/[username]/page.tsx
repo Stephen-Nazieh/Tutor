@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState, type SVGProps } from 'react'
+import { useEffect, useMemo, useRef, useState, type SVGProps } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -576,13 +576,17 @@ export default function PublicTutorPage() {
     loadTutorData()
   }, [username])
 
+  const hasAutoOpenedCourse = useRef(false)
   useEffect(() => {
     const requestedId = searchParams.get('courseId')
     if (!requestedId || !data?.courses?.length) return
-    if (detailsCourse?.id === requestedId) return
+    if (hasAutoOpenedCourse.current) return
     const match = data.courses.find(c => c.id === requestedId) || null
-    if (match) setDetailsCourse(match)
-  }, [searchParams, data?.courses, detailsCourse?.id])
+    if (match) {
+      hasAutoOpenedCourse.current = true
+      setDetailsCourse(match)
+    }
+  }, [searchParams, data?.courses])
 
   useEffect(() => {
     if (!data?.tutor?.id) return
@@ -1782,6 +1786,16 @@ export default function PublicTutorPage() {
             </DialogPanel>
           </div>
           <DialogFooter className="gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDetailsCourse(null)
+                if (publicPath) router.push(publicPath)
+              }}
+              className="h-10"
+            >
+              Go To Public Page
+            </Button>
             <Button
               variant="modal-secondary"
               onClick={() => setDetailsCourse(null)}

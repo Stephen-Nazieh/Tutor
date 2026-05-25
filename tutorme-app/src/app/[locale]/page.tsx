@@ -50,6 +50,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogPanel,
+} from '@/components/ui/dialog'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { REGIONS } from '@/lib/data/tutor-categories'
@@ -1235,6 +1244,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
   const PAGE_SIZE = 5
   const [coursesPage, setCoursesPage] = useState(0)
   const [tutorsPage, setTutorsPage] = useState(0)
+  const [selectedCourse, setSelectedCourse] = useState<any | null>(null)
   const router = useRouter()
 
   const availableCountries = (() => {
@@ -1299,20 +1309,10 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
       role="button"
       tabIndex={0}
       className="block h-full w-full outline-none"
-      onClick={() => {
-        const username = item?.tutor?.username || ''
-        if (!username) return
-        router.push(
-          `/u/${encodeURIComponent(username)}?courseId=${encodeURIComponent(item?.id || '')}`
-        )
-      }}
+      onClick={() => setSelectedCourse(item)}
       onKeyDown={e => {
         if (e.key !== 'Enter' && e.key !== ' ') return
-        const username = item?.tutor?.username || ''
-        if (!username) return
-        router.push(
-          `/u/${encodeURIComponent(username)}?courseId=${encodeURIComponent(item?.id || '')}`
-        )
+        setSelectedCourse(item)
       }}
     >
       <div
@@ -1581,6 +1581,83 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
           />
         </div>
       </div>
+
+      {/* Course Detail Dialog — opens when a course card is clicked on the landing page */}
+      <Dialog
+        open={!!selectedCourse}
+        onOpenChange={open => !open && setSelectedCourse(null)}
+      >
+        <DialogContent className="flex h-[80vh] w-[80vw] max-w-4xl flex-col overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">{selectedCourse?.name}</DialogTitle>
+            <DialogDescription className="mt-2 text-base">
+              {selectedCourse?.description || 'No description provided.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 space-y-4 overflow-auto p-6 pt-0">
+            <DialogPanel>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-gray-600">Category</div>
+                  <div className="text-base font-semibold text-gray-900">
+                    {selectedCourse?.categories?.[0] || 'general'}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-gray-600">Sessions</div>
+                  <div className="text-base font-semibold text-gray-900">
+                    {selectedCourse?.lessonCount ?? 0} sessions
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-gray-600">Price</div>
+                  <div className="text-base font-semibold text-gray-900">
+                    {selectedCourse?.isFree
+                      ? 'Free'
+                      : selectedCourse?.price != null
+                        ? `$${selectedCourse.price} / 1h session`
+                        : 'Free'}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-gray-600">Schedule</div>
+                  <div className="text-base font-semibold text-gray-900">
+                    {selectedCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
+                  </div>
+                </div>
+              </div>
+            </DialogPanel>
+            <DialogPanel>
+              <h3 className="mb-4 text-lg font-semibold text-gray-900">About this course</h3>
+              <p className="whitespace-pre-wrap leading-relaxed text-gray-600">
+                {selectedCourse?.description || 'More details will be available soon.'}
+              </p>
+            </DialogPanel>
+          </div>
+          <DialogFooter className="gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                const username = selectedCourse?.tutor?.username || ''
+                setSelectedCourse(null)
+                if (username) {
+                  router.push(`/u/${encodeURIComponent(username)}`)
+                }
+              }}
+              className="h-10"
+            >
+              Go To Public Page
+            </Button>
+            <Button
+              variant="modal-secondary"
+              onClick={() => setSelectedCourse(null)}
+              className="h-10"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
