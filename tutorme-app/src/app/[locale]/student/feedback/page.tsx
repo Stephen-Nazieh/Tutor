@@ -953,8 +953,8 @@ function StudentFeedbackContent() {
   return (
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-gray-50">
       <div className="flex h-full w-full min-w-0 flex-1 flex-col bg-gray-50/50">
-        <div className="w-full px-4 pt-4">
-          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center">
+        <div className="w-full px-4 pt-2">
+          <div className="flex w-full flex-col gap-3 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-2 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center">
             <div className="flex flex-1 items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
                 <ArrowLeft className="h-5 w-5" />
@@ -1101,7 +1101,7 @@ function StudentFeedbackContent() {
         </div>
 
         {/* Content Wrapper */}
-        <div className="relative flex w-full flex-1 items-stretch gap-4 overflow-hidden px-4 pb-4 pt-4">
+        <div className="relative flex w-full flex-1 items-stretch gap-4 overflow-hidden px-4 pb-4 pt-2">
           {/* Floating collapsed/expanded pill */}
           <div
             className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
