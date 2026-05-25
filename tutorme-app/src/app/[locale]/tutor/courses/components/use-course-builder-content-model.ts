@@ -130,7 +130,7 @@ export function useCourseBuilderContentModel({
       })
       if (currRes.ok) {
         const currData = await currRes.json()
-        if (Array.isArray(currData.lessons) && currData.lessons.length > 0) {
+        if (Array.isArray(currData.lessons)) {
           setLoadedLessons(currData.lessons)
         }
       } else {

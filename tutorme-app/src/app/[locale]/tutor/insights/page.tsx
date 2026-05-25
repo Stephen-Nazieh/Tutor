@@ -330,8 +330,6 @@ function TutorInsightsPageInner() {
       propagateToVariants?: boolean,
       setIndependent?: boolean
     ) => {
-      if (!courseId || courseId === 'insights-draft') return
-
       // Published variants always persist to the DB (mode='live') even when the UI is in 'draft' edit mode
       const persistMode = isPublishedVariant ? 'live' : saveMode
 
@@ -362,8 +360,6 @@ function TutorInsightsPageInner() {
 
   const handleSave = useCallback(
     async (lessons: any[], options?: any) => {
-      if (!courseId || courseId === 'insights-draft') return
-
       // For published variants on manual save, auto-propagate to sibling variants
       // (variants published with this course, NOT all tutor courses)
       if (isPublishedVariant && !options?.isAutoSave) {
