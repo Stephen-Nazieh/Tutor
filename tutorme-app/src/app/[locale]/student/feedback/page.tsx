@@ -954,8 +954,8 @@ function StudentFeedbackContent() {
     <div className="relative flex h-screen w-full flex-col overflow-hidden bg-gray-50">
       <div className="flex h-full w-full min-w-0 flex-1 flex-col bg-gray-50/50">
         <div className="w-full px-4 pt-4">
-          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center">
+            <div className="flex flex-1 items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
@@ -1001,18 +1001,79 @@ function StudentFeedbackContent() {
               </div>
             </div>
 
-            <div className="flex flex-col items-end justify-between gap-4">
-              <div className="mt-0 flex shrink-0 items-center gap-2">
+            {/* Capsule */}
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setFollowTutor(!followTutor)}
+                  className={cn(
+                    'h-8 rounded-full px-3 text-xs font-semibold shadow-sm',
+                    followTutor
+                      ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                      : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'mr-2 h-2 w-2 rounded-full',
+                      followTutor ? 'animate-pulse bg-white' : 'bg-slate-500'
+                    )}
+                  />
+                  {followTutor ? 'Following Tutor' : 'Follow Tutor'}
+                </Button>
+
+                <div
+                  className={cn(
+                    'flex h-8 items-center gap-2 rounded-full border px-3 text-xs font-semibold',
+                    isConnected
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : error
+                        ? 'border-red-200 bg-red-50 text-red-700'
+                        : 'border-slate-200 bg-slate-50 text-slate-700'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'h-2 w-2 rounded-full',
+                      isConnected ? 'bg-emerald-500' : error ? 'bg-red-500' : 'bg-slate-400'
+                    )}
+                  />
+                  {isConnected ? 'Connected' : error ? 'Disconnected' : 'Connecting'}
+                </div>
+
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={!sessionContext?.roomUrl}
+                  onClick={() => {
+                    if (!sessionContext?.roomUrl) return
+                    openVideoOverlay({
+                      roomUrl: sessionContext.roomUrl,
+                      token: sessionContext.token,
+                      autoRecord: false,
+                    })
+                  }}
+                  className="h-8 gap-2 rounded-full px-3 text-xs font-semibold shadow-sm"
+                >
+                  <Video className="h-4 w-4" />
+                  Video
+                </Button>
+
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => setShowDirectoryPanel(true)}
-                  className="gap-2 font-medium text-slate-700 hover:text-slate-900"
+                  className="h-8 gap-2 rounded-full px-3 text-xs font-semibold"
                 >
                   <Folder className="h-4 w-4" />
                   Directory
                 </Button>
               </div>
             </div>
+
+            <div className="flex flex-1 items-center justify-end" />
           </div>
 
           {sessionContext && (sessionContext.topic || sessionContext.objectives) && (
@@ -1321,68 +1382,6 @@ function StudentFeedbackContent() {
               title="Drag to resize"
             >
               <div className="h-8 w-0.5 rounded-full bg-slate-300" />
-            </div>
-
-            {/* Capsule */}
-            <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 px-3 py-2">
-              <div className="flex flex-wrap items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-2">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => setFollowTutor(!followTutor)}
-                  className={cn(
-                    'h-8 rounded-full px-3 text-xs font-semibold shadow-sm',
-                    followTutor
-                      ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                      : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'mr-2 h-2 w-2 rounded-full',
-                      followTutor ? 'animate-pulse bg-white' : 'bg-slate-500'
-                    )}
-                  />
-                  {followTutor ? 'Following Tutor' : 'Follow Tutor'}
-                </Button>
-
-                <div
-                  className={cn(
-                    'flex h-8 items-center gap-2 rounded-full border px-3 text-xs font-semibold',
-                    isConnected
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                      : error
-                        ? 'border-red-200 bg-red-50 text-red-700'
-                        : 'border-slate-200 bg-slate-50 text-slate-700'
-                  )}
-                >
-                  <div
-                    className={cn(
-                      'h-2 w-2 rounded-full',
-                      isConnected ? 'bg-emerald-500' : error ? 'bg-red-500' : 'bg-slate-400'
-                    )}
-                  />
-                  {isConnected ? 'Connected' : error ? 'Disconnected' : 'Connecting'}
-                </div>
-
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  disabled={!sessionContext?.roomUrl}
-                  onClick={() => {
-                    if (!sessionContext?.roomUrl) return
-                    openVideoOverlay({
-                      roomUrl: sessionContext.roomUrl,
-                      token: sessionContext.token,
-                      autoRecord: false,
-                    })
-                  }}
-                  className="h-8 gap-2 rounded-full px-3 text-xs font-semibold shadow-sm"
-                >
-                  <Video className="h-4 w-4" />
-                  Video
-                </Button>
-              </div>
             </div>
 
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
