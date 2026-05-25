@@ -1182,20 +1182,20 @@ function StudentFeedbackContent() {
               <div className="flex shrink-0 items-center justify-center px-4 pt-3">
                 <TabsList
                   className={cn(
-                    'flex h-8 items-center gap-2 border-0 bg-transparent p-0 shadow-none transition-opacity',
+                    'flex h-9 w-full items-center gap-1 rounded-lg border border-slate-200 bg-slate-100 p-1 shadow-none transition-opacity',
                     followTutor && 'pointer-events-none opacity-40'
                   )}
                   title={followTutor ? 'Unfollow tutor to switch tabs manually' : undefined}
                 >
                   <TabsTrigger
                     value="task"
-                    className="h-8 rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=inactive]:text-[#1F2933]"
+                    className="h-7 flex-1 rounded-md text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-sm data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700"
                   >
                     Classroom
                   </TabsTrigger>
                   <TabsTrigger
                     value="tutor-board"
-                    className="h-8 rounded-full border border-slate-200 bg-white px-4 text-xs font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=inactive]:text-[#1F2933]"
+                    className="h-7 flex-1 rounded-md text-xs font-semibold transition-all data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-sm data-[state=inactive]:text-slate-500 data-[state=inactive]:hover:text-slate-700"
                   >
                     Tutor Board
                   </TabsTrigger>
@@ -1381,7 +1381,7 @@ function StudentFeedbackContent() {
           >
             {/* Resize handle */}
             <div
-              className="absolute bottom-0 left-0 top-0 z-10 flex w-3 cursor-col-resize items-center justify-center bg-slate-100/50 hover:bg-blue-500/30 active:bg-blue-500/50"
+              className="absolute bottom-0 left-0 top-0 z-[100] flex w-3 cursor-col-resize items-center justify-center bg-slate-100/50 hover:bg-blue-500/30 active:bg-blue-500/50"
               onMouseDown={e => {
                 setRightPanelResizing(true)
                 rightResizeStartX.current = e.clientX
