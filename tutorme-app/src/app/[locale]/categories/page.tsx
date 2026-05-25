@@ -45,6 +45,10 @@ import {
   IB_CATEGORIES,
   IGCSE_CATEGORIES,
   SPECIALTY_CATEGORIES,
+  LANGUAGE_CATEGORIES,
+  PROFESSIONAL_CATEGORIES,
+  UNIVERSITIES_BY_COUNTRY_CODE,
+  getUniversityRegionId,
   type ExamCategory,
 } from '@/lib/data/tutor-categories'
 
@@ -74,6 +78,38 @@ export default function CategoriesPage() {
   const nationalExams = useMemo(() => {
     return selectedCountry?.nationalExams || []
   }, [selectedCountry])
+
+  // Filter specialty categories by region/country selection
+  const filteredSpecialtyCategories = useMemo(() => {
+    // No filter applied — show all
+    if (!selectedRegion) return SPECIALTY_CATEGORIES
+
+    // A country is selected — show only universities from that country
+    if (selectedCountryCode) {
+      const countryUniversities = UNIVERSITIES_BY_COUNTRY_CODE[selectedCountryCode]
+      const categories: ExamCategory[] = []
+      if (countryUniversities && countryUniversities.length > 0) {
+        categories.push({
+          id: `universities-${selectedCountryCode.toLowerCase()}`,
+          label: `Universities — ${selectedCountry?.name || selectedCountryCode}`,
+          exams: countryUniversities,
+        })
+      }
+      // Always include Languages and Professional
+      categories.push(...LANGUAGE_CATEGORIES, ...PROFESSIONAL_CATEGORIES)
+      return categories
+    }
+
+    // Only a region is selected — show university categories for that region
+    const regionId = selectedRegion
+    const categories: ExamCategory[] = SPECIALTY_CATEGORIES.filter(cat => {
+      // Keep non-university categories (Languages, Professional)
+      if (!cat.id.startsWith('universities-')) return true
+      // Keep university categories matching the selected region
+      return cat.id === `universities-${regionId}`
+    })
+    return categories
+  }, [selectedRegion, selectedCountryCode, selectedCountry])
 
   // Toggle category selection
   const toggleCategory = (category: string) => {
@@ -424,7 +460,14 @@ export default function CategoriesPage() {
                     <TabsContent value="specialties" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
-                          {SPECIALTY_CATEGORIES.map(renderCategorySection)}
+                          {filteredSpecialtyCategories.length === 0 ? (
+                            <div className="py-12 text-center text-gray-500">
+                              <Sparkles className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+                              <p>No specialties available for the selected region/country.</p>
+                            </div>
+                          ) : (
+                            filteredSpecialtyCategories.map(renderCategorySection)
+                          )}
                         </div>
                       </ScrollArea>
                     </TabsContent>

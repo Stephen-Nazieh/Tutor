@@ -1029,4 +1029,6 @@ export {
   LANGUAGE_CATEGORIES,
   PROFESSIONAL_CATEGORIES,
   SPECIALTY_CATEGORIES,
+  UNIVERSITIES_BY_COUNTRY_CODE,
+  getUniversityRegionId,
 } from '../tutoring/specialty-categories'
