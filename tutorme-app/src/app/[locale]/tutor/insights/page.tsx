@@ -364,10 +364,10 @@ function TutorInsightsPageInner() {
     async (lessons: any[], options?: any) => {
       if (!courseId || courseId === 'insights-draft') return
 
-      // For published variants on manual save, show propagation dialog
+      // For published variants on manual save, auto-propagate to sibling variants
+      // (variants published with this course, NOT all tutor courses)
       if (isPublishedVariant && !options?.isAutoSave) {
-        setPendingSavePayload({ lessons, options })
-        setPropagationDialogOpen(true)
+        await executeSave(lessons, options, true, false)
         return
       }
 
