@@ -1350,17 +1350,25 @@ function StudentFeedbackContent() {
                 padding="none"
                 className="flex h-full min-h-0 flex-1 flex-col outline-none"
               >
-                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                  <EnhancedWhiteboard
-                    readOnly
-                    pages={tutorBoardPages}
-                    currentPageIndex={tutorBoardPageIndex}
-                    onPagesChange={setTutorBoardPages}
-                    onPageIndexChange={setTutorBoardPageIndex}
-                    socket={socket}
-                    roomId={selectedSessionId ?? undefined}
-                    filterByUserId={sessionContext?.tutorId ?? undefined}
-                  />
+                {/* Tutor Board viewer */}
+                <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border-2 border-[#1e3a5f] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all duration-200 hover:shadow-[0_12px_32px_rgba(31,41,51,0.14)]">
+                  <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-center">
+                    <span className="rounded-b-md bg-[#1e3a5f] px-3 py-0.5 text-[11px] font-medium text-white">
+                      Tutor Board
+                    </span>
+                  </div>
+                  <div className="flex-1 overflow-hidden pt-5">
+                    <EnhancedWhiteboard
+                      readOnly
+                      pages={tutorBoardPages}
+                      currentPageIndex={tutorBoardPageIndex}
+                      onPagesChange={setTutorBoardPages}
+                      onPageIndexChange={setTutorBoardPageIndex}
+                      socket={socket}
+                      roomId={selectedSessionId ?? undefined}
+                      filterByUserId={sessionContext?.tutorId ?? undefined}
+                    />
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>
