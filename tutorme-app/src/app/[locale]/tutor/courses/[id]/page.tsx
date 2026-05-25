@@ -221,8 +221,8 @@ export default function TutorCoursePage() {
 
   // Filtered university categories based on selected regions/countries
   const filteredUniversityCategories = useMemo<ExamCategory[]>(() => {
-    // No region selected — show all universities
-    if (selectedRegions.length === 0) return UNIVERSITY_CATEGORIES
+    // No region selected — show nothing (prompt user to select)
+    if (selectedRegions.length === 0) return []
 
     // Specific countries selected — show universities from those countries
     if (selectedCountries.length > 0) {
@@ -1300,7 +1300,13 @@ export default function TutorCoursePage() {
                         {/* Universities Tab */}
                         <TabsContent value="universities" className="mt-0">
                           <div className="space-y-6">
-                            {filteredUniversityCategories.filter(
+                            {filteredUniversityCategories.length === 0 ? (
+                              <div className="py-12 text-center text-slate-500">
+                                <GraduationCap className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                                <p className="text-sm">Please select a region or country.</p>
+                              </div>
+                            ) : (
+                              filteredUniversityCategories.filter(
                               cat =>
                                 !categorySearch ||
                                 cat.exams.some(e =>
@@ -1336,7 +1342,8 @@ export default function TutorCoursePage() {
                                     ))}
                                 </div>
                               </div>
-                            ))}
+                            ))
+                            )}
                           </div>
                         </TabsContent>
 
