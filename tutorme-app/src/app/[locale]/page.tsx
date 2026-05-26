@@ -1569,7 +1569,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
               setSelectedCountryCode('')
             }}
           >
-            <SelectTrigger className="h-11 w-[170px] rounded-full border border-white/[0.12] bg-[rgba(31,41,55,0.72)] text-white shadow-[0_10px_26px_rgba(0,0,0,0.25)] backdrop-blur-[12px]">
+            <SelectTrigger className="h-10 w-[212px] rounded-md border border-white/[0.12] bg-[rgba(31,41,55,0.72)] text-white shadow-[0_10px_26px_rgba(0,0,0,0.25)] backdrop-blur-[12px]">
               <SelectValue placeholder="Region" />
             </SelectTrigger>
             <SelectContent>
@@ -1586,7 +1586,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
             onValueChange={setSelectedCountryCode}
             disabled={!selectedRegion}
           >
-            <SelectTrigger className="h-11 w-[170px] rounded-full border border-white/[0.12] bg-[rgba(31,41,55,0.72)] text-white shadow-[0_10px_26px_rgba(0,0,0,0.25)] backdrop-blur-[12px]">
+            <SelectTrigger className="h-10 w-[212px] rounded-md border border-white/[0.12] bg-[rgba(31,41,55,0.72)] text-white shadow-[0_10px_26px_rgba(0,0,0,0.25)] backdrop-blur-[12px]">
               <SelectValue placeholder="Country" />
             </SelectTrigger>
             <SelectContent>
