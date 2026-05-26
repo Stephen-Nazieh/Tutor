@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import { fetchWithCsrf } from '@/lib/api/fetch-csrf'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -155,9 +156,8 @@ export function ResourceImportPanel<
       const extractedText = await extractTextFromFile(file)
       const formData = new FormData()
       formData.append('file', file)
-      const uploadRes = await fetch('/api/uploads/documents', {
+      const uploadRes = await fetchWithCsrf('/api/uploads/documents', {
         method: 'POST',
-        credentials: 'include',
         body: formData,
       })
       if (!uploadRes.ok) {
