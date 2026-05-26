@@ -348,6 +348,30 @@ export default function TutorSettings() {
     }
   }
 
+  // Course sync mode preference (stored in localStorage)
+  const [syncMode, setSyncMode] = useState<'auto' | 'manual' | 'ask'>('auto')
+
+  // Load sync mode from localStorage on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('tutor-sync-mode')
+      if (raw && ['auto', 'manual', 'ask'].includes(raw)) {
+        setSyncMode(raw as 'auto' | 'manual' | 'ask')
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  const saveSyncMode = () => {
+    try {
+      localStorage.setItem('tutor-sync-mode', syncMode)
+      toast.success('Sync mode saved')
+    } catch {
+      toast.error('Failed to save sync mode')
+    }
+  }
+
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
     {
       id: '1',
@@ -1450,6 +1474,69 @@ export default function TutorSettings() {
                   <Button onClick={saveMirrorPreferences}>
                     <Save className="mr-2 h-4 w-4" />
                     Save Preferences
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Course Sync Mode */}
+            <Card className={SECTION_CARD_CLASS}>
+              <CardHeader>
+                <CardTitle>Course Sync Mode</CardTitle>
+                <CardDescription>
+                  Control how course edits are shared with students during live sessions
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-3">
+                  {([
+                    {
+                      value: 'auto' as const,
+                      label: 'Automatic',
+                      description:
+                        'Edits sync automatically after you stop editing for 3 seconds. Students always see the latest content.',
+                    },
+                    {
+                      value: 'manual' as const,
+                      label: 'Manual',
+                      description:
+                        'You must click the Sync button to share changes. Best for preparing content privately.',
+                    },
+                    {
+                      value: 'ask' as const,
+                      label: 'Ask Before Syncing',
+                      description:
+                        'A prompt asks you to confirm before syncing. Good for awareness of what students see.',
+                    },
+                  ]).map(option => (
+                    <label
+                      key={option.value}
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${
+                        syncMode === option.value
+                          ? 'border-indigo-300 bg-indigo-50'
+                          : 'border-slate-200 bg-white hover:bg-slate-50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="syncMode"
+                        value={option.value}
+                        checked={syncMode === option.value}
+                        onChange={() => setSyncMode(option.value)}
+                        className="mt-1"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-800">{option.label}</p>
+                        <p className="text-sm text-slate-500">{option.description}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="flex justify-end">
+                  <Button onClick={saveSyncMode}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Sync Mode
                   </Button>
                 </div>
               </CardContent>

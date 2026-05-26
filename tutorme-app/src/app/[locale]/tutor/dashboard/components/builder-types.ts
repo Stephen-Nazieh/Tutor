@@ -86,6 +86,7 @@ export interface Task extends WithDifficultyVariants {
     description?: string
     content: string
     pci: string
+    sourceDocument?: ImportedLearningResource
   }>
   dmiItems?: DMIQuestion[]
   dmiVersions?: DMIVersion[]

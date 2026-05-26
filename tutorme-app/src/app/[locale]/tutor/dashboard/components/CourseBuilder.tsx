@@ -768,6 +768,25 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [testPciLoading, setTestPciLoading] = useState(false)
     const [testPciActiveTab, setTestPciActiveTab] = useState('classroom')
     const [isMirroringToStudents, setIsMirroringToStudents] = useState(true)
+
+    // Course sync mode: auto | manual | ask (from localStorage)
+    const [syncMode, setSyncMode] = useState<'auto' | 'manual' | 'ask'>('auto')
+    const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false)
+    const [askToastShown, setAskToastShown] = useState(false)
+    const syncDebounceRef = useRef<NodeJS.Timeout | null>(null)
+
+    // Load sync mode from localStorage on mount
+    useEffect(() => {
+      try {
+        const raw = localStorage.getItem('tutor-sync-mode')
+        if (raw && ['auto', 'manual', 'ask'].includes(raw)) {
+          setSyncMode(raw as 'auto' | 'manual' | 'ask')
+        }
+      } catch {
+        // ignore
+      }
+    }, [])
+
     const openVideoOverlay = useVideoOverlayStore(s => s.openOverlay)
     const [monitorSelectedStudent, setMonitorSelectedStudent] = useState<{
       id: string
@@ -1190,6 +1209,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           extensions: (task.extensions || []).map(ext => ({
             ...ext,
             description: ext.description || '',
+            sourceDocument: ext.sourceDocument,
           })),
           activeExtensionId,
         })
@@ -1398,7 +1418,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                         testPciSource === 'task' && testPciViewMode.startsWith('dmi_')
                           ? testPciViewMode.replace('dmi_', '')
                           : task.activeDmiVersionId,
-                      sourceDocument: task.sourceDocument,
+                      sourceDocument: taskSourceDocument,
                     }
                   : task
               ),
@@ -1419,6 +1439,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       testPciSource,
       testPciViewMode,
       loadedTaskId,
+      taskSourceDocument,
     ])
 
     // Auto-save assessment on the fly (debounced)
@@ -1445,7 +1466,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                         testPciSource === 'assessment' && testPciViewMode.startsWith('dmi_')
                           ? testPciViewMode.replace('dmi_', '')
                           : hw.activeDmiVersionId,
-                      sourceDocument: hw.sourceDocument,
+                      sourceDocument: assessmentSourceDocument,
                     }
                   : hw
               ),
@@ -1464,6 +1485,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       testPciSource,
       testPciViewMode,
       loadedAssessmentId,
+      assessmentSourceDocument,
     ])
 
     // Sync active builder content to classroom tab when in insights mode
@@ -1552,6 +1574,76 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const handleSyncToLive = useCallback(() => {
       setLiveNodes(cloneNodes(builderNodes))
     }, [builderNodes, cloneNodes, setLiveNodes])
+
+    // Trigger full sync: save → sync to live → emit to session
+    const triggerSync = useCallback(() => {
+      doSave()
+      handleSyncToLive()
+      onSyncToLiveSession?.()
+      setHasUnsyncedChanges(false)
+      setAskToastShown(false)
+    }, [doSave, handleSyncToLive, onSyncToLiveSession])
+
+    // Track when nodes change during an active session to mark unsynced changes
+    const prevNodesRef = useRef(nodes)
+    useEffect(() => {
+      if (!isSessionActive) return
+      if (!onSyncToLiveSession) return
+      if (nodes === prevNodesRef.current) return
+      prevNodesRef.current = nodes
+      setHasUnsyncedChanges(true)
+    }, [nodes, isSessionActive, onSyncToLiveSession])
+
+    // Auto-sync effect: watches for content changes and syncs based on mode
+    useEffect(() => {
+      if (!isSessionActive) return
+      if (!onSyncToLiveSession) return
+      if (!hasUnsyncedChanges) return
+
+      // Clear any existing timer
+      if (syncDebounceRef.current) {
+        clearTimeout(syncDebounceRef.current)
+        syncDebounceRef.current = null
+      }
+
+      if (syncMode === 'auto') {
+        // Debounced auto-sync: 3 seconds after last change
+        syncDebounceRef.current = setTimeout(() => {
+          triggerSync()
+        }, 3000)
+      } else if (syncMode === 'ask' && !askToastShown) {
+        // Show confirmation toast once per editing burst
+        setAskToastShown(true)
+        toast.info('Sync changes to live session?', {
+          duration: 10000,
+          action: {
+            label: 'Sync Now',
+            onClick: () => triggerSync(),
+          },
+          cancel: {
+            label: 'Later',
+            onClick: () => {
+              // Keep hasUnsyncedChanges true, allow re-prompt later
+              setAskToastShown(false)
+            },
+          },
+          onDismiss: () => setAskToastShown(false),
+        })
+      }
+
+      return () => {
+        if (syncDebounceRef.current) {
+          clearTimeout(syncDebounceRef.current)
+        }
+      }
+    }, [
+      hasUnsyncedChanges,
+      syncMode,
+      isSessionActive,
+      onSyncToLiveSession,
+      askToastShown,
+      triggerSync,
+    ])
 
     // Expose save method via ref
     useImperativeHandle(
@@ -5109,20 +5201,30 @@ FEEDBACK: [your explanation]`
 
                       {onSyncToLiveSession && (
                         <div className="flex items-center gap-2 pr-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              doSave()
-                              handleSyncToLive()
-                              onSyncToLiveSession()
-                            }}
-                            className="h-8 gap-2 rounded-full px-3 text-xs font-medium text-slate-600 hover:bg-slate-100"
-                            title="Sync course to live session"
-                          >
-                            <RefreshCw className="h-4 w-4" />
-                            Sync
-                          </Button>
+                          {syncMode === 'manual' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => triggerSync()}
+                              className="h-8 gap-2 rounded-full px-3 text-xs font-medium text-slate-600 hover:bg-slate-100"
+                              title="Sync course to live session"
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                              Sync
+                              {hasUnsyncedChanges && (
+                                <span className="ml-1 h-2 w-2 rounded-full bg-amber-400" />
+                              )}
+                            </Button>
+                          )}
+                          {syncMode !== 'manual' && hasUnsyncedChanges && (
+                            <span
+                              className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-xs text-amber-600"
+                              title="Changes will sync automatically"
+                            >
+                              <span className="h-2 w-2 animate-pulse rounded-full bg-amber-400" />
+                              Unsynced
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>

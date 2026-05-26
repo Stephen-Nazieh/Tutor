@@ -95,8 +95,8 @@ export async function refreshGcsUrl(
 
 /**
  * Refresh document URLs in any object recursively.
- * Scans for `fileUrl` properties that are GCS public URLs and replaces them
- * with fresh presigned URLs.
+ * Prefers `fileKey` for generating fresh presigned URLs (more reliable than regex parsing URLs).
+ * Falls back to regex-based URL refresh for backward compatibility.
  */
 export async function refreshDocumentUrls<T>(obj: T): Promise<T> {
   if (!obj || typeof obj !== 'object') return obj
@@ -110,8 +110,28 @@ export async function refreshDocumentUrls<T>(obj: T): Promise<T> {
   }
 
   const record = obj as Record<string, unknown>
-  const result: Record<string, unknown> = {}
 
+  // If this object has both fileKey and fileUrl, use fileKey to refresh
+  const fileKey = record.fileKey
+  const fileUrl = record.fileUrl
+  if (
+    typeof fileKey === 'string' &&
+    fileKey.length > 0 &&
+    typeof fileUrl === 'string' &&
+    isGcsConfigured()
+  ) {
+    const refreshed = { ...record }
+    refreshed.fileUrl = await createPresignedDownloadUrl(fileKey, 3600)
+    // Recursively refresh nested objects
+    for (const [key, value] of Object.entries(refreshed)) {
+      if (key !== 'fileUrl' && typeof value === 'object' && value !== null) {
+        refreshed[key] = await refreshDocumentUrls(value)
+      }
+    }
+    return refreshed as T
+  }
+
+  const result: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(record)) {
     if (key === 'fileUrl' && typeof value === 'string' && isGcsPublicUrl(value)) {
       result[key] = await refreshGcsUrl(value)
