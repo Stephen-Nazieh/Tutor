@@ -2,6 +2,7 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { course, courseLesson } from '@/lib/db/schema'
 import { eq, and, inArray, asc } from 'drizzle-orm'
 import crypto from 'crypto'
+import { removeFile } from '@/lib/storage/service'
 
 export interface BuilderLessonMedia {
   videos: unknown[]
@@ -67,7 +68,71 @@ function findBlobUrls(obj: unknown, path = ''): string[] {
   return results
 }
 
+// ─── GCS Cleanup Helpers ──────────────────────────────────────────────────────
+
+/**
+ * Recursively scan an object for all `fileKey` string values.
+ * Returns deduplicated keys suitable for GCS deletion.
+ */
+export function collectFileKeys(obj: unknown): string[] {
+  const keys = new Set<string>()
+
+  function walk(value: unknown) {
+    if (typeof value === 'string') return
+    if (Array.isArray(value)) {
+      value.forEach(walk)
+      return
+    }
+    if (value !== null && typeof value === 'object') {
+      for (const [k, v] of Object.entries(value)) {
+        if (k === 'fileKey' && typeof v === 'string' && v.length > 0) {
+          keys.add(v)
+        } else {
+          walk(v)
+        }
+      }
+    }
+  }
+
+  walk(obj)
+  return Array.from(keys)
+}
+
+/**
+ * Delete GCS/local files by their keys.
+ * Errors are logged but not thrown, so cleanup is best-effort.
+ */
+export async function deleteGcsFiles(keys: string[]): Promise<void> {
+  for (const key of keys) {
+    try {
+      await removeFile(key)
+    } catch (err: any) {
+      console.warn('[CourseBuilderService] Failed to delete file:', key, err?.message)
+    }
+  }
+}
+
 export class CourseBuilderService {
+  /**
+   * Scan all lessons in a course for fileKeys and delete the GCS objects.
+   * Best-effort: errors are logged but not thrown.
+   */
+  static async cleanupCourseFiles(courseId: string): Promise<void> {
+    try {
+      const lessons = await drizzleDb
+        .select({ builderData: courseLesson.builderData })
+        .from(courseLesson)
+        .where(eq(courseLesson.courseId, courseId))
+
+      const keys = collectFileKeys(lessons.map(l => l.builderData))
+      if (keys.length > 0) {
+        await deleteGcsFiles(keys)
+      }
+    } catch (err: any) {
+      console.warn('[CourseBuilderService] cleanupCourseFiles failed:', err?.message)
+    }
+  }
+
   /**
    * Retrieves the full builder tree (lessons) for a given course.
    * Verifies that the course belongs to the requesting user.
@@ -163,6 +228,15 @@ export class CourseBuilderService {
       )
     }
 
+    // Fetch existing lessons with builderData so we can clean up orphaned GCS
+    // files after the transaction succeeds.
+    const existingLessons = await drizzleDb
+      .select({ lessonId: courseLesson.lessonId, builderData: courseLesson.builderData })
+      .from(courseLesson)
+      .where(eq(courseLesson.courseId, courseId))
+
+    const oldFileKeys = collectFileKeys(existingLessons.map(l => l.builderData))
+
     await drizzleDb.transaction(async tx => {
       const existingDbLessons = await tx
         .select({ id: courseLesson.lessonId })
@@ -224,5 +298,14 @@ export class CourseBuilderService {
           })
       }
     })
+
+    // After successful save, delete orphaned GCS files.
+    // We diff old keys against new keys so shared/reused files are preserved.
+    const newFileKeys = collectFileKeys(lessons)
+    const newKeySet = new Set(newFileKeys)
+    const orphanedKeys = oldFileKeys.filter(k => !newKeySet.has(k))
+    if (orphanedKeys.length > 0) {
+      await deleteGcsFiles(orphanedKeys)
+    }
   }
 }

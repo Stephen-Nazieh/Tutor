@@ -11,6 +11,7 @@ import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { tutorAsset } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
+import { deleteObject, extractGcsKeyFromPublicUrl, isGcsConfigured } from '@/lib/storage/gcs'
 
 interface Asset {
   id: string
@@ -92,9 +93,27 @@ export async function PUT(req: NextRequest) {
       const existingIds = new Set(existingAssets.map(a => a.id))
       const incomingIds = new Set(assets.map(a => a.id))
 
-      // Delete assets that are no longer present
+      // Delete assets that are no longer present (and their GCS files)
       const idsToDelete = [...existingIds].filter(id => !incomingIds.has(id))
       if (idsToDelete.length > 0) {
+        const assetsToDelete = await tx
+          .select({ url: tutorAsset.url })
+          .from(tutorAsset)
+          .where(and(eq(tutorAsset.tutorId, tutorId), inArray(tutorAsset.assetId, idsToDelete)))
+
+        for (const asset of assetsToDelete) {
+          if (asset.url && isGcsConfigured()) {
+            const key = extractGcsKeyFromPublicUrl(asset.url)
+            if (key) {
+              try {
+                await deleteObject(key)
+              } catch (err) {
+                console.error('[assets-put] GCS delete failed:', err)
+              }
+            }
+          }
+        }
+
         for (const id of idsToDelete) {
           await tx
             .delete(tutorAsset)
@@ -159,6 +178,23 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
+    const [assetRow] = await drizzleDb
+      .select({ url: tutorAsset.url })
+      .from(tutorAsset)
+      .where(and(eq(tutorAsset.assetId, assetId), eq(tutorAsset.tutorId, tutorId)))
+      .limit(1)
+
+    if (assetRow?.url && isGcsConfigured()) {
+      const key = extractGcsKeyFromPublicUrl(assetRow.url)
+      if (key) {
+        try {
+          await deleteObject(key)
+        } catch (err) {
+          console.error('[assets-delete] GCS delete failed:', err)
+        }
+      }
+    }
+
     await drizzleDb
       .delete(tutorAsset)
       .where(and(eq(tutorAsset.assetId, assetId), eq(tutorAsset.tutorId, tutorId)))

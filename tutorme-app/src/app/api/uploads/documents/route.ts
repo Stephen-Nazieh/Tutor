@@ -178,6 +178,22 @@ export const POST = withCsrf(
         }
       }
 
+      // Cleanup temp files in all paths (success or failure)
+      const cleanupTempFiles = async () => {
+        try {
+          await unlink(absolutePath)
+        } catch {
+          // Ignore cleanup errors
+        }
+        if (convertedToPdf) {
+          try {
+            await unlink(finalPath)
+          } catch {
+            // Ignore cleanup errors
+          }
+        }
+      }
+
       if (isGcsConfigured()) {
         try {
           const gcsKey = `documents/${userId}/${finalName}`
@@ -187,13 +203,7 @@ export const POST = withCsrf(
           // which may 403 when uniform bucket-level access is enabled
           const signedUrl = await refreshGcsUrl(uploadResult.url, 7 * 24 * 3600)
 
-          // Cleanup temp files
-          try {
-            await unlink(absolutePath)
-            if (convertedToPdf) await unlink(finalPath)
-          } catch (e) {
-            // Ignore cleanup errors
-          }
+          await cleanupTempFiles()
 
           return NextResponse.json({
             url: signedUrl,
@@ -206,11 +216,13 @@ export const POST = withCsrf(
             isPdf: finalMime === 'application/pdf',
           })
         } catch (uploadError: any) {
+          await cleanupTempFiles()
           throw new Error(`GCS Upload Failed: ${uploadError.message}`)
         }
       }
 
       // Fallback to serving locally if GCS is not configured
+      await cleanupTempFiles()
       return NextResponse.json({
         url: `/api/serve-upload/documents/${userId}/${finalName}`,
         name: finalName,

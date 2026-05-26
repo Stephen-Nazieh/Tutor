@@ -12,6 +12,7 @@ import {
   calendarEvent,
 } from '@/lib/db/schema'
 import { eq, and, isNull, sql, inArray } from 'drizzle-orm'
+import { CourseBuilderService } from '@/lib/services/course-builder.service'
 import { z } from 'zod'
 import { notifyMany } from '@/lib/notifications/notify'
 import { getPaymentGateway, type GatewayName } from '@/lib/payments'
@@ -379,6 +380,9 @@ export const DELETE = withAuth(
 
       // Delete all events directly linked to this course
       await drizzleDb.delete(calendarEvent).where(eq(calendarEvent.courseId, id))
+
+      // Clean up GCS files referenced in lesson builderData before deleting the course
+      await CourseBuilderService.cleanupCourseFiles(id)
 
       // Delete the course (cascade will handle lessons)
       await drizzleDb.delete(course).where(eq(course.courseId, id))

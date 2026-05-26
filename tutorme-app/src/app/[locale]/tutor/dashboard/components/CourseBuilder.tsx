@@ -464,6 +464,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         name: string
         content?: string
         url?: string
+        fileKey?: string
         mimeType?: string
         folder?: string
       }[]
@@ -476,6 +477,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       name: string
       content?: string
       url?: string
+      fileKey?: string
       mimeType?: string
       folder?: string
     } | null>(null)
@@ -3581,6 +3583,7 @@ FEEDBACK: [your explanation]`
               const newDoc = {
                 fileName: asset.name,
                 fileUrl: asset.url || '',
+                fileKey: asset.fileKey,
                 mimeType: asset.mimeType || 'application/pdf',
                 uploadedAt: new Date().toISOString(),
                 extractedText,
@@ -3829,6 +3832,7 @@ FEEDBACK: [your explanation]`
       name: string
       content?: string
       url?: string
+      fileKey?: string
       mimeType?: string
       folder?: string
     }) => {
