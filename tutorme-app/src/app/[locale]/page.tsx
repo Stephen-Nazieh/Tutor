@@ -2145,13 +2145,14 @@ const ComingSoonModal = ({
   )
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        >
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
@@ -2211,6 +2212,7 @@ const ComingSoonModal = ({
           )}
         </motion.div>
       </motion.div>
+      )}
     </AnimatePresence>
   )
 }
@@ -2822,8 +2824,6 @@ const CategorySearchModal = ({
       : exams
 
   const hasResults = (exams: string[]) => filterExams(exams).length > 0
-
-  if (!isOpen) return null
 
   const tabTriggerClass =
     'rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none'
