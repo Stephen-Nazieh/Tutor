@@ -3,11 +3,12 @@ import { withAuth, withCsrf, handleApiError } from '@/lib/api/middleware'
 import type { Session } from 'next-auth'
 import path from 'path'
 import os from 'os'
-import { mkdir, writeFile, access, unlink } from 'fs/promises'
+import { mkdir, writeFile, access, unlink, readFile } from 'fs/promises'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 import { Buffer } from 'buffer'
 import { isGcsConfigured, uploadLocalFile, refreshGcsUrl } from '@/lib/storage/gcs'
+import { storeFile } from '@/lib/storage/service'
 
 const execAsync = promisify(exec)
 
@@ -221,12 +222,17 @@ export const POST = withCsrf(
         }
       }
 
-      // Fallback to serving locally if GCS is not configured
+      // Fallback to persistent local storage if GCS is not configured
+      const buffer = await readFile(finalPath)
+      const storageKey = `documents/${userId}/${finalName}`
+      const result = await storeFile(buffer, storageKey, finalMime)
       await cleanupTempFiles()
+
       return NextResponse.json({
-        url: `/api/serve-upload/documents/${userId}/${finalName}`,
+        url: result.url,
+        key: result.key,
         name: finalName,
-        originalUrl: `/api/serve-upload/documents/${userId}/${storedName}`,
+        originalUrl: result.url,
         originalName: storedName,
         size: fileObj.size,
         type: finalMime,

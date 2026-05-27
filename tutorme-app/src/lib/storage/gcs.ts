@@ -60,22 +60,29 @@ function buildPublicUrl(key: string, bucketName?: string): string {
 
 // ─── URL Refresh Utilities ────────────────────────────────────────────────────
 
-const GCS_PUBLIC_URL_REGEX = /^https:\/\/storage\.googleapis\.com\/([^/]+)\/(.+)$/
+/**
+ * Extract the GCS object key from a public or presigned GCS URL.
+ * Uses proper URL parsing so query parameters are not included in the key.
+ * Returns null if the URL is not a valid GCS URL.
+ */
+export function extractGcsKeyFromPublicUrl(url: string): string | null {
+  try {
+    const parsed = new URL(url)
+    if (parsed.hostname !== 'storage.googleapis.com') return null
+    const pathParts = parsed.pathname.split('/').filter(Boolean)
+    if (pathParts.length < 2) return null
+    // pathParts[0] = bucket, pathParts[1..] = object key
+    return pathParts.slice(1).join('/')
+  } catch {
+    return null
+  }
+}
 
 /**
  * Check if a URL is a GCS public URL.
  */
 export function isGcsPublicUrl(url: string): boolean {
-  return GCS_PUBLIC_URL_REGEX.test(url)
-}
-
-/**
- * Extract the GCS key from a public URL.
- * Returns null if the URL is not a valid GCS public URL.
- */
-export function extractGcsKeyFromPublicUrl(url: string): string | null {
-  const match = url.match(GCS_PUBLIC_URL_REGEX)
-  return match ? match[2] : null
+  return extractGcsKeyFromPublicUrl(url) !== null
 }
 
 /**
