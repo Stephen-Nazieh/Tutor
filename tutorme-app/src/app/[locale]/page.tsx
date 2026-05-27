@@ -2830,6 +2830,13 @@ const CategorySearchModal = ({
   const tabTriggerClass =
     'rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none'
 
+  const EmptyState = ({ search }: { search: string }) => (
+    <div className="py-12 text-center text-slate-500">
+      <Search className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+      <p className="text-sm">{search ? `No results for "${search}"` : 'No categories available.'}</p>
+    </div>
+  )
+
   const CategorySection = ({
     label,
     icon: Icon,
@@ -3068,13 +3075,6 @@ const CategorySearchModal = ({
     </AnimatePresence>
   )
 }
-
-const EmptyState = ({ search }: { search: string }) => (
-  <div className="py-12 text-center text-slate-500">
-    <Search className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-    <p className="text-sm">{search ? `No results for "${search}"` : 'No categories available.'}</p>
-  </div>
-)
 
 // --- Main Page Component ---
 
