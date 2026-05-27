@@ -666,6 +666,102 @@ const translations: Translations = {
     pt: 'Escuro',
     hi: 'डार्क',
   },
+  browseCategories: {
+    en: 'Browse Categories',
+    'zh-CN': '浏览类别',
+    'zh-HK': '瀏覽類別',
+    es: 'Explorar categorías',
+    fr: 'Parcourir les catégories',
+    de: 'Kategorien durchsuchen',
+    ja: 'カテゴリーを閲覧',
+    ko: '카테고리 탐색',
+    pt: 'Navegar categorias',
+    hi: 'श्रेणियाँ देखें',
+  },
+  selectCategoryPrompt: {
+    en: 'Select a category to search for courses and tutors',
+    'zh-CN': '选择一个类别来搜索课程和导师',
+    'zh-HK': '選擇一個類別來搜尋課程和導師',
+    es: 'Selecciona una categoría para buscar cursos y tutores',
+    fr: 'Sélectionnez une catégorie pour rechercher des cours et des tuteurs',
+    de: 'Wählen Sie eine Kategorie, um Kurse und Tutoren zu suchen',
+    ja: 'カテゴリーを選択してコースとチューターを検索',
+    ko: '코스 및 튜터를 검색할 카테고리 선택',
+    pt: 'Selecione uma categoria para buscar cursos e tutores',
+    hi: 'कोर्स और ट्यूटर खोजने के लिए एक श्रेणी चुनें',
+  },
+  allRegions: {
+    en: 'All Regions',
+    'zh-CN': '所有地区',
+    'zh-HK': '所有地區',
+    es: 'Todas las regiones',
+    fr: 'Toutes les régions',
+    de: 'Alle Regionen',
+    ja: 'すべての地域',
+    ko: '모든 지역',
+    pt: 'Todas as regiões',
+    hi: 'सभी क्षेत्र',
+  },
+  allCountries: {
+    en: 'All Countries',
+    'zh-CN': '所有国家',
+    'zh-HK': '所有國家',
+    es: 'Todos los países',
+    fr: 'Tous les pays',
+    de: 'Alle Länder',
+    ja: 'すべての国',
+    ko: '모든 국가',
+    pt: 'Todos os países',
+    hi: 'सभी देश',
+  },
+  searchCategories: {
+    en: 'Search categories...',
+    'zh-CN': '搜索类别...',
+    'zh-HK': '搜尋類別...',
+    es: 'Buscar categorías...',
+    fr: 'Rechercher des catégories...',
+    de: 'Kategorien durchsuchen...',
+    ja: 'カテゴリーを検索...',
+    ko: '카테고리 검색...',
+    pt: 'Pesquisar categorias...',
+    hi: 'श्रेणियाँ खोजें...',
+  },
+  noCategoriesAvailable: {
+    en: 'No categories available.',
+    'zh-CN': '没有可用的类别。',
+    'zh-HK': '沒有可用的類別。',
+    es: 'No hay categorías disponibles.',
+    fr: 'Aucune catégorie disponible.',
+    de: 'Keine Kategorien verfügbar.',
+    ja: '利用可能なカテゴリーはありません。',
+    ko: '사용 가능한 카테고리가 없습니다.',
+    pt: 'Nenhuma categoria disponível.',
+    hi: 'कोई श्रेणी उपलब्ध नहीं है।',
+  },
+  selectRegionCountryNational: {
+    en: 'Select a region or country to see national exams.',
+    'zh-CN': '选择地区或国家以查看国家考试。',
+    'zh-HK': '選擇地區或國家以查看國家考試。',
+    es: 'Selecciona una región o país para ver exámenes nacionales.',
+    fr: 'Sélectionnez une région ou un pays pour voir les examens nationaux.',
+    de: 'Wählen Sie eine Region oder ein Land, um nationale Prüfungen zu sehen.',
+    ja: '地域または国を選択して国家試験を表示します。',
+    ko: '국가 시험을 볼 지역이나 국가를 선택하세요.',
+    pt: 'Selecione uma região ou país para ver exames nacionais.',
+    hi: 'राष्ट्रीय परीक्षाएँ देखने के लिए क्षेत्र या देश चुनें।',
+  },
+  selectRegionCountryUniversities: {
+    en: 'Select a region or country to see universities.',
+    'zh-CN': '选择地区或国家以查看大学。',
+    'zh-HK': '選擇地區或國家以查看大學。',
+    es: 'Selecciona una región o país para ver universidades.',
+    fr: 'Sélectionnez une région ou un pays pour voir les universités.',
+    de: 'Wählen Sie eine Region oder ein Land, um Universitäten zu sehen.',
+    ja: '地域または国を選択して大学を表示します。',
+    ko: '대학을 볼 지역이나 국가를 선택하세요.',
+    pt: 'Selecione uma região ou país para ver universidades.',
+    hi: 'विश्वविद्यालय देखने के लिए क्षेत्र या देश चुनें।',
+  },
 }
 
 // --- Mock Data ---
@@ -2799,10 +2895,16 @@ const TermsOfServiceModal = ({
 
 // --- Category Search Modal sub-components ---
 
-const EmptyState = ({ search }: { search: string }) => (
+const EmptyState = ({
+  search,
+  fallbackText,
+}: {
+  search: string
+  fallbackText: string
+}) => (
   <div className="py-12 text-center text-slate-500">
     <Search className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-    <p className="text-sm">{search ? `No results for "${search}"` : 'No categories available.'}</p>
+    <p className="text-sm">{search ? `No results for "${search}"` : fallbackText}</p>
   </div>
 )
 
@@ -2851,17 +2953,20 @@ const CategorySearchModal = ({
   isOpen,
   onClose,
   onSelectCategory,
+  lang,
   mode,
 }: {
   isOpen: boolean
   onClose: () => void
   onSelectCategory: (category: string) => void
+  lang: Language
   mode: ThemeMode
 }) => {
   const [categorySearch, setCategorySearch] = useState('')
   const [selectedRegion, setSelectedRegion] = useState('')
   const [selectedCountry, setSelectedCountry] = useState('')
   const [activeTab, setActiveTab] = useState('global')
+  const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key
 
   // Reset when modal closes
   useEffect(() => {
@@ -2922,10 +3027,10 @@ const CategorySearchModal = ({
               <X className="h-5 w-5" />
             </button>
             <h2 className={`mb-1 text-2xl font-bold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
-              Browse Categories
+              {t('browseCategories')}
             </h2>
             <p className={`mb-4 text-sm ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>
-              Select a category to search for courses and tutors
+              {t('selectCategoryPrompt')}
             </p>
 
             {/* Region & Country dropdowns */}
@@ -2935,7 +3040,7 @@ const CategorySearchModal = ({
                   <SelectValue placeholder="All Regions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Regions</SelectItem>
+                  <SelectItem value="all">{t('allRegions')}</SelectItem>
                   {REGIONS.filter(r => r.id !== 'global').map(region => (
                     <SelectItem key={region.id} value={region.id}>{region.name}</SelectItem>
                   ))}
@@ -2943,10 +3048,10 @@ const CategorySearchModal = ({
               </Select>
               <Select value={selectedCountry || 'all'} onValueChange={v => setSelectedCountry(v === 'all' ? '' : v)} disabled={!selectedRegion}>
                 <SelectTrigger className="h-9 w-[160px] rounded-md border-slate-200 bg-white text-sm text-slate-900">
-                  <SelectValue placeholder="All Countries" />
+                  <SelectValue placeholder={t('allCountries')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Countries</SelectItem>
+                  <SelectItem value="all">{t('allCountries')}</SelectItem>
                   {availableCountries.map(country => (
                     <SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>
                   ))}
@@ -2958,7 +3063,7 @@ const CategorySearchModal = ({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
-                placeholder="Search categories..."
+                placeholder={t('searchCategories')}
                 value={categorySearch}
                 onChange={e => setCategorySearch(e.target.value)}
                 className="h-10 border-slate-200 bg-white pl-10 text-sm"
@@ -3008,7 +3113,7 @@ const CategorySearchModal = ({
                     <CategorySection key={cat.id} label={cat.label} icon={BookOpen} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!GLOBAL_EXAMS_CATEGORIES.some(cat => hasResults(cat.exams)) && (
-                    <EmptyState search={categorySearch} />
+                    <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
                   )}
                 </TabsContent>
 
@@ -3018,7 +3123,7 @@ const CategorySearchModal = ({
                     <CategorySection key={cat.id} label={cat.label} icon={Award} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!AP_CATEGORIES.some(cat => hasResults(cat.exams)) && (
-                    <EmptyState search={categorySearch} />
+                    <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
                   )}
                 </TabsContent>
 
@@ -3028,7 +3133,7 @@ const CategorySearchModal = ({
                     <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!A_LEVEL_CATEGORIES.some(cat => hasResults(cat.exams)) && (
-                    <EmptyState search={categorySearch} />
+                    <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
                   )}
                 </TabsContent>
 
@@ -3038,7 +3143,7 @@ const CategorySearchModal = ({
                     <CategorySection key={cat.id} label={cat.label} icon={BookOpen} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!IB_CATEGORIES.some(cat => hasResults(cat.exams)) && (
-                    <EmptyState search={categorySearch} />
+                    <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
                   )}
                 </TabsContent>
 
@@ -3048,7 +3153,7 @@ const CategorySearchModal = ({
                     <CategorySection key={cat.id} label={cat.label} icon={School} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!IGCSE_CATEGORIES.some(cat => hasResults(cat.exams)) && (
-                    <EmptyState search={categorySearch} />
+                    <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
                   )}
                 </TabsContent>
 
@@ -3060,11 +3165,11 @@ const CategorySearchModal = ({
                   {nationalExams.length === 0 && (
                     <div className="py-12 text-center text-slate-500">
                       <Flag className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-                      <p className="text-sm">Select a region or country to see national exams.</p>
+                      <p className="text-sm">{t('selectRegionCountryNational')}</p>
                     </div>
                   )}
                   {nationalExams.length > 0 && !nationalExams.some(cat => hasResults(cat.exams)) && (
-                    <EmptyState search={categorySearch} />
+                    <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
                   )}
                 </TabsContent>
 
@@ -3076,11 +3181,11 @@ const CategorySearchModal = ({
                   {filteredUniversityCategories.length === 0 && (
                     <div className="py-12 text-center text-slate-500">
                       <GraduationCap className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-                      <p className="text-sm">Select a region or country to see universities.</p>
+                      <p className="text-sm">{t('selectRegionCountryUniversities')}</p>
                     </div>
                   )}
                   {filteredUniversityCategories.length > 0 && !filteredUniversityCategories.some(cat => hasResults(cat.exams)) && (
-                    <EmptyState search={categorySearch} />
+                    <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
                   )}
                 </TabsContent>
 
@@ -3089,7 +3194,7 @@ const CategorySearchModal = ({
                   {LANGUAGE_CATEGORIES.map(cat => (
                     <CategorySection key={cat.id} label={cat.label} icon={Globe} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
-                  {!LANGUAGE_CATEGORIES.some(cat => hasResults(cat.exams)) && <EmptyState search={categorySearch} />}
+                  {!LANGUAGE_CATEGORIES.some(cat => hasResults(cat.exams)) && <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />}
                 </TabsContent>
 
                 {/* Professional */}
@@ -3097,7 +3202,7 @@ const CategorySearchModal = ({
                   {PROFESSIONAL_CATEGORIES.map(cat => (
                     <CategorySection key={cat.id} label={cat.label} icon={Award} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
-                  {!PROFESSIONAL_CATEGORIES.some(cat => hasResults(cat.exams)) && <EmptyState search={categorySearch} />}
+                  {!PROFESSIONAL_CATEGORIES.some(cat => hasResults(cat.exams)) && <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />}
                 </TabsContent>
               </div>
             </Tabs>
@@ -3208,6 +3313,7 @@ export default function LandingPage() {
             scrollToSearchResults()
           }, 100)
         }}
+        lang={language}
         mode={mode}
       />
       <ContactModal
