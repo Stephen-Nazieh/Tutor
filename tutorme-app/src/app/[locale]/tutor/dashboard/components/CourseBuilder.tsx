@@ -4426,7 +4426,12 @@ FEEDBACK: [your explanation]`
 
                       if (isPdf && assetToLoad.url) {
                         // Fetch original PDF and split it physically
-                        const pdfRes = await fetch(assetToLoad.url)
+                        // Proxy external URLs to avoid CORS
+                        const fetchUrl =
+                          assetToLoad.url.startsWith('http://') || assetToLoad.url.startsWith('https://')
+                            ? `/api/proxy-file?url=${encodeURIComponent(assetToLoad.url)}`
+                            : assetToLoad.url
+                        const pdfRes = await fetch(fetchUrl)
                         if (!pdfRes.ok) {
                           throw new Error(
                             `Failed to fetch PDF (${pdfRes.status}). The file URL may have expired — try re-uploading the asset.`
