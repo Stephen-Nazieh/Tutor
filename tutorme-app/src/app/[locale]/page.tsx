@@ -2884,7 +2884,7 @@ const CategorySearchModal = ({
       : []
 
   const filteredUniversityCategories = selectedRegion
-    ? UNIVERSITY_CATEGORIES.filter(u => u.id.includes(selectedRegion))
+    ? UNIVERSITY_CATEGORIES.filter(u => u.id === `universities-${selectedRegion}`)
     : UNIVERSITY_CATEGORIES
 
   const filterExams = (exams: string[]) =>
