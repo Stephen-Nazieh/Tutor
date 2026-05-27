@@ -2794,6 +2794,7 @@ const CategorySearchModal = ({
   const [categorySearch, setCategorySearch] = useState('')
   const [selectedRegion, setSelectedRegion] = useState('')
   const [selectedCountry, setSelectedCountry] = useState('')
+  const [activeTab, setActiveTab] = useState('global')
 
   // Reset when modal closes
   useEffect(() => {
@@ -2801,6 +2802,7 @@ const CategorySearchModal = ({
       setCategorySearch('')
       setSelectedRegion('')
       setSelectedCountry('')
+      setActiveTab('global')
     }
   }, [isOpen])
 
@@ -2862,7 +2864,8 @@ const CategorySearchModal = ({
   }
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
+      {isOpen && (
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -2931,7 +2934,7 @@ const CategorySearchModal = ({
 
           {/* Tabs Content */}
           <div className="w-full overflow-y-auto px-6 pb-6">
-            <Tabs defaultValue="global" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="border-b border-slate-200">
                 <TabsList className="flex w-full flex-wrap justify-start gap-4 bg-transparent p-0">
                   <TabsTrigger value="global" className={tabTriggerClass}>
@@ -3061,6 +3064,7 @@ const CategorySearchModal = ({
           </div>
         </motion.div>
       </motion.div>
+      )}
     </AnimatePresence>
   )
 }
