@@ -4240,7 +4240,13 @@ FEEDBACK: [your explanation]`
                           assetToLoad.url.startsWith('http://') || assetToLoad.url.startsWith('https://')
                             ? `/api/proxy-file?url=${encodeURIComponent(assetToLoad.url)}`
                             : assetToLoad.url
-                        const pdfBytes = await fetch(fetchUrl).then(res => res.arrayBuffer())
+                        const pdfRes = await fetch(fetchUrl)
+                        if (!pdfRes.ok) {
+                          throw new Error(
+                            `Failed to fetch PDF (${pdfRes.status}). The file URL may have expired — try re-uploading the asset.`
+                          )
+                        }
+                        const pdfBytes = await pdfRes.arrayBuffer()
                         const pdfDoc = await PDFDocument.load(pdfBytes)
                         const pageCount = pdfDoc.getPageCount()
 
@@ -4263,9 +4269,11 @@ FEEDBACK: [your explanation]`
                             body: formData,
                           })
 
+                          if (!uploadRes.ok) {
+                            const errData = await uploadRes.json().catch(() => ({}))
+                            throw new Error(errData.error || `Upload failed (${uploadRes.status})`)
+                          }
                           const uploadData = await uploadRes.json()
-                          if (!uploadRes.ok)
-                            throw new Error(uploadData.error || 'Failed to upload split page')
 
                           if (existingTask && existingTaskIndex !== -1 && i === 0) {
                             updatedExistingTask = {
@@ -4418,7 +4426,13 @@ FEEDBACK: [your explanation]`
 
                       if (isPdf && assetToLoad.url) {
                         // Fetch original PDF and split it physically
-                        const pdfBytes = await fetch(assetToLoad.url).then(res => res.arrayBuffer())
+                        const pdfRes = await fetch(assetToLoad.url)
+                        if (!pdfRes.ok) {
+                          throw new Error(
+                            `Failed to fetch PDF (${pdfRes.status}). The file URL may have expired — try re-uploading the asset.`
+                          )
+                        }
+                        const pdfBytes = await pdfRes.arrayBuffer()
                         const pdfDoc = await PDFDocument.load(pdfBytes)
                         const pageCount = pdfDoc.getPageCount()
 
@@ -4441,9 +4455,11 @@ FEEDBACK: [your explanation]`
                             body: formData,
                           })
 
+                          if (!uploadRes.ok) {
+                            const errData = await uploadRes.json().catch(() => ({}))
+                            throw new Error(errData.error || `Upload failed (${uploadRes.status})`)
+                          }
                           const uploadData = await uploadRes.json()
-                          if (!uploadRes.ok)
-                            throw new Error(uploadData.error || 'Failed to upload split page')
 
                           pdfPagesUrls.push(uploadData.url)
                           pdfPageKeys.push(uploadData.key)

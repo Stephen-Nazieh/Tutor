@@ -761,11 +761,13 @@ export const POST = withCsrf(
           stack: error?.stack,
         })
         const hint =
-          pgError?.code === '42703'
-            ? 'Missing column detected. Run: npm run db:apply-schema'
-            : pgError?.code === '42704'
-              ? 'Missing type/enum detected. Run: npm run db:apply-schema'
-              : undefined
+          pgError?.code === '42P01'
+            ? 'Missing table detected (CourseSchedule may not exist). Run: npm run db:migrate'
+            : pgError?.code === '42703'
+              ? 'Missing column detected. Run: npm run db:apply-schema'
+              : pgError?.code === '42704'
+                ? 'Missing type/enum detected. Run: npm run db:apply-schema'
+                : undefined
         return NextResponse.json(
           {
             error: error.message || 'Failed to publish course variants',

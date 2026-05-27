@@ -302,12 +302,10 @@ export function AssessmentBuilderModal({
                     {data.instructions}
                   </div>
                 )}
-                {!isTask && (
-                  <div className="space-y-3">
-                    <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
-                  </div>
-                )}
-                {!isTask && data.sourceDocument && (
+                <div className="space-y-3">
+                  <ResourceImportPanel data={data} setData={setData} targetField="instructions" />
+                </div>
+                {data.sourceDocument && (
                   <SourceDocumentPreview sourceDocument={data.sourceDocument} />
                 )}
                 {!isTask && (
