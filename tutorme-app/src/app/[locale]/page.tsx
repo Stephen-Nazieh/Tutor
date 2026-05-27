@@ -2778,6 +2778,54 @@ const TermsOfServiceModal = ({
   )
 }
 
+// --- Category Search Modal sub-components ---
+
+const EmptyState = ({ search }: { search: string }) => (
+  <div className="py-12 text-center text-slate-500">
+    <Search className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+    <p className="text-sm">{search ? `No results for "${search}"` : 'No categories available.'}</p>
+  </div>
+)
+
+const CategorySection = ({
+  label,
+  icon: Icon,
+  exams,
+  categorySearch,
+  onSelectCategory,
+}: {
+  label: string
+  icon: React.ElementType
+  exams: string[]
+  categorySearch: string
+  onSelectCategory: (category: string) => void
+}) => {
+  const filtered = categorySearch
+    ? exams.filter(e => e.toLowerCase().includes(categorySearch.toLowerCase()))
+    : exams
+  if (filtered.length === 0) return null
+  return (
+    <div className="space-y-3">
+      <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+        <Icon className="h-4 w-4 text-indigo-600" />
+        {label}
+      </h4>
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-4">
+        {filtered.map(exam => (
+          <button
+            key={exam}
+            onClick={() => onSelectCategory(exam)}
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100"
+          >
+            <span className="h-2 w-2 shrink-0 rounded-full bg-indigo-500" />
+            <span className="line-clamp-2">{exam}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // --- Category Search Modal (based on Course Details category panel) ---
 
 const CategorySearchModal = ({
@@ -2829,46 +2877,6 @@ const CategorySearchModal = ({
 
   const tabTriggerClass =
     'rounded-none border-b-2 border-transparent px-1 py-3 font-medium text-slate-500 data-[state=active]:border-indigo-600 data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none'
-
-  const EmptyState = ({ search }: { search: string }) => (
-    <div className="py-12 text-center text-slate-500">
-      <Search className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-      <p className="text-sm">{search ? `No results for "${search}"` : 'No categories available.'}</p>
-    </div>
-  )
-
-  const CategorySection = ({
-    label,
-    icon: Icon,
-    exams,
-  }: {
-    label: string
-    icon: React.ElementType
-    exams: string[]
-  }) => {
-    const filtered = filterExams(exams)
-    if (filtered.length === 0) return null
-    return (
-      <div className="space-y-3">
-        <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-          <Icon className="h-4 w-4 text-indigo-600" />
-          {label}
-        </h4>
-        <div className="grid grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-4">
-          {filtered.map(exam => (
-            <button
-              key={exam}
-              onClick={() => onSelectCategory(exam)}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100"
-            >
-              <span className="h-2 w-2 shrink-0 rounded-full bg-indigo-500" />
-              <span className="line-clamp-2">{exam}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    )
-  }
 
   return (
     <AnimatePresence>
@@ -2978,7 +2986,7 @@ const CategorySearchModal = ({
                 {/* Global */}
                 <TabsContent value="global" className="mt-0 space-y-6">
                   {GLOBAL_EXAMS_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={BookOpen} exams={cat.exams} />
+                    <CategorySection key={cat.id} label={cat.label} icon={BookOpen} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!GLOBAL_EXAMS_CATEGORIES.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} />
@@ -2988,7 +2996,7 @@ const CategorySearchModal = ({
                 {/* AP */}
                 <TabsContent value="ap" className="mt-0 space-y-6">
                   {AP_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={Award} exams={cat.exams} />
+                    <CategorySection key={cat.id} label={cat.label} icon={Award} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!AP_CATEGORIES.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} />
@@ -2998,7 +3006,7 @@ const CategorySearchModal = ({
                 {/* A Level */}
                 <TabsContent value="alevel" className="mt-0 space-y-6">
                   {A_LEVEL_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} />
+                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!A_LEVEL_CATEGORIES.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} />
@@ -3008,7 +3016,7 @@ const CategorySearchModal = ({
                 {/* IB */}
                 <TabsContent value="ib" className="mt-0 space-y-6">
                   {IB_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={BookOpen} exams={cat.exams} />
+                    <CategorySection key={cat.id} label={cat.label} icon={BookOpen} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!IB_CATEGORIES.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} />
@@ -3018,7 +3026,7 @@ const CategorySearchModal = ({
                 {/* IGCSE */}
                 <TabsContent value="igcse" className="mt-0 space-y-6">
                   {IGCSE_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={School} exams={cat.exams} />
+                    <CategorySection key={cat.id} label={cat.label} icon={School} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!IGCSE_CATEGORIES.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} />
@@ -3028,7 +3036,7 @@ const CategorySearchModal = ({
                 {/* National */}
                 <TabsContent value="national" className="mt-0 space-y-6">
                   {nationalExams.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={Flag} exams={cat.exams} />
+                    <CategorySection key={cat.id} label={cat.label} icon={Flag} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {nationalExams.length === 0 && (
                     <div className="py-12 text-center text-slate-500">
@@ -3041,7 +3049,7 @@ const CategorySearchModal = ({
                 {/* Universities */}
                 <TabsContent value="universities" className="mt-0 space-y-6">
                   {filteredUniversityCategories.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} />
+                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {filteredUniversityCategories.length === 0 && (
                     <div className="py-12 text-center text-slate-500">
@@ -3054,7 +3062,7 @@ const CategorySearchModal = ({
                 {/* Languages */}
                 <TabsContent value="languages" className="mt-0 space-y-6">
                   {LANGUAGE_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={Globe} exams={cat.exams} />
+                    <CategorySection key={cat.id} label={cat.label} icon={Globe} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!LANGUAGE_CATEGORIES.some(cat => hasResults(cat.exams)) && <EmptyState search={categorySearch} />}
                 </TabsContent>
@@ -3062,7 +3070,7 @@ const CategorySearchModal = ({
                 {/* Professional */}
                 <TabsContent value="professional" className="mt-0 space-y-6">
                   {PROFESSIONAL_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={Award} exams={cat.exams} />
+                    <CategorySection key={cat.id} label={cat.label} icon={Award} exams={cat.exams} categorySearch={categorySearch} onSelectCategory={onSelectCategory} />
                   ))}
                   {!PROFESSIONAL_CATEGORIES.some(cat => hasResults(cat.exams)) && <EmptyState search={categorySearch} />}
                 </TabsContent>
