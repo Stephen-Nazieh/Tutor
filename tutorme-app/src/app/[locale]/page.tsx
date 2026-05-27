@@ -1893,6 +1893,25 @@ const ComingSoonModal = ({
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    setSubmitted(false)
+    setFormData({
+      email: '',
+      name: '',
+      about: '',
+      socialMedia: '',
+      school: '',
+      website: '',
+      message: '',
+      youtube: '',
+      instagram: '',
+      tiktok: '',
+      facebook: '',
+    })
+    setError('')
+  }, [type])
+
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key
 
   const handleSubmit = async (e: React.FormEvent) => {
