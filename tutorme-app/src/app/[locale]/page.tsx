@@ -2903,23 +2903,23 @@ const CategorySearchModal = ({
 
             {/* Region & Country dropdowns */}
             <div className="mb-4 flex flex-wrap gap-3">
-              <Select value={selectedRegion} onValueChange={v => { setSelectedRegion(v); setSelectedCountry('') }}>
+              <Select value={selectedRegion || 'all'} onValueChange={v => { setSelectedRegion(v === 'all' ? '' : v); setSelectedCountry('') }}>
                 <SelectTrigger className="h-9 w-[160px] rounded-md border-slate-200 bg-white text-sm text-slate-900">
                   <SelectValue placeholder="All Regions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Regions</SelectItem>
+                  <SelectItem value="all">All Regions</SelectItem>
                   {REGIONS.filter(r => r.id !== 'global').map(region => (
                     <SelectItem key={region.id} value={region.id}>{region.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={selectedCountry} onValueChange={setSelectedCountry} disabled={!selectedRegion}>
+              <Select value={selectedCountry || 'all'} onValueChange={v => setSelectedCountry(v === 'all' ? '' : v)} disabled={!selectedRegion}>
                 <SelectTrigger className="h-9 w-[160px] rounded-md border-slate-200 bg-white text-sm text-slate-900">
                   <SelectValue placeholder="All Countries" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Countries</SelectItem>
+                  <SelectItem value="all">All Countries</SelectItem>
                   {availableCountries.map(country => (
                     <SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>
                   ))}
