@@ -3063,6 +3063,9 @@ const CategorySearchModal = ({
                       <p className="text-sm">Select a region or country to see national exams.</p>
                     </div>
                   )}
+                  {nationalExams.length > 0 && !nationalExams.some(cat => hasResults(cat.exams)) && (
+                    <EmptyState search={categorySearch} />
+                  )}
                 </TabsContent>
 
                 {/* Universities */}
@@ -3075,6 +3078,9 @@ const CategorySearchModal = ({
                       <GraduationCap className="mx-auto mb-3 h-12 w-12 text-slate-300" />
                       <p className="text-sm">Select a region or country to see universities.</p>
                     </div>
+                  )}
+                  {filteredUniversityCategories.length > 0 && !filteredUniversityCategories.some(cat => hasResults(cat.exams)) && (
+                    <EmptyState search={categorySearch} />
                   )}
                 </TabsContent>
 
