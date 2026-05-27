@@ -679,9 +679,10 @@
     z-index: 1000;
   }
   
-  /* Typography Hierarchy */
+  /* Typography Hierarchy - Fira Code for headings */
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight text-foreground;
+    font-family: 'Fira Code', 'Fira Sans', Inter, system-ui, -apple-system, monospace;
   }
   
   h1 { @apply text-4xl leading-tight; }
@@ -708,6 +709,38 @@
   /* Selection styles */
   ::selection {
     @apply bg-primary/20 text-foreground;
+  }
+
+  /* Cursor pointer on all interactive elements */
+  button,
+  a,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"],
+  label[for],
+  select,
+  details summary,
+  [data-state] {
+    cursor: pointer;
+  }
+
+  /* Focus visible ring - crisp, accessible */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring));
+    transition: box-shadow 150ms ease;
+  }
+
+  /* Respect prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
@@ -757,15 +790,63 @@
            active:shadow-active-press active:translate-y-0;
   }
   
-  /* Glass Effect */
+  /* Glass Effect - Light mode */
   .glass {
-    @apply bg-background/80 backdrop-blur-md 
+    @apply bg-background/80 backdrop-blur-md
            border border-border/50 shadow-elevation-1;
   }
-  
+
+  /* Glass Effect - Dark mode with layered translucency */
   .glass-dark {
-    @apply bg-background/60 backdrop-blur-md 
-           border border-border/30 shadow-elevation-1;
+    @apply backdrop-blur-md border border-border/20 shadow-elevation-2;
+    background: linear-gradient(
+      145deg,
+      hsl(var(--surface-elevated) / 0.72) 0%,
+      hsl(var(--surface-secondary) / 0.64) 100%
+    );
+  }
+
+  /* Layered structural backgrounds for dark mode */
+  .layered-surface {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--surface) / 0.95) 0%,
+      hsl(var(--surface-secondary) / 0.88) 50%,
+      hsl(var(--surface-tertiary) / 0.82) 100%
+    );
+  }
+
+  .layered-surface-dark {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--surface) / 0.85) 0%,
+      hsl(var(--surface-secondary) / 0.78) 50%,
+      hsl(var(--surface-tertiary) / 0.72) 100%
+    );
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* Smooth translucent card for dark mode */
+  .card-translucent {
+    @apply rounded-xl border shadow-elevation-2;
+    background: linear-gradient(
+      145deg,
+      hsl(var(--card) / 0.9) 0%,
+      hsl(var(--surface) / 0.85) 100%
+    );
+    border-color: hsl(var(--border) / 0.25);
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-translucent:hover {
+    background: linear-gradient(
+      145deg,
+      hsl(var(--card) / 0.95) 0%,
+      hsl(var(--surface) / 0.9) 100%
+    );
+    border-color: hsl(var(--border) / 0.4);
+    box-shadow: var(--shadow-hover-lift);
   }
   
   /* Gradient Surfaces */
@@ -800,23 +881,51 @@
     @apply bg-card rounded-xl p-5 shadow-elevation-1 border border-border/50;
   }
   
-  /* Interactive States */
+  /* Interactive States - consistent 200-300ms transitions */
   .interactive {
-    @apply transition-all duration-150 ease-premium
+    @apply cursor-pointer transition-all duration-200 ease-premium
            hover:brightness-105 active:brightness-95
            active:scale-[0.98];
   }
-  
+
   .interactive-lift {
-    @apply transition-all duration-250 ease-premium
+    @apply cursor-pointer transition-all duration-250 ease-premium
            hover:shadow-hover-lift hover:-translate-y-0.5
            active:shadow-active-press active:translate-y-0;
   }
-  
-  /* Focus Glow */
+
+  /* Smooth interactive with explicit hover/focus */
+  .interactive-smooth {
+    @apply cursor-pointer transition-all duration-200 ease-premium;
+  }
+
+  .interactive-smooth:hover {
+    @apply brightness-105;
+    transform: translateY(-1px);
+  }
+
+  .interactive-smooth:active {
+    @apply brightness-95;
+    transform: translateY(0);
+  }
+
+  /* Focus Glow - visible ring for keyboard navigation */
   .focus-glow:focus-visible {
     outline: none;
-    box-shadow: none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--ring) / 0.5);
+  }
+
+  /* Loading container with explicit visual state */
+  .loading-container {
+    @apply relative overflow-hidden rounded-lg;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted) / 0.7) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
   }
   
   /* Text Gradients */

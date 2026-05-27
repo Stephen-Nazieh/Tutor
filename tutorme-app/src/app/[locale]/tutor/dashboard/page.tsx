@@ -54,18 +54,18 @@ function DashboardSkeleton() {
   return (
     <div className="min-h-screen">
       <div className="w-full space-y-6">
-        <div className="h-8 w-1/3 animate-pulse rounded bg-white/10" />
+        <div className="bg-muted h-8 w-1/3 animate-pulse rounded" />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-24 animate-pulse rounded bg-white/10" />
+            <div key={i} className="bg-muted h-24 animate-pulse rounded" />
           ))}
         </div>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
-            <div className="h-64 animate-pulse rounded bg-white/10" />
+            <div className="bg-muted h-64 animate-pulse rounded" />
           </div>
           <div className="space-y-6">
-            <div className="h-48 animate-pulse rounded bg-white/10" />
+            <div className="bg-muted h-48 animate-pulse rounded" />
           </div>
         </div>
       </div>
@@ -591,12 +591,12 @@ function TutorDashboardContent() {
         </div>
 
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <div className="mb-6 rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
             {error}
             <Button
               variant="outline"
               size="sm"
-              className="ml-2"
+              className="ml-2 transition-all duration-200 hover:bg-muted"
               onClick={() => {
                 setLoading(true)
                 fetchData()
@@ -609,16 +609,16 @@ function TutorDashboardContent() {
 
         {/* Dashboard Stats */}
         <div className="mb-8 space-y-4">
-          <Card className="overflow-hidden rounded-[18px] border border-white/10 bg-[#1e3a5f] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
+          <Card className="card-translucent overflow-hidden rounded-[18px]">
             <CardContent className="pt-6">
-              <div className="grid grid-cols-1 gap-6 divide-y divide-white/10 md:grid-cols-2 md:divide-x md:divide-y-0">
+              <div className="grid grid-cols-1 gap-6 divide-y divide-border/20 md:grid-cols-2 md:divide-x md:divide-y-0">
                 <div className="py-2 text-center md:py-0">
-                  <h3 className="text-lg font-medium text-white/70">Total Classes</h3>
-                  <p className="mt-2 text-4xl font-bold text-white">{stats.totalClasses}</p>
+                  <h3 className="text-muted-foreground text-lg font-medium">Total Classes</h3>
+                  <p className="mt-2 text-4xl font-bold text-foreground">{stats.totalClasses}</p>
                 </div>
                 <div className="py-2 text-center md:px-6 md:py-0">
-                  <h3 className="text-lg font-medium text-white/70">Active Students</h3>
-                  <p className="mt-2 text-4xl font-bold text-white">{stats.totalStudents}</p>
+                  <h3 className="text-muted-foreground text-lg font-medium">Active Students</h3>
+                  <p className="mt-2 text-4xl font-bold text-foreground">{stats.totalStudents}</p>
                 </div>
               </div>
             </CardContent>
@@ -627,32 +627,32 @@ function TutorDashboardContent() {
 
         {/* 1-on-1 Requests */}
         <div className="mb-8">
-          <Card className="overflow-hidden rounded-[18px] border border-white/10 bg-[#1e3a5f] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
+          <Card className="card-translucent overflow-hidden rounded-[18px]">
             <CardHeader className="flex flex-row items-center justify-between gap-3">
               <div>
-                <CardTitle className="text-white">1-on-1 Requests</CardTitle>
-                <p className="text-xs text-white/70">Pending requests from students</p>
+                <CardTitle className="text-card-foreground">1-on-1 Requests</CardTitle>
+                <p className="text-muted-foreground text-xs">Pending requests from students</p>
               </div>
-              <Button asChild variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/10">
+              <Button asChild variant="outline" size="sm" className="transition-all duration-200 hover:bg-muted/80">
                 <Link href={withLocalePath('/tutor/notifications')}>View all</Link>
               </Button>
             </CardHeader>
             <CardContent className="space-y-3">
               {oneOnOneRequests.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-white/20 p-6 text-center text-sm text-white/70">
+                <div className="text-muted-foreground rounded-lg border border-dashed border-border/30 p-6 text-center text-sm">
                   No pending 1-on-1 requests.
                 </div>
               ) : (
                 oneOnOneRequests.slice(0, 3).map(request => (
                   <div
                     key={request.requestId}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 p-4"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/20 bg-muted/30 p-4 transition-all duration-200 hover:border-border/40 hover:bg-muted/50"
                   >
                     <div className="min-w-0 space-y-1">
-                      <p className="truncate font-semibold text-white">
+                      <p className="truncate font-semibold text-foreground">
                         @{request.student?.handle || 'student'}
                       </p>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
+                      <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
                         <span>
                           {new Date(request.requestedDate).toLocaleDateString('en-US', {
                             month: 'short',
@@ -674,14 +674,14 @@ function TutorDashboardContent() {
                         variant="outline"
                         disabled={respondingRequestId === request.requestId}
                         onClick={() => handleOneOnOneResponse(request.requestId, 'accept')}
-                        className="border-white/30 text-white hover:bg-white/10"
+                        className="transition-all duration-200"
                       >
                         Accept
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                        className="text-destructive transition-all duration-200 hover:bg-destructive/10"
                         disabled={respondingRequestId === request.requestId}
                         onClick={() => handleOneOnOneResponse(request.requestId, 'reject')}
                       >
@@ -692,7 +692,7 @@ function TutorDashboardContent() {
                 ))
               )}
               {oneOnOneRequests.length > 3 ? (
-                <p className="text-xs text-white/70">
+                <p className="text-muted-foreground text-xs">
                   +{oneOnOneRequests.length - 3} more pending requests
                 </p>
               ) : null}
@@ -719,13 +719,13 @@ function TutorDashboardContent() {
               />
             </TabsContent>
             <TabsContent value="courses">
-              <Card className="overflow-hidden rounded-[18px] border border-white/10 bg-[#1e3a5f] shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
+              <Card className="card-translucent overflow-hidden rounded-[18px]">
                 <CardHeader>
-                  <CardTitle className="text-white">Courses With Enrolled Students</CardTitle>
+                  <CardTitle className="text-card-foreground">Courses With Enrolled Students</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {enrolledCourses.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-white/20 p-6 text-center text-sm text-white/70">
+                    <div className="text-muted-foreground rounded-lg border border-dashed border-border/30 p-6 text-center text-sm">
                       No courses have enrolled students yet.
                     </div>
                   ) : (
@@ -743,17 +743,17 @@ function TutorDashboardContent() {
                       return (
                         <div
                           key={course.id}
-                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/5 p-4"
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/20 bg-muted/30 p-4 transition-all duration-200 hover:border-border/40 hover:bg-muted/50"
                         >
                           <div className="min-w-0 space-y-1">
                             <div className="flex items-center gap-2">
-                              <p className="truncate font-semibold text-white">
+                              <p className="truncate font-semibold text-foreground">
                                 {course.nationality && course.nationality !== 'Global'
                                   ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
                                   : course.name}
                               </p>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2 text-xs text-white/70">
+                            <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
                               <span>{(course.categories || [])[0] || 'Untitled'}</span>
                               {course.price ? (
                                 <span>
@@ -763,16 +763,16 @@ function TutorDashboardContent() {
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 text-xs text-white/70">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <Badge
                                 variant={hasActive || isWithin1Hour ? 'default' : 'secondary'}
                                 className={cn(
-                                  'cursor-pointer transition-colors',
+                                  'cursor-pointer transition-all duration-200',
                                   hasActive
-                                    ? 'bg-green-500 text-white hover:bg-green-600'
+                                    ? 'bg-success text-success-foreground hover:brightness-110'
                                     : isWithin1Hour
-                                      ? 'bg-orange-500 text-white hover:bg-orange-600'
-                                      : 'border-white/20 bg-white/10 text-white/80 hover:bg-white/20'
+                                      ? 'bg-warning text-warning-foreground hover:brightness-110'
+                                      : 'border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/70'
                                 )}
                                 onClick={() => handleOpenSessionsModal(course)}
                               >
@@ -787,7 +787,7 @@ function TutorDashboardContent() {
                               >
                                 <Badge
                                   variant="secondary"
-                                  className="cursor-pointer border-white/20 bg-white/10 text-white/80 hover:bg-white/20"
+                                  className="cursor-pointer border-border/30 bg-muted/50 text-muted-foreground transition-all duration-200 hover:bg-muted/70"
                                 >
                                   {course.enrollmentCount} enrolled
                                 </Badge>
@@ -798,6 +798,7 @@ function TutorDashboardContent() {
                                 variant="default"
                                 size="sm"
                                 onClick={() => handleOpenSessionsModal(course)}
+                                className="transition-all duration-200"
                               >
                                 <Eye className="mr-1 h-3 w-3" />
                                 View Sessions
@@ -808,6 +809,7 @@ function TutorDashboardContent() {
                                 size="sm"
                                 disabled={launchingCourseId === course.id}
                                 onClick={() => handleEnterCourseClassroom(course)}
+                                className="transition-all duration-200"
                               >
                                 {launchingCourseId === course.id ? (
                                   <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -817,7 +819,7 @@ function TutorDashboardContent() {
                                 Create Session
                               </Button>
                             )}
-                            <Button asChild variant="outline" size="sm" className="border-white/30 text-white hover:bg-white/10">
+                            <Button asChild variant="outline" size="sm" className="transition-all duration-200 hover:bg-muted/80">
                               <Link
                                 href={withLocalePath(
                                   `/tutor/insights?tab=builder&courseId=${course.id}&mode=edit`
@@ -854,7 +856,7 @@ function TutorDashboardContent() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-500" />
+                <Calendar className="text-primary h-5 w-5" />
                 Course Sessions
               </DialogTitle>
               <DialogDescription>
@@ -878,14 +880,14 @@ function TutorDashboardContent() {
                   <div className="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" />
                 </div>
               ) : sessionLoadError ? (
-                <div className="rounded-lg border border-dashed border-red-200 p-6 text-center text-sm">
-                  <AlertCircle className="mx-auto mb-2 h-8 w-8 text-red-400" />
-                  <p className="font-medium text-red-600">Failed to load sessions</p>
+                <div className="rounded-lg border border-dashed border-destructive/20 p-6 text-center text-sm">
+                  <AlertCircle className="text-destructive/50 mx-auto mb-2 h-8 w-8" />
+                  <p className="font-medium text-destructive">Failed to load sessions</p>
                   <p className="text-muted-foreground mt-1 text-xs">{sessionLoadError}</p>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-3"
+                    className="mt-3 transition-all duration-200"
                     onClick={() =>
                       selectedCourseForCancel && handleOpenSessionsModal(selectedCourseForCancel)
                     }
@@ -894,13 +896,13 @@ function TutorDashboardContent() {
                   </Button>
                 </div>
               ) : courseSessions.length === 0 ? (
-                <div className="text-muted-foreground rounded-lg border border-dashed p-6 text-center text-sm">
-                  <Calendar className="mx-auto mb-2 h-8 w-8 text-gray-300" />
+                <div className="text-muted-foreground rounded-lg border border-dashed border-border/30 p-6 text-center text-sm">
+                  <Calendar className="text-muted-foreground/50 mx-auto mb-2 h-8 w-8" />
                   <p>No sessions found for this course.</p>
                   {selectedCourseForCancel && (
                     <Button
                       size="sm"
-                      className="mt-3"
+                      className="mt-3 transition-all duration-200"
                       disabled={launchingCourseId === selectedCourseForCancel.id}
                       onClick={() => handleEnterCourseClassroom(selectedCourseForCancel)}
                     >
@@ -941,17 +943,17 @@ function TutorDashboardContent() {
 
                       const badgeClass =
                         isActive || displayStatus === 'active'
-                          ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                          ? 'bg-success/15 text-success border-success/25'
                           : isEnded
-                            ? 'bg-slate-100 text-slate-600 border-slate-200'
+                            ? 'bg-muted text-muted-foreground border-border/30'
                             : displayStatus === 'opening_soon'
-                              ? 'bg-amber-100 text-amber-700 border-amber-200'
-                              : 'bg-sky-100 text-sky-700 border-sky-200'
+                              ? 'bg-warning/15 text-warning border-warning/25'
+                              : 'bg-info/15 text-info border-info/25'
 
                       return (
                         <div
                           key={session.id}
-                          className="flex items-center justify-between rounded-lg border p-3"
+                          className="flex items-center justify-between rounded-lg border border-border/30 bg-card/50 p-3 transition-all duration-200 hover:border-border/50 hover:bg-card"
                         >
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex items-center gap-2">
@@ -995,7 +997,7 @@ function TutorDashboardContent() {
                               )}
                             </div>
                             {session.description && (
-                              <p className="truncate text-xs text-gray-500">
+                              <p className="text-muted-foreground truncate text-xs">
                                 {session.description}
                               </p>
                             )}
@@ -1015,7 +1017,7 @@ function TutorDashboardContent() {
                                   }
                                 }}
                                 disabled={cancellingSessionId === session.id}
-                                className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                                className="text-destructive transition-all duration-200 hover:bg-destructive/10 hover:text-destructive/80"
                               >
                                 {cancellingSessionId === session.id ? (
                                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -1035,6 +1037,7 @@ function TutorDashboardContent() {
                                     session.scheduledAt
                                   )
                                 }
+                                className="transition-all duration-200"
                               >
                                 {launchingCourseId === selectedCourseForCancel?.id ? (
                                   <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -1049,6 +1052,7 @@ function TutorDashboardContent() {
                                 size="sm"
                                 disabled={launchingCourseId === session.id}
                                 onClick={() => handleStartClass(session.id)}
+                                className="transition-all duration-200"
                               >
                                 {launchingCourseId === session.id ? (
                                   <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -1066,6 +1070,7 @@ function TutorDashboardContent() {
                                     withLocalePath(`/tutor/classroom?sessionId=${session.id}`)
                                   )
                                 }
+                                className="transition-all duration-200"
                               >
                                 Join Session
                               </Button>
@@ -1090,7 +1095,11 @@ function TutorDashboardContent() {
                 <AlertCircle className="h-4 w-4" />
                 <span>Cancelling a session will notify enrolled students</span>
               </div>
-              <Button variant="outline" onClick={() => setCancelModalOpen(false)}>
+              <Button
+                variant="outline"
+                className="transition-all duration-200 hover:bg-muted"
+                onClick={() => setCancelModalOpen(false)}
+              >
                 Close
               </Button>
             </DialogFooter>

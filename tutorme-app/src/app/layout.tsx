@@ -30,8 +30,8 @@ export const metadata = {
     title: 'Solocorn',
   },
   other: {
-    'theme-color': '#10b981',
-    'msapplication-TileColor': '#10b981',
+    'theme-color': '#7C3AED',
+    'msapplication-TileColor': '#7C3AED',
   },
 }
 
@@ -71,9 +71,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover"
         />
-        <meta name="theme-color" content="#10b981" />
+        <meta name="theme-color" content="#7C3AED" />
         <meta name="format-detection" content="telephone=no" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
         <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />

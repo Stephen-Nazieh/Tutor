@@ -295,6 +295,7 @@ const config: Config = {
       // ============================================
       fontFamily: {
         sans: [
+          "Fira Sans",
           "Inter",
           "system-ui",
           "-apple-system",
@@ -304,10 +305,19 @@ const config: Config = {
           "sans-serif",
         ],
         display: [
+          "Fira Sans",
           "Inter",
           "system-ui",
           "-apple-system",
           "sans-serif",
+        ],
+        heading: [
+          "Fira Code",
+          "Fira Sans",
+          "Inter",
+          "system-ui",
+          "-apple-system",
+          "monospace",
         ],
         chinese: [
           "system-ui",

@@ -73,11 +73,11 @@ export function AssessmentBuilderModal({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {isTask ? (
-                <ListTodo className="h-5 w-5 text-orange-500" />
+                <ListTodo className="text-warning h-5 w-5" />
               ) : isHomework ? (
-                <Home className="h-5 w-5 text-purple-500" />
+                <Home className="h-5 w-5 text-primary" />
               ) : (
-                <FileQuestion className="h-5 w-5 text-purple-500" />
+                <FileQuestion className="h-5 w-5 text-primary" />
               )}
               {titleLabel} Builder
             </DialogTitle>
@@ -86,13 +86,13 @@ export function AssessmentBuilderModal({
             <TabsList className="bg-muted mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
               <TabsTrigger
                 value="edit"
-                className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                className="rounded-lg border border-border/60 bg-card transition-all duration-200 hover:bg-muted/80 data-[state=active]:bg-muted data-[state=active]:text-foreground"
               >
                 Edit
               </TabsTrigger>
               <TabsTrigger
                 value="preview"
-                className="rounded-lg border border-gray-400 bg-white transition-all duration-200 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900"
+                className="rounded-lg border border-border/60 bg-card transition-all duration-200 hover:bg-muted/80 data-[state=active]:bg-muted data-[state=active]:text-foreground"
               >
                 Preview (student view)
               </TabsTrigger>
@@ -130,7 +130,7 @@ export function AssessmentBuilderModal({
                     rows={4}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4 rounded-xl bg-white/30 p-4 shadow-sm backdrop-blur-sm">
+                <div className="grid grid-cols-2 gap-4 rounded-xl bg-card/50 p-4 shadow-sm backdrop-blur-sm">
                   <div className="space-y-2">
                     <Label>Submission</Label>
                     {isTask ? (
@@ -181,7 +181,7 @@ export function AssessmentBuilderModal({
 
                 {/* Questions Section - Only when submissionType is 'questions' */}
                 {data.submissionType === 'questions' && (
-                  <div className="space-y-4 rounded-lg border bg-purple-50/30 p-4">
+                  <div className="space-y-4 rounded-lg border bg-secondary/10 p-4">
                     <QuestionEditor
                       questions={data.questions || []}
                       onChange={next => setData({ ...data, questions: next })}
@@ -233,8 +233,8 @@ export function AssessmentBuilderModal({
                 <div className="mt-4 border-t pt-4">
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-amber-500" />
-                      <Label className="font-medium text-amber-700">
+                      <Shield className="h-4 w-4 text-warning" />
+                      <Label className="font-medium text-warning">
                         Instructor Answer Key (Protected)
                       </Label>
                     </div>
@@ -261,7 +261,7 @@ export function AssessmentBuilderModal({
                         onChange={(e: any) => setData({ ...data, answerKey: e.target.value })}
                         placeholder="Enter the expected answer/solution here. This is ONLY visible to instructors."
                         rows={4}
-                        className="border-amber-400 bg-amber-50/30"
+                        className="border-warning/50 bg-warning/10"
                       />
                       <div className="flex items-center gap-2">
                         <Switch
@@ -277,10 +277,10 @@ export function AssessmentBuilderModal({
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded border border-dashed border-gray-400 bg-gray-50 p-3 text-center">
-                      <Lock className="mx-auto mb-1 h-4 w-4 text-gray-400" />
+                    <div className="rounded border border-dashed border-border/50 bg-muted/50 p-3 text-center">
+                      <Lock className="mx-auto mb-1 h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground text-xs">
-                        Answer key is hidden. Click "Show" to view/edit.
+                        Answer key is hidden. Click &quot;Show&quot; to view/edit.
                       </span>
                     </div>
                   )}
@@ -289,7 +289,7 @@ export function AssessmentBuilderModal({
             </TabsContent>
             <TabsContent
               value="preview"
-              className="mt-4 space-y-4 rounded-2xl bg-white/95 p-6 py-4 shadow-2xl backdrop-blur-md"
+              className="bg-card/95 mt-4 space-y-4 rounded-2xl border p-6 py-4 shadow-xl backdrop-blur-md"
             >
               <div className="bg-muted/30 space-y-3 rounded-lg border p-4">
                 <h3 className="font-semibold">{data.title}</h3>
@@ -311,7 +311,7 @@ export function AssessmentBuilderModal({
                   <SourceDocumentPreview sourceDocument={data.sourceDocument} />
                 )}
                 {!isTask && (
-                  <div className="space-y-3 rounded-lg border bg-white p-3">
+                  <div className="space-y-3 rounded-lg border bg-card p-3">
                     <h4 className="text-sm font-medium">Settings</h4>
                     <div className="flex flex-wrap gap-4">
                       <div className="flex items-center gap-2">
@@ -356,11 +356,20 @@ export function AssessmentBuilderModal({
               </div>
             </TabsContent>
           </Tabs>
-          <DialogFooter>
-            <Button variant="outline" onClick={onClose}>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="transition-all duration-200 hover:bg-muted"
+            >
               Cancel
             </Button>
-            <Button onClick={() => onSave({ ...data })}>Save</Button>
+            <Button
+              onClick={() => onSave({ ...data })}
+              className="transition-all duration-200 hover:brightness-105 active:brightness-95"
+            >
+              Save
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
