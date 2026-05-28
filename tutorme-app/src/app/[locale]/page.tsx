@@ -3279,20 +3279,21 @@ const CategorySearchModal = ({
                 </span>
                 <div className="flex gap-3">
                   <Button
-                    variant="outline"
+                    variant="modal-secondary"
                     onClick={onClose}
                     className="h-9 px-4 text-sm"
                   >
                     Cancel
                   </Button>
                   <Button
+                    variant="modal-primary"
                     onClick={() => {
                       if (selectedCategories.length > 0) {
                         onSelectCategory(selectedCategories)
                       }
                     }}
                     disabled={selectedCategories.length === 0}
-                    className="h-9 bg-indigo-600 px-6 text-sm text-white hover:bg-indigo-700 disabled:opacity-50"
+                    className="h-9 px-6 text-sm disabled:opacity-50"
                   >
                     Search
                   </Button>
