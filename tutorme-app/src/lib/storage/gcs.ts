@@ -23,7 +23,7 @@ const MAX_UPLOAD_BYTES = 100 * 1024 * 1024 // 100 MB
 let Storage: typeof import('@google-cloud/storage').Storage | null = null
 let cachedStorage: import('@google-cloud/storage').Storage | null = null
 
-async function getStorage() {
+export async function getStorage() {
   if (cachedStorage) return cachedStorage
   if (!Storage) {
     const gcs = await import('@google-cloud/storage')

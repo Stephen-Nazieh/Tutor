@@ -44,6 +44,8 @@ export async function GET(req: NextRequest) {
     // Detailed health response
     let dbVersion = null
     let redisInfo = null
+    let storageStatus: 'configured' | 'not_configured' | 'error' = 'not_configured'
+    let storageBucket: string | null = null
 
     try {
       const result = await drizzleDb.execute<{ version: string }>(sql`SELECT version() as version`)
@@ -67,6 +69,19 @@ export async function GET(req: NextRequest) {
       // Redis not available
     }
 
+    // Lightweight storage config check (full diagnostics at /api/health/storage)
+    try {
+      const bucket = process.env.GCS_BUCKET
+      const projectId = process.env.GCP_PROJECT_ID
+      const saKey = process.env.GCP_SA_KEY
+      if (bucket && projectId && saKey) {
+        storageStatus = 'configured'
+        storageBucket = bucket
+      }
+    } catch {
+      storageStatus = 'error'
+    }
+
     return NextResponse.json(
       {
         status: health.status,
@@ -87,6 +102,12 @@ export async function GET(req: NextRequest) {
             connected: health.cache,
             type: redisInfo ? 'redis' : 'in-memory',
             redisVersion: redisInfo ? redisInfo.match(/redis_version:(.+)/)?.[1] : null,
+          },
+          storage: {
+            configured: storageStatus === 'configured',
+            backend: storageStatus === 'configured' ? 'gcs' : 'local',
+            bucket: storageBucket,
+            diagnosticsUrl: '/api/health/storage',
           },
         },
         performance: health.stats,
