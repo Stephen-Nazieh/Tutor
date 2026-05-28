@@ -11,13 +11,14 @@ import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { tutorAsset } from '@/lib/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
-import { deleteObject, extractGcsKeyFromPublicUrl, isGcsConfigured } from '@/lib/storage/gcs'
+import { deleteObject, extractGcsKeyFromPublicUrl, isGcsConfigured, refreshGcsUrl } from '@/lib/storage/gcs'
 
 interface Asset {
   id: string
   name: string
   content?: string
   url?: string
+  fileKey?: string
   mimeType?: string
   size?: number
   createdAt?: string
@@ -41,6 +42,7 @@ export async function GET(req: NextRequest) {
         name: tutorAsset.name,
         content: tutorAsset.content,
         url: tutorAsset.url,
+        fileKey: tutorAsset.fileKey,
         mimeType: tutorAsset.mimeType,
         size: tutorAsset.size,
         createdAt: tutorAsset.createdAt,
@@ -50,17 +52,48 @@ export async function GET(req: NextRequest) {
       .where(eq(tutorAsset.tutorId, tutorId))
       .orderBy(tutorAsset.createdAt)
 
-    // Format assets for the frontend
-    const formattedAssets: Asset[] = assets.map(asset => ({
-      id: asset.id,
-      name: asset.name,
-      content: asset.content || undefined,
-      url: asset.url || undefined,
-      mimeType: asset.mimeType || undefined,
-      size: asset.size || undefined,
-      createdAt: asset.createdAt?.toISOString(),
-      metadata: (asset.metadata as Record<string, unknown> | null) || undefined,
-    }))
+    // Refresh GCS URLs before returning — presigned URLs expire after 7 days.
+    // Use stored fileKey when available; fall back to extracting key from URL.
+    const formattedAssets: Asset[] = await Promise.all(
+      assets.map(async asset => {
+        let refreshedUrl = asset.url || undefined
+        let fileKey = asset.fileKey || undefined
+
+        if (refreshedUrl && isGcsConfigured()) {
+          // Prefer stored fileKey for refresh
+          if (fileKey) {
+            try {
+              refreshedUrl = await refreshGcsUrl(refreshedUrl, 7 * 24 * 3600)
+            } catch (err) {
+              console.error('[assets-get] URL refresh failed for key:', fileKey, err)
+            }
+          } else {
+            // Backward compat: try to extract key from stored URL
+            const extractedKey = extractGcsKeyFromPublicUrl(refreshedUrl)
+            if (extractedKey) {
+              fileKey = extractedKey
+              try {
+                refreshedUrl = await refreshGcsUrl(refreshedUrl, 7 * 24 * 3600)
+              } catch (err) {
+                console.error('[assets-get] URL refresh failed for extracted key:', extractedKey, err)
+              }
+            }
+          }
+        }
+
+        return {
+          id: asset.id,
+          name: asset.name,
+          content: asset.content || undefined,
+          url: refreshedUrl,
+          fileKey,
+          mimeType: asset.mimeType || undefined,
+          size: asset.size || undefined,
+          createdAt: asset.createdAt?.toISOString(),
+          metadata: (asset.metadata as Record<string, unknown> | null) || undefined,
+        }
+      })
+    )
 
     return NextResponse.json({ assets: formattedAssets })
   } catch (error) {
@@ -131,6 +164,7 @@ export async function PUT(req: NextRequest) {
             name: asset.name,
             content: asset.content || null,
             url: asset.url || null,
+            fileKey: asset.fileKey || null,
             mimeType: asset.mimeType || null,
             size: asset.size || null,
             metadata: asset.metadata || null,
@@ -142,6 +176,7 @@ export async function PUT(req: NextRequest) {
               name: asset.name,
               content: asset.content || null,
               url: asset.url || null,
+              fileKey: asset.fileKey || null,
               mimeType: asset.mimeType || null,
               size: asset.size || null,
               metadata: asset.metadata || null,

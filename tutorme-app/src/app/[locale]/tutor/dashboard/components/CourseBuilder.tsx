@@ -1300,6 +1300,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                 data.assets.forEach((a: any) => {
                   merged.set(a.id, {
                     ...a,
+                    fileKey: a.fileKey || undefined,
                     folder:
                       (a.metadata?.folder as string) ||
                       (a.metadata?.folderName as string) ||
@@ -3725,9 +3726,9 @@ FEEDBACK: [your explanation]`
             }
 
             if (target === 'assessment') {
-              if (!asset.url) {
+              if (!asset.url && !asset.fileKey) {
                 toast.error(
-                  `The document '${asset.name}' is missing its file URL. Please delete and upload it again.`
+                  `The document '${asset.name}' has no file URL or storage key. Please delete and upload it again.`
                 )
                 return
               }
@@ -3772,9 +3773,9 @@ FEEDBACK: [your explanation]`
               toast.success(`Loaded '${asset.name}' into Assessment`)
             } else {
               // For tasks, load document and text
-              if (!asset.url) {
+              if (!asset.url && !asset.fileKey) {
                 toast.error(
-                  `The document '${asset.name}' is missing its file URL. Please delete and upload it again.`
+                  `The document '${asset.name}' has no file URL or storage key. Please delete and upload it again.`
                 )
                 return
               }

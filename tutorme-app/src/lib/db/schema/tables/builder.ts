@@ -272,6 +272,7 @@ export const tutorAsset = pgTable(
     name: text('name').notNull(),
     content: text('content'), // Extracted text content
     url: text('url'), // File URL if stored externally
+    fileKey: text('fileKey'), // Persistent GCS object key for URL refresh
     mimeType: text('mimeType'), // File MIME type
     size: integer('size'), // File size in bytes
     metadata: jsonb('metadata'), // Additional flexible metadata

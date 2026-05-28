@@ -44,6 +44,7 @@ import {
   Flag,
   Wrench,
   Clock,
+  Check,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -76,6 +77,7 @@ import {
   UNIVERSITY_CATEGORIES,
   LANGUAGE_CATEGORIES,
   PROFESSIONAL_CATEGORIES,
+  UNIVERSITIES_BY_COUNTRY_CODE,
 } from '@/lib/data/tutor-categories'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
@@ -2940,12 +2942,15 @@ const CategorySection = ({
             key={`${label}-${idx}-${exam}`}
             className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-700 transition-colors hover:bg-slate-100"
           >
-            <input
-              type="checkbox"
-              checked={selectedCategories.includes(exam)}
-              onChange={() => onToggleCategory(exam)}
-              className="h-4 w-4 shrink-0 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-            />
+            <div className="relative flex h-4 w-4 shrink-0 items-center justify-center">
+              <input
+                type="checkbox"
+                checked={selectedCategories.includes(exam)}
+                onChange={() => onToggleCategory(exam)}
+                className="peer h-4 w-4 appearance-none rounded-full border border-slate-300 transition-colors checked:border-indigo-600 checked:bg-indigo-600"
+              />
+              <Check className="pointer-events-none absolute h-2.5 w-2.5 text-white opacity-0 peer-checked:opacity-100" />
+            </div>
             <span className="line-clamp-2">{exam}</span>
           </label>
         ))}
@@ -3011,9 +3016,13 @@ const CategorySearchModal = ({
       ? (REGIONS.find(r => r.id === selectedRegion)?.countries.flatMap(c => c.nationalExams) || [])
       : []
 
-  const filteredUniversityCategories = selectedRegion
-    ? UNIVERSITY_CATEGORIES.filter(u => u.id === `universities-${selectedRegion}`)
-    : UNIVERSITY_CATEGORIES
+  const filteredUniversityCategories = selectedCountry
+    ? (UNIVERSITIES_BY_COUNTRY_CODE[selectedCountry]
+        ? [{ id: `universities-${selectedCountry}`, label: 'Universities', exams: UNIVERSITIES_BY_COUNTRY_CODE[selectedCountry] }]
+        : [])
+    : selectedRegion
+      ? UNIVERSITY_CATEGORIES.filter(u => u.id === `universities-${selectedRegion}`)
+      : []
 
   const filterExams = (exams: string[]) =>
     categorySearch
@@ -3060,21 +3069,25 @@ const CategorySearchModal = ({
               </div>
               {/* Selected category badges */}
               {selectedCategories.length > 0 && (
-                <div className="flex max-w-[50%] flex-wrap items-center gap-2">
-                  {selectedCategories.map(cat => (
-                    <span
-                      key={cat}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700"
-                    >
-                      {cat} — {regionLabel}
-                      <button
-                        onClick={() => removeCategory(cat)}
-                        className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full hover:bg-indigo-200"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
+                <div className="flex max-w-[50%] flex-col">
+                  <div className="max-h-[80px] overflow-y-auto rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {selectedCategories.map(cat => (
+                        <span
+                          key={cat}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700"
+                        >
+                          {cat} — {regionLabel}
+                          <button
+                            onClick={() => removeCategory(cat)}
+                            className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full hover:bg-indigo-200"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -3221,16 +3234,22 @@ const CategorySearchModal = ({
 
                 {/* Universities */}
                 <TabsContent value="universities" className="mt-0 space-y-6">
-                  {filteredUniversityCategories.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
-                  ))}
-                  {filteredUniversityCategories.length === 0 && (
+                  {!selectedRegion && !selectedCountry && (
                     <div className="py-12 text-center text-slate-500">
                       <GraduationCap className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-                      <p className="text-sm">{t('selectRegionCountryUniversities')}</p>
+                      <p className="text-sm">Please select a region or country</p>
                     </div>
                   )}
-                  {filteredUniversityCategories.length > 0 && !filteredUniversityCategories.some(cat => hasResults(cat.exams)) && (
+                  {(selectedRegion || selectedCountry) && filteredUniversityCategories.map(cat => (
+                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
+                  ))}
+                  {(selectedRegion || selectedCountry) && filteredUniversityCategories.length === 0 && (
+                    <div className="py-12 text-center text-slate-500">
+                      <GraduationCap className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                      <p className="text-sm">No universities available for this selection</p>
+                    </div>
+                  )}
+                  {(selectedRegion || selectedCountry) && filteredUniversityCategories.length > 0 && !filteredUniversityCategories.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
                   )}
                 </TabsContent>
