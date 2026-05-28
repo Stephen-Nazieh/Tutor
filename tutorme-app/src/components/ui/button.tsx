@@ -116,7 +116,6 @@ const buttonVariants = cva(
           'rounded-[10px]',
           'px-4 py-2.5',
           'shadow-elevation-2',
-          'hover:shadow-hover-lift hover:-translate-y-0.5',
           'active:shadow-active-press active:translate-y-0',
         ],
 
@@ -134,10 +133,11 @@ const buttonVariants = cva(
         // Modal Primary - Universal popup primary action (works on white panels)
         'modal-primary': [
           'bg-blue-700 text-white',
+          'border border-blue-700',
           'rounded-md',
           'h-10 px-6',
           'shadow-sm',
-          'hover:bg-blue-800',
+          'hover:bg-white hover:text-blue-700 hover:border-blue-700',
           'active:bg-blue-900',
           'disabled:opacity-50',
         ],
@@ -148,30 +148,30 @@ const buttonVariants = cva(
           'border border-gray-300',
           'rounded-md',
           'h-10 px-6',
-          'hover:bg-gray-50',
+          'hover:bg-white hover:text-gray-900 hover:border-black',
           'active:bg-gray-100',
           'disabled:opacity-50',
         ],
 
         // Modal Primary (Metallic/Dark) - Brand primary action on dark modals
         'modal-primary-dark': [
-          'bg-[#0057ff] text-white',
-          'border border-[#0057ff]',
+          'bg-[#194BB9] text-white',
+          'border border-[#194BB9]',
           'rounded-[10px]',
           'h-10 px-6',
           'shadow-elevation-2',
-          'hover:border-[#0057ff] hover:bg-white hover:text-black',
+          'hover:bg-white hover:text-[#194BB9] hover:border-[#194BB9]',
           'active:bg-white/90',
           'disabled:cursor-not-allowed disabled:border-white/[0.12] disabled:bg-white/[0.18] disabled:text-white/[0.45]',
         ],
 
-        // Modal Secondary (Metallic/Dark) - White cancel on dark modals
+        // Modal Secondary (Metallic/Dark) - Black cancel on dark modals
         'modal-secondary-dark': [
-          'bg-white text-black',
+          'bg-black text-white',
           'border border-white',
           'rounded-[10px]',
           'h-10 px-6',
-          'hover:border-white hover:bg-transparent hover:text-white',
+          'hover:bg-white hover:text-black hover:border-black',
           'active:bg-white/10',
           'disabled:cursor-not-allowed disabled:border-white/[0.12] disabled:bg-white/[0.18] disabled:text-white/[0.45]',
         ],
