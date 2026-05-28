@@ -7575,7 +7575,7 @@ FEEDBACK: [your explanation]`
                                       <div className="relative">
                                         <MentionTextarea
                                           mentionItems={mentionItems}
-                                          className="min-h-[110px] w-full border-0 bg-transparent py-3 pl-3 pr-24 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                          className="min-h-[110px] w-full border-0 bg-transparent py-3 pl-3 pr-24 text-sm shadow-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                           placeholder="What should students answer?"
                                           disableAutoResize
                                           value={pollPrompt}
@@ -7644,7 +7644,7 @@ FEEDBACK: [your explanation]`
                                       <div className="relative">
                                         <MentionTextarea
                                           mentionItems={mentionItems}
-                                          className="min-h-[110px] w-full border-0 bg-transparent py-3 pl-3 pr-24 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                          className="min-h-[110px] w-full border-0 bg-transparent py-3 pl-3 pr-24 text-sm shadow-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                           placeholder="Ask your AI coach or share a reflection..."
                                           disableAutoResize
                                           value={questionPrompt}
@@ -7774,7 +7774,7 @@ FEEDBACK: [your explanation]`
                                           onKeyDown={(e: any) => {
                                             if (e.key === 'Enter') setEditingTabId(null)
                                           }}
-                                          className="w-full rounded-xl border border-[#CFE0FF] bg-[#EEF4FF] px-3 py-2.5 text-center text-sm font-medium text-[#2B5FB8] focus-visible:ring-0"
+                                          className="w-full rounded-xl border border-[#CFE0FF] bg-[#EEF4FF] px-3 py-2.5 text-center text-sm font-medium text-[#2B5FB8] focus:outline-none focus-visible:ring-0"
                                           autoFocus
                                         />
                                       ) : (
@@ -7898,7 +7898,7 @@ FEEDBACK: [your explanation]`
                                                   <div className="relative flex-1">
                                                     <MentionTextarea
                                                       mentionItems={mentionItems}
-                                                      className="h-full min-h-[100px] w-full border-0 bg-transparent py-4 pl-3 pr-24 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                      className="h-full min-h-[100px] w-full border-0 bg-transparent py-4 pl-3 pr-24 text-sm shadow-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                                       placeholder="What should students answer?"
                                                       disableAutoResize
                                                       value={pollPrompt}
@@ -8028,7 +8028,7 @@ FEEDBACK: [your explanation]`
                                                   <div className="relative flex-1">
                                                     <MentionTextarea
                                                       mentionItems={mentionItems}
-                                                      className="h-full min-h-[120px] w-full border-0 bg-transparent py-4 pl-3 pr-24 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                      className="h-full min-h-[120px] w-full border-0 bg-transparent py-4 pl-3 pr-24 text-sm shadow-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                                       placeholder="Ask your AI coach or share a reflection..."
                                                       disableAutoResize
                                                       value={questionPrompt}
@@ -8379,7 +8379,7 @@ FEEDBACK: [your explanation]`
                                       <div className="flex w-full flex-col">
                                         <MentionTextarea
                                           mentionItems={mentionItems}
-                                          className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                          className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                           placeholder={
                                             testPciActiveTab === 'classroom'
                                               ? 'Enter answer (goes to both students)...'
@@ -8777,7 +8777,7 @@ FEEDBACK: [your explanation]`
                                                   ? 'Extension content...'
                                                   : 'Enter task content or drop files here...'
                                               }
-                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent p-4 text-[#1F2933] focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent p-4 text-[#1F2933] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                               style={{ fontSize: `${extractedTextFontSize}px` }}
                                               disableAutoResize
                                               readOnly={!canEdit}
@@ -9073,7 +9073,7 @@ FEEDBACK: [your explanation]`
                                                 <MentionTextarea
                                                   mentionItems={mentionItems}
                                                   placeholder="Ask the PCI assistant..."
-                                                  className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                  className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                                   value={activeTaskPciInput}
                                                   readOnly={!canEdit}
                                                   onChange={(e: any) => {
@@ -9288,7 +9288,7 @@ FEEDBACK: [your explanation]`
                                             </div>
                                             <AutoTextarea
                                               placeholder="Enter assessment content or drop files here..."
-                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent p-4 text-[#1F2933] focus-visible:ring-0 focus-visible:ring-offset-0"
+                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent p-4 text-[#1F2933] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                               style={{ fontSize: `${extractedTextFontSize}px` }}
                                               disableAutoResize
                                               readOnly={!canEdit}
@@ -9613,7 +9613,7 @@ FEEDBACK: [your explanation]`
                                                 <MentionTextarea
                                                   mentionItems={mentionItems}
                                                   placeholder="Ask the PCI assistant..."
-                                                  className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                  className="min-h-[100px] w-full flex-1 border-0 bg-transparent px-4 py-4 text-sm shadow-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                                                   value={
                                                     assessmentPciInputMap[
                                                       loadedAssessmentId || ''

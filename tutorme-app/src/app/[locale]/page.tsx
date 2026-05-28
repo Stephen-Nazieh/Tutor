@@ -3149,7 +3149,7 @@ const CategorySearchModal = ({
                     placeholder={t('searchCategories')}
                     value={categorySearch}
                     onChange={e => setCategorySearch(e.target.value)}
-                    className="h-10 border-slate-200 bg-white pl-10 text-sm focus-visible:border-slate-200 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="h-10 border-slate-200 bg-white pl-10 text-sm focus:outline-none focus-visible:border-slate-200 focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 </div>
               </div>
@@ -3500,7 +3500,7 @@ export default function LandingPage() {
                     placeholder="Search tutors, courses, categories..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
-                    className="ml-4 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="ml-4 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:outline-none focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                   <button
                     type="button"

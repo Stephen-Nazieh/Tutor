@@ -724,7 +724,7 @@ function ItemAIChat({
                     ? 'Ask about this session...'
                     : 'Ask a general question...'
               }
-              className="max-h-[120px] min-h-[44px] w-full resize-none border-0 bg-transparent py-3 text-sm shadow-none outline-none placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="max-h-[120px] min-h-[44px] w-full resize-none border-0 bg-transparent py-3 text-sm shadow-none outline-none placeholder:text-gray-400 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}

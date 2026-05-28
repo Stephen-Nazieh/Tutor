@@ -1740,7 +1740,7 @@ export default function TutorMyPage() {
                               }))
                             }
                             disabled={loading || saving}
-                            className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            className="border-0 pl-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
                       </div>
@@ -1759,7 +1759,7 @@ export default function TutorMyPage() {
                               }))
                             }
                             disabled={loading || saving}
-                            className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            className="border-0 pl-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
                       </div>
@@ -1778,7 +1778,7 @@ export default function TutorMyPage() {
                               }))
                             }
                             disabled={loading || saving}
-                            className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            className="border-0 pl-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
                       </div>
@@ -1797,7 +1797,7 @@ export default function TutorMyPage() {
                               }))
                             }
                             disabled={loading || saving}
-                            className="border-0 pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            className="border-0 pl-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                         </div>
                       </div>

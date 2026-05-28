@@ -965,7 +965,7 @@ export default function TutorRegistrationPage() {
                     <div className="flex h-8 w-full items-center gap-2 rounded-md border border-white/10 bg-white px-3">
                       <span className="text-sm text-gray-500">@</span>
                       <Input
-                        className="h-8 border-0 bg-transparent p-0 text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                        className="h-8 border-0 bg-transparent p-0 text-sm text-[#1F2933] placeholder:text-gray-400 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                         value={formData.username}
                         onChange={e => {
                           setFormData({
