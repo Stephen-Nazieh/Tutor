@@ -187,10 +187,10 @@ export function QuizBuilderModal({
             </TabsContent>
           </Tabs>
           <DialogFooter>
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="modal-secondary" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={() => onSave({ ...data })} disabled={data.questions.length === 0}>
+            <Button variant="modal-primary" onClick={() => onSave({ ...data })} disabled={data.questions.length === 0}>
               Save ({data.questions.length} questions)
             </Button>
           </DialogFooter>

@@ -1045,7 +1045,7 @@ export function InteractiveCalendar({
               </div>
             )}
             <DialogFooter>
-              <Button variant="outline" onClick={() => setAvailabilityDate(null)}>
+              <Button variant="modal-secondary" onClick={() => setAvailabilityDate(null)}>
                 Done
               </Button>
             </DialogFooter>
@@ -1262,11 +1262,12 @@ export function InteractiveCalendar({
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setSelectedDate(null)}>
+              <Button variant="modal-secondary" onClick={() => setSelectedDate(null)}>
                 Close
               </Button>
               {!isStudent && (
                 <Button
+                  variant="modal-primary"
                   onClick={() => {
                     onCreateClass?.(selectedDate || new Date())
                     setSelectedDate(null)
@@ -1374,10 +1375,10 @@ export function InteractiveCalendar({
                 </div>
 
                 <DialogFooter className="gap-2">
-                  <Button variant="outline" onClick={() => setShowCalendarIntegrations(false)}>
+                  <Button variant="modal-secondary" onClick={() => setShowCalendarIntegrations(false)}>
                     Close
                   </Button>
-                  <Button onClick={syncCalendars} className="gap-2">
+                  <Button variant="modal-primary" onClick={syncCalendars} className="gap-2">
                     <RefreshCw className="h-4 w-4" />
                     Sync All
                   </Button>
@@ -1628,7 +1629,7 @@ export function InteractiveCalendar({
                 </div>
 
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setShowConflictDialog(false)}>
+                  <Button variant="modal-secondary" onClick={() => setShowConflictDialog(false)}>
                     Close
                   </Button>
                 </DialogFooter>

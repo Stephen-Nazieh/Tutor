@@ -10145,7 +10145,7 @@ FEEDBACK: [your explanation]`
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowDmiVersionList(false)}>
+              <Button variant="modal-secondary" onClick={() => setShowDmiVersionList(false)}>
                 Close
               </Button>
             </DialogFooter>
@@ -10192,7 +10192,7 @@ FEEDBACK: [your explanation]`
             </div>
             <DialogFooter>
               <Button
-                variant="outline"
+                variant="modal-primary"
                 onClick={() => {
                   if (previewDmiVersion) {
                     handleLoadDmiVersion(previewDmiVersion, mainBuilderTab)
@@ -10202,7 +10202,7 @@ FEEDBACK: [your explanation]`
               >
                 Load This Version
               </Button>
-              <Button variant="outline" onClick={() => setPreviewDmiVersion(null)}>
+              <Button variant="modal-secondary" onClick={() => setPreviewDmiVersion(null)}>
                 Close
               </Button>
             </DialogFooter>
@@ -10280,7 +10280,7 @@ FEEDBACK: [your explanation]`
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setComingSoonDialog(false)}>
+              <Button variant="modal-secondary" onClick={() => setComingSoonDialog(false)}>
                 Close
               </Button>
             </DialogFooter>

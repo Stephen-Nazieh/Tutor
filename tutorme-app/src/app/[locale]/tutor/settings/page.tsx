@@ -1680,7 +1680,7 @@ export default function TutorSettings() {
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+            <Button variant="modal-secondary" onClick={() => setShowDeleteDialog(false)}>
               Cancel
             </Button>
             <Button
@@ -1714,10 +1714,10 @@ export default function TutorSettings() {
             <li>You can reactivate anytime by logging in</li>
           </ul>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeactivateDialog(false)}>
+            <Button variant="modal-secondary" onClick={() => setShowDeactivateDialog(false)}>
               Cancel
             </Button>
-            <Button variant="default" onClick={handleDeactivateAccount}>
+            <Button variant="modal-primary" onClick={handleDeactivateAccount}>
               Deactivate
             </Button>
           </DialogFooter>

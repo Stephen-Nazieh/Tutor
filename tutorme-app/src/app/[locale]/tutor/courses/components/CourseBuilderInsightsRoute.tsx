@@ -801,10 +801,10 @@ function CourseBuilderInsightsRouteInner({
             }}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen?.(false)}>
+            <Button variant="modal-secondary" onClick={() => setIsCreateDialogOpen?.(false)}>
               Cancel
             </Button>
-            <Button onClick={onCreateNewCourse}>Create</Button>
+            <Button variant="modal-primary" onClick={onCreateNewCourse}>Create</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -828,10 +828,11 @@ function CourseBuilderInsightsRouteInner({
             }}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRenameDialogOpen(false)}>
+            <Button variant="modal-secondary" onClick={() => setIsRenameDialogOpen(false)}>
               Cancel
             </Button>
             <Button
+              variant="modal-primary"
               onClick={() => {
                 onCourseNameChange?.(renameValue)
                 setIsRenameDialogOpen(false)
@@ -853,7 +854,7 @@ function CourseBuilderInsightsRouteInner({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen?.(false)}>
+            <Button variant="modal-secondary" onClick={() => setIsDeleteDialogOpen?.(false)}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={onDeleteCourseConfirm}>

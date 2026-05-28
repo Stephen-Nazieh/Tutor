@@ -1000,10 +1000,10 @@ export default function TutorClassesPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setScheduleModalOpen(false)}>
+              <Button variant="modal-secondary" onClick={() => setScheduleModalOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleScheduleTraining} disabled={!scheduleForm.title.trim()}>
+              <Button variant="modal-primary" onClick={handleScheduleTraining} disabled={!scheduleForm.title.trim()}>
                 Schedule Session
               </Button>
             </DialogFooter>

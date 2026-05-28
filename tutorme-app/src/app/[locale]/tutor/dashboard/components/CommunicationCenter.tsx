@@ -1193,10 +1193,11 @@ export function CommunicationCenter() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => actions.setShowCompose(false)}>
+            <Button variant="modal-secondary" onClick={() => actions.setShowCompose(false)}>
               Cancel
             </Button>
             <Button
+              variant="modal-primary"
               onClick={() => {
                 toast.success('Message sent!')
                 actions.setShowCompose(false)

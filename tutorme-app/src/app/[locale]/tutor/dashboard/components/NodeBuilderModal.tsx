@@ -65,10 +65,10 @@ export function NodeBuilderModal({ isOpen, onClose, onSave, initialData }: NodeB
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="modal-secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={() => onSave(data)}>Save Lesson</Button>
+          <Button variant="modal-primary" onClick={() => onSave(data)}>Save Lesson</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

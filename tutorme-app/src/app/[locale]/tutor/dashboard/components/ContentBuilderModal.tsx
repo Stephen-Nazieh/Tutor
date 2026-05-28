@@ -109,10 +109,10 @@ export function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: Bu
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="modal-secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={() => onSave(data)} disabled={!data.title.trim()}>
+          <Button variant="modal-primary" onClick={() => onSave(data)} disabled={!data.title.trim()}>
             Save Content
           </Button>
         </DialogFooter>

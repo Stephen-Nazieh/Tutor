@@ -249,13 +249,13 @@ function EmailStatementDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="modal-secondary" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
+            variant="modal-primary"
             onClick={onSend}
             disabled={sendingEmail}
-            className="bg-gradient-to-r from-purple-600 to-blue-600"
           >
             {sendingEmail ? (
               <>

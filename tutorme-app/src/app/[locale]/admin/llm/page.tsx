@@ -200,10 +200,10 @@ export default function LlmConfigPage() {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsAddProviderOpen(false)}>
+                  <Button variant="modal-secondary" onClick={() => setIsAddProviderOpen(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleAddProvider} disabled={!newProvider.name}>
+                  <Button variant="modal-primary" onClick={handleAddProvider} disabled={!newProvider.name}>
                     Add Provider
                   </Button>
                 </DialogFooter>

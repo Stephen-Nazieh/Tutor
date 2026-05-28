@@ -368,7 +368,7 @@ export function MySubjects({ onSubjectsChange }: MySubjectsProps) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSubjectToRemove(null)}>
+            <Button variant="modal-secondary" onClick={() => setSubjectToRemove(null)}>
               Cancel
             </Button>
             <Button
