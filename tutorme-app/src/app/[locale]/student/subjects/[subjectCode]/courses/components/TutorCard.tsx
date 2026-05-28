@@ -74,7 +74,8 @@ export function TutorCard({
         className
       )}
       style={{
-        width: '420px',
+        width: '100%',
+        maxWidth: '420px',
         height: '580px',
       }}
     >
