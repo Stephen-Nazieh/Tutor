@@ -3709,16 +3709,23 @@ FEEDBACK: [your explanation]`
       if (files.length > 0) {
         e.preventDefault()
 
+        // Check parsing preference once
+        const parsePref = typeof window !== 'undefined'
+          ? localStorage.getItem('tutor-parse-documents') === 'true'
+          : false
+
         if (target === 'assessment') {
           const f = files[0]
           if (!f) return
           toast.info(`Uploading '${f.name}'...`)
 
           let extractedText = ''
-          try {
-            extractedText = (await extractTextFromFile(f)) || ''
-          } catch {
-            extractedText = ''
+          if (parsePref) {
+            try {
+              extractedText = (await extractTextFromFile(f)) || ''
+            } catch {
+              extractedText = ''
+            }
           }
 
           let fileUrl = ''
@@ -3812,14 +3819,18 @@ FEEDBACK: [your explanation]`
           if (otherFiles.length > 0) {
             let combined = ''
             for (const f of otherFiles) {
-              try {
-                const extracted = await extractTextFromFile(f)
-                if (extracted) {
-                  combined += extracted + '\n\n'
-                } else {
+              if (parsePref) {
+                try {
+                  const extracted = await extractTextFromFile(f)
+                  if (extracted) {
+                    combined += extracted + '\n\n'
+                  } else {
+                    combined += `[Imported ${f.name}]\n\n`
+                  }
+                } catch {
                   combined += `[Imported ${f.name}]\n\n`
                 }
-              } catch {
+              } else {
                 combined += `[Imported ${f.name}]\n\n`
               }
             }
@@ -3830,20 +3841,24 @@ FEEDBACK: [your explanation]`
 
         let combined = ''
         for (const f of files) {
-          try {
-            // If it's a lightweight text file, parse as text directly. For PDF, DOCX, PPTX parse via extractTextFromFile
-            const extracted = await extractTextFromFile(f)
-            if (extracted) {
-              combined += extracted + '\n\n'
-            } else {
+          if (parsePref) {
+            try {
+              // If it's a lightweight text file, parse as text directly. For PDF, DOCX, PPTX parse via extractTextFromFile
+              const extracted = await extractTextFromFile(f)
+              if (extracted) {
+                combined += extracted + '\n\n'
+              } else {
+                combined += `[Imported ${f.name}]\n\n`
+              }
+            } catch {
               combined += `[Imported ${f.name}]\n\n`
             }
-          } catch {
+          } else {
             combined += `[Imported ${f.name}]\n\n`
           }
         }
         onText(combined.trim())
-        toast.success('File(s) parsed and loaded')
+        toast.success(parsePref ? 'File(s) parsed and loaded' : 'File(s) loaded')
       }
     }
 
@@ -4002,13 +4017,20 @@ FEEDBACK: [your explanation]`
                   className="hidden"
                   onChange={async (e: any) => {
                     const files = Array.from(e.target.files || []) as File[]
+                    const parsePref = typeof window !== 'undefined'
+                      ? localStorage.getItem('tutor-parse-documents') === 'true'
+                      : false
                     const newAssets = await Promise.all(
                       files.map(async (f: File) => {
                         let textContent = ''
-                        try {
-                          const extracted = await extractTextFromFile(f)
-                          textContent = extracted || `[Imported ${f.name}]`
-                        } catch {
+                        if (parsePref) {
+                          try {
+                            const extracted = await extractTextFromFile(f)
+                            textContent = extracted || `[Imported ${f.name}]`
+                          } catch {
+                            textContent = `[Imported ${f.name}]`
+                          }
+                        } else {
                           textContent = `[Imported ${f.name}]`
                         }
 

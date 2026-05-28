@@ -1,0 +1,16 @@
+Please register and install the third-party "understand-anything" plugin by executing the following terminal commands exactly as written. Because I want this tool available across my entire Mac environment, ensure the commands are executed within my global User Scope (which is the default behavior, but do not use any --project flags).
+
+Execute this precise 4-step sequence:
+
+1. Register the official upstream master repository as an active marketplace provider by running:
+   /plugin marketplace add Lum1104/Understand-Anything
+
+2. Install the core plugin to my global user workspace directory (~/.claude/plugins/):
+   /plugin install understand-anything
+
+3. Force a complete refresh of the active runtime execution cache so my terminal hooks the new agent parameters and slash tools immediately:
+   /reload-plugins
+
+4. Run a verification diagnostic to ensure installation success:
+   - Execute `/plugin list` to verify "understand-anything" is listed as an active tool.
+   - Run a quick help or status check (such as running `/understand` or asking the plugin to describe its available features) to prove it is functional in our current environment.

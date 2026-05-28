@@ -1,0 +1,7 @@
+The design system blueprint is ready. Now, implement Phase 3 of the plan and actually execute the code changes to completely overhaul our UI. 
+
+Use the rules found in `design-system/MASTER.md` to rewrite and replace the visual layouts of these specific files right now:
+1. tutorme-app/src/app/[locale]/tutor/dashboard/components/CourseBuilder.tsx
+2. tutorme-app/src/app/[locale]/tutor/dashboard/components/AssessmentBuilderModal.tsx
+
+Focus entirely on applying the macro-spacing, premium typography scales, refined dark-mode contrast blending, and replacing standard text/emojis with clean SVG states (Lucide) as outlined by the ui-ux-pro-max-skill. Run the Next.js build or TypeScript compilation checks automatically when finished to guarantee nothing broke.

@@ -372,6 +372,30 @@ export default function TutorSettings() {
     }
   }
 
+  // Document parsing preference (stored in localStorage)
+  const [parseDocuments, setParseDocuments] = useState(false)
+
+  // Load document parsing preference from localStorage on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('tutor-parse-documents')
+      if (raw) {
+        setParseDocuments(raw === 'true')
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  const saveParseDocuments = () => {
+    try {
+      localStorage.setItem('tutor-parse-documents', String(parseDocuments))
+      toast.success('Document parsing preference saved')
+    } catch {
+      toast.error('Failed to save preference')
+    }
+  }
+
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
     {
       id: '1',
@@ -1537,6 +1561,41 @@ export default function TutorSettings() {
                   <Button onClick={saveSyncMode}>
                     <Save className="mr-2 h-4 w-4" />
                     Save Sync Mode
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Document Parsing */}
+            <Card className={SECTION_CARD_CLASS}>
+              <CardHeader>
+                <CardTitle>Document Import</CardTitle>
+                <CardDescription>
+                  Control how documents are handled when importing into tasks and assessments
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-start gap-3">
+                    <FileText className="mt-0.5 h-5 w-5 text-indigo-500" />
+                    <div>
+                      <p className="font-medium">Parse Documents on Import</p>
+                      <p className="text-sm text-gray-500">
+                        Automatically extract text from PDFs, Word docs, and other files when
+                        importing into tasks and assessments
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={parseDocuments}
+                    onCheckedChange={checked => setParseDocuments(checked)}
+                  />
+                </div>
+
+                <div className="flex justify-end">
+                  <Button onClick={saveParseDocuments}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Preference
                   </Button>
                 </div>
               </CardContent>

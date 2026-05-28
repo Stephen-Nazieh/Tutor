@@ -1,0 +1,12 @@
+Please register and install the "ui-ux-pro-max-skill" package from GitHub globally into my active user environment. Use the exact commands below to ensure it links correctly:
+
+1. Register the new marketplace provider profile:
+   /plugin marketplace add Stephen-Nazieh/ui-ux-pro-max-skill
+
+2. Install the skill directly to the user scope instance:
+   /plugin install ui-ux-pro-max-skill
+
+3. Apply the new layout configurations and design hooks to our shell:
+   /reload-plugins
+
+4. Execute `/plugin list` to ensure "ui-ux-pro-max-skill" shows up alongside our "understand-anything" plugin.

@@ -107,7 +107,19 @@ export function ResourceImportPanel<
   const [resources, setResources] = useState<
     Array<{ id: string; name: string; url: string; mimeType: string | null }>
   >([])
+  const [parseDocuments, setParseDocuments] = useState(false)
   const previousBlobUrlRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('tutor-parse-documents')
+      if (raw) {
+        setParseDocuments(raw === 'true')
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -153,7 +165,10 @@ export function ResourceImportPanel<
     if (!file) return
     setExtracting(true)
     try {
-      const extractedText = await extractTextFromFile(file)
+      let extractedText = ''
+      if (parseDocuments) {
+        extractedText = await extractTextFromFile(file)
+      }
       const formData = new FormData()
       formData.append('file', file)
       const uploadRes = await fetchWithCsrf('/api/uploads/documents', {
@@ -186,12 +201,12 @@ export function ResourceImportPanel<
         }).catch(() => {})
       }
       const currentTarget = (data as Record<string, unknown>)[targetField]
-      if (!String(currentTarget || '').trim() && extractedText) {
+      if (parseDocuments && !String(currentTarget || '').trim() && extractedText) {
         setData({ ...data, sourceDocument, [targetField]: extractedText.slice(0, 4000) } as T)
       } else {
         setData({ ...data, sourceDocument } as T)
       }
-      toast.success('Document imported. PDF and extracted text are available.')
+      toast.success(parseDocuments ? 'Document imported. PDF and extracted text are available.' : 'Document imported.')
     } catch (err: any) {
       toast.error(err?.message || 'Failed to upload document. Please try again.')
     } finally {
@@ -301,24 +316,26 @@ export function ResourceImportPanel<
             </div>
           )}
 
-          {/* Extracted text (editable) */}
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-xs font-medium">Extracted text (editable)</p>
-            <Textarea
-              value={source.extractedText || ''}
-              onChange={(e: any) =>
-                setData({
-                  ...data,
-                  sourceDocument: {
-                    ...source,
-                    extractedText: e.target.value,
-                  },
-                } as T)
-              }
-              rows={6}
-              placeholder="Imported content text (editable)"
-            />
-          </div>
+          {/* Extracted text (editable) — only show if text exists or parsing is enabled */}
+          {(parseDocuments || (source.extractedText || '').length > 0) && (
+            <div className="space-y-1">
+              <p className="text-muted-foreground text-xs font-medium">Extracted text (editable)</p>
+              <Textarea
+                value={source.extractedText || ''}
+                onChange={(e: any) =>
+                  setData({
+                    ...data,
+                    sourceDocument: {
+                      ...source,
+                      extractedText: e.target.value,
+                    },
+                  } as T)
+                }
+                rows={6}
+                placeholder="Imported content text (editable)"
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

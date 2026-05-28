@@ -1,0 +1,26 @@
+We are executing a full-scale UI/UX optimization sprint for our EdTech platform using our newly installed ui-ux-pro-max-skill and understand-anything plugins. 
+
+Our application features deep functional layers including real-time whiteboards, interactive course composition, AI evaluation, modal forms, and multi-tenant tracking dashboards. The target aesthetic must balance high cognitive utility with a refined, premium, distraction-free atmosphere tailored for international student learning.
+
+Please execute the following 3-phase frontend engineering pipeline completely:
+
+PHASE 1: GENERATE & PERSIST THE MASTER DESIGN SYSTEM
+1. Invoke the core design intelligence engine to build our global foundation. In your background terminal executor, run:
+   python3 ~/.claude/plugins/ui-ux-pro-max-skill/scripts/search.py "edtech platform learning management interactive micro-interactions dashboard minimalism" --design-system --persist -p "Solocorn"
+2. Read the resulting `design-system/MASTER.md` file you just generated to ingest the explicit recommended patterns, color systems, font pairings, chart models, and crucially, the UI anti-patterns we must strictly avoid (such as generic AI gradients or timid padding layouts).
+
+PHASE 2: DIRECTORY IMPACT DISCOVERY
+1. Run a silent `/understand` architecture scan to capture the file and state dependencies of our key UI folders.
+2. Locate the specific page boundaries, layouts, and global styles for our main dashboard blocks:
+   - CourseBuilder layout (`CourseBuilder.tsx`)
+   - AssessmentBuilder component (`AssessmentBuilderModal.tsx`)
+   - The primary localized tutor workspaces
+
+PHASE 3: TARGETED INTERFACE SYSTEM OVERHAUL
+Apply the rules found in MASTER.md along with the stack guidelines for Next.js and Tailwind to refactor our primary UI components. Prioritize:
+- Macro-Spacing & Grids: Establish generous asymmetric breathing room and rigorous layout grids. Ensure all card padding models use clean visual groupings.
+- Typography Scale: Replace baseline standard sans-serif arrays with a highly expressive, premium font-pairing strategy extracted from the skill's database. 
+- Interactive Affordance & States: Craft custom SVG (Lucide/Heroicons) icon states, crisp transition timings (200-300ms) on hover/focus bounds, and explicit visual loading containers. Eliminate all emoji icons or hard borders.
+- Dark-Mode Contrast Layering: Refine our dark-mode variables to use sleek, layered structural backgrounds with smooth translucent blurs (glassmorphism accents) rather than harsh solid greys or deep OLED blacks where content reading requires soft eye strain.
+
+Present the architectural refactoring plan file-by-file before running the changes. Let's make this interface look exceptionally professional.
