@@ -60,9 +60,29 @@ import {
   type Quiz,
   type CourseBuilderNodeQuiz,
   type Content,
+  type ImportedLearningResource,
 } from './builder-types'
 
 export const generateId = () => crypto.randomUUID()
+
+/**
+ * Deep-clone a sourceDocument so that cloned/duplicated tasks and assessments
+ * each own an independent copy. Prevents mutations (e.g. replacing the file)
+ * on one item from affecting its siblings.
+ */
+export function deepCloneSourceDocument(
+  doc: ImportedLearningResource | undefined
+): ImportedLearningResource | undefined {
+  if (!doc) return undefined
+  return {
+    fileName: doc.fileName,
+    mimeType: doc.mimeType,
+    fileUrl: doc.fileUrl,
+    fileKey: doc.fileKey,
+    extractedText: doc.extractedText,
+    uploadedAt: doc.uploadedAt,
+  }
+}
 
 export const AI_SUGGESTIONS = [
   {

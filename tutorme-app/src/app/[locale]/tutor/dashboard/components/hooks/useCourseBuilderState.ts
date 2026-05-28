@@ -28,6 +28,7 @@ import {
   DEFAULT_NODE_QUIZ,
   generateId as utilsGenerateId,
   normalizeCourseBuilderNodesForAssessments,
+  deepCloneSourceDocument,
 } from '../builder-utils'
 
 const generateId = utilsGenerateId
@@ -54,15 +55,22 @@ function sanitizeBlobUrls(obj: unknown, path = ''): { sanitized: unknown; remove
     const sanitized: Record<string, unknown> = {}
     for (const [key, value] of Object.entries(obj)) {
       const newPath = path ? `${path}.${key}` : key
+      // Preserve sourceDocument metadata, only clear the blob fileUrl
       if (
         key === 'sourceDocument' &&
         value !== null &&
-        typeof value === 'object' &&
-        (value as Record<string, unknown>).fileUrl &&
-        String((value as Record<string, unknown>).fileUrl).startsWith('blob:')
+        typeof value === 'object'
       ) {
-        removedPaths.push(newPath)
-        continue
+        const doc = value as Record<string, unknown>
+        const hasBlobUrl = typeof doc.fileUrl === 'string' && doc.fileUrl.startsWith('blob:')
+        if (hasBlobUrl) {
+          removedPaths.push(`${newPath}.fileUrl`)
+          const cleanedDoc = { ...doc, fileUrl: '' }
+          const result = sanitizeBlobUrls(cleanedDoc, newPath)
+          sanitized[key] = result.sanitized
+          removedPaths.push(...result.removedPaths)
+          continue
+        }
       }
       const result = sanitizeBlobUrls(value, newPath)
       sanitized[key] = result.sanitized
@@ -585,9 +593,11 @@ export function useCourseBuilderState(options: UseCourseBuilderStateOptions) {
     (task: Task): Task => ({
       ...task,
       id: `task-${generateId()}`,
+      sourceDocument: deepCloneSourceDocument(task.sourceDocument),
       extensions: (task.extensions || []).map(ext => ({
         ...ext,
         id: `ext-${generateId()}`,
+        sourceDocument: deepCloneSourceDocument(ext.sourceDocument),
       })),
     }),
     []
@@ -597,6 +607,7 @@ export function useCourseBuilderState(options: UseCourseBuilderStateOptions) {
     (assessment: Assessment): Assessment => ({
       ...assessment,
       id: `homework-${generateId()}`,
+      sourceDocument: deepCloneSourceDocument(assessment.sourceDocument),
     }),
     []
   )
@@ -618,7 +629,13 @@ export function useCourseBuilderState(options: UseCourseBuilderStateOptions) {
         ...task,
         id: `task-${generateId()}`,
         title: `${task.title} (copy)`,
+        sourceDocument: deepCloneSourceDocument(task.sourceDocument),
         questions: task.questions?.map(q => ({ ...q, id: `q-${generateId()}` })),
+        extensions: task.extensions?.map(ext => ({
+          ...ext,
+          id: `ext-${generateId()}`,
+          sourceDocument: deepCloneSourceDocument(ext.sourceDocument),
+        })),
       }
       const nodeIndex = nodes.findIndex(m => m.id === nodeId)
       if (nodeIndex === -1) return
@@ -641,6 +658,7 @@ export function useCourseBuilderState(options: UseCourseBuilderStateOptions) {
         ...hw,
         id: `homework-${generateId()}`,
         title: `${hw.title} (copy)`,
+        sourceDocument: deepCloneSourceDocument(hw.sourceDocument),
         questions: hw.questions?.map(q => ({ ...q, id: `q-${generateId()}` })),
       }
       const nodeIndex = nodes.findIndex(m => m.id === nodeId)

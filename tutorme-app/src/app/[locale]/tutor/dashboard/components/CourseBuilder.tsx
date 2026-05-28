@@ -41,17 +41,22 @@ function sanitizeBlobUrls(obj: unknown, path = ''): { sanitized: unknown; remove
     const sanitized: Record<string, unknown> = {}
     for (const [key, value] of Object.entries(obj)) {
       const newPath = path ? `${path}.${key}` : key
-      // Special handling: if this is a sourceDocument object with a blob fileUrl,
-      // remove the entire sourceDocument rather than just the URL
+      // Preserve sourceDocument metadata, only clear the blob fileUrl
       if (
         key === 'sourceDocument' &&
         value !== null &&
-        typeof value === 'object' &&
-        (value as Record<string, unknown>).fileUrl &&
-        String((value as Record<string, unknown>).fileUrl).startsWith('blob:')
+        typeof value === 'object'
       ) {
-        removedPaths.push(newPath)
-        continue // Skip adding this key — removes the entire sourceDocument
+        const doc = value as Record<string, unknown>
+        const hasBlobUrl = typeof doc.fileUrl === 'string' && doc.fileUrl.startsWith('blob:')
+        if (hasBlobUrl) {
+          removedPaths.push(`${newPath}.fileUrl`)
+          const cleanedDoc = { ...doc, fileUrl: '' }
+          const result = sanitizeBlobUrls(cleanedDoc, newPath)
+          sanitized[key] = result.sanitized
+          removedPaths.push(...result.removedPaths)
+          continue
+        }
       }
       const result = sanitizeBlobUrls(value, newPath)
       sanitized[key] = result.sanitized
@@ -231,6 +236,7 @@ import {
   resolveSelectedItem,
   stringToColor,
   formatDuration,
+  deepCloneSourceDocument,
 } from './builder-utils'
 
 const generateId = utilsGenerateId
@@ -1729,15 +1735,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const cloneTask = (task: Task): Task => ({
       ...task,
       id: `task-${generateId()}`,
+      sourceDocument: deepCloneSourceDocument(task.sourceDocument),
       extensions: (task.extensions || []).map(ext => ({
         ...ext,
         id: `ext-${generateId()}`,
+        sourceDocument: deepCloneSourceDocument(ext.sourceDocument),
       })),
     })
 
     const cloneAssessment = (assessment: Assessment): Assessment => ({
       ...assessment,
       id: `homework-${generateId()}`,
+      sourceDocument: deepCloneSourceDocument(assessment.sourceDocument),
     })
 
     const findTaskById = useCallback(
@@ -1781,7 +1790,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                 description: (item as Task).description || '',
                 instructions: (item as Task).instructions || '',
                 dmiItems: (item as Task).dmiItems || [],
-                sourceDocument: (item as Task).sourceDocument,
+                sourceDocument: deepCloneSourceDocument((item as Task).sourceDocument),
               }
             : {
                 ...cloneAssessment(item as Assessment),
@@ -2879,6 +2888,7 @@ FEEDBACK: [your explanation]`
             submissionType: 'text',
             isAiGraded: false,
             difficultyMode: 'all',
+            sourceDocument: deepCloneSourceDocument(hw.sourceDocument),
           }
           const srcModId = nodes[hwLoc.nIdx].id
           const srcLesId = nodes[hwLoc.nIdx].lessons[hwLoc.lIdx].id
