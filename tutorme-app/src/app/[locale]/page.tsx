@@ -1238,6 +1238,7 @@ const CategoryGridIcon = ({ className }: { className?: string }) => (
     xmlns="http://www.w3.org/2000/svg"
     className={className}
     style={{
+      pointerEvents: 'none',
       animation: 'cat-pulse 2s ease-in-out 0s infinite',
       transformOrigin: 'center',
     }}
@@ -1456,15 +1457,10 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
   }, [query])
 
   const CourseSlot = ({ item }: { item: any }) => (
-    <div
-      role="button"
-      tabIndex={0}
-      className="block h-full w-full outline-none"
+    <button
+      type="button"
+      className="block h-full w-full cursor-pointer text-left outline-none"
       onClick={() => setSelectedCourse(item)}
-      onKeyDown={e => {
-        if (e.key !== 'Enter' && e.key !== ' ') return
-        setSelectedCourse(item)
-      }}
     >
       <div
         className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] overflow-hidden rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(30,40,50,0.65)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)] backdrop-blur-[12px] transition-all duration-300 hover:-translate-y-[2px] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)] hover:brightness-105"
@@ -1510,7 +1506,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
           </div>
         </div>
       </div>
-    </div>
+    </button>
   )
 
   const TutorSlot = ({ item }: { item: any }) => (
@@ -3466,12 +3462,12 @@ export default function LandingPage() {
             muted
             loop
             playsInline
-            className="absolute inset-0 h-full w-full object-cover"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
           >
             <source src="/landing-bg-video.mp4" type="video/mp4" />
           </video>
           {/* Gradient overlay for readability */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/25 via-blue-800/30 to-blue-950/45" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-900/25 via-blue-800/30 to-blue-950/45" />
           <header className="relative z-10 flex items-center justify-between px-8 pt-8">
             <div className="flex items-center gap-3">
               <img src="/solocornlogo.png" alt="Solocorn" className="h-9 w-9" />
