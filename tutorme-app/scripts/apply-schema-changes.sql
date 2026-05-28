@@ -272,3 +272,8 @@ BEGIN
     CREATE TYPE "BookingRequestStatus" AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED', 'CANCELLED', 'COMPLETED');
   END IF;
 END $$;
+
+-- ============================================
+-- TutorAsset fileKey column (for GCS URL refresh)
+-- ============================================
+ALTER TABLE "TutorAsset" ADD COLUMN IF NOT EXISTS "fileKey" text;
