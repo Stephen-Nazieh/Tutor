@@ -4503,6 +4503,7 @@ FEEDBACK: [your explanation]`
                                 fileKey: uploadData.key,
                                 mimeType: 'application/pdf',
                                 uploadedAt: new Date().toISOString(),
+                                extractedText: pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
                               },
                             }
                             updatedTasks[existingTaskIndex] = updatedExistingTask
@@ -4517,6 +4518,7 @@ FEEDBACK: [your explanation]`
                               fileKey: uploadData.key,
                               mimeType: 'application/pdf',
                               uploadedAt: new Date().toISOString(),
+                              extractedText: pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
                             }
                             newTasks.push(newTask)
                           }
@@ -4536,6 +4538,7 @@ FEEDBACK: [your explanation]`
                                       fileKey: assetToLoad.fileKey,
                                       mimeType: assetToLoad.mimeType,
                                       uploadedAt: new Date().toISOString(),
+                                      extractedText: pageContent,
                                     }
                                   : existingTask.sourceDocument,
                             }
@@ -4551,6 +4554,7 @@ FEEDBACK: [your explanation]`
                                 fileKey: assetToLoad.fileKey,
                                 mimeType: assetToLoad.mimeType,
                                 uploadedAt: new Date().toISOString(),
+                                extractedText: pageContent,
                               }
                             }
                             newTasks.push(newTask)
@@ -4750,6 +4754,7 @@ FEEDBACK: [your explanation]`
                           fileKey: pdfPageKeys[0],
                           mimeType: 'application/pdf',
                           uploadedAt: new Date().toISOString(),
+                          extractedText: pages[0] || textToInsert,
                         }
                       } else if (assetToLoad.url && assetToLoad.mimeType) {
                         newTask.sourceDocument = {
@@ -4758,6 +4763,7 @@ FEEDBACK: [your explanation]`
                           fileKey: assetToLoad.fileKey,
                           mimeType: assetToLoad.mimeType,
                           uploadedAt: new Date().toISOString(),
+                          extractedText: pages[0] || textToInsert,
                         }
                       }
 
@@ -4777,13 +4783,14 @@ FEEDBACK: [your explanation]`
                             fileKey: pdfPageKeys[idx + 1],
                             mimeType: 'application/pdf',
                             uploadedAt: new Date().toISOString(),
+                            extractedText: pageContent,
                           }
                         }
 
                         return ext
                       })
 
-                      newTask.extensions = extensions
+                      newTask.extensions = [...(newTask.extensions || []), ...extensions]
 
                       const newCourseBuilderNodes = [...nodes]
                       if (existingTask && existingTaskIndex !== -1) {
