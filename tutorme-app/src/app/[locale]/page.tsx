@@ -3150,32 +3150,32 @@ const CategorySearchModal = ({
           <div className="w-full px-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="border-b border-slate-200">
-                <TabsList className="flex w-full flex-wrap justify-start gap-4 bg-transparent p-0">
-                  <TabsTrigger value="global" className={tabTriggerClass}>
+                <TabsList className="flex w-full flex-wrap justify-between bg-transparent p-0">
+                  <TabsTrigger value="global" className={tabTriggerClass} style={{ color: '#F5C542' }}>
                     <Globe className="mr-1.5 h-4 w-4" /> Global
                   </TabsTrigger>
-                  <TabsTrigger value="ap" className={tabTriggerClass}>
+                  <TabsTrigger value="ap" className={tabTriggerClass} style={{ color: '#E63946' }}>
                     <Award className="mr-1.5 h-4 w-4" /> AP
                   </TabsTrigger>
-                  <TabsTrigger value="alevel" className={tabTriggerClass}>
+                  <TabsTrigger value="alevel" className={tabTriggerClass} style={{ color: '#9B5DE5' }}>
                     <GraduationCap className="mr-1.5 h-4 w-4" /> A Level
                   </TabsTrigger>
-                  <TabsTrigger value="ib" className={tabTriggerClass}>
+                  <TabsTrigger value="ib" className={tabTriggerClass} style={{ color: '#52B788' }}>
                     <BookOpen className="mr-1.5 h-4 w-4" /> IB
                   </TabsTrigger>
-                  <TabsTrigger value="igcse" className={tabTriggerClass}>
+                  <TabsTrigger value="igcse" className={tabTriggerClass} style={{ color: '#48CAE4' }}>
                     <School className="mr-1.5 h-4 w-4" /> IGCSE
                   </TabsTrigger>
-                  <TabsTrigger value="national" className={tabTriggerClass} disabled={nationalExams.length === 0}>
+                  <TabsTrigger value="national" className={tabTriggerClass} disabled={nationalExams.length === 0} style={{ color: '#F4A261' }}>
                     <Flag className="mr-1.5 h-4 w-4" /> National
                   </TabsTrigger>
-                  <TabsTrigger value="universities" className={tabTriggerClass}>
+                  <TabsTrigger value="universities" className={tabTriggerClass} style={{ color: '#E83F6F' }}>
                     <GraduationCap className="mr-1.5 h-4 w-4" /> Universities
                   </TabsTrigger>
-                  <TabsTrigger value="languages" className={tabTriggerClass}>
+                  <TabsTrigger value="languages" className={tabTriggerClass} style={{ color: '#0D9488' }}>
                     <Globe className="mr-1.5 h-4 w-4" /> Languages
                   </TabsTrigger>
-                  <TabsTrigger value="professional" className={tabTriggerClass}>
+                  <TabsTrigger value="professional" className={tabTriggerClass} style={{ color: '#64748B' }}>
                     <Award className="mr-1.5 h-4 w-4" /> Professional
                   </TabsTrigger>
                 </TabsList>
