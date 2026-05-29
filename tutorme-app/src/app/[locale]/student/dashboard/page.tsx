@@ -17,7 +17,6 @@ import { AlertCircle } from 'lucide-react'
 import {
   // ContinueLearning,  // Moved to DashboardCalendar tabs
   // UpcomingClasses,   // Moved to DashboardCalendar tabs
-  DashboardSkeleton,
   DashboardCalendar,
 } from './components'
 import { StudentHeroSection } from './components/StudentHeroSection'
@@ -131,8 +130,8 @@ export default function StudentDashboard() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="text-foreground min-h-screen" style={themeStyle}>
-        <DashboardSkeleton loadingLabel={strings.loadingDashboard} />
+      <div className="flex min-h-screen items-center justify-center" style={themeStyle}>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
       </div>
     )
   }
