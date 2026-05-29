@@ -2332,7 +2332,7 @@ const ComingSoonModal = ({
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
         >
-        <div className="absolute inset-0 bg-black/80" onClick={onClose} />
+        <div className="absolute inset-0 bg-black/80" onClick={onClose} onWheel={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} />
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -3060,6 +3060,17 @@ const CategorySearchModal = ({
     }
   }, [isOpen])
 
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = originalOverflow
+      }
+    }
+  }, [isOpen])
+
   const toggleCategory = (exam: string) => {
     setSelectedCategories(prev =>
       prev.includes(exam) ? prev.filter(c => c !== exam) : [...prev, exam]
@@ -3130,7 +3141,7 @@ const CategorySearchModal = ({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/80" onClick={onClose} onWheel={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} />
       <div className="relative flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-xl animate-in zoom-in-95 duration-200">
           {/* Header */}
           <div className="relative shrink-0 p-6 pb-4">
@@ -3292,7 +3303,7 @@ const CategorySearchModal = ({
                 </div>
               </div>
 
-              <div className="h-[420px] overflow-y-auto pt-4 pb-12 scrollbar-no-arrows">
+              <div className="h-[420px] overflow-y-auto overscroll-contain pt-4 pb-12 scrollbar-no-arrows">
                 {/* Global */}
                 <TabsContent value="global" className="mt-0 space-y-6">
                   {GLOBAL_EXAMS_CATEGORIES.map(cat => (
