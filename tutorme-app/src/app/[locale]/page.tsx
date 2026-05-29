@@ -3139,36 +3139,31 @@ const CategorySearchModal = ({
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-[48px] flex-1 items-center overflow-x-auto rounded-xl border border-white/20 bg-white/20 px-4 py-2 scrollbar-no-arrows">
                 <div className="flex flex-nowrap items-center gap-2">
-                  {selectedCategories.map(cat => {
-                    const colors = TAB_COLORS[examToTabKey.get(cat) || ''] || { bg: 'bg-indigo-50', text: 'text-indigo-700', close: 'text-indigo-400 hover:text-indigo-900' }
-                    return (
-                      <span
-                        key={cat}
-                        className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full ${colors.bg} px-3 py-1.5 text-xs font-medium ${colors.text}`}
+                  {selectedCategories.length > 0 && selectedCountries.length === 0 && (
+                    <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-white/20 border border-white/20 px-3 py-1.5 text-xs font-medium text-white">
+                      <Globe className="h-3 w-3" />
+                      Global
+                      <button
+                        onClick={() => setSelectedCategories([])}
+                        className="ml-0.5 text-white/60 hover:text-white"
+                        aria-label="Clear all categories"
                       >
-                        {cat}
-                        <button
-                          onClick={() => removeCategory(cat)}
-                          className={`ml-0.5 ${colors.close}`}
-                          aria-label={`Remove ${cat}`}
-                        >
-                          ×
-                        </button>
-                      </span>
-                    )
-                  })}
-                  {selectedCountries.map(code => {
+                        ×
+                      </button>
+                    </span>
+                  )}
+                  {selectedCategories.length > 0 && selectedCountries.map(code => {
                     const countryName = ALL_COUNTRIES.find(c => c.code === code)?.name || code
                     return (
                       <span
                         key={code}
-                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-white/20 border border-white/20 px-3 py-1.5 text-xs font-medium text-white"
                       >
                         <Globe className="h-3 w-3" />
                         {countryName}
                         <button
                           onClick={() => removeCountry(code)}
-                          className="ml-0.5 text-emerald-400 hover:text-emerald-900"
+                          className="ml-0.5 text-white/60 hover:text-white"
                           aria-label={`Remove ${countryName}`}
                         >
                           ×
@@ -3184,7 +3179,7 @@ const CategorySearchModal = ({
                   const countryNames = selectedCountries.map(code => ALL_COUNTRIES.find(c => c.code === code)?.name || code)
                   onSelectCategory([...selectedCategories, ...countryNames])
                 }}
-                disabled={selectedCategories.length === 0 && selectedCountries.length === 0}
+                disabled={selectedCategories.length === 0}
                 className="h-10 px-5 text-sm disabled:opacity-50"
               >
                 Search
