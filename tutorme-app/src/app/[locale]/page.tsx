@@ -3044,8 +3044,8 @@ const CategorySearchModal = ({
     : 'Global'
 
   const countryLabel = selectedCountry
-    ? ALL_COUNTRIES.find(c => c.code === selectedCountry)?.name || regionLabel
-    : regionLabel
+    ? ALL_COUNTRIES.find(c => c.code === selectedCountry)?.name || 'Global'
+    : 'Global'
 
   const availableCountries = selectedRegion
     ? REGIONS.find(r => r.id === selectedRegion)?.countries || []
@@ -3089,38 +3089,32 @@ const CategorySearchModal = ({
             >
               <X className="h-5 w-5" />
             </button>
-            <div className="flex flex-wrap items-start gap-3">
-              <div className="flex-1">
-                <h2 className={`mb-1 text-2xl font-bold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
-                  {t('browseCategories')}
-                </h2>
-                <p className={`mb-4 text-sm ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                  {t('selectCategoryPrompt')}
-                </p>
-              </div>
-              {/* Selected category badges container */}
-              <div className="flex w-full max-w-[55%] flex-col">
-                <div className="flex h-[44px] items-center overflow-x-auto rounded-lg border border-slate-300 bg-white px-3 py-2 shadow-md scrollbar-no-arrows">
-                  <div className="flex flex-nowrap items-center gap-2">
-                    {selectedCategories.length === 0 ? (
-                      <span className="text-xs text-slate-400 italic">Select categories...</span>
-                    ) : (
-                      selectedCategories.map(cat => (
-                        <span
-                          key={cat}
-                          className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-indigo-100 px-3 py-1 text-xs font-medium text-indigo-700"
-                        >
-                          {cat} — {countryLabel}
-                          <button
-                            onClick={() => removeCategory(cat)}
-                            className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full hover:bg-indigo-200"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </span>
-                      ))
-                    )}
-                  </div>
+            <h2 className={`mb-1 text-2xl font-bold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
+              {t('browseCategories')}
+            </h2>
+            <p className={`mb-3 text-sm ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>
+              {t('selectCategoryPrompt')}
+            </p>
+
+            {/* Selected category badges container */}
+            <div className="mb-4 w-full">
+              <div className="flex h-[48px] items-center overflow-x-auto rounded-xl border border-slate-200 bg-white px-4 py-2 scrollbar-no-arrows">
+                <div className="flex flex-nowrap items-center gap-2">
+                  {selectedCategories.map(cat => (
+                    <span
+                      key={cat}
+                      className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700"
+                    >
+                      {cat} — {countryLabel}
+                      <button
+                        onClick={() => removeCategory(cat)}
+                        className="ml-0.5 text-indigo-400 hover:text-indigo-900"
+                        aria-label={`Remove ${cat}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
