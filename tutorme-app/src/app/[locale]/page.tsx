@@ -671,7 +671,7 @@ const translations: Translations = {
     hi: 'डार्क',
   },
   browseCategories: {
-    en: 'Browse Categories',
+    en: 'Browse Tutor Categories',
     'zh-CN': '浏览类别',
     'zh-HK': '瀏覽類別',
     es: 'Explorar categorías',
@@ -3152,7 +3152,7 @@ const CategorySearchModal = ({
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="border-b border-slate-200">
                 <TabsList className="flex w-full flex-wrap justify-between bg-transparent p-0">
-                  <TabsTrigger value="global" className={tabTriggerClass} style={{ color: '#F5C542' }}>
+                  <TabsTrigger value="global" className={tabTriggerClass} style={{ color: '#2563EB' }}>
                     <Globe className="mr-1.5 h-4 w-4" /> Global
                   </TabsTrigger>
                   <TabsTrigger value="ap" className={tabTriggerClass} style={{ color: '#E63946' }}>
