@@ -56,6 +56,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -3013,7 +3019,7 @@ const CategorySearchModal = ({
 }) => {
   const [categorySearch, setCategorySearch] = useState('')
   const [selectedRegion, setSelectedRegion] = useState('')
-  const [selectedCountry, setSelectedCountry] = useState('')
+  const [selectedCountries, setSelectedCountries] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState('global')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key
@@ -3023,7 +3029,7 @@ const CategorySearchModal = ({
     if (!isOpen) {
       setCategorySearch('')
       setSelectedRegion('')
-      setSelectedCountry('')
+      setSelectedCountries([])
       setActiveTab('global')
       setSelectedCategories([])
     }
@@ -3039,28 +3045,33 @@ const CategorySearchModal = ({
     setSelectedCategories(prev => prev.filter(c => c !== exam))
   }
 
-  const regionLabel = selectedRegion
-    ? REGIONS.find(r => r.id === selectedRegion)?.name || 'Global'
-    : 'Global'
+  const toggleCountry = (code: string) => {
+    setSelectedCountries(prev =>
+      prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]
+    )
+  }
 
-  const countryLabel = selectedCountry
-    ? ALL_COUNTRIES.find(c => c.code === selectedCountry)?.name || 'Global'
-    : 'Global'
+  const removeCountry = (code: string) => {
+    setSelectedCountries(prev => prev.filter(c => c !== code))
+  }
 
   const availableCountries = selectedRegion
     ? REGIONS.find(r => r.id === selectedRegion)?.countries || []
     : []
 
-  const nationalExams = selectedCountry
-    ? NATIONAL_EXAMS_DATA[selectedCountry] || []
+  const nationalExams = selectedCountries.length > 0
+    ? selectedCountries.flatMap(code => NATIONAL_EXAMS_DATA[code] || [])
     : selectedRegion
       ? (REGIONS.find(r => r.id === selectedRegion)?.countries.flatMap(c => c.nationalExams) || [])
       : []
 
-  const filteredUniversityCategories = selectedCountry
-    ? (UNIVERSITIES_BY_COUNTRY_CODE[selectedCountry]
-        ? [{ id: `universities-${selectedCountry}`, label: 'Universities', exams: UNIVERSITIES_BY_COUNTRY_CODE[selectedCountry] }]
-        : [])
+  const filteredUniversityCategories = selectedCountries.length > 0
+    ? selectedCountries
+        .flatMap(code =>
+          UNIVERSITIES_BY_COUNTRY_CODE[code]
+            ? [{ id: `universities-${code}`, label: 'Universities', exams: UNIVERSITIES_BY_COUNTRY_CODE[code] }]
+            : []
+        )
     : selectedRegion
       ? UNIVERSITY_CATEGORIES.filter(u => u.id === `universities-${selectedRegion}`)
       : []
@@ -3105,7 +3116,7 @@ const CategorySearchModal = ({
                       key={cat}
                       className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700"
                     >
-                      {cat} — {countryLabel}
+                      {cat}
                       <button
                         onClick={() => removeCategory(cat)}
                         className="ml-0.5 text-indigo-400 hover:text-indigo-900"
@@ -3115,13 +3126,32 @@ const CategorySearchModal = ({
                       </button>
                     </span>
                   ))}
+                  {selectedCountries.map(code => {
+                    const countryName = ALL_COUNTRIES.find(c => c.code === code)?.name || code
+                    return (
+                      <span
+                        key={code}
+                        className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"
+                      >
+                        <Globe className="h-3 w-3" />
+                        {countryName}
+                        <button
+                          onClick={() => removeCountry(code)}
+                          className="ml-0.5 text-emerald-400 hover:text-emerald-900"
+                          aria-label={`Remove ${countryName}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    )
+                  })}
                 </div>
               </div>
             </div>
 
             {/* Region & Country dropdowns */}
             <div className="mb-4 flex flex-wrap gap-3">
-              <Select value={selectedRegion || 'all'} onValueChange={v => { setSelectedRegion(v === 'all' ? '' : v); setSelectedCountry('') }}>
+              <Select value={selectedRegion || 'all'} onValueChange={v => { setSelectedRegion(v === 'all' ? '' : v); setSelectedCountries([]) }}>
                 <SelectTrigger className="h-9 w-[160px] rounded-md border-slate-200 bg-white text-sm text-slate-900">
                   <SelectValue placeholder="All Regions" />
                 </SelectTrigger>
@@ -3132,17 +3162,40 @@ const CategorySearchModal = ({
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={selectedCountry || 'all'} onValueChange={v => setSelectedCountry(v === 'all' ? '' : v)} disabled={!selectedRegion}>
-                <SelectTrigger className="h-9 w-[160px] rounded-md border-slate-200 bg-white text-sm text-slate-900">
-                  <SelectValue placeholder={t('allCountries')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('allCountries')}</SelectItem>
-                  {availableCountries.map(country => (
-                    <SelectItem key={country.code} value={country.code}>{country.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    disabled={!selectedRegion}
+                    className="inline-flex h-9 w-[160px] items-center justify-between rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <span className="truncate">
+                      {selectedCountries.length > 0
+                        ? `${selectedCountries.length} countr${selectedCountries.length === 1 ? 'y' : 'ies'}`
+                        : t('allCountries')}
+                    </span>
+                    <svg className="h-4 w-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-2" align="start">
+                  <div className="flex flex-col gap-1">
+                    {availableCountries.map(country => (
+                      <label
+                        key={country.code}
+                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-slate-100"
+                      >
+                        <Checkbox
+                          checked={selectedCountries.includes(country.code)}
+                          onCheckedChange={() => toggleCountry(country.code)}
+                        />
+                        <span className="text-slate-700">{country.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
           </div>
@@ -3264,22 +3317,22 @@ const CategorySearchModal = ({
 
                 {/* Universities */}
                 <TabsContent value="universities" className="mt-0 space-y-6">
-                  {!selectedRegion && !selectedCountry && (
+                  {!selectedRegion && selectedCountries.length === 0 && (
                     <div className="py-12 text-center text-slate-500">
                       <GraduationCap className="mx-auto mb-3 h-12 w-12 text-slate-300" />
                       <p className="text-sm">Please select a region or country</p>
                     </div>
                   )}
-                  {(selectedRegion || selectedCountry) && filteredUniversityCategories.map(cat => (
+                  {(selectedRegion || selectedCountries.length > 0) && filteredUniversityCategories.map(cat => (
                     <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
                   ))}
-                  {(selectedRegion || selectedCountry) && filteredUniversityCategories.length === 0 && (
+                  {(selectedRegion || selectedCountries.length > 0) && filteredUniversityCategories.length === 0 && (
                     <div className="py-12 text-center text-slate-500">
                       <GraduationCap className="mx-auto mb-3 h-12 w-12 text-slate-300" />
                       <p className="text-sm">No universities available for this selection</p>
                     </div>
                   )}
-                  {(selectedRegion || selectedCountry) && filteredUniversityCategories.length > 0 && !filteredUniversityCategories.some(cat => hasResults(cat.exams)) && (
+                  {(selectedRegion || selectedCountries.length > 0) && filteredUniversityCategories.length > 0 && !filteredUniversityCategories.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
                   )}
                 </TabsContent>
@@ -3304,8 +3357,8 @@ const CategorySearchModal = ({
               {/* Footer with Search button */}
               <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4">
                 <span className="text-sm text-slate-500">
-                  {selectedCategories.length > 0
-                    ? `${selectedCategories.length} categor${selectedCategories.length === 1 ? 'y' : 'ies'} selected`
+                  {selectedCategories.length + selectedCountries.length > 0
+                    ? `${selectedCategories.length + selectedCountries.length} selected`
                     : 'Select categories to search'}
                 </span>
                 <div className="flex gap-3">
@@ -3319,11 +3372,10 @@ const CategorySearchModal = ({
                   <Button
                     variant="modal-primary"
                     onClick={() => {
-                      if (selectedCategories.length > 0) {
-                        onSelectCategory(selectedCategories)
-                      }
+                      const countryNames = selectedCountries.map(code => ALL_COUNTRIES.find(c => c.code === code)?.name || code)
+                      onSelectCategory([...selectedCategories, ...countryNames])
                     }}
-                    disabled={selectedCategories.length === 0}
+                    disabled={selectedCategories.length === 0 && selectedCountries.length === 0}
                     className="h-9 px-6 text-sm disabled:opacity-50"
                   >
                     Search
