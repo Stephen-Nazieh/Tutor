@@ -1,6 +1,7 @@
+<!-- From: c:\VSCODE\Tutor\AGENTS.md -->
 # Solocorn — AI Coding Agent Guide
 
-> **Last updated:** 2026-05-11
+> **Last updated:** 2026-05-29
 > **Covers:** `tutorme-app/` (main Next.js app), `landing-page/` (Vite landing page), `services/adk/` (Google ADK microservice)
 
 ---
@@ -32,13 +33,12 @@ Solocorn (also marketed as CogniClass) is an AI-human hybrid tutoring platform. 
 This repository contains three independent sub-projects. **There is no root `package.json`** and no npm workspace / Turborepo configuration. Each sub-project is managed independently.
 
 ```
-/Users/nazy/ADK_WORKSPACE/TutorMekimi/
+c:\VSCODE\Tutor/
 │
 ├── tutorme-app/              # Main Next.js application (all backend + primary frontend)
 │   ├── src/
 │   │   ├── app/              # Next.js App Router
 │   │   │   ├── [locale]/     # i18n route segments (pages per role)
-│   │   │   │   ├── (student)/# Route group (currently empty; student pages live under student/)
 │   │   │   │   ├── student/  # Student dashboard & features
 │   │   │   │   ├── tutor/    # Tutor dashboard & clinic management
 │   │   │   │   ├── parent/   # Parent dashboard & family management
@@ -49,14 +49,13 @@ This repository contains three independent sub-projects. **There is no root `pac
 │   │   │   │   ├── payment/
 │   │   │   │   ├── legal/
 │   │   │   │   └── ...
-│   │   │   └── api/          # REST API routes (~55 top-level domains, 247 route files)
+│   │   │   └── api/          # REST API endpoints (~55 top-level domains, 130+ route files)
 │   │   ├── components/       # React components (feature-organized, ~125+ files)
-│   │   ├── lib/              # Business logic, utilities, AI, db, security, etc. (~61 dirs)
-│   │   ├── hooks/            # Custom React hooks
-│   │   ├── stores/           # Zustand client stores
-│   │   └── __tests__/        # Unit, integration, accessibility tests + mocks
-│   ├── e2e/                  # Playwright E2E specs (11 spec files)
-│   ├── drizzle/              # Drizzle migration files (48 migrations: 0000–0046)
+│   │   ├── lib/              # Business logic, utilities, AI, db, security, etc. (~42 dirs)
+│   │   ├── hooks/            # Custom React hooks (~11 files)
+│   │   └── stores/           # Zustand client stores (~2 files)
+│   ├── e2e/                  # Playwright E2E specs
+│   ├── drizzle/              # Drizzle migration files (48+ migrations)
 │   ├── messages/             # next-intl JSON translations (en.json, zh-CN.json)
 │   ├── scripts/              # Build, deployment & utility scripts
 │   ├── server.ts             # Custom Next.js HTTP server with Socket.io
@@ -278,25 +277,31 @@ Startup environment validation lives in `src/lib/env.ts` and is called from `ser
 
 ### App Router (`src/app/`)
 
-- `src/app/layout.tsx` — Root layout with metadata, PWA manifest, and top-level providers (`Providers`, `PerformanceProviders`).
-- `src/app/[locale]/layout.tsx` — Locale layout wrapping `NextIntlClientProvider`, `ThemeProvider`, `AuthProvider`, `Toaster`, and `PWAInstallPrompt`.
-- `src/app/[locale]/` — All user-facing pages grouped by role (`student/`, `tutor/`, `parent/`, `admin/`) plus shared pages (`login/`, `register/`, `onboarding/`, `payment/`, `legal/`). An empty `(student)` route group also exists.
-- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files). There are ~55 top-level API domains and 247 route files.
+- `src/app/layout.tsx` — Root layout with metadata, PWA manifest, theme init script, service worker unregister script, Google Fonts (Fira Code, Fira Sans), and top-level providers (`Providers`, `PerformanceProviders`).
+- `src/app/[locale]/layout.tsx` — Locale layout wrapping `NextIntlClientProvider`, `ThemeProvider`, `NavigationOverlayProvider`, `FloatingVideoOverlay`, `PWAInstallPrompt`, `Toaster`, and `AuthProvider`. Validates locale param against configured locales.
+- `src/app/[locale]/` — All user-facing pages grouped by role (`student/`, `tutor/`, `parent/`, `admin/`) plus shared pages (`login/`, `register/`, `onboarding/`, `payment/`, `legal/`).
+- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files). There are ~55 top-level API domains and 130+ route files.
+
+**Role-specific layout behaviors:**
+- **Student layout** (`[locale]/student/layout.tsx`): Collapsible sidebar, special handling for `/student/tutors` (no sidebar), `/student/feedback` (hides nav entirely), and live class routes.
+- **Tutor layout** (`[locale]/tutor/layout.tsx`): Realm-session check, redirects non-tutors, skips sidebar for Course Builder, Course Publish, Insights, Account, and Reports pages.
+- **Parent layout** (`[locale]/parent/layout.tsx`): Sidebar with 5 sections (Overview, Learning, Financial, Communication, Settings), mobile slide-out menu via Sheet.
+- **Admin layout** (`[locale]/admin/layout.tsx`): Completely separate auth system (not NextAuth.js). Checks session via `fetch('/api/admin/auth/session')`. Redirects unauthenticated to `/[locale]/admin/login`.
 
 ### Components (`src/components/`)
 
-Organized by feature domain (~125+ component files across 30+ top-level directories):
+Organized by feature domain (~125+ component files across 28 top-level directories):
 - `ui/` — shadcn/ui primitives (Button, Card, Dialog, etc.) — 30+ components
 - `ai-chat/`, `ai-tutor/` — AI interaction UIs
-- `class/` — Live classroom (whiteboard, polls, breakout rooms, engagement)
+- `class/` — Live classroom (whiteboard, polls, breakout rooms, engagement) — 23 files
 - `student/`, `tutor/`, `parent/`, `admin/` — Role-specific dashboards
 - `video-player/`, `quiz/`, `polls/`, `whiteboard/`, `course-builder/` — Content & assessment UIs
-- `spaced-repetition/` — 11 components for spaced repetition system
+- `spaced-repetition/` — 12 components for spaced repetition system
 - `navigation/`, `notifications/`, `pwa/`, `pdf/`, `mentions/` — Supporting UI domains
 
 ### Library (`src/lib/`)
 
-Domain-organized business logic (~61 directories):
+Domain-organized business logic (~42 directories):
 - `lib/db/` — Drizzle client (`drizzle.ts`), schema (`schema/`), and migrations
 - `lib/ai/` — AI provider integrations (`kimi.ts`), prompts, teaching prompts, types, memory services
 - `lib/agents/` — Orchestrator (`orchestrator-llm.ts`), tutor agents, grading, live-monitor, content-generator, task-generator, tutor-chat-service
@@ -312,7 +317,7 @@ Domain-organized business logic (~61 directories):
 
 ### Hooks (`src/hooks/`)
 
-Custom React hooks (11 files):
+Custom React hooks (~11 files):
 - `use-socket.ts`, `use-simple-socket.ts` — Socket.io client hooks
 - `use-daily-call.ts` — Daily.co video integration
 - `use-realm-session.ts` — Multi-role session handling
@@ -321,7 +326,9 @@ Custom React hooks (11 files):
 
 ### Stores (`src/stores/`)
 
-Zustand stores for client state. Currently contains `communication-store.ts`.
+Zustand stores for client state:
+- `communication-store.ts`
+- `video-overlay-store.ts`
 
 ---
 
@@ -331,13 +338,13 @@ Zustand stores for client state. Currently contains `communication-store.ts`.
 
 - **Drizzle ORM** is the only ORM in use. No Prisma client is present.
 - Schema source of truth: `src/lib/db/schema/`
-  - `enums.ts` — 24 PostgreSQL enums (Role, PollType, PaymentStatus, LiveSessionStatus, BuilderTaskType, etc.)
+  - `enums.ts` — 24+ PostgreSQL enums (Role, PollType, PaymentStatus, LiveSessionStatus, BuilderTaskType, etc.)
   - `tables/` — Table definitions (14 table modules: admin, analytics, assistant, auth, builder, calendar, classroom, collaboration, content, course, family, finance, index, live)
   - `relations.ts` — Drizzle relational definitions
   - `next-auth.ts` — NextAuth.js Drizzle adapter tables
   - `compliance.ts` — GDPR / COPPA / FERPA compliance tables
   - `landing.ts` — Landing page inquiry/signup tables
-- Migrations live in `drizzle/` (48 migrations numbered 0000–0046) and are managed by `drizzle-kit`.
+- Migrations live in `drizzle/` (48+ migrations) and are managed by `drizzle-kit`.
 - Runtime client: `src/lib/db/drizzle.ts` uses `pg.Pool` with singleton pooling (dev pool cached on `globalThis`).
 - Legacy wrapper: `src/lib/db/index.ts` provides a query caching layer (Redis → in-memory fallback). Most app code imports `db` from here; new code should import `drizzleDb` from `./drizzle`.
 
@@ -514,6 +521,7 @@ export async function fetchUser(id: string): Promise<User | null> {
 - **Realm-scoped sessions** allow a user to stay logged in as both Tutor and Student in separate tabs (cookie names: `tutor_session`, `student_session`).
 - Role-based access control (`STUDENT`, `TUTOR`, `PARENT`, `ADMIN`) enforced in API routes via `hasPermission()` in `lib/security/rbac.ts`.
 - Onboarding and TOS acceptance are tracked in the `profile` table and enforced in auth flows.
+- **Admin section uses a completely separate auth system** (not NextAuth.js). It has its own login/logout/session endpoints under `/api/admin/auth/*` and its own session validation in the admin layout.
 
 ### API Middleware (`src/lib/api/middleware.ts`)
 
