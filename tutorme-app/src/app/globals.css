@@ -1079,6 +1079,19 @@
     height: 0;
     width: 0;
   }
+  .scrollbar-no-arrows::-webkit-scrollbar-button:start:decrement,
+  .scrollbar-no-arrows::-webkit-scrollbar-button:end:increment,
+  .scrollbar-no-arrows::-webkit-scrollbar-button:start:increment,
+  .scrollbar-no-arrows::-webkit-scrollbar-button:end:decrement,
+  .scrollbar-no-arrows::-webkit-scrollbar-button:vertical:start,
+  .scrollbar-no-arrows::-webkit-scrollbar-button:vertical:end,
+  .scrollbar-no-arrows::-webkit-scrollbar-button:horizontal:start,
+  .scrollbar-no-arrows::-webkit-scrollbar-button:horizontal:end {
+    display: none;
+    height: 0;
+    width: 0;
+    background: transparent;
+  }
   
   /* Line clamp */
   .line-clamp-1 {

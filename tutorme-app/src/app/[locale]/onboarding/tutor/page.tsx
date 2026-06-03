@@ -388,7 +388,7 @@ export default function TutorOnboarding() {
                           <Globe className="h-4 w-4 text-[#1D4ED8]" />
                           Regions
                         </Label>
-                        <div className="max-h-[150px] overflow-y-auto rounded-md border p-2">
+                        <div className="scrollbar-no-arrows max-h-[150px] overflow-y-auto rounded-md border p-2">
                           {REGIONS.map(region => (
                             <label
                               key={region.id}
@@ -411,7 +411,7 @@ export default function TutorOnboarding() {
                           <MapPin className="h-4 w-4 text-[#F17623]" />
                           Countries
                         </Label>
-                        <div className="max-h-[150px] overflow-y-auto rounded-md border p-2">
+                        <div className="scrollbar-no-arrows max-h-[150px] overflow-y-auto rounded-md border p-2">
                           {availableCountries.length === 0 ? (
                             <p className="p-1.5 text-sm text-gray-400">Select regions first</p>
                           ) : (
@@ -657,7 +657,7 @@ export default function TutorOnboarding() {
                 <h3 className="text-lg font-medium">When are you available?</h3>
                 <p className="text-sm text-gray-600">Select your preferred teaching hours</p>
 
-                <div className="max-h-96 space-y-4 overflow-y-auto">
+                <div className="scrollbar-no-arrows max-h-96 space-y-4 overflow-y-auto">
                   {DAYS.map(day => (
                     <div key={day} className="rounded-lg border p-3">
                       <h4 className="mb-2 font-medium">{day}</h4>
