@@ -1744,10 +1744,10 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
               setSelectedCountryCode('')
             }}
           >
-            <SelectTrigger className="h-10 w-[212px] rounded-md border border-white/[0.12] bg-[rgba(31,41,55,0.85)] text-white shadow-[0_10px_26px_rgba(0,0,0,0.25)]">
+            <SelectTrigger className="h-10 w-[212px] rounded-2xl border border-white/20 bg-[rgba(31,41,55,0.45)] text-white shadow-lg backdrop-blur-sm focus-visible:!shadow-none focus:outline-none">
               <SelectValue placeholder="Region" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-2xl bg-[rgba(31,41,55,0.65)] border-white/20 shadow-lg backdrop-blur-md">
               {REGIONS.map(region => (
                 <SelectItem key={region.id} value={region.id}>
                   {region.name}
@@ -1761,10 +1761,10 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
             onValueChange={setSelectedCountryCode}
             disabled={!selectedRegion}
           >
-            <SelectTrigger className="h-10 w-[212px] rounded-md border border-white/[0.12] bg-[rgba(31,41,55,0.85)] text-white shadow-[0_10px_26px_rgba(0,0,0,0.25)]">
+            <SelectTrigger className="h-10 w-[212px] rounded-2xl border border-white/20 bg-[rgba(31,41,55,0.45)] text-white shadow-lg backdrop-blur-sm focus-visible:!shadow-none focus:outline-none">
               <SelectValue placeholder="Country" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-2xl bg-[rgba(31,41,55,0.65)] border-white/20 shadow-lg backdrop-blur-md">
               {availableCountries.map(country => (
                 <SelectItem key={country.code} value={country.code}>
                   {country.name}
