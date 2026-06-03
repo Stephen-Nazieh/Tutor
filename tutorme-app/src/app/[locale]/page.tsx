@@ -3531,11 +3531,11 @@ export default function LandingPage() {
   }, [])
 
   const scrollToSearchResults = () => {
-    window.requestAnimationFrame(() => {
+    setTimeout(() => {
       document
         .getElementById('panel-2-search-results')
         ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
+    }, 0)
   }
 
   return (
@@ -3558,7 +3558,7 @@ export default function LandingPage() {
           scrollTimerRef.current = setTimeout(() => {
             scrollTimerRef.current = null
             scrollToSearchResults()
-          }, 100)
+          }, 300)
         }}
         lang={language}
         mode={mode}
