@@ -3683,7 +3683,7 @@ export default function LandingPage() {
             <button
               type="button"
               onClick={() => setHowItWorksOpen(true)}
-              className="mt-[22px] rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-semibold text-white shadow-md backdrop-blur-sm hover:bg-white/20 focus-visible:!shadow-none focus:outline-none"
+              className="mt-[22px] rounded-full border border-white/20 bg-white/10 px-6 py-2.5 text-sm font-semibold text-white shadow-md backdrop-blur-sm hover:text-[#1D4ED8] focus-visible:!shadow-none focus:outline-none"
             >
               How It Works
             </button>
