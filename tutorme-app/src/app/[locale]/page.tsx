@@ -1697,7 +1697,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
                 {Array.from({ length: placeholders }).map((_, i) => (
                   <div
                     key={`placeholder-${kind}-${currentPage}-${i}`}
-                    className="w-[var(--card-width)]"
+                    className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)]"
                     aria-hidden="true"
                   />
                 ))}
@@ -1716,11 +1716,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
           </div>
         )
       })()}
-      {!isLoading && hasLoaded && items.length === 0 && (
-        <div className="mt-3 text-xs font-medium text-slate-500">
-          {loadError || 'No results found.'}
-        </div>
-      )}
+
     </div>
   )
 
