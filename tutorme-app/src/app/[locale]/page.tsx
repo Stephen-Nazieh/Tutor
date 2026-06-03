@@ -3213,7 +3213,7 @@ const CategorySearchModal = ({
             {/* Region & Country dropdowns */}
             <div className="mb-4 flex flex-wrap gap-3">
               <Select value={selectedRegion || 'all'} onValueChange={v => { setSelectedRegion(v === 'all' ? '' : v); setSelectedCountries([]) }}>
-                <SelectTrigger className="h-9 w-[160px] rounded-md border-slate-200 bg-white text-sm text-slate-900">
+                <SelectTrigger className="h-9 w-[160px] rounded-xl border border-white/20 bg-white/10 text-sm text-white shadow-md backdrop-blur-sm">
                   <SelectValue placeholder="All Regions" />
                 </SelectTrigger>
                 <SelectContent>
@@ -3228,7 +3228,7 @@ const CategorySearchModal = ({
                   <button
                     type="button"
                     disabled={!selectedRegion}
-                    className="inline-flex h-9 w-[160px] items-center justify-between rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex h-9 w-[160px] items-center justify-between rounded-xl border border-white/20 bg-white/10 px-3 text-sm text-white shadow-md backdrop-blur-sm disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <span className="truncate">
                       {selectedCountries.length > 0
