@@ -3217,7 +3217,7 @@ const CategorySearchModal = ({
                 className={`h-10 px-5 text-sm focus-visible:!shadow-none focus:outline-none ${
                   selectedCategories.length === 0
                     ? 'rounded-xl border border-white/20 bg-white/10 text-white shadow-md backdrop-blur-sm disabled:opacity-50'
-                    : 'rounded-md bg-blue-700 text-white hover:bg-blue-600'
+                    : 'rounded-md !border-white bg-blue-700 text-white hover:bg-blue-600 hover:!border-blue-700'
                 }`}
               >
                 Search
