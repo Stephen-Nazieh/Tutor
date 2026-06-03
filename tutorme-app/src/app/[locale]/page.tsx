@@ -3227,7 +3227,7 @@ const CategorySearchModal = ({
             {/* Region & Country dropdowns */}
             <div className="mb-4 flex flex-wrap gap-3">
               <Select value={selectedRegion || 'all'} onValueChange={v => { setSelectedRegion(v === 'all' ? '' : v); setSelectedCountries([]) }}>
-                <SelectTrigger className="h-9 w-[160px] rounded-xl border !border-[rgba(255,255,255,0.2)] !bg-[rgba(255,255,255,0.1)] text-sm text-white shadow-md backdrop-blur-sm focus-visible:!shadow-none focus:outline-none">
+                <SelectTrigger className="h-9 w-[160px] rounded-xl border border-white/20 bg-white/10 text-sm text-white shadow-lg focus-visible:!shadow-none focus:outline-none hover:!bg-white/10 hover:!text-white">
                   <SelectValue placeholder="All Regions" />
                 </SelectTrigger>
                 <SelectContent>
@@ -3242,7 +3242,7 @@ const CategorySearchModal = ({
                   <button
                     type="button"
                     disabled={!selectedRegion}
-                    className="inline-flex h-9 w-[160px] items-center justify-between rounded-xl border !border-[rgba(255,255,255,0.2)] !bg-[rgba(255,255,255,0.1)] px-3 text-sm text-white shadow-md backdrop-blur-sm disabled:cursor-not-allowed disabled:opacity-50 focus-visible:!shadow-none focus:outline-none"
+                    className="inline-flex h-9 w-[160px] items-center justify-between rounded-xl border border-white/20 bg-white/10 px-3 text-sm text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-50 focus-visible:!shadow-none focus:outline-none"
                   >
                     <span className="truncate">
                       {selectedCountries.length > 0
