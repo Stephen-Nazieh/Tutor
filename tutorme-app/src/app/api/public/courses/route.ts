@@ -86,6 +86,7 @@ export async function GET(request: NextRequest) {
         tutorCreatedAt: profile.createdAt,
         tutorCountryOfResidence: profile.countryOfResidence,
         tutorNationality: profile.nationality,
+        tutorBio: profile.bio,
 
         templateCourseId: courseVariant.templateCourseId,
         variantCategory: courseVariant.category,
@@ -170,6 +171,7 @@ export async function GET(request: NextRequest) {
         avatarUrl: c.tutorAvatarUrl,
         createdAt: c.tutorCreatedAt?.toISOString() || null,
         country: c.tutorCountryOfResidence || c.tutorNationality || null,
+        bio: c.tutorBio || null,
         activeCourses: activeCourseCountMap[c.creatorId || ''] ?? 0,
       },
     }))

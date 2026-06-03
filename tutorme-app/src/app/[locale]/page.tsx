@@ -1869,6 +1869,13 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
                     @{selectedCourse?.tutor?.username || 'tutor'}
                   </div>
                 </div>
+                {selectedCourse?.tutor?.bio && (
+                  <div className="hidden min-w-0 flex-1 md:block">
+                    <p className="text-sm leading-relaxed text-muted-foreground line-clamp-3">
+                      {selectedCourse.tutor.bio}
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 {selectedCourse?.tutor?.createdAt && (
@@ -3142,7 +3149,7 @@ const CategorySearchModal = ({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="absolute inset-0 bg-black/80" onClick={onClose} onWheel={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} />
-      <div className="relative flex max-h-[85vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-xl animate-in zoom-in-95 duration-200">
+      <div className="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-xl animate-in zoom-in-95 duration-200">
           {/* Header */}
           <div className="relative shrink-0 p-6 pb-4">
             <button
@@ -3256,7 +3263,7 @@ const CategorySearchModal = ({
           </div>
 
           {/* Tabs Content */}
-          <div className="w-full px-6">
+          <div className="w-full px-6 pb-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <div className="border-b border-slate-200">
                 <TabsList className="flex w-full flex-wrap justify-between bg-transparent p-0">
@@ -3303,7 +3310,7 @@ const CategorySearchModal = ({
                 </div>
               </div>
 
-              <div className="h-[420px] overflow-y-auto overscroll-contain pt-4 pb-12 scrollbar-no-arrows">
+              <div className="h-[540px] overflow-y-auto overscroll-contain pt-4 pb-12 scrollbar-no-arrows">
                 {/* Global */}
                 <TabsContent value="global" className="mt-0 space-y-6">
                   {GLOBAL_EXAMS_CATEGORIES.map(cat => (
