@@ -2480,7 +2480,7 @@ const SpecialAccessSection = ({
         <>
           <div className="fixed inset-0 z-[990] animate-in fade-in duration-150" onMouseDown={() => setExpanded(false)} />
           <div
-            className="fixed z-[1000] w-[320px] overflow-hidden rounded-[16px] border border-white/25 bg-[#0B4DFF]/90 p-4 animate-in fade-in zoom-in-95 duration-150"
+            className="fixed z-[1000] w-[320px] overflow-hidden rounded-[16px] border border-white/20 bg-white/10 p-4 shadow-md backdrop-blur-sm animate-in fade-in zoom-in-95 duration-150"
             style={popoverPos ?? undefined}
           >
             <form onSubmit={handleSubmit} className="flex items-center gap-3">
@@ -2493,15 +2493,8 @@ const SpecialAccessSection = ({
                 autoCorrect="off"
                 autoCapitalize="off"
                 autoFocus
-                className={`h-10 flex-1 rounded-full border border-white/20 bg-white/10 text-white placeholder:text-white/60 ${error ? 'border-red-400' : ''}`}
+                className={`h-10 flex-1 cursor-text rounded-full border border-white/20 bg-white/10 text-white placeholder:text-white/60 ${error ? 'border-red-400' : ''}`}
               />
-              <button
-                type="button"
-                onClick={checkAccess}
-                className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white px-5 text-sm font-semibold text-[#0B4DFF] shadow-sm transition-all duration-200 hover:-translate-y-px hover:bg-slate-100 hover:shadow-md active:translate-y-0 active:scale-95"
-              >
-                {t('access')}
-              </button>
             </form>
             {error && <p className="mt-2 text-xs font-medium text-red-200">{t('invalidCode')}</p>}
           </div>
