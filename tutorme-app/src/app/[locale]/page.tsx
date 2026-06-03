@@ -3221,7 +3221,7 @@ const CategorySearchModal = ({
                   onSelectCategory([...selectedCategories, ...countryNames])
                 }}
                 disabled={selectedCategories.length === 0}
-                className="h-10 px-5 text-sm disabled:opacity-50"
+                className="h-10 px-5 text-sm disabled:opacity-50 !border-white hover:!border-blue-700"
               >
                 Search
               </Button>
