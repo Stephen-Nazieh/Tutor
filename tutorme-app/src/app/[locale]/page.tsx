@@ -3039,15 +3039,15 @@ const CategorySearchModal = ({
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key
 
   const TAB_COLORS: Record<string, { bg: string; text: string; close: string }> = {
-    global:       { bg: 'bg-blue-50',    text: 'text-blue-700',    close: 'text-blue-400 hover:text-blue-900' },
-    ap:           { bg: 'bg-red-50',     text: 'text-red-700',     close: 'text-red-400 hover:text-red-900' },
-    alevel:       { bg: 'bg-purple-50',  text: 'text-purple-700',  close: 'text-purple-400 hover:text-purple-900' },
-    ib:           { bg: 'bg-green-50',   text: 'text-green-700',   close: 'text-green-400 hover:text-green-900' },
-    igcse:        { bg: 'bg-cyan-50',    text: 'text-cyan-700',    close: 'text-cyan-400 hover:text-cyan-900' },
-    national:     { bg: 'bg-orange-50',  text: 'text-orange-700',  close: 'text-orange-400 hover:text-orange-900' },
-    universities: { bg: 'bg-pink-50',    text: 'text-pink-700',    close: 'text-pink-400 hover:text-pink-900' },
-    languages:    { bg: 'bg-teal-50',    text: 'text-teal-700',    close: 'text-teal-400 hover:text-teal-900' },
-    professional: { bg: 'bg-slate-50',   text: 'text-slate-700',   close: 'text-slate-400 hover:text-slate-900' },
+    global:       { bg: 'bg-blue-50',    text: 'text-[#0A84FF]',    close: 'text-[#0A84FF]/60 hover:text-[#0A84FF]' },
+    ap:           { bg: 'bg-red-50',     text: 'text-[#FF453A]',    close: 'text-[#FF453A]/60 hover:text-[#FF453A]' },
+    alevel:       { bg: 'bg-purple-50',  text: 'text-[#BF5AF2]',    close: 'text-[#BF5AF2]/60 hover:text-[#BF5AF2]' },
+    ib:           { bg: 'bg-green-50',   text: 'text-[#32D74B]',    close: 'text-[#32D74B]/60 hover:text-[#32D74B]' },
+    igcse:        { bg: 'bg-sky-50',     text: 'text-[#64D2FF]',    close: 'text-[#64D2FF]/60 hover:text-[#64D2FF]' },
+    national:     { bg: 'bg-amber-50',   text: 'text-[#FF9F0A]',    close: 'text-[#FF9F0A]/60 hover:text-[#FF9F0A]' },
+    universities: { bg: 'bg-rose-50',    text: 'text-[#FF375F]',    close: 'text-[#FF375F]/60 hover:text-[#FF375F]' },
+    languages:    { bg: 'bg-teal-50',    text: 'text-[#00C7BE]',    close: 'text-[#00C7BE]/60 hover:text-[#00C7BE]' },
+    professional: { bg: 'bg-gray-50',    text: 'text-[#8E8E93]',    close: 'text-[#8E8E93]/60 hover:text-[#8E8E93]' },
   }
 
   // Reset when modal closes
@@ -3169,7 +3169,7 @@ const CategorySearchModal = ({
                     </span>
                   )}
                   {selectedCategories.flatMap(cat => {
-                    const colors = TAB_COLORS[examToTabKey.get(cat) || ''] || { bg: 'bg-indigo-50', text: 'text-indigo-700', close: 'text-indigo-400 hover:text-indigo-900' }
+                    const colors = TAB_COLORS[examToTabKey.get(cat) || ''] || { bg: 'bg-blue-50', text: 'text-[#0A84FF]', close: 'text-[#0A84FF]/60 hover:text-[#0A84FF]' }
                     if (selectedCountries.length === 0) {
                       return (
                         <span
