@@ -3161,7 +3161,7 @@ const CategorySearchModal = ({
 
             {/* Selected category badges container + Search */}
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-[48px] flex-1 items-center overflow-x-auto rounded-xl border border-slate-200 bg-white px-3 py-2 scrollbar-no-arrows">
+              <div className="flex h-10 flex-1 items-center overflow-x-auto rounded-xl border border-slate-200 bg-white px-3 py-1 scrollbar-no-arrows">
                 <div className="flex flex-nowrap items-center gap-2">
                   {selectedCategories.length === 0 && (
                     <span className="select-none text-sm text-slate-400">
@@ -3174,7 +3174,7 @@ const CategorySearchModal = ({
                       return (
                         <span
                           key={cat}
-                          className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full ${colors.bg} px-3 py-1.5 text-xs font-medium ${colors.text}`}
+                          className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full ${colors.bg} px-3 py-1 text-xs font-medium ${colors.text}`}
                         >
                           {cat} - Global
                           <button
@@ -3192,7 +3192,7 @@ const CategorySearchModal = ({
                       return (
                         <span
                           key={`${cat}-${code}`}
-                          className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full ${colors.bg} px-3 py-1.5 text-xs font-medium ${colors.text}`}
+                          className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full ${colors.bg} px-3 py-1 text-xs font-medium ${colors.text}`}
                         >
                           {cat} - {countryName}
                           <button
@@ -3209,13 +3209,16 @@ const CategorySearchModal = ({
                 </div>
               </div>
               <Button
-                variant="modal-primary"
                 onClick={() => {
                   const countryNames = selectedCountries.map(code => ALL_COUNTRIES.find(c => c.code === code)?.name || code)
                   onSelectCategory([...selectedCategories, ...countryNames])
                 }}
                 disabled={selectedCategories.length === 0}
-                className="h-10 px-5 text-sm disabled:opacity-50 !border-white hover:!border-blue-700"
+                className={`h-10 px-5 text-sm focus-visible:!shadow-none focus:outline-none ${
+                  selectedCategories.length === 0
+                    ? 'rounded-xl border border-white/20 bg-white/10 text-white shadow-md backdrop-blur-sm disabled:opacity-50'
+                    : 'rounded-md bg-blue-700 text-white hover:bg-blue-600'
+                }`}
               >
                 Search
               </Button>
