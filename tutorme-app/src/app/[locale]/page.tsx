@@ -1727,7 +1727,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
   return (
     <section
       id="panel-2-search-results"
-      className="relative w-full overflow-hidden"
+      className="relative w-full min-h-[600px] overflow-hidden"
       style={{
         backgroundColor: '#D7DCE2',
         backgroundImage:
