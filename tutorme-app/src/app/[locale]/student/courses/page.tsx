@@ -466,10 +466,10 @@ function CoursePageInner() {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen w-full space-y-6 bg-white p-4 text-slate-900 sm:p-6">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white">
-        <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
+      <Card className="overflow-hidden border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+        <div className="bg-gradient-to-br from-sky-50/80 via-cyan-50/80 to-emerald-50/80 p-6 sm:p-8">
           {isTutor && (
             <Link
               href="/tutor/dashboard"
@@ -497,7 +497,7 @@ function CoursePageInner() {
             </div>
           </div>
         </div>
-      </header>
+      </Card>
 
       {/* Course Details Modal */}
       <Dialog open={!!detailCourse} onOpenChange={open => !open && setDetailCourse(null)}>
@@ -602,7 +602,8 @@ function CoursePageInner() {
       </Dialog>
 
       {/* Tabs */}
-      <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
+      <Card className="border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+        <CardContent className="p-6">
         <div className="scrollbar-hide mb-8 flex overflow-x-auto border-b border-gray-200">
           <button
             className={cn(
@@ -854,7 +855,8 @@ function CoursePageInner() {
             )}
           </div>
         )}
-      </div>
+        </CardContent>
+      </Card>
 
       {selectedEnrollment && (
         <PreferenceEnrollmentDialog
