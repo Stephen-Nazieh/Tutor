@@ -1713,7 +1713,7 @@ function MonthView({
   conflicts,
 }: any) {
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 shadow-lg">
+    <div className="overflow-hidden rounded-lg border border-slate-200 shadow-lg p-2">
       <div className="grid grid-cols-7 border-b border-gray-100 bg-white/50">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
           <div key={day} className="p-2 text-center text-sm font-medium text-gray-600">
@@ -1816,7 +1816,7 @@ function WeekView({
   const hours = Array.from({ length: 24 }, (_, i) => i)
 
   return (
-    <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white/50 shadow-lg">
+    <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white/50 shadow-lg p-2">
       <div className="w-16 border-r bg-gray-50">
         <div className="h-12 border-b" />
         {hours.map(hour => (
@@ -1890,7 +1890,7 @@ function DayView({ currentDate, events, onEventClick, conflicts, readOnly = fals
     .sort((a: CalendarEvent, b: CalendarEvent) => a.date.getTime() - b.date.getTime())
 
   return (
-    <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white/50 shadow-lg">
+    <div className="flex overflow-hidden rounded-lg border border-slate-200 bg-white/50 shadow-lg p-2">
       <div className="w-20 border-r bg-gray-50">
         {hours.map(hour => (
           <div key={hour} className="h-20 border-b px-2 py-2 text-right text-sm text-gray-600">
