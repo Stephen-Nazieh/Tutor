@@ -130,6 +130,14 @@ interface CalendarConnection {
   syncEnabled: boolean
 }
 
+export const DEFAULT_TIMEZONE =
+  (typeof Intl !== 'undefined' && Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC'
+
+export const SUPPORTED_TIMEZONES =
+  typeof Intl !== 'undefined' && typeof (Intl as any).supportedValuesOf === 'function'
+    ? ((Intl as any).supportedValuesOf('timeZone') as string[])
+    : [DEFAULT_TIMEZONE, 'UTC', 'Asia/Shanghai', 'America/New_York', 'Europe/London']
+
 interface InteractiveCalendarProps {
   events?: CalendarEvent[]
   onEventClick?: (event: CalendarEvent) => void
@@ -144,6 +152,8 @@ interface InteractiveCalendarProps {
   availabilityOnly?: boolean
   /** When true, renders without outer Card styling for embedding inside another container. */
   embedded?: boolean
+  timezone?: string
+  onTimezoneChange?: (tz: string) => void
 }
 
 const SUBJECTS = [
@@ -186,9 +196,6 @@ const TIME_SLOTS = [
   '22:00',
   '23:00',
 ]
-
-const DEFAULT_TIMEZONE =
-  (typeof Intl !== 'undefined' && Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC'
 
 const generateAvailability = (): AvailabilityBlock[] => {
   const slots: AvailabilityBlock[] = []
@@ -287,6 +294,8 @@ export function InteractiveCalendar({
   dayClickMode = 'callback',
   availabilityOnly = false,
   embedded = false,
+  timezone: timezoneProp,
+  onTimezoneChange,
 }: InteractiveCalendarProps) {
   const isStudent = mode === 'student'
   const router = useRouter()
@@ -311,7 +320,9 @@ export function InteractiveCalendar({
   const [showConflictWarning, setShowConflictWarning] = useState<CalendarEvent[]>([])
   const [notifications, setNotifications] = useState<string[]>([])
   const [availabilityDate, setAvailabilityDate] = useState<Date | null>(null)
-  const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE)
+  const [internalTimezone, setInternalTimezone] = useState(DEFAULT_TIMEZONE)
+  const timezone = timezoneProp ?? internalTimezone
+  const setTimezone = onTimezoneChange ?? setInternalTimezone
   const [availabilitySaving, setAvailabilitySaving] = useState(false)
   const [availabilityLoading, setAvailabilityLoading] = useState(false)
 
@@ -368,7 +379,10 @@ export function InteractiveCalendar({
         const data = await res.json().catch(() => ({}))
         const apiAvailability = Array.isArray(data?.availability) ? data.availability : []
         if (apiAvailability.length > 0) {
-          setTimezone(apiAvailability[0].timezone || DEFAULT_TIMEZONE)
+          const tz = apiAvailability[0].timezone || DEFAULT_TIMEZONE
+          if (!timezoneProp) {
+            setInternalTimezone(tz)
+          }
         }
         const base = generateAvailability()
         const normalized = base.map(block => {
@@ -528,13 +542,6 @@ export function InteractiveCalendar({
     }
     return `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`
   }, [currentDate, monthNames, view])
-
-  const supportedTimezones = useMemo(() => {
-    if (typeof Intl !== 'undefined' && typeof (Intl as any).supportedValuesOf === 'function') {
-      return (Intl as any).supportedValuesOf('timeZone') as string[]
-    }
-    return [DEFAULT_TIMEZONE, 'UTC', 'Asia/Shanghai', 'America/New_York', 'Europe/London']
-  }, [])
 
   const calendarDays = useMemo(() => {
     const year = currentDate.getFullYear()
@@ -786,18 +793,6 @@ export function InteractiveCalendar({
           {availabilityOnly ? (
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">My Availability</h2>
-              <Select value={timezone} onValueChange={setTimezone}>
-                <SelectTrigger className="w-[190px]">
-                  <SelectValue placeholder="Select timezone" />
-                </SelectTrigger>
-                <SelectContent>
-                  {supportedTimezones.map(tz => (
-                    <SelectItem key={tz} value={tz}>
-                      {tz}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           ) : (
             <>
@@ -817,22 +812,6 @@ export function InteractiveCalendar({
                   <Button variant="outline" size="sm" onClick={goToToday}>
                     Today
                   </Button>
-                  {!isStudent && (
-                    <div className="flex flex-col gap-1">
-                      <Select value={timezone} onValueChange={setTimezone}>
-                        <SelectTrigger className="w-[190px]">
-                          <SelectValue placeholder="Select timezone" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {supportedTimezones.map(tz => (
-                            <SelectItem key={tz} value={tz}>
-                              {tz}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
                   {!isStudent && (
                     <>
                       {/* Calendar Integrations */}

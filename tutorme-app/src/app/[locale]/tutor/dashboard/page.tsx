@@ -9,6 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -48,6 +55,7 @@ import {
   type UpcomingClass,
   type StudentNeedingAttention,
 } from './components'
+import { DEFAULT_TIMEZONE, SUPPORTED_TIMEZONES } from './components/InteractiveCalendar'
 import { ModernHeroSection } from './components/ModernHeroSection'
 
 function DashboardSkeleton() {
@@ -146,6 +154,7 @@ function TutorDashboardContent() {
   const hasLocalePrefix = pathname.startsWith(`/${locale}/`)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [scheduleDate, setScheduleDate] = useState<Date | null>(null)
+  const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE)
 
   useEffect(() => {
     if (searchParams.get('create') === '1') setShowCreateDialog(true)
@@ -704,30 +713,44 @@ function TutorDashboardContent() {
           <Card className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
             <Tabs defaultValue="courses" className="w-full">
               <CardHeader className="pb-0">
-                <TabsList className="grid w-full max-w-md grid-cols-3 bg-[#2D2B4E] p-1 rounded-xl">
-                  <TabsTrigger
-                    value="courses"
-                    className="rounded-lg text-white/70 hover:text-white data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
-                  >
-                    Active Courses
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="calendar"
-                    className="rounded-lg text-white/70 hover:text-white data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
-                  >
-                    Calendar
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="availability"
-                    className="rounded-lg text-white/70 hover:text-white data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
-                  >
-                    My Availability
-                  </TabsTrigger>
-                </TabsList>
+                <div className="flex items-center gap-3">
+                  <TabsList className="grid w-full max-w-md grid-cols-3 bg-[#2D2B4E] p-1 rounded-xl">
+                    <TabsTrigger
+                      value="courses"
+                      className="rounded-lg text-white/70 hover:text-white data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
+                    >
+                      Active Courses
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="calendar"
+                      className="rounded-lg text-white/70 hover:text-white data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
+                    >
+                      Calendar
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="availability"
+                      className="rounded-lg text-white/70 hover:text-white data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
+                    >
+                      My Availability
+                    </TabsTrigger>
+                  </TabsList>
+                  <Select value={timezone} onValueChange={setTimezone}>
+                    <SelectTrigger className="h-10 w-[190px] rounded-lg border border-slate-200 bg-white px-3 text-sm shadow-sm">
+                      <SelectValue placeholder="Select timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUPPORTED_TIMEZONES.map(tz => (
+                        <SelectItem key={tz} value={tz}>
+                          {tz}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent className="pt-6">
                 <TabsContent value="calendar">
-                  <InteractiveCalendar initialView="day" dayClickMode="create" loading={loading} embedded />
+                  <InteractiveCalendar initialView="day" dayClickMode="create" loading={loading} embedded timezone={timezone} onTimezoneChange={setTimezone} />
                 </TabsContent>
                 <TabsContent value="availability">
                   <InteractiveCalendar
@@ -736,6 +759,8 @@ function TutorDashboardContent() {
                     loading={loading}
                     availabilityOnly
                     embedded
+                    timezone={timezone}
+                    onTimezoneChange={setTimezone}
                   />
                 </TabsContent>
                 <TabsContent value="courses">
