@@ -648,6 +648,18 @@
     scroll-behavior: smooth;
     scrollbar-gutter: stable;
     overflow-y: auto;
+    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+  }
+
+  html::-webkit-scrollbar {
+    width: 8px;
+  }
+  html::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  html::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
   }
 
   /* Prevent layout shift when scrollbar appears/disappears (Radix/shadcn dropdowns/modals) */
