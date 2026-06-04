@@ -3191,7 +3191,7 @@ const CategorySearchModal = ({
             </p>
 
             {/* Selected category badges container + Search */}
-            <div className="mb-4 flex items-center gap-3">
+            <div className="mb-4 flex items-start gap-3">
               <div className="flex min-w-0 flex-1 flex-col">
                 <div
                   ref={badgeScrollRef}
