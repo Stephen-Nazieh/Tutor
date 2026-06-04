@@ -782,7 +782,7 @@ export function InteractiveCalendar({
             : 'border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md'
         )}
       >
-        <CardHeader spacing={embedded ? 'none' : 'default'} className={cn('shrink-0 pb-3', embedded && 'p-0')}>
+        <CardHeader className={cn('shrink-0 pb-3', embedded && 'p-0')}>
           {availabilityOnly ? (
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">My Availability</h2>
