@@ -2978,6 +2978,7 @@ const CategorySection = ({
   categorySearch: string
   selectedCategories: string[]
   onToggleCategory: (category: string) => void
+  color?: string
 }) => {
   const filtered = categorySearch
     ? exams.filter(e => e.toLowerCase().includes(categorySearch.toLowerCase()))
@@ -2985,7 +2986,7 @@ const CategorySection = ({
   if (filtered.length === 0) return null
   return (
     <div className="space-y-3">
-      <h4 className="flex items-center gap-2 text-sm font-semibold text-white">
+      <h4 className="flex items-center gap-2 text-sm font-medium text-white">
         <Icon className="h-4 w-4 text-white/80" />
         {label}
       </h4>
@@ -2993,16 +2994,19 @@ const CategorySection = ({
         {filtered.map((exam, idx) => (
           <label
             key={`${label}-${idx}-${exam}`}
-            className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/90 transition-colors hover:bg-white/10"
+            className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-white/90 transition-colors hover:bg-white/10"
           >
-            <div className="relative flex h-4 w-4 shrink-0 items-center justify-center">
+            <div className="relative flex h-3.5 w-3.5 shrink-0 items-center justify-center">
               <input
                 type="checkbox"
                 checked={selectedCategories.includes(exam)}
                 onChange={() => onToggleCategory(exam)}
-                className="peer h-4 w-4 appearance-none rounded-full border border-white/50 transition-colors checked:border-indigo-500 checked:bg-indigo-500"
+                className="h-3.5 w-3.5 appearance-none rounded-full border border-white/50 transition-colors"
+                style={{
+                  borderColor: selectedCategories.includes(exam) ? (color || '#4F46E5') : 'rgba(255,255,255,0.5)',
+                  backgroundColor: selectedCategories.includes(exam) ? (color || '#4F46E5') : 'transparent',
+                }}
               />
-              <Check className="pointer-events-none absolute h-2.5 w-2.5 text-white opacity-0 peer-checked:opacity-100" />
             </div>
             <span className="line-clamp-2">{exam}</span>
           </label>
@@ -3280,8 +3284,9 @@ const CategorySearchModal = ({
                   <TabsTrigger value="global" className={tabTriggerClass} style={{ color: '#0A84FF' }}>
                     <Globe className="mr-1.5 h-4 w-4" /> Global
                   </TabsTrigger>
-                  <TabsTrigger value="ap" className={tabTriggerClass} style={{ color: '#FF453A' }}>
-                    <Award className="mr-1.5 h-4 w-4" /> AP
+                  <TabsTrigger value="ap" className={tabTriggerClass}>
+                    <Award className="mr-1.5 h-4 w-4 text-[#FF2D55]" />
+                    <span className="bg-gradient-to-b from-[#FF8FA8] via-[#FF2D55] to-[#C41E5C] bg-clip-text text-transparent font-semibold">AP</span>
                   </TabsTrigger>
                   <TabsTrigger value="alevel" className={tabTriggerClass} style={{ color: '#BF5AF2' }}>
                     <GraduationCap className="mr-1.5 h-4 w-4" /> A Level
@@ -3324,7 +3329,7 @@ const CategorySearchModal = ({
                 {/* Global */}
                 <TabsContent value="global" className="mt-0 space-y-6">
                   {GLOBAL_EXAMS_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={BookOpen} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
+                    <CategorySection key={cat.id} label={cat.label} icon={BookOpen} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#0A84FF" />
                   ))}
                   {!GLOBAL_EXAMS_CATEGORIES.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
@@ -3334,7 +3339,7 @@ const CategorySearchModal = ({
                 {/* AP */}
                 <TabsContent value="ap" className="mt-0 space-y-6">
                   {AP_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={Award} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
+                    <CategorySection key={cat.id} label={cat.label} icon={Award} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#FF2D55" />
                   ))}
                   {!AP_CATEGORIES.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
@@ -3344,7 +3349,7 @@ const CategorySearchModal = ({
                 {/* A Level */}
                 <TabsContent value="alevel" className="mt-0 space-y-6">
                   {A_LEVEL_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
+                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#BF5AF2" />
                   ))}
                   {!A_LEVEL_CATEGORIES.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
@@ -3354,7 +3359,7 @@ const CategorySearchModal = ({
                 {/* IB */}
                 <TabsContent value="ib" className="mt-0 space-y-6">
                   {IB_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={BookOpen} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
+                    <CategorySection key={cat.id} label={cat.label} icon={BookOpen} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#0A84FF" />
                   ))}
                   {!IB_CATEGORIES.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
@@ -3364,7 +3369,7 @@ const CategorySearchModal = ({
                 {/* IGCSE */}
                 <TabsContent value="igcse" className="mt-0 space-y-6">
                   {IGCSE_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={School} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
+                    <CategorySection key={cat.id} label={cat.label} icon={School} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#64D2FF" />
                   ))}
                   {!IGCSE_CATEGORIES.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
@@ -3374,7 +3379,7 @@ const CategorySearchModal = ({
                 {/* National */}
                 <TabsContent value="national" className="mt-0 space-y-6">
                   {nationalExams.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={Flag} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
+                    <CategorySection key={cat.id} label={cat.label} icon={Flag} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#FF9F0A" />
                   ))}
                   {nationalExams.length === 0 && (
                     <div className="py-12 text-center text-slate-500">
@@ -3396,7 +3401,7 @@ const CategorySearchModal = ({
                     </div>
                   )}
                   {(selectedRegion || selectedCountries.length > 0) && filteredUniversityCategories.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
+                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#BF5AF2" />
                   ))}
                   {(selectedRegion || selectedCountries.length > 0) && filteredUniversityCategories.length === 0 && (
                     <div className="py-12 text-center text-slate-500">
@@ -3412,7 +3417,7 @@ const CategorySearchModal = ({
                 {/* Languages */}
                 <TabsContent value="languages" className="mt-0 space-y-6">
                   {LANGUAGE_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={Globe} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
+                    <CategorySection key={cat.id} label={cat.label} icon={Globe} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#00C7BE" />
                   ))}
                   {!LANGUAGE_CATEGORIES.some(cat => hasResults(cat.exams)) && <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />}
                 </TabsContent>
@@ -3420,7 +3425,7 @@ const CategorySearchModal = ({
                 {/* Professional */}
                 <TabsContent value="professional" className="mt-0 space-y-6">
                   {PROFESSIONAL_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={Award} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} />
+                    <CategorySection key={cat.id} label={cat.label} icon={Award} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#FF2D55" />
                   ))}
                   {!PROFESSIONAL_CATEGORIES.some(cat => hasResults(cat.exams)) && <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />}
                 </TabsContent>
