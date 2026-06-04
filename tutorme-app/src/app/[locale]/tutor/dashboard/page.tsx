@@ -618,7 +618,7 @@ function TutorDashboardContent() {
 
         {/* Dashboard Stats */}
         <div className="mb-8 space-y-4">
-          <Card className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)] p-8">
+          <Card hoverable={false} className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 gap-6 divide-y divide-border/20 md:grid-cols-2 md:divide-x md:divide-y-0">
                 <div className="py-2 text-center md:py-0">
