@@ -3195,7 +3195,7 @@ const CategorySearchModal = ({
               <div className="flex min-w-0 flex-1 flex-col">
                 <div
                   ref={badgeScrollRef}
-                  className="relative flex h-10 min-w-0 items-center overflow-x-auto scrollbar-hide rounded-xl border border-slate-200 bg-white px-3 py-1"
+                  className="flex h-10 min-w-0 items-center overflow-x-auto scrollbar-hide rounded-xl border border-slate-200 bg-white px-3 py-1"
                 >
                   <div className="flex min-w-0 flex-nowrap items-center gap-2">
                     {selectedCategories.length === 0 && (
@@ -3242,28 +3242,37 @@ const CategorySearchModal = ({
                       })
                     })}
                   </div>
-
-                  {/* Left scroll arrow */}
-                  {canScrollLeft && (
+                </div>
+                {(canScrollLeft || canScrollRight) && (
+                  <div className="mt-1 flex items-center gap-1">
                     <button
                       onClick={() => scrollBadges(-200)}
-                      className="absolute left-1 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-500 shadow-sm transition-colors hover:text-slate-800"
+                      disabled={!canScrollLeft}
+                      className={cn(
+                        'flex h-6 w-6 items-center justify-center rounded-full transition-colors',
+                        canScrollLeft
+                          ? 'bg-white/20 text-white hover:bg-white/30'
+                          : 'text-white/30'
+                      )}
                       aria-label="Scroll left"
                     >
-                      <ChevronLeft className="h-3.5 w-3.5" />
+                      <ChevronLeft className="h-3 w-3" />
                     </button>
-                  )}
-                  {/* Right scroll arrow */}
-                  {canScrollRight && (
                     <button
                       onClick={() => scrollBadges(200)}
-                      className="absolute right-1 top-1/2 z-10 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-slate-500 shadow-sm transition-colors hover:text-slate-800"
+                      disabled={!canScrollRight}
+                      className={cn(
+                        'flex h-6 w-6 items-center justify-center rounded-full transition-colors',
+                        canScrollRight
+                          ? 'bg-white/20 text-white hover:bg-white/30'
+                          : 'text-white/30'
+                      )}
                       aria-label="Scroll right"
                     >
-                      <ChevronRight className="h-3.5 w-3.5" />
+                      <ChevronRight className="h-3 w-3" />
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
               <Button
                 onClick={() => {
