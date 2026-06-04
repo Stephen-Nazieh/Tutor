@@ -3079,6 +3079,14 @@ const CategorySearchModal = ({
     languages:    { bg: 'bg-[#00C7BE]', text: 'text-white', close: 'text-white/60 hover:text-white' },
     professional: { bg: 'bg-[#8E8E93]', text: 'text-white', close: 'text-white/60 hover:text-white' },
   }
+  const UNIVERSITY_TO_COUNTRY = useMemo(() => {
+    const map = new Map<string, string>()
+    Object.entries(UNIVERSITIES_BY_COUNTRY_CODE).forEach(([code, universities]) => {
+      const countryName = ALL_COUNTRIES.find(c => c.code === code)?.name || code
+      universities.forEach((u: string) => map.set(u, countryName))
+    })
+    return map
+  }, [])
 
   // Reset when modal closes
   useEffect(() => {
@@ -3210,7 +3218,7 @@ const CategorySearchModal = ({
                             key={cat}
                             className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full ${colors.bg} px-3 py-1 text-xs font-medium ${colors.text}`}
                           >
-                            {cat} - Global
+                            {examToTabKey.get(cat) === 'universities' ? `${cat} - ${UNIVERSITY_TO_COUNTRY.get(cat) || 'Global'}` : `${cat} - Global`}
                             <button
                               onClick={() => removeCategory(cat)}
                               className={`ml-0.5 ${colors.close}`}
@@ -3415,7 +3423,7 @@ const CategorySearchModal = ({
                 {/* A Level */}
                 <TabsContent value="alevel" className="mt-0 space-y-6">
                   {A_LEVEL_CATEGORIES.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#BF5AF2" />
+                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#FF375F" />
                   ))}
                   {!A_LEVEL_CATEGORIES.some(cat => hasResults(cat.exams)) && (
                     <EmptyState search={categorySearch} fallbackText={t('noCategoriesAvailable')} />
@@ -3467,7 +3475,7 @@ const CategorySearchModal = ({
                     </div>
                   )}
                   {(selectedRegion || selectedCountries.length > 0) && filteredUniversityCategories.map(cat => (
-                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#BF5AF2" />
+                    <CategorySection key={cat.id} label={cat.label} icon={GraduationCap} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#FF375F" />
                   ))}
                   {(selectedRegion || selectedCountries.length > 0) && filteredUniversityCategories.length === 0 && (
                     <div className="py-12 text-center text-slate-500">
