@@ -142,6 +142,8 @@ interface InteractiveCalendarProps {
   dayClickMode?: 'create' | 'availability' | 'callback'
   /** When true, renders a stripped-down availability-only UI without calendar chrome (nav, filters, view toggles). */
   availabilityOnly?: boolean
+  /** When true, renders without outer Card styling for embedding inside another container. */
+  embedded?: boolean
 }
 
 const SUBJECTS = [
@@ -284,6 +286,7 @@ export function InteractiveCalendar({
   initialView = 'month',
   dayClickMode = 'callback',
   availabilityOnly = false,
+  embedded = false,
 }: InteractiveCalendarProps) {
   const isStudent = mode === 'student'
   const router = useRouter()
@@ -747,8 +750,16 @@ export function InteractiveCalendar({
 
   if (loading) {
     return (
-      <Card className="h-[600px]">
-        <CardContent className="flex h-full items-center justify-center">
+      <Card
+        padding="none"
+        className={cn(
+          'h-[600px]',
+          embedded
+            ? 'bg-transparent border-0 shadow-none'
+            : 'border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md'
+        )}
+      >
+        <CardContent spacing={embedded ? 'none' : 'default'} className="flex h-full items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
         </CardContent>
       </Card>
@@ -762,8 +773,16 @@ export function InteractiveCalendar({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <Card className="flex h-[600px] flex-col border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md">
-        <CardHeader className="shrink-0 pb-3">
+      <Card
+        padding="none"
+        className={cn(
+          'flex h-[600px] flex-col',
+          embedded
+            ? 'bg-transparent border-0 shadow-none'
+            : 'border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md'
+        )}
+      >
+        <CardHeader spacing={embedded ? 'none' : 'default'} className={cn('shrink-0 pb-3', embedded && 'p-0')}>
           {availabilityOnly ? (
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">My Availability</h2>
@@ -940,7 +959,7 @@ export function InteractiveCalendar({
           )}
         </CardHeader>
 
-        <CardContent className="flex-1 overflow-auto pt-0">
+        <CardContent spacing={embedded ? 'none' : 'default'} className="flex-1 overflow-auto pt-0">
           {availabilityOnly ? (
             <AvailabilityView
               availability={availability}

@@ -701,29 +701,31 @@ function TutorDashboardContent() {
         </div>
 
         <div className="mb-8">
-          <Tabs defaultValue="courses" className="space-y-4">
-            <TabsList className="grid w-full max-w-md grid-cols-3">
-              <TabsTrigger value="courses">Active Courses</TabsTrigger>
-              <TabsTrigger value="calendar">Calendar</TabsTrigger>
-              <TabsTrigger value="availability">My Availability</TabsTrigger>
-            </TabsList>
-            <TabsContent value="calendar">
-              <InteractiveCalendar initialView="day" dayClickMode="create" loading={loading} />
-            </TabsContent>
-            <TabsContent value="availability">
-              <InteractiveCalendar
-                initialView="availability"
-                dayClickMode="availability"
-                loading={loading}
-                availabilityOnly
-              />
-            </TabsContent>
-            <TabsContent value="courses">
-              <Card className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
-                <CardHeader>
-                  <CardTitle className="text-card-foreground">Courses With Enrolled Students</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+          <Card className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+            <Tabs defaultValue="courses" className="w-full">
+              <CardHeader className="pb-0">
+                <TabsList className="grid w-full max-w-md grid-cols-3">
+                  <TabsTrigger value="courses">Active Courses</TabsTrigger>
+                  <TabsTrigger value="calendar">Calendar</TabsTrigger>
+                  <TabsTrigger value="availability">My Availability</TabsTrigger>
+                </TabsList>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <TabsContent value="calendar">
+                  <InteractiveCalendar initialView="day" dayClickMode="create" loading={loading} embedded />
+                </TabsContent>
+                <TabsContent value="availability">
+                  <InteractiveCalendar
+                    initialView="availability"
+                    dayClickMode="availability"
+                    loading={loading}
+                    availabilityOnly
+                    embedded
+                  />
+                </TabsContent>
+                <TabsContent value="courses">
+                  <CardTitle className="mb-4 text-card-foreground">Courses With Enrolled Students</CardTitle>
+                  <div className="space-y-3">
                   {enrolledCourses.length === 0 ? (
                     <div className="text-muted-foreground rounded-lg border border-dashed border-border/30 p-6 text-center text-sm">
                       No courses have enrolled students yet.
@@ -833,11 +835,12 @@ function TutorDashboardContent() {
                       )
                     })
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </div>
+              </TabsContent>
+            </CardContent>
           </Tabs>
-        </div>
+        </Card>
+      </div>
 
         {/* Create Class Dialog */}
         <CreateClassDialog
