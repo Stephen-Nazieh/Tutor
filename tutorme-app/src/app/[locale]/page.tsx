@@ -5,7 +5,7 @@
 
 'use client'
 
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   UserPlus,
@@ -3037,6 +3037,35 @@ const CategorySearchModal = ({
   const [selectedCountries, setSelectedCountries] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState('global')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+
+  // Badge bar scroll navigation
+  const badgeScrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const checkScroll = useCallback(() => {
+    const el = badgeScrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 0)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1)
+  }, [])
+
+  const scrollBadges = (amount: number) => {
+    badgeScrollRef.current?.scrollBy({ left: amount, behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    checkScroll()
+    const el = badgeScrollRef.current
+    if (!el) return
+    el.addEventListener('scroll', checkScroll)
+    window.addEventListener('resize', checkScroll)
+    return () => {
+      el.removeEventListener('scroll', checkScroll)
+      window.removeEventListener('resize', checkScroll)
+    }
+  }, [checkScroll, selectedCategories, selectedCountries])
+
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key
 
   const TAB_COLORS: Record<string, { bg: string; text: string; close: string }> = {
@@ -3162,8 +3191,12 @@ const CategorySearchModal = ({
 
             {/* Selected category badges container + Search */}
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 flex-1 items-center overflow-x-auto rounded-xl border border-slate-200 bg-white px-3 py-1 scrollbar-no-arrows">
-                <div className="flex flex-nowrap items-center gap-2">
+              <div className="flex flex-1 flex-col">
+                <div
+                  ref={badgeScrollRef}
+                  className="flex h-10 items-center overflow-x-hidden rounded-xl border border-slate-200 bg-white px-3 py-1"
+                >
+                  <div className="flex flex-nowrap items-center gap-2">
                   {selectedCategories.length === 0 && (
                     <span className="select-none text-sm text-slate-400">
                       {t('selectCategoryBadgePlaceholder')}
@@ -3208,6 +3241,34 @@ const CategorySearchModal = ({
                     })
                   })}
                 </div>
+                {(canScrollLeft || canScrollRight) && (
+                  <div className="mt-1 flex items-center gap-1">
+                    <button
+                      onClick={() => scrollBadges(-200)}
+                      disabled={!canScrollLeft}
+                      className={cn(
+                        'flex h-6 w-6 items-center justify-center rounded-full transition-colors',
+                        canScrollLeft
+                          ? 'bg-white/20 text-white hover:bg-white/30'
+                          : 'text-white/30'
+                      )}
+                    >
+                      <ChevronLeft className="h-3 w-3" />
+                    </button>
+                    <button
+                      onClick={() => scrollBadges(200)}
+                      disabled={!canScrollRight}
+                      className={cn(
+                        'flex h-6 w-6 items-center justify-center rounded-full transition-colors',
+                        canScrollRight
+                          ? 'bg-white/20 text-white hover:bg-white/30'
+                          : 'text-white/30'
+                      )}
+                    >
+                      <ChevronRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
               </div>
               <Button
                 onClick={() => {
