@@ -618,7 +618,7 @@ function TutorDashboardContent() {
 
         {/* Dashboard Stats */}
         <div className="mb-8 space-y-4">
-          <Card hoverable={false} className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+          <Card className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 gap-6 divide-y divide-border/20 md:grid-cols-2 md:divide-x md:divide-y-0">
                 <div className="py-2 text-center md:py-0">
@@ -636,7 +636,7 @@ function TutorDashboardContent() {
 
         {/* 1-on-1 Requests */}
         <div className="mb-8">
-          <Card hoverable={false} className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+          <Card className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
             <CardHeader className="flex flex-row items-center justify-between gap-3">
               <div>
                 <CardTitle className="text-card-foreground">1-on-1 Requests</CardTitle>
@@ -710,7 +710,7 @@ function TutorDashboardContent() {
         </div>
 
         <div className="mb-8">
-          <Card hoverable={false} className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+          <Card className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
             <Tabs defaultValue="courses" className="w-full">
               <CardHeader className="pb-0">
                 <div className="flex items-center gap-3">
