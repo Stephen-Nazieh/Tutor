@@ -3221,9 +3221,9 @@ const CategorySearchModal = ({
             </div>
 
             {/* Region & Country dropdowns */}
-            <div className="mb-4 flex flex-wrap gap-3">
+            <div className="mb-2 flex flex-wrap gap-3">
               <Select value={selectedRegion || 'all'} onValueChange={v => { setSelectedRegion(v === 'all' ? '' : v); setSelectedCountries([]) }}>
-                <SelectTrigger className="h-9 w-[160px] rounded-xl border border-white/20 bg-white/10 text-sm text-white shadow-lg focus-visible:!shadow-none focus:outline-none hover:!bg-white/10 hover:!text-white">
+                <SelectTrigger className="h-[30px] w-[160px] rounded-xl border border-white/20 bg-white/10 text-sm text-white shadow-lg focus-visible:!shadow-none focus:outline-none hover:!bg-white/10 hover:!text-white">
                   <SelectValue placeholder="All Regions" />
                 </SelectTrigger>
                 <SelectContent>
@@ -3238,7 +3238,7 @@ const CategorySearchModal = ({
                   <button
                     type="button"
                     disabled={!selectedRegion}
-                    className="inline-flex h-9 w-[160px] items-center justify-between rounded-xl border border-white/20 bg-white/10 px-3 text-sm text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-50 focus-visible:!shadow-none focus:outline-none"
+                    className="inline-flex h-[30px] w-[160px] items-center justify-between rounded-xl border border-white/20 bg-white/10 px-3 text-sm text-white shadow-lg disabled:cursor-not-allowed disabled:opacity-50 focus-visible:!shadow-none focus:outline-none"
                   >
                     <span className="truncate">
                       {selectedCountries.length > 0
@@ -3308,19 +3308,19 @@ const CategorySearchModal = ({
               </div>
 
               {/* Search — placed inside Tabs so it sits under the active tab */}
-              <div className="pb-2 pt-6">
+              <div className="pb-2 pt-3">
                 <div className="relative max-w-md">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <Input
                     placeholder={t('searchCategories')}
                     value={categorySearch}
                     onChange={e => setCategorySearch(e.target.value)}
-                    className="h-10 border-slate-200 bg-white pl-10 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:border-slate-300 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="h-[34px] border-slate-200 bg-white pl-10 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus-visible:border-slate-300 focus-visible:ring-0 focus-visible:ring-offset-0"
                   />
                 </div>
               </div>
 
-              <div className="h-[540px] overflow-y-auto overscroll-contain pt-4 pb-12 scrollbar-no-arrows">
+              <div className="h-[480px] overflow-y-auto overscroll-contain pt-2 pb-12 scrollbar-no-arrows">
                 {/* Global */}
                 <TabsContent value="global" className="mt-0 space-y-6">
                   {GLOBAL_EXAMS_CATEGORIES.map(cat => (
