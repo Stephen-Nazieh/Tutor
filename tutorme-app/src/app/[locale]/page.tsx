@@ -3070,15 +3070,15 @@ const CategorySearchModal = ({
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key
 
   const TAB_COLORS: Record<string, { bg: string; text: string; close: string }> = {
-    global:       { bg: 'bg-blue-50',    text: 'text-[#0A84FF]',    close: 'text-[#0A84FF]/60 hover:text-[#0A84FF]' },
-    ap:           { bg: 'bg-pink-50',    text: 'text-[#FF1493]',    close: 'text-[#FF1493]/60 hover:text-[#FF1493]' },
-    alevel:       { bg: 'bg-purple-50',  text: 'text-[#BF5AF2]',    close: 'text-[#BF5AF2]/60 hover:text-[#BF5AF2]' },
-    ib:           { bg: 'bg-green-50',   text: 'text-[#32D74B]',    close: 'text-[#32D74B]/60 hover:text-[#32D74B]' },
-    igcse:        { bg: 'bg-sky-50',     text: 'text-[#64D2FF]',    close: 'text-[#64D2FF]/60 hover:text-[#64D2FF]' },
-    national:     { bg: 'bg-amber-50',   text: 'text-[#FF9F0A]',    close: 'text-[#FF9F0A]/60 hover:text-[#FF9F0A]' },
-    universities: { bg: 'bg-rose-50',    text: 'text-[#FF375F]',    close: 'text-[#FF375F]/60 hover:text-[#FF375F]' },
-    languages:    { bg: 'bg-teal-50',    text: 'text-[#00C7BE]',    close: 'text-[#00C7BE]/60 hover:text-[#00C7BE]' },
-    professional: { bg: 'bg-gray-50',    text: 'text-[#8E8E93]',    close: 'text-[#8E8E93]/60 hover:text-[#8E8E93]' },
+    global:       { bg: 'bg-[#0A84FF]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+    ap:           { bg: 'bg-[#FF1493]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+    alevel:       { bg: 'bg-[#BF5AF2]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+    ib:           { bg: 'bg-[#32D74B]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+    igcse:        { bg: 'bg-[#64D2FF]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+    national:     { bg: 'bg-[#FF9F0A]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+    universities: { bg: 'bg-[#FF375F]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+    languages:    { bg: 'bg-[#00C7BE]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+    professional: { bg: 'bg-[#8E8E93]', text: 'text-white', close: 'text-white/60 hover:text-white' },
   }
 
   // Reset when modal closes
@@ -3244,7 +3244,7 @@ const CategorySearchModal = ({
                   </div>
                 </div>
                 {(canScrollLeft || canScrollRight) && (
-                  <div className="mt-1 flex items-center gap-1">
+                  <div className="mt-1 flex items-center justify-end gap-1">
                     <button
                       onClick={() => scrollBadges(-200)}
                       disabled={!canScrollLeft}
@@ -3282,7 +3282,7 @@ const CategorySearchModal = ({
                 disabled={selectedCategories.length === 0}
                 className={`h-10 shrink-0 px-5 text-sm focus-visible:!shadow-none focus:outline-none ${
                   selectedCategories.length === 0
-                    ? 'rounded-xl border border-white/20 bg-white/10 text-white shadow-md backdrop-blur-sm disabled:opacity-50'
+                    ? 'rounded-xl border border-white bg-white/10 text-white shadow-md backdrop-blur-sm disabled:opacity-50'
                     : 'rounded-md border !border-white bg-blue-700 text-white hover:bg-blue-600 hover:!border-blue-700'
                 }`}
               >
