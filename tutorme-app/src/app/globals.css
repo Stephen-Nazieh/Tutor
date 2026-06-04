@@ -669,6 +669,11 @@
     padding-right: 0 !important;
     margin: 0 !important;
   }
+
+  /* Tutor pages use nested scroll containers — hide html gutter since it shows body bg color */
+  html.tutor-scroll-layout {
+    scrollbar-gutter: auto;
+  }
   
   body {
     @apply bg-background text-foreground antialiased;

@@ -74,6 +74,12 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       : ''
   }, [pathname])
 
+  // Scope scrollbar-gutter override to tutor pages (nested scroll containers, not html)
+  useEffect(() => {
+    document.documentElement.classList.add('tutor-scroll-layout')
+    return () => document.documentElement.classList.remove('tutor-scroll-layout')
+  }, [])
+
   // Use realm session (tutor tab) first; only redirect if we don't have a tutor session and default session is another role
   useEffect(() => {
     const realmRole = (realmSession?.user as { role?: string })?.role ?? ''
