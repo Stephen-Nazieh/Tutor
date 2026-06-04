@@ -66,6 +66,7 @@ import {
   Link2,
   PanelsTopLeft,
   ExternalLink,
+  Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
@@ -273,19 +274,21 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
 
   return (
     <Card className="border border-[#E2E8F0] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
-      <CardHeader className="pb-[calc(1rem*var(--density-scale,1))]">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg text-[#1F2933]">My Courses</CardTitle>
-          <Button
-            variant="modal-primary"
-            onClick={onCreateCourse}
-            size="sm"
-          >
-            <Plus className="mr-1 h-4 w-4" />
-            Create Course
-          </Button>
+      <div className={cn(charcoalHeaderClass, 'justify-between')}>
+        <div className="flex items-center gap-3">
+          <BookOpen className="h-5 w-5" />
+          <span className="text-base font-semibold">My Courses</span>
         </div>
-      </CardHeader>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 border-white/30 bg-white/10 text-xs text-white hover:bg-white/20 hover:text-white"
+          onClick={onCreateCourse}
+        >
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
+          Create Course
+        </Button>
+      </div>
       <CardContent className="space-y-4">
         {/* Tabs */}
         <div className="flex gap-2 border-b border-[#E2E8F0] bg-white">
@@ -1260,6 +1263,8 @@ export default function TutorMyPage() {
     'rounded-[20px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-8 py-5 text-white'
   const panelCardClass =
     'group rounded-[18px] bg-white p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)] transition-all duration-200 ease-in-out hover:shadow-[0_20px_60px_rgba(0,0,0,0.16)]'
+  const charcoalHeaderClass =
+    'flex h-14 items-center gap-3 bg-[linear-gradient(135deg,#1F2933_0%,#374151_35%,#111827_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4'
 
   return (
     <div
@@ -1684,19 +1689,20 @@ export default function TutorMyPage() {
         </Dialog>
 
         <Card className="border border-[#E2E8F0] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
-          <CardHeader
-            className="cursor-pointer select-none bg-white pb-3"
+          <div
+            className={cn(charcoalHeaderClass, 'cursor-pointer select-none justify-between')}
             onClick={() => setProfileSettingsOpen(prev => !prev)}
           >
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base text-[#1F2933]">Profile Settings</CardTitle>
-              {profileSettingsOpen ? (
-                <ChevronUp className="h-4 w-4 text-[#64748B]" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-[#64748B]" />
-              )}
+            <div className="flex items-center gap-3">
+              <Settings className="h-5 w-5" />
+              <span className="text-base font-semibold">Profile Settings</span>
             </div>
-          </CardHeader>
+            {profileSettingsOpen ? (
+              <ChevronUp className="h-4 w-4 text-white/70" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-white/70" />
+            )}
+          </div>
           {profileSettingsOpen && (
             <CardContent className="space-y-4 bg-white">
               <div className="grid gap-3 lg:grid-cols-2 lg:items-stretch">
