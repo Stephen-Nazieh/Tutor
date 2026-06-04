@@ -2971,6 +2971,7 @@ const CategorySection = ({
   categorySearch,
   selectedCategories,
   onToggleCategory,
+  color,
 }: {
   label: string
   icon: React.ElementType
