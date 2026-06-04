@@ -3243,36 +3243,34 @@ const CategorySearchModal = ({
                     })}
                   </div>
                 </div>
-                {(canScrollLeft || canScrollRight) && (
-                  <div className="mt-1 flex items-center justify-end gap-1">
-                    <button
-                      onClick={() => scrollBadges(-200)}
-                      disabled={!canScrollLeft}
-                      className={cn(
-                        'flex h-6 w-6 items-center justify-center rounded-full transition-colors',
-                        canScrollLeft
-                          ? 'bg-white/20 text-white hover:bg-white/30'
-                          : 'text-white/30'
-                      )}
-                      aria-label="Scroll left"
-                    >
-                      <ChevronLeft className="h-3 w-3" />
-                    </button>
-                    <button
-                      onClick={() => scrollBadges(200)}
-                      disabled={!canScrollRight}
-                      className={cn(
-                        'flex h-6 w-6 items-center justify-center rounded-full transition-colors',
-                        canScrollRight
-                          ? 'bg-white/20 text-white hover:bg-white/30'
-                          : 'text-white/30'
-                      )}
-                      aria-label="Scroll right"
-                    >
-                      <ChevronRight className="h-3 w-3" />
-                    </button>
-                  </div>
-                )}
+                <div className={cn('mt-1 flex items-center justify-end gap-1', (canScrollLeft || canScrollRight) ? 'visible' : 'invisible')}>
+                  <button
+                    onClick={() => scrollBadges(-200)}
+                    disabled={!canScrollLeft}
+                    className={cn(
+                      'flex h-6 w-6 items-center justify-center rounded-full transition-colors',
+                      canScrollLeft
+                        ? 'bg-white/20 text-white hover:bg-white/30'
+                        : 'text-white/30'
+                    )}
+                    aria-label="Scroll left"
+                  >
+                    <ChevronLeft className="h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => scrollBadges(200)}
+                    disabled={!canScrollRight}
+                    className={cn(
+                      'flex h-6 w-6 items-center justify-center rounded-full transition-colors',
+                      canScrollRight
+                        ? 'bg-white/20 text-white hover:bg-white/30'
+                        : 'text-white/30'
+                    )}
+                    aria-label="Scroll right"
+                  >
+                    <ChevronRight className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
               <Button
                 onClick={() => {
