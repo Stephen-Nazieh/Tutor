@@ -1715,7 +1715,7 @@ export default function TutorMyPage() {
           {profileSettingsOpen && (
             <CardContent className="space-y-4 bg-white">
               <div className="grid gap-3 lg:grid-cols-2 lg:items-stretch">
-                <div className="flex min-h-[250px] flex-col gap-2 lg:min-h-0">
+                <div className="flex min-h-[380px] flex-col gap-2 lg:min-h-0">
                   <Label className="text-sm text-[#1F2933]">Bio</Label>
                   <Textarea
                     value={bio}
@@ -1728,7 +1728,7 @@ export default function TutorMyPage() {
                     disabled={loading || saving}
                     placeholder="Short bio for your public page..."
                     maxLength={800}
-                    className="min-h-0 flex-1 resize-none border-[#E2E8F0] focus-visible:ring-[#1D4ED8]"
+                    className="min-h-[280px] flex-1 resize-none border-[#E2E8F0] focus-visible:ring-[#1D4ED8]"
                   />
                   <span
                     className={
