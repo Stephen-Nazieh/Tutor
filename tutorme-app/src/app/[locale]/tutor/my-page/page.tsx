@@ -1267,6 +1267,14 @@ export default function TutorMyPage() {
   const panelCardClass =
     'group rounded-[18px] bg-white p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)] transition-all duration-200 ease-in-out hover:shadow-[0_20px_60px_rgba(0,0,0,0.16)]'
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+      </div>
+    )
+  }
+
   return (
     <div
       className="min-h-screen bg-white text-[#1F2933]"
