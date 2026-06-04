@@ -3270,6 +3270,7 @@ const CategorySearchModal = ({
                   </div>
                 )}
               </div>
+              </div>
               <Button
                 onClick={() => {
                   const countryNames = selectedCountries.map(code => ALL_COUNTRIES.find(c => c.code === code)?.name || code)
