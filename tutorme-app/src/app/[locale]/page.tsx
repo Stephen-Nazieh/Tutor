@@ -714,7 +714,7 @@ const translations: Translations = {
     hi: 'एक श्रेणी चुनें',
   },
   allRegions: {
-    en: 'All Regions',
+    en: 'Region',
     'zh-CN': '所有地区',
     'zh-HK': '所有地區',
     es: 'Todas las regiones',
@@ -726,7 +726,7 @@ const translations: Translations = {
     hi: 'सभी क्षेत्र',
   },
   allCountries: {
-    en: 'All Countries',
+    en: 'Country',
     'zh-CN': '所有国家',
     'zh-HK': '所有國家',
     es: 'Todos los países',
@@ -3289,12 +3289,11 @@ const CategorySearchModal = ({
 
             {/* Region & Country dropdowns */}
             <div className="mb-2 flex flex-wrap gap-3">
-              <Select value={selectedRegion || 'all'} onValueChange={v => { setSelectedRegion(v === 'all' ? '' : v); setSelectedCountries([]) }}>
+              <Select value={selectedRegion} onValueChange={v => { setSelectedRegion(v); setSelectedCountries([]) }}>
                 <SelectTrigger className="h-[30px] w-[160px] rounded-sm border border-slate-700/25 bg-white/30 text-sm text-white shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-white/60 hover:border-slate-700/50 hover:shadow-md focus-visible:!shadow-none focus:outline-none focus-visible:outline-none">
-                  <SelectValue placeholder="All Regions" />
+                  <SelectValue placeholder="Region" />
                 </SelectTrigger>
                 <SelectContent className="rounded-lg border border-slate-700/25 bg-none bg-white/30 p-1.5 shadow-lg backdrop-blur-xl w-[var(--radix-select-trigger-width)]">
-                  <SelectItem value="all" className="text-white focus:text-white hover:bg-white/20 focus:bg-white/20 mx-1.5 focus:outline-none rounded-md">{t('allRegions')}</SelectItem>
                   {REGIONS.filter(r => r.id !== 'global').map(region => (
                     <SelectItem key={region.id} value={region.id} className="text-white focus:text-white hover:bg-white/20 focus:bg-white/20 mx-1.5 focus:outline-none rounded-md">{region.name}</SelectItem>
                   ))}
@@ -3310,7 +3309,7 @@ const CategorySearchModal = ({
                     <span className="truncate">
                       {selectedCountries.length > 0
                         ? `${selectedCountries.length} countr${selectedCountries.length === 1 ? 'y' : 'ies'}`
-                        : t('allCountries')}
+                        : 'Country'}
                     </span>
                     <svg className="h-4 w-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
