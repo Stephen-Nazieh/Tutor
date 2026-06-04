@@ -62,7 +62,12 @@ import {
   Eye,
   EyeOff,
   RotateCcw,
+  User,
+  Link2,
+  PanelsTopLeft,
+  ExternalLink,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { DEFAULT_LOCALE } from '@/lib/i18n/config'
 import {
   REGIONS,
@@ -1404,15 +1409,13 @@ export default function TutorMyPage() {
         </section>
 
         <div className="grid gap-5 lg:grid-cols-2 lg:items-stretch">
-          <div className={`${panelCardClass} flex h-full flex-col`}>
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
-                <Globe className="h-4 w-4 text-slate-700" />
-              </div>
-              <div className="text-lg font-semibold text-slate-900">Bio</div>
+          <div className={cn(panelCardClass, 'flex h-full flex-col')}>
+            <div className="flex h-14 items-center gap-3 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4">
+              <User className="h-5 w-5" />
+              <span className="text-base font-semibold">Bio</span>
             </div>
 
-            <div className="mt-4 flex min-h-0 flex-1 flex-col">
+            <div className="flex min-h-0 flex-1 flex-col">
               <Textarea
                 value={bio}
                 readOnly
@@ -1421,43 +1424,57 @@ export default function TutorMyPage() {
             </div>
           </div>
 
-          <div className="flex h-full flex-col gap-6">
+          <div className="flex h-full flex-col gap-5">
             <div className={panelCardClass}>
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
-                  <Globe className="h-3.5 w-3.5 text-slate-700" />
+              <div className="flex h-14 items-center justify-between bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4">
+                <div className="flex items-center gap-3">
+                  <Link2 className="h-5 w-5" />
+                  <div className="flex flex-col leading-tight">
+                    <span className="text-base font-semibold">Connect</span>
+                    <span className="text-xs text-white/70">Public profile and social channels.</span>
+                  </div>
                 </div>
-                <div className="text-base font-semibold text-slate-900">My Public Page</div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 border-white/30 bg-white/10 text-xs text-white hover:bg-white/20 hover:text-white"
+                    onClick={handleCopyProfile}
+                    disabled={!publicUrl}
+                  >
+                    <Copy className="mr-1.5 h-3.5 w-3.5" />
+                    Copy Link
+                  </Button>
+                  {canShare ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 border-white/30 bg-white/10 text-xs text-white hover:bg-white/20 hover:text-white"
+                      onClick={handleShareProfile}
+                    >
+                      <Share2 className="mr-1.5 h-3.5 w-3.5" />
+                      Share
+                    </Button>
+                  ) : null}
+                </div>
               </div>
 
               {publicUrl ? (
-                <div className="mt-3">
-                  <div className="break-all text-lg font-semibold text-slate-900">{publicUrl}</div>
-                  <div className="mt-1 text-sm font-semibold text-[#F17623]">
-                    {normalizedUsername ? `@${normalizedUsername}` : '@username'}
+                <div className="flex items-center gap-4 border-b border-slate-100 py-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                    <span className="text-2xl font-bold">@</span>
                   </div>
-                  <div className="mt-4 flex items-center gap-3">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 px-2 text-[#1D4ED8]"
-                      onClick={handleCopyProfile}
-                      disabled={!publicUrl}
+                  <div className="min-w-0">
+                    <div className="text-lg font-semibold text-slate-900">@{normalizedUsername || 'username'}</div>
+                    <a
+                      href={publicUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
                     >
-                      <Copy className="mr-2 h-4 w-4" />
-                      Copy link
-                    </Button>
-                    {canShare ? (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 px-2 text-[#1D4ED8]"
-                        onClick={handleShareProfile}
-                      >
-                        <Share2 className="mr-2 h-4 w-4" />
-                        Share
-                      </Button>
-                    ) : null}
+                      {publicUrl}
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
                   </div>
                 </div>
               ) : (
@@ -1465,88 +1482,77 @@ export default function TutorMyPage() {
                   Add a username in profile settings to generate your public link.
                 </div>
               )}
-            </div>
 
-            <div className={panelCardClass}>
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
-                  <Share2 className="h-3.5 w-3.5 text-slate-700" />
-                </div>
-                <div className="text-base font-semibold text-slate-900">Social Media Accounts</div>
-              </div>
-
-              <div className="mt-3">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {[
-                    {
-                      key: 'tiktok',
-                      value: socialAccounts.tiktok ? `@${socialAccounts.tiktok}` : '—',
-                      icon: TikTokIcon,
-                      iconClassName: 'text-slate-900',
-                      muted: !socialAccounts.tiktok,
-                    },
-                    {
-                      key: 'youtube',
-                      value: socialAccounts.youtube ? `@${socialAccounts.youtube}` : '—',
-                      icon: Youtube,
-                      iconClassName: 'text-red-600',
-                      muted: !socialAccounts.youtube,
-                    },
-                    {
-                      key: 'instagram',
-                      value: socialAccounts.instagram ? `@${socialAccounts.instagram}` : '—',
-                      icon: Instagram,
-                      iconClassName: 'text-pink-600',
-                      muted: !socialAccounts.instagram,
-                    },
-                    {
-                      key: 'facebook',
-                      value: socialAccounts.facebook ? `@${socialAccounts.facebook}` : '—',
-                      icon: Facebook,
-                      iconClassName: 'text-blue-600',
-                      muted: !socialAccounts.facebook,
-                    },
-                  ].map(item => {
-                    const Icon = item.icon
-                    return (
-                      <div
-                        key={item.key}
-                        className={[
-                          'flex items-center gap-3 text-sm font-medium text-slate-700',
-                          item.muted ? 'text-slate-400' : '',
-                        ].join(' ')}
-                      >
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100">
-                          <Icon
-                            className={[
-                              'h-5 w-5',
-                              item.iconClassName,
-                              item.muted ? 'opacity-40' : '',
-                            ].join(' ')}
-                          />
-                        </div>
-                        <div className="min-w-0 truncate">{item.value}</div>
+              <div className="grid gap-4 pt-4 sm:grid-cols-2">
+                {[
+                  {
+                    key: 'tiktok',
+                    label: 'TikTok',
+                    value: socialAccounts.tiktok ? `@${socialAccounts.tiktok}` : '—',
+                    icon: TikTokIcon,
+                    bgClass: 'bg-black',
+                    muted: !socialAccounts.tiktok,
+                  },
+                  {
+                    key: 'youtube',
+                    label: 'YouTube',
+                    value: socialAccounts.youtube ? `@${socialAccounts.youtube}` : '—',
+                    icon: Youtube,
+                    bgClass: 'bg-red-600',
+                    muted: !socialAccounts.youtube,
+                  },
+                  {
+                    key: 'instagram',
+                    label: 'Instagram',
+                    value: socialAccounts.instagram ? `@${socialAccounts.instagram}` : '—',
+                    icon: Instagram,
+                    bgClass: 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400',
+                    muted: !socialAccounts.instagram,
+                  },
+                  {
+                    key: 'facebook',
+                    label: 'Facebook',
+                    value: socialAccounts.facebook ? `@${socialAccounts.facebook}` : '—',
+                    icon: Facebook,
+                    bgClass: 'bg-blue-600',
+                    muted: !socialAccounts.facebook,
+                  },
+                ].map(item => {
+                  const Icon = item.icon
+                  return (
+                    <div key={item.key} className="flex items-center gap-4">
+                      <div className={cn(
+                        'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl',
+                        item.bgClass,
+                        item.muted && 'opacity-40'
+                      )}>
+                        <Icon className="h-6 w-6 text-white" />
                       </div>
-                    )
-                  })}
-                </div>
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-slate-900">{item.label}</div>
+                        <div className={cn('truncate text-xs', item.muted ? 'text-slate-400' : 'text-slate-600')}>
+                          {item.value}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
 
             <div className={panelCardClass}>
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100">
-                  <BookOpen className="h-3.5 w-3.5 text-slate-700" />
-                </div>
-                <div className="text-base font-semibold text-slate-900">Categories</div>
+              <div className="flex h-14 items-center gap-3 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4">
+                <PanelsTopLeft className="h-5 w-5" />
+                <span className="text-base font-semibold">Categories</span>
+                <span className="text-sm text-white/70">({publishedCourseCategories.length})</span>
               </div>
 
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                 {publishedCourseCategories.length > 0 ? (
                   publishedCourseCategories.map((cat, i) => (
                     <span
                       key={`${cat}-${i}`}
-                      className="rounded-full bg-slate-100 px-4 py-1.5 text-sm font-semibold text-slate-800 shadow-sm"
+                      className="rounded-full bg-slate-50 px-4 py-1.5 text-sm font-medium text-slate-700 border border-slate-100"
                     >
                       {cat}
                     </span>
