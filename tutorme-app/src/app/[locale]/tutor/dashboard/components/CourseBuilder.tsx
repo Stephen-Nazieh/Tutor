@@ -8472,7 +8472,7 @@ FEEDBACK: [your explanation]`
                                               >
                                                 <div className="ml-1 h-full w-full overflow-y-auto rounded-md border bg-white p-4">
                                                   <div className="space-y-4">
-                                                    {version.items.map(item => (
+                                                    {version?.items.map(item => (
                                                       <div
                                                         key={item.id}
                                                         className="rounded-lg border bg-gray-50 p-3"
