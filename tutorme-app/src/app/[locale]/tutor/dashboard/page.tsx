@@ -735,12 +735,12 @@ function TutorDashboardContent() {
                     </TabsTrigger>
                   </TabsList>
                   <Select value={timezone} onValueChange={setTimezone}>
-                    <SelectTrigger className="h-10 w-[190px] rounded-lg border border-slate-200 bg-white px-3 text-sm shadow-sm">
+                    <SelectTrigger className="h-10 w-[190px] rounded-sm border border-slate-700/25 bg-white/30 text-sm text-white shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-white/60 hover:border-slate-700/50 hover:shadow-md focus-visible:!shadow-none focus:outline-none focus-visible:outline-none">
                       <SelectValue placeholder="Select timezone" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-lg border border-slate-700/25 bg-none bg-white/30 p-1.5 shadow-lg backdrop-blur-xl w-[var(--radix-select-trigger-width)]">
                       {SUPPORTED_TIMEZONES.map(tz => (
-                        <SelectItem key={tz} value={tz}>
+                        <SelectItem key={tz} value={tz} className="text-white focus:text-white hover:bg-white/20 focus:bg-white/20 mx-1.5 focus:outline-none rounded-md">
                           {tz}
                         </SelectItem>
                       ))}
