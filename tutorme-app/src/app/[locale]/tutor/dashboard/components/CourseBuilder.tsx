@@ -478,7 +478,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const assetsLoadedRef = useRef(false)
     const skipNextAssetsSaveRef = useRef(false)
     const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
-    const [isSplitting, setIsSplitting] = useState(false)
+    const [isSplittingTasks, setIsSplittingTasks] = useState(false)
+    const [isSplittingTaskExtensions, setIsSplittingTaskExtensions] = useState(false)
     const [assetToLoad, setAssetToLoad] = useState<{
       name: string
       content?: string
@@ -4432,7 +4433,7 @@ FEEDBACK: [your explanation]`
                 <Button
                   className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:border-slate-300 hover:bg-slate-50"
                   variant="outline"
-                  disabled={isSplitting}
+                  disabled={isSplittingTasks}
                   onClick={async () => {
                     if (!assetToLoad) return
 
@@ -4479,7 +4480,7 @@ FEEDBACK: [your explanation]`
                       pages = chunks.length > 1 ? chunks : [textToInsert]
                     }
 
-                    setIsSplitting(true)
+                    setIsSplittingTasks(true)
                     const newTasks: Task[] = []
                     const newCourseBuilderNodes = [...nodes]
                     const startIndex =
@@ -4496,80 +4497,104 @@ FEEDBACK: [your explanation]`
                         assetToLoad.mimeType === 'application/pdf' ||
                         assetToLoad.name.toLowerCase().endsWith('.pdf')
 
+                      let pdfSplitSucceeded = false
+
                       if (isPdf && assetToLoad.url) {
-                        // Fetch original PDF and split it physically
-                        // Proxy external URLs to avoid CORS
-                        const fetchUrl =
-                          assetToLoad.url.startsWith('http://') || assetToLoad.url.startsWith('https://')
-                            ? `/api/proxy-file?url=${encodeURIComponent(assetToLoad.url)}`
-                            : assetToLoad.url
-                        const pdfRes = await fetch(fetchUrl)
-                        if (!pdfRes.ok) {
-                          throw new Error(
-                            `Failed to fetch PDF (${pdfRes.status}). The file URL may have expired — try re-uploading the asset.`
-                          )
-                        }
-                        const pdfBytes = await pdfRes.arrayBuffer()
-                        const pdfDoc = await PDFDocument.load(pdfBytes)
-                        const pageCount = pdfDoc.getPageCount()
+                        let pdfBytes: ArrayBuffer | null = null
 
-                        for (let i = 0; i < pageCount; i++) {
-                          const newPdf = await PDFDocument.create()
-                          const [copiedPage] = await newPdf.copyPages(pdfDoc, [i])
-                          newPdf.addPage(copiedPage)
-                          const splitPdfBytes = await newPdf.save()
-
-                          const blob = new Blob([splitPdfBytes as any], { type: 'application/pdf' })
-                          const formData = new FormData()
-                          formData.append(
-                            'file',
-                            blob,
-                            `${assetToLoad.name.replace(/\.pdf$/i, '')}_page_${i + 1}.pdf`
-                          )
-
-                          const uploadRes = await fetchWithCsrf('/api/uploads/documents', {
-                            method: 'POST',
-                            body: formData,
-                          })
-
-                          if (!uploadRes.ok) {
-                            const errData = await uploadRes.json().catch(() => ({}))
-                            throw new Error(errData.error || `Upload failed (${uploadRes.status})`)
+                        // Try direct fetch first (works for local URLs and GCS with CORS)
+                        try {
+                          const directRes = await fetch(assetToLoad.url)
+                          if (directRes.ok) {
+                            pdfBytes = await directRes.arrayBuffer()
                           }
-                          const uploadData = await uploadRes.json()
+                        } catch {
+                          // Direct fetch failed (CORS or network), will try proxy
+                        }
 
-                          if (existingTask && existingTaskIndex !== -1 && i === 0) {
-                            updatedExistingTask = {
-                              ...existingTask,
-                              description: pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
-                              sourceDocument: {
-                                fileName: `${assetToLoad.name} (Page ${i + 1})`,
-                                fileUrl: uploadData.url,
-                                fileKey: uploadData.key,
-                                mimeType: 'application/pdf',
-                                uploadedAt: new Date().toISOString(),
-                                extractedText: pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
-                              },
+                        // Try proxy if direct fetch failed
+                        if (!pdfBytes) {
+                          try {
+                            const proxyRes = await fetch(
+                              `/api/proxy-file?url=${encodeURIComponent(assetToLoad.url)}`
+                            )
+                            if (proxyRes.ok) {
+                              pdfBytes = await proxyRes.arrayBuffer()
                             }
-                            updatedTasks[existingTaskIndex] = updatedExistingTask
-                          } else {
-                            const newTask = DEFAULT_TASK(startIndex + i)
-                            newTask.title = `Task ${groupNumber}.${existingTask ? i + 1 : i + 1}`
-                            newTask.description =
-                              pages[i] || `Page ${i + 1} from ${assetToLoad.name}`
-                            newTask.sourceDocument = {
-                              fileName: `${assetToLoad.name} (Page ${i + 1})`,
-                              fileUrl: uploadData.url,
-                              fileKey: uploadData.key,
-                              mimeType: 'application/pdf',
-                              uploadedAt: new Date().toISOString(),
-                              extractedText: pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
-                            }
-                            newTasks.push(newTask)
+                          } catch {
+                            // Proxy also failed
                           }
                         }
-                      } else {
-                        // Standard non-PDF handling
+
+                        if (pdfBytes) {
+                          try {
+                            const pdfDoc = await PDFDocument.load(pdfBytes)
+                            const pageCount = pdfDoc.getPageCount()
+
+                            for (let i = 0; i < pageCount; i++) {
+                              const newPdf = await PDFDocument.create()
+                              const [copiedPage] = await newPdf.copyPages(pdfDoc, [i])
+                              newPdf.addPage(copiedPage)
+                              const splitPdfBytes = await newPdf.save()
+
+                              const blob = new Blob([splitPdfBytes as any], { type: 'application/pdf' })
+                              const formData = new FormData()
+                              formData.append(
+                                'file',
+                                blob,
+                                `${assetToLoad.name.replace(/\.pdf$/i, '')}_page_${i + 1}.pdf`
+                              )
+
+                              const uploadRes = await fetchWithCsrf('/api/uploads/documents', {
+                                method: 'POST',
+                                body: formData,
+                              })
+
+                              if (!uploadRes.ok) {
+                                const errData = await uploadRes.json().catch(() => ({}))
+                                throw new Error(errData.error || `Upload failed (${uploadRes.status})`)
+                              }
+                              const uploadData = await uploadRes.json()
+
+                              if (existingTask && existingTaskIndex !== -1 && i === 0) {
+                                updatedExistingTask = {
+                                  ...existingTask,
+                                  description: pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
+                                  sourceDocument: {
+                                    fileName: `${assetToLoad.name} (Page ${i + 1})`,
+                                    fileUrl: uploadData.url,
+                                    fileKey: uploadData.key,
+                                    mimeType: 'application/pdf',
+                                    uploadedAt: new Date().toISOString(),
+                                    extractedText: pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
+                                  },
+                                }
+                                updatedTasks[existingTaskIndex] = updatedExistingTask
+                              } else {
+                                const newTask = DEFAULT_TASK(startIndex + i)
+                                newTask.title = `Task ${groupNumber}.${existingTask ? i + 1 : i + 1}`
+                                newTask.description =
+                                  pages[i] || `Page ${i + 1} from ${assetToLoad.name}`
+                                newTask.sourceDocument = {
+                                  fileName: `${assetToLoad.name} (Page ${i + 1})`,
+                                  fileUrl: uploadData.url,
+                                  fileKey: uploadData.key,
+                                  mimeType: 'application/pdf',
+                                  uploadedAt: new Date().toISOString(),
+                                  extractedText: pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
+                                }
+                                newTasks.push(newTask)
+                              }
+                            }
+                            pdfSplitSucceeded = true
+                          } catch (splitErr) {
+                            console.error('PDF split/upload failed:', splitErr)
+                          }
+                        }
+                      }
+
+                      if (!pdfSplitSucceeded) {
+                        // Standard non-PDF handling (also fallback when PDF fetch/split fails)
                         pages.forEach((pageContent, idx) => {
                           if (existingTask && existingTaskIndex !== -1 && idx === 0) {
                             updatedExistingTask = {
@@ -4652,11 +4677,11 @@ FEEDBACK: [your explanation]`
                       console.error('PDF splitting error:', err)
                       toast.error(err.message || 'Failed to split PDF')
                     } finally {
-                      setIsSplitting(false)
+                      setIsSplittingTasks(false)
                     }
                   }}
                 >
-                  {isSplitting ? (
+                  {isSplittingTasks ? (
                     <Loader2 className="mt-1 h-5 w-5 shrink-0 animate-spin text-orange-500" />
                   ) : (
                     <ListTodo className="mt-1 h-5 w-5 shrink-0 text-orange-500" />
@@ -4664,7 +4689,7 @@ FEEDBACK: [your explanation]`
                   <div className="flex flex-col items-start text-left">
                     <span className="font-semibold text-slate-900">Tasks</span>
                     <span className="mt-1 text-xs font-normal text-slate-500">
-                      {isSplitting
+                      {isSplittingTasks
                         ? 'Processing and splitting PDF...'
                         : 'Extract text and create one task per page'}
                     </span>
@@ -4675,10 +4700,10 @@ FEEDBACK: [your explanation]`
                 <Button
                   className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:border-slate-300 hover:bg-slate-50"
                   variant="outline"
-                  disabled={isSplitting}
+                  disabled={isSplittingTaskExtensions}
                   onClick={async () => {
                     if (!assetToLoad) return
-                    setIsSplitting(true)
+                    setIsSplittingTaskExtensions(true)
 
                     try {
                       const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
@@ -4691,57 +4716,81 @@ FEEDBACK: [your explanation]`
                         assetToLoad.mimeType === 'application/pdf' ||
                         assetToLoad.name.toLowerCase().endsWith('.pdf')
 
+                      let pdfSplitSucceeded = false
+
                       if (isPdf && assetToLoad.url) {
-                        // Fetch original PDF and split it physically
-                        // Proxy external URLs to avoid CORS
-                        const fetchUrl =
-                          assetToLoad.url.startsWith('http://') || assetToLoad.url.startsWith('https://')
-                            ? `/api/proxy-file?url=${encodeURIComponent(assetToLoad.url)}`
-                            : assetToLoad.url
-                        const pdfRes = await fetch(fetchUrl)
-                        if (!pdfRes.ok) {
-                          throw new Error(
-                            `Failed to fetch PDF (${pdfRes.status}). The file URL may have expired — try re-uploading the asset.`
-                          )
-                        }
-                        const pdfBytes = await pdfRes.arrayBuffer()
-                        const pdfDoc = await PDFDocument.load(pdfBytes)
-                        const pageCount = pdfDoc.getPageCount()
+                        let pdfBytes: ArrayBuffer | null = null
 
-                        for (let i = 0; i < pageCount; i++) {
-                          const newPdf = await PDFDocument.create()
-                          const [copiedPage] = await newPdf.copyPages(pdfDoc, [i])
-                          newPdf.addPage(copiedPage)
-                          const splitPdfBytes = await newPdf.save()
-
-                          const blob = new Blob([splitPdfBytes as any], { type: 'application/pdf' })
-                          const formData = new FormData()
-                          formData.append(
-                            'file',
-                            blob,
-                            `${assetToLoad.name.replace(/\.pdf$/i, '')}_page_${i + 1}.pdf`
-                          )
-
-                          const uploadRes = await fetchWithCsrf('/api/uploads/documents', {
-                            method: 'POST',
-                            body: formData,
-                          })
-
-                          if (!uploadRes.ok) {
-                            const errData = await uploadRes.json().catch(() => ({}))
-                            throw new Error(errData.error || `Upload failed (${uploadRes.status})`)
+                        // Try direct fetch first (works for local URLs and GCS with CORS)
+                        try {
+                          const directRes = await fetch(assetToLoad.url)
+                          if (directRes.ok) {
+                            pdfBytes = await directRes.arrayBuffer()
                           }
-                          const uploadData = await uploadRes.json()
-
-                          pdfPagesUrls.push(uploadData.url)
-                          pdfPageKeys.push(uploadData.key)
+                        } catch {
+                          // Direct fetch failed (CORS or network), will try proxy
                         }
 
-                        // Dummy text to represent pages since we use physical PDF URLs
-                        pages = Array(pageCount)
-                          .fill('')
-                          .map((_, i) => `Page ${i + 1} from ${assetToLoad.name}`)
-                      } else {
+                        // Try proxy if direct fetch failed
+                        if (!pdfBytes) {
+                          try {
+                            const proxyRes = await fetch(
+                              `/api/proxy-file?url=${encodeURIComponent(assetToLoad.url)}`
+                            )
+                            if (proxyRes.ok) {
+                              pdfBytes = await proxyRes.arrayBuffer()
+                            }
+                          } catch {
+                            // Proxy also failed
+                          }
+                        }
+
+                        if (pdfBytes) {
+                          try {
+                            const pdfDoc = await PDFDocument.load(pdfBytes)
+                            const pageCount = pdfDoc.getPageCount()
+
+                            for (let i = 0; i < pageCount; i++) {
+                              const newPdf = await PDFDocument.create()
+                              const [copiedPage] = await newPdf.copyPages(pdfDoc, [i])
+                              newPdf.addPage(copiedPage)
+                              const splitPdfBytes = await newPdf.save()
+
+                              const blob = new Blob([splitPdfBytes as any], { type: 'application/pdf' })
+                              const formData = new FormData()
+                              formData.append(
+                                'file',
+                                blob,
+                                `${assetToLoad.name.replace(/\.pdf$/i, '')}_page_${i + 1}.pdf`
+                              )
+
+                              const uploadRes = await fetchWithCsrf('/api/uploads/documents', {
+                                method: 'POST',
+                                body: formData,
+                              })
+
+                              if (!uploadRes.ok) {
+                                const errData = await uploadRes.json().catch(() => ({}))
+                                throw new Error(errData.error || `Upload failed (${uploadRes.status})`)
+                              }
+                              const uploadData = await uploadRes.json()
+
+                              pdfPagesUrls.push(uploadData.url)
+                              pdfPageKeys.push(uploadData.key)
+                            }
+
+                            // Dummy text to represent pages since we use physical PDF URLs
+                            pages = Array(pageCount)
+                              .fill('')
+                              .map((_, i) => `Page ${i + 1} from ${assetToLoad.name}`)
+                            pdfSplitSucceeded = true
+                          } catch (splitErr) {
+                            console.error('PDF split/upload failed:', splitErr)
+                          }
+                        }
+                      }
+
+                      if (!pdfSplitSucceeded) {
                         if (textToInsert.includes('\f')) {
                           pages = textToInsert.split('\f').filter(p => p.trim())
                         } else if (textToInsert.includes('--- Page')) {
@@ -4875,11 +4924,11 @@ FEEDBACK: [your explanation]`
                       console.error('Task + Extensions splitting error:', err)
                       toast.error(err.message || 'Failed to process document')
                     } finally {
-                      setIsSplitting(false)
+                      setIsSplittingTaskExtensions(false)
                     }
                   }}
                 >
-                  {isSplitting ? (
+                  {isSplittingTaskExtensions ? (
                     <Loader2 className="mt-1 h-5 w-5 shrink-0 animate-spin text-green-500" />
                   ) : (
                     <Layers2 className="mt-1 h-5 w-5 shrink-0 text-green-500" />
@@ -4887,7 +4936,7 @@ FEEDBACK: [your explanation]`
                   <div className="flex flex-col items-start text-left">
                     <span className="font-semibold text-slate-900">Task + Extensions</span>
                     <span className="mt-1 text-xs font-normal text-slate-500">
-                      {isSplitting
+                      {isSplittingTaskExtensions
                         ? 'Processing and splitting PDF...'
                         : 'First page as task, remaining as extensions'}
                     </span>
@@ -8363,17 +8412,18 @@ FEEDBACK: [your explanation]`
                                                   minSize={20}
                                                 >
                                                   <div className="h-full w-full pr-1">
-                                                    {doc?.fileUrl ? (
-                                                      <iframe
-                                                        src={
-                                                          doc.fileUrl.includes('#')
-                                                            ? `${doc.fileUrl}&toolbar=0&navpanes=0`
-                                                            : `${doc.fileUrl}#toolbar=0&navpanes=0`
-                                                        }
-                                                        className="h-full w-full rounded-md border-0"
-                                                        title="PDF Viewer"
-                                                      />
-                                                    ) : (
+                                                    {doc?.fileUrl ? (() => {
+                                                      const docUrl = doc.fileUrl.startsWith('http://') || doc.fileUrl.startsWith('https://')
+                                                        ? `/api/proxy-file?url=${encodeURIComponent(doc.fileUrl)}`
+                                                        : doc.fileUrl
+                                                      return (
+                                                        <iframe
+                                                          src={docUrl.includes('#') ? `${docUrl}&toolbar=0&navpanes=0` : `${docUrl}#toolbar=0&navpanes=0`}
+                                                          className="h-full w-full rounded-md border-0"
+                                                          title="PDF Viewer"
+                                                        />
+                                                      )
+                                                    })() : (
                                                       <p className="text-muted-foreground whitespace-pre-wrap p-2 text-sm">
                                                         {mainTab === 'live'
                                                           ? testPciSource === 'task'

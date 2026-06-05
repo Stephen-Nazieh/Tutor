@@ -1,7 +1,7 @@
-<!-- From: c:\VSCODE\Tutor\AGENTS.md -->
+<!-- From: /Users/nazeera/Documents/Tutor/AGENTS.md -->
 # Solocorn — AI Coding Agent Guide
 
-> **Last updated:** 2026-06-04
+> **Last updated:** 2026-06-05
 > **Covers:** `tutorme-app/` (main Next.js app), `landing-page/` (Vite landing page), `services/adk/` (Google ADK microservice), `design-system/` (shared design tokens)
 
 ---
@@ -33,16 +33,16 @@ Solocorn (also marketed as CogniClass) is an AI-human hybrid tutoring platform. 
 This repository contains three independent sub-projects. **There is no root `package.json`** and no npm workspace / Turborepo configuration. Each sub-project is managed independently.
 
 ```
-c:\VSCODE\Tutor/
+/Users/nazeera/Documents/Tutor/
 │
 ├── tutorme-app/              # Main Next.js application (all backend + primary frontend)
 │   ├── src/
 │   │   ├── app/              # Next.js App Router
 │   │   │   ├── [locale]/     # i18n route segments (pages per role)
-│   │   │   │   ├── student/  # Student dashboard & features (30 sub-routes)
-│   │   │   │   ├── tutor/    # Tutor dashboard & clinic management (20 sub-routes)
-│   │   │   │   ├── parent/   # Parent dashboard & family management (14 sub-routes)
-│   │   │   │   ├── admin/    # Admin dashboard & system management (13 sub-routes)
+│   │   │   │   ├── student/  # Student dashboard & features (34 sub-routes)
+│   │   │   │   ├── tutor/    # Tutor dashboard & clinic management (24 sub-routes)
+│   │   │   │   ├── parent/   # Parent dashboard & family management (17 sub-routes)
+│   │   │   │   ├── admin/    # Admin dashboard & system management (17 sub-routes)
 │   │   │   │   ├── login/
 │   │   │   │   ├── register/
 │   │   │   │   ├── onboarding/
@@ -54,9 +54,9 @@ c:\VSCODE\Tutor/
 │   │   │   │   ├── session/
 │   │   │   │   ├── tutors/
 │   │   │   │   └── u/
-│   │   │   └── api/          # REST API endpoints (43 top-level domains, 214 route.ts files)
-│   │   ├── components/       # React components (feature-organized, 150 files)
-│   │   ├── lib/              # Business logic, utilities, AI, db, security, etc. (263 files)
+│   │   │   └── api/          # REST API endpoints (47 top-level domains, 214 route.ts files)
+│   │   ├── components/       # React components (feature-organized, 150+ files)
+│   │   ├── lib/              # Business logic, utilities, AI, db, security, etc. (263+ files)
 │   │   ├── hooks/            # Custom React hooks (11 files)
 │   │   └── stores/           # Zustand client stores (2 files)
 │   ├── e2e/                  # Playwright E2E specs (10 test files)
@@ -136,6 +136,7 @@ c:\VSCODE\Tutor/
 | `services/adk/tsconfig.json` | ADK | `module: NodeNext`, `outDir: dist`, `rootDir: src`, `strict: false` |
 | `.github/workflows/ci.yml` | Root | CI pipeline: typecheck, build, test, lint, format, security |
 | `.github/workflows/deploy-gcp.yml` | Root | GCP Cloud Run production deployment on push to `main` |
+| `.github/workflows/secret-scan.yml` | Root | Runs `gitleaks` on every push/PR |
 
 ---
 
@@ -178,7 +179,7 @@ c:\VSCODE\Tutor/
 
 The main app does **not** use the standard Next.js dev server. Instead, it runs a custom HTTP server defined in `server.ts`:
 
-1. **Immediate port binding** — The HTTP server binds to `PORT` (default `3003`) immediately so the host considers the container healthy.
+1. **Immediate port binding** — The HTTP server binds to `PORT` (default `3003`) on `0.0.0.0` immediately so the host considers the container healthy. Non-health requests are gated behind a readiness flag and receive `503 Retry-After: 2` until initialization completes.
 2. **Background initialization** — After binding, the server initializes in this order:
    - Environment validation (`src/lib/env.ts`)
    - Idempotent schema drift fixes (dev/local only)
@@ -253,6 +254,9 @@ npm run test:integration     # Integration tests (node env; needs Postgres)
 npm run test:e2e             # Playwright E2E tests
 npm run test:e2e:ui          # Playwright with interactive UI
 npm run test:e2e:a11y        # Accessibility tests (Playwright)
+npm run test:load            # k6 concurrent-users load test
+npm run test:load:ai         # k6 AI stress load test
+npm run test:load:ws         # k6 WebSocket load test (placeholder)
 ```
 
 > **E2E requirements:** The app must be running (default `http://localhost:3003`). Some specs expect seeded test users (e.g., `student@example.com` / `Password1`).
@@ -373,7 +377,7 @@ Startup environment validation lives in `src/lib/env.ts` and is called from `ser
 - `src/app/layout.tsx` — Root layout with metadata, PWA manifest, theme init script, service worker unregister script, Google Fonts (Fira Code, Fira Sans), and top-level providers (`Providers`, `PerformanceProviders`).
 - `src/app/[locale]/layout.tsx` — Locale layout wrapping `NextIntlClientProvider`, `ThemeProvider`, `NavigationOverlayProvider`, `FloatingVideoOverlay`, `PWAInstallPrompt`, `Toaster`, and `AuthProvider`. Validates locale param against configured locales.
 - `src/app/[locale]/` — All user-facing pages grouped by role (`student/`, `tutor/`, `parent/`, `admin/`) plus shared pages (`login/`, `register/`, `onboarding/`, `payment/`, `legal/`, `forgot-password/`, `api-docs/`, `categories/`, `session/`, `tutors/`, `u/`).
-- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files). There are 43 top-level API domains and 214 `route.ts` files.
+- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files). There are 47 top-level API domains and 214 `route.ts` files.
 
 **Role-specific layout behaviors:**
 - **Student layout** (`[locale]/student/layout.tsx`): Collapsible sidebar, special handling for `/student/tutors` (no sidebar), `/student/feedback` (hides nav entirely), and live class routes.
@@ -383,7 +387,7 @@ Startup environment validation lives in `src/lib/env.ts` and is called from `ser
 
 ### Components (`src/components/`)
 
-Organized by feature domain (150 component files across 30+ top-level directories):
+Organized by feature domain (150+ component files across 30+ top-level directories):
 - `ui/` — shadcn/ui primitives (Button, Card, Dialog, etc.) — 30 components
 - `ai-chat/`, `ai-tutor/` — AI interaction UIs
 - `class/` — Live classroom (whiteboard, polls, breakout rooms, engagement) — 23+ files
@@ -395,7 +399,7 @@ Organized by feature domain (150 component files across 30+ top-level directorie
 
 ### Library (`src/lib/`)
 
-Domain-organized business logic (263 files across 60+ directories):
+Domain-organized business logic (263+ files across 60+ directories):
 - `lib/db/` — Drizzle client (`drizzle.ts`), schema (`schema/`), and migrations
 - `lib/ai/` — AI provider integrations (`kimi.ts`), prompts, teaching prompts, types, memory services
 - `lib/agents/` — Orchestrator (`orchestrator-llm.ts`), tutor agents, grading, live-monitor, content-generator, task-generator, tutor-chat-service
@@ -604,16 +608,18 @@ The main app uses a custom Tailwind v3 theme defined in `tailwind.config.ts` wit
 
 - **Config:** `vitest.config.ts`
 - **Environment:** jsdom
-- **Setup:** `src/__tests__/setup.ts` (imports `@testing-library/jest-dom/vitest`, mocks `@google/genai`)
+- **Setup:** `src/__tests__/setup.ts` (imports `@testing-library/jest-dom/vitest`, mocks `@google/genai`, sets default `DATABASE_URL` and `SECURITY_AUDIT`)
 - **Include:** `src/**/*.test.{ts,tsx}` and `src/**/__tests__/**/*.{test,spec}.{ts,tsx}`
 - **Exclude:** `node_modules`, `.next`, integration, accessibility
 - **No database required.**
+- **Count:** ~63 test files scattered across `src/` (~28 in `app/api/`, ~30 in `lib/`, plus others).
 
 ### Integration Tests (Vitest)
 
 - **Config:** `vitest.integration.config.ts`
 - **Environment:** node
 - **Timeout:** 15 seconds
+- **Setup:** `src/__tests__/integration/setup.ts` (sets `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_SECRET`, `SECURITY_AUDIT`)
 - **Include:** `src/__tests__/integration/**/*.test.ts`
 - **Requires:** A running PostgreSQL instance. Set `DATABASE_URL` to a dedicated test database and run migrations before testing.
 - **Note:** The integration test job in CI (`ci.yml`) is currently commented out.
@@ -640,11 +646,13 @@ The main app uses a custom Tailwind v3 theme defined in `tailwind.config.ts` wit
 
 `.github/workflows/ci.yml` runs the following jobs on `push`/`pull_request` to `main` and `develop`:
 1. **typecheck** — `drizzle-kit generate` then `tsc --noEmit`
-2. **build** — build landing page, copy to `public/`, install Linux native bindings, clean `.next`, generate Drizzle types, `npm run build`
+2. **build** — build landing page, copy `dist/` to `public/`, install Linux native bindings, clean `.next`, generate Drizzle types, `npm run build`
 3. **test** — install Rollup Linux binding, run `npm run test`
 4. **lint** — `npm run lint:check -- --max-warnings=999999`
 5. **format** — `npm run format:check` (continue-on-error)
 6. **security** — `npm run security:check` (continue-on-error)
+
+`.github/workflows/secret-scan.yml` runs `gitleaks` on every push/PR.
 
 > **Working directory for CI:** `tutorme-app`
 
@@ -663,18 +671,19 @@ The main app uses a custom Tailwind v3 theme defined in `tailwind.config.ts` wit
 ### Input Validation & Data Protection
 
 - All API inputs validated with Zod schemas in `lib/validation/`.
-- CSRF protection enabled on state-changing API routes.
-- Rate limiting enforced per route (default 300 req/window, configurable via `SECURITY_RATE_LIMIT`).
+- CSRF protection enabled on state-changing API routes (`POST`, `PUT`, `PATCH`, `DELETE`). Skips auth endpoints, `/api/health`, webhooks, and `Bearer` requests.
+- Rate limiting enforced per route (default 100 req/window; configurable presets for `login`, `register`, `paymentCreate`, `enroll`, `booking`, `aiGenerate`). Returns `429` with `Retry-After`.
 - Client-side encryption helpers in `lib/security/client-encryption.ts`.
 - Suspicious activity logging in `lib/security/suspicious-activity.ts`.
 - PIPL (Chinese privacy law) compliance helpers in `lib/security/pipl-compliance.ts`.
 - Data sanitization utilities in `lib/security/sanitization.ts`.
+- Admin IP whitelist restrictions in `lib/security/admin-ip.ts`.
 
 ### Deployment Security
 
 - `.github/workflows/secret-scan.yml` runs `gitleaks` on every push/PR.
 - Secrets managed via GitHub Secrets for CI/CD; never committed.
-- Admin API routes restrict access by IP whitelist (`lib/security/admin-ip-restriction.ts`).
+- Admin API routes restrict access by IP whitelist (`lib/security/admin-ip.ts`).
 
 ---
 
@@ -683,12 +692,12 @@ The main app uses a custom Tailwind v3 theme defined in `tailwind.config.ts` wit
 ### GCP Cloud Run (Production)
 
 `.github/workflows/deploy-gcp.yml` deploys on push to `main`:
-1. Builds main app Docker image (`Dockerfile.production`) and ADK image (`services/adk/Dockerfile`).
-2. Pushes to Google Artifact Registry (`asia-southeast1-docker.pkg.dev/{PROJECT}/tutorme-repo/...`).
-3. Deploys ADK service to Cloud Run (port 8080, 1 CPU, 1Gi memory, 0–10 instances).
-4. Runs database migrations inline via `docker run --rm {IMAGE} node scripts/migrate.js`.
-5. Deploys main app to Cloud Run (port 3003, same specs).
-6. Routes 100% traffic to the latest revision.
+1. **CI gate** — Same build steps as CI: installs deps, builds landing page into `public/`, installs Linux native bindings + esbuild, runs `npm run build`, then `npm run lint:check`.
+2. **Docker builds** — Main app (`Dockerfile.production`) and ADK (`services/adk/Dockerfile`) are built and pushed to Google Artifact Registry (`asia-southeast1-docker.pkg.dev/{PROJECT}/tutorme-repo/...`).
+3. **Deploy ADK first** — Uses `deploy-cloudrun@v2` (1 CPU, 1 GiB, 0–10 instances, port 8080, unauthenticated).
+4. **Run migrations** — Executes `node scripts/migrate.js` inside the freshly built main-app image via `docker run --rm` against production `DATABASE_URL` / `DIRECT_URL`.
+5. **Deploy main app** — Uses `deploy-cloudrun@v2` (1 CPU, 1 GiB, 0–10 instances, unauthenticated). Env vars include `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `REDIS_URL`, `ADK_BASE_URL` (set to ADK deploy output), `ADK_AUTH_TOKEN`, etc.
+6. **Traffic routing** — `gcloud run services update-traffic ... --to-latest` (100% traffic to new revision).
 
 **Required GitHub Secrets:** `GCP_PROJECT_ID`, `GCP_SA_KEY`, `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `REDIS_URL`.
 
@@ -725,7 +734,8 @@ The main app uses a custom Tailwind v3 theme defined in `tailwind.config.ts` wit
 
 ### Project-Specific Notes
 
-- The landing page is built as a static Vite app and its `dist/` contents are copied into `tutorme-app/public/` so Next.js serves it at the root path (`/`).
+- The landing page is built as a static Vite app and its `dist/` contents are copied into `tutorme-app/public/` so Next.js serves it at the root path (`/` via rewrite to `index.html`).
 - The service worker (`public/sw.js`) is compiled from `src/lib/pwa/service-worker.ts` via esbuild during `npm run build:sw`.
 - `server.ts` is the canonical entry point. Do not run `next dev` or `next start` directly outside of Docker.
 - The `scripts/` directory at the project root contains legacy scaffolding scripts (`setup.sh`, `setup.bat`) that create a brand-new project from scratch — do not run them against the existing codebase.
+- The ADK service only starts its HTTP listener when `ADK_START_LISTENER=true` and is not running under Node's test runner. In production it requires `ADK_AUTH_TOKEN`.

@@ -85,8 +85,26 @@ export function isGcsPublicUrl(url: string): boolean {
   return extractGcsKeyFromPublicUrl(url) !== null
 }
 
+/** In-memory cache for refreshed GCS URLs to avoid signBlob quota exhaustion. */
+const urlRefreshCache = new Map<string, { url: string; expiresAt: number }>()
+
+function getCachedRefreshedUrl(key: string): string | null {
+  const cached = urlRefreshCache.get(key)
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.url
+  }
+  urlRefreshCache.delete(key)
+  return null
+}
+
+function setCachedRefreshedUrl(key: string, url: string, ttlSeconds: number): void {
+  // Cache until 5 minutes before the signed URL expires to be safe
+  urlRefreshCache.set(key, { url, expiresAt: Date.now() + (ttlSeconds - 300) * 1000 })
+}
+
 /**
  * Refresh a GCS URL by generating a fresh presigned download URL.
+ * Results are cached per object key to avoid repeated signBlob calls.
  * If the URL is not a GCS public URL, returns it unchanged.
  * If GCS is not configured, returns the URL unchanged.
  */
@@ -97,8 +115,14 @@ export async function refreshGcsUrl(
   if (!isGcsConfigured()) return url
   const key = extractGcsKeyFromPublicUrl(url)
   if (!key) return url
+
+  const cached = getCachedRefreshedUrl(key)
+  if (cached) return cached
+
   try {
-    return await createPresignedDownloadUrl(key, expiresInSeconds)
+    const refreshed = await createPresignedDownloadUrl(key, expiresInSeconds)
+    setCachedRefreshedUrl(key, refreshed, expiresInSeconds)
+    return refreshed
   } catch (err: any) {
     // If signed URL generation fails (e.g. missing iam.serviceAccounts.signBlob
     // permission), fall back to the public URL rather than failing the upload.
