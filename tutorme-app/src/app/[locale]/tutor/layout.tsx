@@ -141,17 +141,20 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 isolate">
-      {/* Left Navigation Sidebar - Desktop */}
+      {/* Layout spacer — reserves space for sidebar without animation */}
+      <div className={cn('hidden shrink-0 lg:block', desktopNavOpen ? 'w-64' : 'w-0')} />
+
+      {/* Visual sidebar — fixed overlay, animates with transform only */}
       <aside
         className={cn(
-          'relative z-fixed hidden h-screen shrink-0 flex-col transition-all duration-300 lg:flex',
-          desktopNavOpen ? 'w-64' : 'w-0 overflow-hidden'
+          'fixed left-0 top-0 z-fixed hidden h-screen lg:flex',
+          desktopNavOpen ? 'pointer-events-auto' : 'pointer-events-none'
         )}
       >
         <div
           className={cn(
-            'fixed bottom-4 left-4 top-4 z-fixed hidden flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-300 lg:flex transform-gpu',
-            desktopNavOpen ? 'w-60' : 'w-0 overflow-hidden ring-0'
+            'm-4 flex h-[calc(100%-2rem)] w-60 flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-transform duration-300',
+            desktopNavOpen ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)]'
           )}
         >
           <div className="flex h-full w-60 flex-col">
