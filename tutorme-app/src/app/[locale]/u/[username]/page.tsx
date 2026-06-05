@@ -1198,7 +1198,7 @@ export default function PublicTutorPage() {
                   <Input
                     type="search"
                     placeholder="Search course..."
-                    className="h-10 w-full rounded-lg border border-white/10 bg-white/10 pl-9 text-white placeholder:text-white/50"
+                    className="h-9 w-full rounded-lg border border-white/10 bg-white/10 pl-9 text-white placeholder:text-white/50"
                     value={courseSearchQuery}
                     onChange={e => setCourseSearchQuery(e.target.value)}
                   />
@@ -1220,7 +1220,7 @@ export default function PublicTutorPage() {
                 </Select>
               </div>
               <div
-                className="grid h-9 grid-cols-3 min-w-[320px] gap-2 rounded-xl bg-[#2D2B4E] p-1.5"
+                className="grid h-9 grid-cols-3 min-w-[320px] gap-2 rounded-xl bg-white p-1.5"
                 role="group"
                 aria-label="Course layout"
               >
@@ -1232,8 +1232,8 @@ export default function PublicTutorPage() {
                     className={cn(
                       'flex items-center justify-center gap-1 rounded-lg px-2 text-sm font-medium capitalize transition-colors',
                       catalogLayout === layout
-                        ? 'bg-white text-black shadow-sm'
-                        : 'text-white/70 hover:text-white'
+                        ? 'bg-[#1E2832] text-white shadow-sm'
+                        : 'bg-[#2D2B4E] text-white hover:brightness-110'
                     )}
                   >
                     {layout === 'grid' && <LayoutGrid className="h-4 w-4" />}
