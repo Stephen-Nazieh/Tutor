@@ -1899,20 +1899,21 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
                     </span>
                   </span>
                 </div>
-                {selectedCourse?.tutor?.country && (
-                  <>
-                    <div className="h-4 w-px bg-border" />
-                    <div className="flex items-center gap-1.5">
-                      <Globe className="h-4 w-4 text-muted-foreground" />
-                      <span>
-                        Country{' '}
-                        <span className="font-semibold text-foreground">
-                          {selectedCourse.tutor.country}
-                        </span>
-                      </span>
-                    </div>
-                  </>
-                )}
+                <div className="h-4 w-px bg-border" />
+                <div className="flex items-center gap-1.5">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <span>
+                    Country{' '}
+                    <span className="font-semibold text-foreground">
+                      {selectedCourse?.tutor?.country || '—'}
+                    </span>
+                  </span>
+                </div>
+                <div className="h-4 w-px bg-border" />
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle className="h-4 w-4 text-emerald-500" />
+                  <span className="font-semibold text-emerald-600">Verified</span>
+                </div>
               </div>
             </DialogPanel>
           </div>
