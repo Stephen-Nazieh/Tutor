@@ -478,7 +478,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const assetsLoadedRef = useRef(false)
     const skipNextAssetsSaveRef = useRef(false)
     const [loadAsModalOpen, setLoadAsModalOpen] = useState(false)
-    const [isSplitting, setIsSplitting] = useState(false)
+    const [isSplittingTasks, setIsSplittingTasks] = useState(false)
+    const [isSplittingTaskExtensions, setIsSplittingTaskExtensions] = useState(false)
     const [assetToLoad, setAssetToLoad] = useState<{
       name: string
       content?: string
@@ -4432,7 +4433,7 @@ FEEDBACK: [your explanation]`
                 <Button
                   className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:border-slate-300 hover:bg-slate-50"
                   variant="outline"
-                  disabled={isSplitting}
+                  disabled={isSplittingTasks}
                   onClick={async () => {
                     if (!assetToLoad) return
 
@@ -4479,7 +4480,7 @@ FEEDBACK: [your explanation]`
                       pages = chunks.length > 1 ? chunks : [textToInsert]
                     }
 
-                    setIsSplitting(true)
+                    setIsSplittingTasks(true)
                     const newTasks: Task[] = []
                     const newCourseBuilderNodes = [...nodes]
                     const startIndex =
@@ -4676,11 +4677,11 @@ FEEDBACK: [your explanation]`
                       console.error('PDF splitting error:', err)
                       toast.error(err.message || 'Failed to split PDF')
                     } finally {
-                      setIsSplitting(false)
+                      setIsSplittingTasks(false)
                     }
                   }}
                 >
-                  {isSplitting ? (
+                  {isSplittingTasks ? (
                     <Loader2 className="mt-1 h-5 w-5 shrink-0 animate-spin text-orange-500" />
                   ) : (
                     <ListTodo className="mt-1 h-5 w-5 shrink-0 text-orange-500" />
@@ -4688,7 +4689,7 @@ FEEDBACK: [your explanation]`
                   <div className="flex flex-col items-start text-left">
                     <span className="font-semibold text-slate-900">Tasks</span>
                     <span className="mt-1 text-xs font-normal text-slate-500">
-                      {isSplitting
+                      {isSplittingTasks
                         ? 'Processing and splitting PDF...'
                         : 'Extract text and create one task per page'}
                     </span>
@@ -4699,10 +4700,10 @@ FEEDBACK: [your explanation]`
                 <Button
                   className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:border-slate-300 hover:bg-slate-50"
                   variant="outline"
-                  disabled={isSplitting}
+                  disabled={isSplittingTaskExtensions}
                   onClick={async () => {
                     if (!assetToLoad) return
-                    setIsSplitting(true)
+                    setIsSplittingTaskExtensions(true)
 
                     try {
                       const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
@@ -4923,11 +4924,11 @@ FEEDBACK: [your explanation]`
                       console.error('Task + Extensions splitting error:', err)
                       toast.error(err.message || 'Failed to process document')
                     } finally {
-                      setIsSplitting(false)
+                      setIsSplittingTaskExtensions(false)
                     }
                   }}
                 >
-                  {isSplitting ? (
+                  {isSplittingTaskExtensions ? (
                     <Loader2 className="mt-1 h-5 w-5 shrink-0 animate-spin text-green-500" />
                   ) : (
                     <Layers2 className="mt-1 h-5 w-5 shrink-0 text-green-500" />
@@ -4935,7 +4936,7 @@ FEEDBACK: [your explanation]`
                   <div className="flex flex-col items-start text-left">
                     <span className="font-semibold text-slate-900">Task + Extensions</span>
                     <span className="mt-1 text-xs font-normal text-slate-500">
-                      {isSplitting
+                      {isSplittingTaskExtensions
                         ? 'Processing and splitting PDF...'
                         : 'First page as task, remaining as extensions'}
                     </span>
