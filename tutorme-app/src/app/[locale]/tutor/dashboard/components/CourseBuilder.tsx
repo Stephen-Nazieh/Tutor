@@ -3773,7 +3773,7 @@ FEEDBACK: [your explanation]`
 
               setAssessmentSourceDocument(newDoc)
               setAssessmentUploadedFiles([{ id: 'source', name: asset.name }])
-              setAssessmentBuilder(prev => ({ ...prev, taskContent: extractedText }))
+              setAssessmentBuilder(prev => ({ ...prev, sourceDocument: newDoc, taskContent: extractedText }))
 
               setCourseBuilderNodes(prev =>
                 prev.map(mod => ({
@@ -3820,6 +3820,19 @@ FEEDBACK: [your explanation]`
 
               setTaskSourceDocument(newDoc)
               setTaskUploadedFiles([{ id: 'source', name: asset.name }])
+              setTaskBuilder(prev => {
+                if (prev.activeExtensionId) {
+                  return {
+                    ...prev,
+                    extensions: prev.extensions.map(ext =>
+                      ext.id === prev.activeExtensionId
+                        ? { ...ext, sourceDocument: newDoc }
+                        : ext
+                    ),
+                  }
+                }
+                return { ...prev, sourceDocument: newDoc }
+              })
               onText(extractedText)
 
               setCourseBuilderNodes(prev =>
@@ -3929,7 +3942,7 @@ FEEDBACK: [your explanation]`
 
           setAssessmentSourceDocument(newDoc)
           setAssessmentUploadedFiles([{ id: 'source', name: newAsset.name }])
-          setAssessmentBuilder(prev => ({ ...prev, taskContent: newAsset.content || '' }))
+          setAssessmentBuilder(prev => ({ ...prev, sourceDocument: newDoc, taskContent: newAsset.content || '' }))
 
           setCourseBuilderNodes(prev =>
             prev.map(mod => ({
@@ -4053,6 +4066,19 @@ FEEDBACK: [your explanation]`
 
                 setTaskSourceDocument(newDoc)
                 setTaskUploadedFiles([{ id: 'source', name: firstFile.name }])
+                setTaskBuilder(prev => {
+                  if (prev.activeExtensionId) {
+                    return {
+                      ...prev,
+                      extensions: prev.extensions.map(ext =>
+                        ext.id === prev.activeExtensionId
+                          ? { ...ext, sourceDocument: newDoc }
+                          : ext
+                      ),
+                    }
+                  }
+                  return { ...prev, sourceDocument: newDoc }
+                })
 
                 setCourseBuilderNodes(prev =>
                   prev.map(mod => ({
