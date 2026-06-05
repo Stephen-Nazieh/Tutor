@@ -1181,7 +1181,7 @@ export default function PublicTutorPage() {
       </div>
 
       <div className={cn(panelCardClass, 'mt-8 overflow-hidden p-0')}>
-        <div className="bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] p-6 sm:p-8">
+        <div className="bg-[linear-gradient(135deg,#1E2832_0%,#2D3B4A_50%,#1A2530_100%)] p-6 sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-xl font-bold text-white">Courses</h2>
@@ -1204,15 +1204,15 @@ export default function PublicTutorPage() {
                   value={courseCategoryFilter}
                   onValueChange={(val: any) => setCourseCategoryFilter(val)}
                 >
-                  <SelectTrigger className="h-9 w-[160px] rounded-lg border border-slate-700/25 bg-white/30 text-sm text-slate-700 shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-white/60 hover:border-slate-700/50 hover:shadow-md focus-visible:!shadow-none focus:outline-none focus-visible:outline-none">
+                  <SelectTrigger className="h-9 w-[160px] rounded-lg border border-slate-200 bg-white text-sm text-slate-900 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:border-slate-300 focus-visible:!shadow-none focus:outline-none focus-visible:outline-none">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-lg border border-slate-700/25 bg-none bg-white/30 p-1.5 shadow-lg backdrop-blur-xl w-[var(--radix-select-trigger-width)]">
+                  <SelectContent className="rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg w-[var(--radix-select-trigger-width)]">
                     {courseCategoryOptions.map(cat => (
                       <SelectItem
                         key={cat}
                         value={cat}
-                        className="text-slate-700 focus:text-slate-900 hover:bg-slate-100/50 focus:bg-slate-100/50 mx-1.5 focus:outline-none rounded-md"
+                        className="text-slate-900 focus:text-slate-900 hover:bg-slate-100 focus:bg-slate-100 mx-1.5 focus:outline-none rounded-md"
                       >
                         {cat}
                       </SelectItem>
