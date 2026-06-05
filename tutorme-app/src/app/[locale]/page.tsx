@@ -1622,6 +1622,45 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
     </Link>
   )
 
+  const TriangleArrow = ({
+    direction,
+    disabled,
+    onClick,
+    label,
+  }: {
+    direction: 'left' | 'right'
+    disabled: boolean
+    onClick: () => void
+    label: string
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        'shrink-0 transition-all duration-300',
+        'h-[clamp(220px,18vw,280px)] w-[clamp(44px,3.6vw,56px)]',
+        !disabled
+          ? 'cursor-pointer drop-shadow-[0_10px_25px_rgba(0,0,0,0.30)] hover:-translate-y-[2px] hover:drop-shadow-[0_14px_30px_rgba(0,0,0,0.40)] hover:brightness-105'
+          : 'cursor-not-allowed opacity-30 grayscale'
+      )}
+      style={{
+        clipPath:
+          direction === 'left'
+            ? 'polygon(100% 0, 100% 100%, 0 50%)'
+            : 'polygon(0 0, 0 100%, 100% 50%)',
+        ...(disabled
+          ? { backgroundColor: 'rgba(100,100,100,0.30)' }
+          : {
+              backgroundImage:
+                'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
+              backgroundColor: 'rgba(30,40,50,0.65)',
+            }),
+      }}
+      aria-label={label}
+    />
+  )
+
   const CarouselRow = ({
     title,
     icon,
@@ -1663,15 +1702,12 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
               ['--card-gap' as any]: '20px',
             }}
           >
-            <button
-              type="button"
-              onClick={() => setPage(Math.max(currentPage - 1, 0))}
+            <TriangleArrow
+              direction="left"
               disabled={!canPrev}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-[#2F3742]/80 text-white shadow-[0_4px_12px_rgba(0,0,0,0.20)] backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-[#2F3742] hover:shadow-[0_6px_18px_rgba(0,0,0,0.28)] disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:scale-100"
-              aria-label="Previous"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
+              onClick={() => setPage(Math.max(currentPage - 1, 0))}
+              label="Previous"
+            />
 
             <div className="w-[calc((var(--card-width)*5)+(var(--card-gap)*4))] overflow-visible py-3">
               <div className="grid grid-cols-5 gap-[var(--card-gap)]">
@@ -1703,15 +1739,12 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setPage(Math.min(currentPage + 1, totalPages - 1))}
+            <TriangleArrow
+              direction="right"
               disabled={!canNext}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-[#2F3742]/80 text-white shadow-[0_4px_12px_rgba(0,0,0,0.20)] backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-[#2F3742] hover:shadow-[0_6px_18px_rgba(0,0,0,0.28)] disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:scale-100"
-              aria-label="Next"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
+              onClick={() => setPage(Math.min(currentPage + 1, totalPages - 1))}
+              label="Next"
+            />
           </div>
         )
       })()}
