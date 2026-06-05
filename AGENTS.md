@@ -1,4 +1,3 @@
-<!-- From: /Users/nazeera/Documents/Tutor/AGENTS.md -->
 # Solocorn — AI Coding Agent Guide
 
 > **Last updated:** 2026-06-05
@@ -33,16 +32,16 @@ Solocorn (also marketed as CogniClass) is an AI-human hybrid tutoring platform. 
 This repository contains three independent sub-projects. **There is no root `package.json`** and no npm workspace / Turborepo configuration. Each sub-project is managed independently.
 
 ```
-/Users/nazeera/Documents/Tutor/
+c:\VSCODE\Tutor/
 │
 ├── tutorme-app/              # Main Next.js application (all backend + primary frontend)
 │   ├── src/
 │   │   ├── app/              # Next.js App Router
 │   │   │   ├── [locale]/     # i18n route segments (pages per role)
-│   │   │   │   ├── student/  # Student dashboard & features (34 sub-routes)
-│   │   │   │   ├── tutor/    # Tutor dashboard & clinic management (24 sub-routes)
-│   │   │   │   ├── parent/   # Parent dashboard & family management (17 sub-routes)
-│   │   │   │   ├── admin/    # Admin dashboard & system management (17 sub-routes)
+│   │   │   │   ├── student/  # Student dashboard & features
+│   │   │   │   ├── tutor/    # Tutor dashboard & clinic management
+│   │   │   │   ├── parent/   # Parent dashboard & family management
+│   │   │   │   ├── admin/    # Admin dashboard & system management
 │   │   │   │   ├── login/
 │   │   │   │   ├── register/
 │   │   │   │   ├── onboarding/
@@ -54,9 +53,9 @@ This repository contains three independent sub-projects. **There is no root `pac
 │   │   │   │   ├── session/
 │   │   │   │   ├── tutors/
 │   │   │   │   └── u/
-│   │   │   └── api/          # REST API endpoints (47 top-level domains, 214 route.ts files)
-│   │   ├── components/       # React components (feature-organized, 150+ files)
-│   │   ├── lib/              # Business logic, utilities, AI, db, security, etc. (263+ files)
+│   │   │   └── api/          # REST API endpoints (45 top-level domains, 216 route.ts files)
+│   │   ├── components/       # React components (feature-organized, ~150 files)
+│   │   ├── lib/              # Business logic, utilities, AI, db, security, etc. (~258 files)
 │   │   ├── hooks/            # Custom React hooks (11 files)
 │   │   └── stores/           # Zustand client stores (2 files)
 │   ├── e2e/                  # Playwright E2E specs (10 test files)
@@ -122,7 +121,7 @@ This repository contains three independent sub-projects. **There is no root `pac
 
 | File | Project | Purpose |
 |------|---------|---------|
-| `tutorme-app/next.config.mjs` | Main app | Next.js standalone output, image remote patterns, webpack aliases for jspdf/fflate, async rewrites (root `/` → `index.html` for landing page integration), conditional Sentry wrapping |
+| `tutorme-app/next.config.mjs` | Main app | Next.js standalone output, image remote patterns, webpack aliases for jspdf/fflate, async rewrites (root `/` → `index.html` for landing page integration), `serverExternalPackages` for pg/jspdf/mathjax, conditional Sentry wrapping |
 | `tutorme-app/tsconfig.json` | Main app | Strict TypeScript (`strict: true`), `target: ES2017`, `moduleResolution: bundler`, path alias `@/*` → `./src/*`, excludes `scripts` and test files from compilation |
 | `tutorme-app/eslint.config.mjs` | Main app | Flat ESLint config extending `eslint-config-next/core-web-vitals`, `eslint-config-next/typescript`, and `prettier`. Custom security rules and relaxed React hooks rules |
 | `tutorme-app/tailwind.config.ts` | Main app | Tailwind CSS v3 with extensive custom design system: HSL color tokens, elevation shadows, animation keyframes, Chinese font stack, z-index scale |
@@ -131,7 +130,7 @@ This repository contains three independent sub-projects. **There is no root `pac
 | `tutorme-app/vitest.integration.config.ts` | Main app | Integration tests in node environment, 15s timeout, includes `src/__tests__/integration/**/*.test.ts` |
 | `tutorme-app/playwright.config.ts` | Main app | E2E matching `e2e/**/*.spec.ts` and `src/__tests__/accessibility/**/*.test.ts`, Chromium only, webServer command `npm run dev:next` |
 | `tutorme-app/.env.example` | Main app | Template for all required and optional environment variables |
-| `landing-page/vite.config.ts` | Landing page | Vite 6 with React plugin, Tailwind CSS v4 vite plugin, port 3000 |
+| `landing-page/vite.config.ts` | Landing page | Vite 6 with React plugin, Tailwind CSS v4 vite plugin, static export to `dist/`, port 3000, HMR disabled when `DISABLE_HMR=true` |
 | `landing-page/tsconfig.json` | Landing page | ES2022, `moduleResolution: bundler`, path alias `@/*` → `./*`, `allowImportingTsExtensions: true` |
 | `services/adk/tsconfig.json` | ADK | `module: NodeNext`, `outDir: dist`, `rootDir: src`, `strict: false` |
 | `.github/workflows/ci.yml` | Root | CI pipeline: typecheck, build, test, lint, format, security |
@@ -148,7 +147,7 @@ This repository contains three independent sub-projects. **There is no root `pac
 | **Language** | TypeScript | `^5.9.3`, strict mode (`strict: true`) |
 | **UI** | React | `^18` (main app); `^19` (landing page) |
 | **Styling** | Tailwind CSS | `^3.4.1` (main app); `^4.1.14` (landing page) |
-| **Components** | shadcn/ui + Radix UI | Headless primitives installed to `src/components/ui/` (30 components) |
+| **Components** | shadcn/ui + Radix UI | Headless primitives installed to `src/components/ui/` (~30 components) |
 | **Animation** | framer-motion / motion | `^12.34.0` (main app); `motion ^12.23.24` (landing page) |
 | **State** | Zustand | `^5.0.11` |
 | **Drag & Drop** | @dnd-kit | `^6.3.1` core, `^10.0.0` sortable |
@@ -197,8 +196,10 @@ The main app does **not** use the standard Next.js dev server. Instead, it runs 
 `Dockerfile.production` is a multi-stage build:
 1. **base** — `node:20-slim` with LibreOffice installed (for document processing)
 2. **deps** — `npm ci` with `--max-old-space-size=4096`
-3. **builder** — Copies deps, installs Linux native bindings, writes dummy `.env.production`, runs `npm run build` and compiles the custom server to `server-production.js`
-4. **runner** — Minimal image with `nextjs` user, copies `.next/`, `public/`, `drizzle/`, `scripts/`, compiled `server.js`, and runs on port `3003`
+3. **builder** — Copies deps, installs Linux native bindings, writes dummy `.env.production`, runs `npm run build`, and compiles the custom server to `server-production.js`
+4. **runner** — Minimal image with `nextjs` user, copies `.next/`, `public/`, `drizzle/`, `scripts/`, compiled `server.js`, and runs `node scripts/start-prod.js` on port `3003`
+
+The production entry point (`scripts/start-prod.js`) runs database migrations first, then starts the compiled custom server.
 
 ---
 
@@ -268,7 +269,7 @@ npm run test:load:ws         # k6 WebSocket load test (placeholder)
 ```bash
 npm run lint                 # ESLint flat config (eslint.config.mjs)
 npm run lint:fix             # Auto-fix ESLint issues
-npm run format               # Prettier format src/**/*.{ts,tsx}
+npm run format               # Prettier format src/**/*.{ts,tsx} and scripts/**/*.js
 npm run format:check         # Check formatting without writing
 npm run typecheck            # tsc --noEmit
 npm run security:check       # npm audit --audit-level=high
@@ -377,7 +378,7 @@ Startup environment validation lives in `src/lib/env.ts` and is called from `ser
 - `src/app/layout.tsx` — Root layout with metadata, PWA manifest, theme init script, service worker unregister script, Google Fonts (Fira Code, Fira Sans), and top-level providers (`Providers`, `PerformanceProviders`).
 - `src/app/[locale]/layout.tsx` — Locale layout wrapping `NextIntlClientProvider`, `ThemeProvider`, `NavigationOverlayProvider`, `FloatingVideoOverlay`, `PWAInstallPrompt`, `Toaster`, and `AuthProvider`. Validates locale param against configured locales.
 - `src/app/[locale]/` — All user-facing pages grouped by role (`student/`, `tutor/`, `parent/`, `admin/`) plus shared pages (`login/`, `register/`, `onboarding/`, `payment/`, `legal/`, `forgot-password/`, `api-docs/`, `categories/`, `session/`, `tutors/`, `u/`).
-- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files). There are 47 top-level API domains and 214 `route.ts` files.
+- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files). There are 45 top-level API domains and 216 `route.ts` files.
 
 **Role-specific layout behaviors:**
 - **Student layout** (`[locale]/student/layout.tsx`): Collapsible sidebar, special handling for `/student/tutors` (no sidebar), `/student/feedback` (hides nav entirely), and live class routes.
@@ -387,19 +388,19 @@ Startup environment validation lives in `src/lib/env.ts` and is called from `ser
 
 ### Components (`src/components/`)
 
-Organized by feature domain (150+ component files across 30+ top-level directories):
-- `ui/` — shadcn/ui primitives (Button, Card, Dialog, etc.) — 30 components
+Organized by feature domain (~150 component files across 29 top-level directories):
+- `ui/` — shadcn/ui primitives (Button, Card, Dialog, etc.) — ~30 components
 - `ai-chat/`, `ai-tutor/` — AI interaction UIs
-- `class/` — Live classroom (whiteboard, polls, breakout rooms, engagement) — 23+ files
+- `class/` — Live classroom (whiteboard, polls, breakout rooms, engagement)
 - `student/`, `tutor/`, `parent/`, `admin/` — Role-specific dashboards
 - `video-player/`, `quiz/`, `polls/`, `whiteboard/`, `course-builder/` — Content & assessment UIs
-- `spaced-repetition/` — 12 components for spaced repetition system
+- `spaced-repetition/` — Components for spaced repetition system
 - `navigation/`, `notifications/`, `pwa/`, `pdf/`, `mentions/` — Supporting UI domains
 - `achievements.tsx`, `bookmarks-list.tsx`, `knowledge-graph.tsx`, `my-subjects.tsx`, `study-recommendations.tsx`, `student-profile.tsx`, `payment-gateway-selector.tsx`, `user-nav.tsx` — Standalone shared components
 
 ### Library (`src/lib/`)
 
-Domain-organized business logic (263+ files across 60+ directories):
+Domain-organized business logic (~258 files across 43 top-level directories):
 - `lib/db/` — Drizzle client (`drizzle.ts`), schema (`schema/`), and migrations
 - `lib/ai/` — AI provider integrations (`kimi.ts`), prompts, teaching prompts, types, memory services
 - `lib/agents/` — Orchestrator (`orchestrator-llm.ts`), tutor agents, grading, live-monitor, content-generator, task-generator, tutor-chat-service
@@ -422,6 +423,7 @@ Custom React hooks (11 files):
 - `useChat.ts` — General chat hook
 - `useParent.ts`, `useParentFinancialCalculations.ts`, `useParentNotifications.ts`, `useParentRealTimeNotifications.ts` — Parent-specific hooks
 - `use-course-assignments.ts` — Course assignment hook
+- `index.ts` — Re-exports
 
 ### Stores (`src/stores/`)
 
@@ -612,7 +614,7 @@ The main app uses a custom Tailwind v3 theme defined in `tailwind.config.ts` wit
 - **Include:** `src/**/*.test.{ts,tsx}` and `src/**/__tests__/**/*.{test,spec}.{ts,tsx}`
 - **Exclude:** `node_modules`, `.next`, integration, accessibility
 - **No database required.**
-- **Count:** ~63 test files scattered across `src/` (~28 in `app/api/`, ~30 in `lib/`, plus others).
+- **Count:** 63 test files scattered across `src/` (~28 in `app/api/`, ~30 in `lib/`, plus others).
 
 ### Integration Tests (Vitest)
 
