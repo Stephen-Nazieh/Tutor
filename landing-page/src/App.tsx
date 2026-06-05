@@ -111,12 +111,20 @@ export default function App() {
                         How It Works
                       </span>
                       <span className="absolute inset-0 flex items-center justify-center gap-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                        <span className="animate-gear inline-flex h-5 w-5">
+                        <motion.span
+                          className="inline-flex h-5 w-5"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        >
                           <Settings className="h-full w-full" />
-                        </span>
-                        <span className="animate-gear-reverse -mt-2 -ml-1 inline-flex h-3.5 w-3.5">
+                        </motion.span>
+                        <motion.span
+                          className="-mt-2 -ml-1 inline-flex h-3.5 w-3.5"
+                          animate={{ rotate: -360 }}
+                          transition={{ duration: 1.33, repeat: Infinity, ease: 'linear' }}
+                        >
                           <Settings className="h-full w-full" />
-                        </span>
+                        </motion.span>
                       </span>
                     </button>
                   </motion.div>
