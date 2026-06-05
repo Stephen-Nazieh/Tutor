@@ -6035,8 +6035,14 @@ FEEDBACK: [your explanation]`
                                                                                 assessmentBuilder.taskPci,
                                                                               dmiItems:
                                                                                 assessmentDmiItems,
+                                                                              dmiVersions:
+                                                                                assessmentDmiVersions,
+                                                                              activeDmiVersionId:
+                                                                                testPciSource === 'assessment' && testPciViewMode.startsWith('dmi_')
+                                                                                  ? testPciViewMode.replace('dmi_', '')
+                                                                                  : hw.activeDmiVersionId,
                                                                               sourceDocument:
-                                                                                hw.sourceDocument,
+                                                                                assessmentBuilder.sourceDocument,
                                                                             }
                                                                           : hw
                                                                     ),
@@ -6062,6 +6068,8 @@ FEEDBACK: [your explanation]`
                                                                             ...t,
                                                                             title:
                                                                               taskBuilder.title,
+                                                                            shortDescription:
+                                                                              taskBuilder.details,
                                                                             description:
                                                                               taskBuilder.taskContent,
                                                                             instructions:
@@ -6069,8 +6077,13 @@ FEEDBACK: [your explanation]`
                                                                             extensions:
                                                                               taskBuilder.extensions,
                                                                             dmiItems: taskDmiItems,
+                                                                            dmiVersions: taskDmiVersions,
+                                                                            activeDmiVersionId:
+                                                                              testPciSource === 'task' && testPciViewMode.startsWith('dmi_')
+                                                                                ? testPciViewMode.replace('dmi_', '')
+                                                                                : t.activeDmiVersionId,
                                                                             sourceDocument:
-                                                                              t.sourceDocument,
+                                                                              taskBuilder.sourceDocument,
                                                                           }
                                                                         : t
                                                                     ),
@@ -6286,6 +6299,8 @@ FEEDBACK: [your explanation]`
                                                                                                 ...t,
                                                                                                 title:
                                                                                                   taskBuilder.title,
+                                                                                                shortDescription:
+                                                                                                  taskBuilder.details,
                                                                                                 description:
                                                                                                   taskBuilder.taskContent,
                                                                                                 instructions:
@@ -6294,8 +6309,14 @@ FEEDBACK: [your explanation]`
                                                                                                   taskBuilder.extensions,
                                                                                                 dmiItems:
                                                                                                   taskDmiItems,
+                                                                                                dmiVersions:
+                                                                                                  taskDmiVersions,
+                                                                                                activeDmiVersionId:
+                                                                                                  testPciSource === 'task' && testPciViewMode.startsWith('dmi_')
+                                                                                                    ? testPciViewMode.replace('dmi_', '')
+                                                                                                    : t.activeDmiVersionId,
                                                                                                 sourceDocument:
-                                                                                                  t.sourceDocument,
+                                                                                                  taskBuilder.sourceDocument,
                                                                                               }
                                                                                             : t
                                                                                       ),
@@ -6329,8 +6350,14 @@ FEEDBACK: [your explanation]`
                                                                                                   assessmentBuilder.taskPci,
                                                                                                 dmiItems:
                                                                                                   assessmentDmiItems,
+                                                                                                dmiVersions:
+                                                                                                  assessmentDmiVersions,
+                                                                                                activeDmiVersionId:
+                                                                                                  testPciSource === 'assessment' && testPciViewMode.startsWith('dmi_')
+                                                                                                    ? testPciViewMode.replace('dmi_', '')
+                                                                                                    : h.activeDmiVersionId,
                                                                                                 sourceDocument:
-                                                                                                  h.sourceDocument,
+                                                                                                  assessmentBuilder.sourceDocument,
                                                                                               }
                                                                                             : h
                                                                                       ),
@@ -6774,8 +6801,14 @@ FEEDBACK: [your explanation]`
                                                                           taskBuilder.taskPci,
                                                                         extensions:
                                                                           taskBuilder.extensions,
+                                                                        dmiItems: taskDmiItems,
+                                                                        dmiVersions: taskDmiVersions,
+                                                                        activeDmiVersionId:
+                                                                          testPciSource === 'task' && testPciViewMode.startsWith('dmi_')
+                                                                            ? testPciViewMode.replace('dmi_', '')
+                                                                            : t.activeDmiVersionId,
                                                                         sourceDocument:
-                                                                          t.sourceDocument,
+                                                                          taskBuilder.sourceDocument,
                                                                       }
                                                                     : t
                                                                 ),
@@ -6803,8 +6836,14 @@ FEEDBACK: [your explanation]`
                                                                           assessmentBuilder.taskContent,
                                                                         instructions:
                                                                           assessmentBuilder.taskPci,
+                                                                        dmiItems: assessmentDmiItems,
+                                                                        dmiVersions: assessmentDmiVersions,
+                                                                        activeDmiVersionId:
+                                                                          testPciSource === 'assessment' && testPciViewMode.startsWith('dmi_')
+                                                                            ? testPciViewMode.replace('dmi_', '')
+                                                                            : h.activeDmiVersionId,
                                                                         sourceDocument:
-                                                                          h.sourceDocument,
+                                                                          assessmentBuilder.sourceDocument,
                                                                       }
                                                                     : h
                                                                 ),
