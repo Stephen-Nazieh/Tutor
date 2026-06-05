@@ -830,18 +830,9 @@ export function InteractiveCalendar({
                       </Button>
                     </>
                   )}
-                  {notifications.length > 0 && (
-                    <Badge variant="destructive" className="text-xs">
-                      <Bell className="mr-1 h-3 w-3" />
-                      {notifications.length}
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2">
                   {/* Filters */}
                   <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                    <SelectTrigger className="w-36">
+                    <SelectTrigger className="h-9 w-36">
                       <Filter className="mr-2 h-4 w-4" />
                       <SelectValue placeholder="Filter" />
                     </SelectTrigger>
@@ -859,9 +850,18 @@ export function InteractiveCalendar({
                       ))}
                     </SelectContent>
                   </Select>
+                  {notifications.length > 0 && (
+                    <Badge variant="destructive" className="text-xs">
+                      <Bell className="mr-1 h-3 w-3" />
+                      {notifications.length}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
 
                   {/* View Toggle - Reordered as Day, Week, Month */}
-                  <div className="flex rounded-lg border border-gray-200 bg-gray-100 p-1">
+                  <div className="flex h-9 items-center gap-1 min-w-[210px] rounded-lg border border-gray-200 bg-gray-100 p-1">
                     {(view === 'availability'
                       ? (['day', 'week', 'month'] as CalendarView[])
                       : (['day', 'week', 'month'] as CalendarView[])
@@ -870,7 +870,7 @@ export function InteractiveCalendar({
                         key={v}
                         onClick={() => setView(v)}
                         className={cn(
-                          'rounded-md px-3 py-1 text-sm font-medium capitalize transition-colors',
+                          'rounded-md px-4 h-full flex items-center justify-center text-sm font-medium capitalize transition-colors',
                           view === v ? 'bg-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
                         )}
                       >
