@@ -36,7 +36,7 @@ import {
   CheckCircle,
   Copy,
   Share2,
-  LayoutGrid,
+
   Link2,
   List,
   PanelsTopLeft,
@@ -1191,11 +1191,11 @@ export default function PublicTutorPage() {
             <div className="flex flex-1 flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:justify-end">
               <div className="relative flex w-full max-w-lg items-center gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <Input
                     type="search"
                     placeholder="Search course..."
-                    className="h-9 w-full rounded-lg border border-white/10 bg-white/10 pl-9 text-white placeholder:text-white/50"
+                    className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 text-slate-800 placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
                     value={courseSearchQuery}
                     onChange={e => setCourseSearchQuery(e.target.value)}
                   />
@@ -1217,11 +1217,11 @@ export default function PublicTutorPage() {
                 </Select>
               </div>
               <div
-                className="grid h-9 grid-cols-3 min-w-[320px] gap-2 rounded-xl bg-white p-1.5"
+                className="grid h-9 grid-cols-2 min-w-[220px] gap-2 rounded-xl bg-white p-1.5"
                 role="group"
                 aria-label="Course layout"
               >
-                {(['grid', 'list', 'compact'] as const).map((layout) => (
+                {(['list', 'compact'] as const).map((layout) => (
                   <button
                     key={layout}
                     type="button"
@@ -1233,7 +1233,6 @@ export default function PublicTutorPage() {
                         : 'text-slate-800 hover:bg-slate-100'
                     )}
                   >
-                    {layout === 'grid' && <LayoutGrid className="h-4 w-4" />}
                     {layout === 'list' && <List className="h-4 w-4" />}
                     {layout === 'compact' && <PanelsTopLeft className="h-4 w-4" />}
                     <span className="hidden sm:inline">{layout}</span>
