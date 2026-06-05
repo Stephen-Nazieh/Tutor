@@ -34,6 +34,14 @@
   animation: marquee 30s linear infinite;
 }
 
-@keyframes spin {
+@keyframes gear-spin {
   to { transform: rotate(360deg); }
+}
+
+.animate-gear {
+  animation: gear-spin 2s linear infinite;
+}
+
+.animate-gear-reverse {
+  animation: gear-spin 1.33s linear infinite reverse;
 }

@@ -111,8 +111,12 @@ export default function App() {
                         How It Works
                       </span>
                       <span className="absolute inset-0 flex items-center justify-center gap-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                        <Settings className="w-5 h-5" style={{ animation: 'spin 2s linear infinite' }} />
-                        <Settings className="w-3.5 h-3.5 -mt-2 -ml-1" style={{ animation: 'spin 1.33s linear infinite reverse' }} />
+                        <span className="animate-gear inline-flex h-5 w-5">
+                          <Settings className="h-full w-full" />
+                        </span>
+                        <span className="animate-gear-reverse -mt-2 -ml-1 inline-flex h-3.5 w-3.5">
+                          <Settings className="h-full w-full" />
+                        </span>
                       </span>
                     </button>
                   </motion.div>
