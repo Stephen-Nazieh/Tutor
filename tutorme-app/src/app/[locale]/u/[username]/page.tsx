@@ -1187,7 +1187,7 @@ export default function PublicTutorPage() {
         <div className="bg-[#1E2832] p-6 sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-xl font-bold text-white">Course Catalog</h2>
+              <h2 className="text-xl font-bold text-white">Courses</h2>
               <p className="mt-1 text-white/60">Published courses by @{tutor.username}</p>
             </div>
 
