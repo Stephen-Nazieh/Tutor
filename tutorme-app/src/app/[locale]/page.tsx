@@ -1838,33 +1838,40 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
               </p>
             </DialogPanel>
             <DialogPanel>
-              <h3 className="mb-4 text-lg font-semibold text-foreground">About the tutor</h3>
-              <div className="flex items-start gap-4">
-                <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
-                  {selectedCourse?.tutor?.avatarUrl ? (
-                    <img
-                      src={selectedCourse.tutor.avatarUrl}
-                      alt={selectedCourse.tutor.name || 'Tutor'}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                      <User className="h-8 w-8" />
+              <div className="grid grid-cols-[auto_1fr] gap-4">
+                {/* Left column: heading + photo + name */}
+                <div className="flex flex-col gap-4">
+                  <h3 className="text-lg font-semibold text-foreground">About the tutor</h3>
+                  <div className="flex items-start gap-4">
+                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
+                      {selectedCourse?.tutor?.avatarUrl ? (
+                        <img
+                          src={selectedCourse.tutor.avatarUrl}
+                          alt={selectedCourse.tutor.name || 'Tutor'}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                          <User className="h-8 w-8" />
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <div className="min-w-[140px] shrink-0">
-                  <div className="text-base font-semibold text-foreground">
-                    {selectedCourse?.tutor?.name || 'Anonymous Tutor'}
+                    <div className="min-w-[140px] shrink-0">
+                      <div className="text-base font-semibold text-foreground">
+                        {selectedCourse?.tutor?.name || 'Anonymous Tutor'}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        @{selectedCourse?.tutor?.username || 'tutor'}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    @{selectedCourse?.tutor?.username || 'tutor'}
-                  </div>
                 </div>
+
+                {/* Right column: bio */}
                 {selectedCourse?.tutor?.bio && (
-                  <div className="hidden min-w-0 flex-1 md:block">
-                    <div className="flex h-24 flex-col justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                      <p className="line-clamp-4 text-sm leading-snug text-muted-foreground">
+                  <div className="hidden self-stretch md:block">
+                    <div className="h-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                      <p className="line-clamp-5 text-sm leading-snug text-muted-foreground">
                         {selectedCourse.tutor.bio}
                       </p>
                     </div>
