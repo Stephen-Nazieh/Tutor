@@ -1204,12 +1204,16 @@ export default function PublicTutorPage() {
                   value={courseCategoryFilter}
                   onValueChange={(val: any) => setCourseCategoryFilter(val)}
                 >
-                  <SelectTrigger className="h-9 w-[160px] rounded-lg border border-white/10 bg-white/10 text-sm text-white shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-white/20 hover:border-white/20 focus-visible:!shadow-none focus:outline-none focus-visible:outline-none">
+                  <SelectTrigger className="h-9 w-[160px] rounded-lg border border-slate-700/25 bg-white/30 text-sm text-slate-700 shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-white/60 hover:border-slate-700/50 hover:shadow-md focus-visible:!shadow-none focus:outline-none focus-visible:outline-none">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-lg border border-slate-700/25 bg-none bg-white/30 p-1.5 shadow-lg backdrop-blur-xl w-[var(--radix-select-trigger-width)]">
                     {courseCategoryOptions.map(cat => (
-                      <SelectItem key={cat} value={cat}>
+                      <SelectItem
+                        key={cat}
+                        value={cat}
+                        className="text-slate-700 focus:text-slate-900 hover:bg-slate-100/50 focus:bg-slate-100/50 mx-1.5 focus:outline-none rounded-md"
+                      >
                         {cat}
                       </SelectItem>
                     ))}
