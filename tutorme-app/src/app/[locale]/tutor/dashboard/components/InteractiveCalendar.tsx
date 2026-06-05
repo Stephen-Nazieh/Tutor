@@ -861,7 +861,7 @@ export function InteractiveCalendar({
                 <div className="flex items-center gap-2">
 
                   {/* View Toggle - Reordered as Day, Week, Month */}
-                  <div className="flex h-9 items-center gap-1 min-w-[210px] rounded-lg border border-gray-200 bg-gray-100 p-1">
+                  <div className="grid h-9 grid-cols-3 min-w-[210px] rounded-xl bg-[#2D2B4E] p-1">
                     {(view === 'availability'
                       ? (['day', 'week', 'month'] as CalendarView[])
                       : (['day', 'week', 'month'] as CalendarView[])
@@ -870,8 +870,8 @@ export function InteractiveCalendar({
                         key={v}
                         onClick={() => setView(v)}
                         className={cn(
-                          'rounded-md px-4 h-full flex items-center justify-center text-sm font-medium capitalize transition-colors',
-                          view === v ? 'bg-white shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                          'flex items-center justify-center rounded-lg text-sm font-medium capitalize transition-colors',
+                          view === v ? 'bg-white text-black shadow-sm' : 'text-white/70 hover:text-white'
                         )}
                       >
                         {v}
