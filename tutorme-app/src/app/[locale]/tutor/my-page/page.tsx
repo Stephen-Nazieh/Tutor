@@ -347,93 +347,116 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
               {filteredCourses.map(course => (
                 <div
                   key={course.id}
-                  className="flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white p-4 hover:border-[#1D4ED8]"
+                  className="rounded-xl border border-[#E2E8F0] p-4 hover:border-slate-500"
+                  style={{
+                    background: 'linear-gradient(135deg, #1E2832 0%, #2D3B4A 50%, #1A2530 100%)',
+                  }}
                 >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="truncate font-medium text-[#0F172A]">{course.name}</h4>
-                      {activeTab === 'catalogued' ? (
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                          Catalogued
-                        </span>
-                      ) : course.isPublished ? (
-                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
-                          Published
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">
-                          Draft
-                        </span>
+                  <div
+                    className={cn(
+                      'grid gap-4',
+                      course.isPublished && course.description
+                        ? 'grid-cols-[1fr_1fr]'
+                        : 'grid-cols-1'
+                    )}
+                  >
+                    {/* Left column */}
+                    <div className="flex min-w-0 flex-col">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <h4 className="truncate font-medium text-white">{course.name}</h4>
+                          {activeTab === 'catalogued' ? (
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                              Catalogued
+                            </span>
+                          ) : course.isPublished ? (
+                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-600">
+                              Published
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-600">
+                              Draft
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const prefix = window.location.pathname.replace(
+                                /\/tutor\/my-page\/?$/,
+                                ''
+                              )
+                              router.push(
+                                `${prefix}/tutor/insights?tab=builder&courseId=${course.id}`
+                              )
+                            }}
+                            className="text-blue-400 hover:bg-white/10"
+                          >
+                            <Edit3 className="mr-1 h-4 w-4" />
+                            Edit
+                          </Button>
+                          {activeTab !== 'catalogued' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleTogglePublish(course)}
+                              className={
+                                course.isPublished
+                                  ? 'text-amber-400 hover:bg-white/10'
+                                  : 'text-emerald-400 hover:bg-white/10'
+                              }
+                            >
+                              {course.isPublished ? (
+                                <>
+                                  <EyeOff className="mr-1 h-4 w-4" />
+                                  Unpublish
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="mr-1 h-4 w-4" />
+                                  Publish
+                                </>
+                              )}
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteCourse(course.id)}
+                            className="text-red-400 hover:bg-white/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      {course.nationality && course.nationality !== 'Global' && (
+                        <p className="mt-0.5 text-sm font-medium text-blue-400">
+                          {course.variantCategory || (course.categories || [])[0] || 'General'} —{' '}
+                          {course.nationality}
+                        </p>
+                      )}
+                      <p className="mt-1 text-sm text-slate-300">
+                        {course.nationality && course.nationality !== 'Global'
+                          ? `${course.studentCount || 0} students • Updated ${new Date(course.updatedAt).toLocaleDateString()}`
+                          : `${(course.categories || [])[0] || 'Untitled'} • ${course.studentCount || 0} students • Updated ${new Date(course.updatedAt).toLocaleDateString()}`}
+                      </p>
+                      {activeTab === 'catalogued' && course.lastSessionDate && (
+                        <p className="mt-1 text-xs text-slate-400">
+                          Last session: {new Date(course.lastSessionDate).toLocaleDateString()}
+                        </p>
                       )}
                     </div>
-                    {course.nationality && course.nationality !== 'Global' && (
-                      <p className="mt-0.5 text-sm font-medium text-[#1D4ED8]">
-                        {course.variantCategory || (course.categories || [])[0] || 'General'} —{' '}
-                        {course.nationality}
-                      </p>
-                    )}
-                    {course.isPublished && course.description && (
-                      <p className="mt-0.5 line-clamp-2 text-sm text-[#64748B]">
-                        {course.description}
-                      </p>
-                    )}
-                    <p className="mt-1 text-sm text-[#64748B]">
-                      {course.nationality && course.nationality !== 'Global'
-                        ? `${course.studentCount || 0} students • Updated ${new Date(course.updatedAt).toLocaleDateString()}`
-                        : `${(course.categories || [])[0] || 'Untitled'} • ${course.studentCount || 0} students • Updated ${new Date(course.updatedAt).toLocaleDateString()}`}
-                    </p>
-                    {activeTab === 'catalogued' && course.lastSessionDate && (
-                      <p className="mt-1 text-xs text-gray-500">
-                        Last session: {new Date(course.lastSessionDate).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const prefix = window.location.pathname.replace(/\/tutor\/my-page\/?$/, '')
-                        router.push(`${prefix}/tutor/insights?tab=builder&courseId=${course.id}`)
-                      }}
-                      className="text-[#1D4ED8] hover:bg-[#EFF6FF]"
-                    >
-                      <Edit3 className="mr-1 h-4 w-4" />
-                      Edit
-                    </Button>
-                    {activeTab !== 'catalogued' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleTogglePublish(course)}
-                        className={
-                          course.isPublished
-                            ? 'text-amber-600 hover:bg-amber-50'
-                            : 'text-emerald-600 hover:bg-emerald-50'
-                        }
-                      >
-                        {course.isPublished ? (
-                          <>
-                            <EyeOff className="mr-1 h-4 w-4" />
-                            Unpublish
-                          </>
-                        ) : (
-                          <>
-                            <Eye className="mr-1 h-4 w-4" />
-                            Publish
-                          </>
-                        )}
-                      </Button>
+                    {/* Right column: description in white container */}
+                    {course.isPublished && course.description && (
+                      <div className="rounded-lg bg-white p-3">
+                        <p className="line-clamp-3 text-sm text-slate-700">
+                          {course.description}
+                        </p>
+                      </div>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteCourse(course.id)}
-                      className="text-red-500 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
               ))}
