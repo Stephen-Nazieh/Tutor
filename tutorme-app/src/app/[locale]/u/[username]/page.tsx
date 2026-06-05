@@ -546,10 +546,7 @@ export default function PublicTutorPage() {
   })
   const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('compact')
   const [courseSearchQuery, setCourseSearchQuery] = useState('')
-  const [courseCountryFilter, setCourseCountryFilter] = useState('global')
-  const [courseSortOrder, setCourseSortOrder] = useState<'newest' | 'price_asc' | 'price_desc'>(
-    'newest'
-  )
+  const [courseCategoryFilter, setCourseCategoryFilter] = useState('')
   const searchParams = useSearchParams()
   const [bookDialogOpen, setBookDialogOpen] = useState(() => searchParams.get('book') === '1')
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<Set<string>>(new Set())
@@ -594,15 +591,19 @@ export default function PublicTutorPage() {
     loadFollowState(data.tutor.id)
   }, [data?.tutor?.id])
 
-  const courseCountryOptions = useMemo(() => {
+  const courseCategoryOptions = useMemo(() => {
     if (!data?.courses) return []
-    const countries = new Set<string>()
+    const categories = new Set<string>()
     data.courses.forEach(c => {
-      if (c.country && typeof c.country === 'string' && c.country.trim()) {
-        countries.add(c.country.trim())
+      if (c.categories && Array.isArray(c.categories)) {
+        c.categories.forEach((cat: string) => {
+          if (cat && typeof cat === 'string' && cat.trim()) {
+            categories.add(cat.trim())
+          }
+        })
       }
     })
-    return Array.from(countries).sort()
+    return Array.from(categories).sort()
   }, [data?.courses])
 
   useEffect(() => {
@@ -729,18 +730,12 @@ export default function PublicTutorPage() {
       )
     }
 
-    if (courseCountryFilter !== 'global') {
-      result = result.filter(c => c.country === courseCountryFilter)
-    }
-
-    if (courseSortOrder === 'price_asc') {
-      result = [...result].sort((a, b) => (a.price || 0) - (b.price || 0))
-    } else if (courseSortOrder === 'price_desc') {
-      result = [...result].sort((a, b) => (b.price || 0) - (a.price || 0))
+    if (courseCategoryFilter) {
+      result = result.filter(c => c.categories?.includes(courseCategoryFilter))
     }
 
     return result
-  }, [data?.courses, courseSearchQuery, courseCountryFilter, courseSortOrder])
+  }, [data?.courses, courseSearchQuery, courseCategoryFilter])
 
   const sortedClassroomPickerSessions = useMemo(() => {
     const now = Date.now()
@@ -1189,52 +1184,38 @@ export default function PublicTutorPage() {
       </div>
 
       <div className={cn(panelCardClass, 'mt-8 overflow-hidden p-0')}>
-        <div className="space-y-4 p-6 sm:p-8">
+        <div className="bg-[#1E2832] p-6 sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h2 className="text-xl font-bold text-slate-800">Course Catalog</h2>
-              <p className="mt-1 text-slate-500">Published courses by @{tutor.username}</p>
+              <h2 className="text-xl font-bold text-white">Course Catalog</h2>
+              <p className="mt-1 text-white/60">Published courses by @{tutor.username}</p>
             </div>
 
             <div className="flex flex-1 flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:justify-end">
               <div className="relative flex w-full max-w-lg items-center gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
                   <Input
                     type="search"
                     placeholder="Search course..."
-                    className="h-10 w-full border-slate-200 bg-slate-50/50 pl-9"
+                    className="h-10 w-full rounded-lg border border-white/10 bg-white/10 pl-9 text-white placeholder:text-white/50"
                     value={courseSearchQuery}
                     onChange={e => setCourseSearchQuery(e.target.value)}
                   />
                 </div>
                 <Select
-                  value={courseCountryFilter}
-                  onValueChange={(val: any) => setCourseCountryFilter(val)}
+                  value={courseCategoryFilter}
+                  onValueChange={(val: any) => setCourseCategoryFilter(val)}
                 >
-                  <SelectTrigger className="h-10 w-[120px] border-slate-200 bg-slate-50/50">
-                    <SelectValue placeholder="Country" />
+                  <SelectTrigger className="h-9 w-[160px] rounded-lg border border-white/10 bg-white/10 text-sm text-white shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-white/20 hover:border-white/20 focus-visible:!shadow-none focus:outline-none focus-visible:outline-none">
+                    <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="global">Global</SelectItem>
-                    {courseCountryOptions.map(country => (
-                      <SelectItem key={country} value={country}>
-                        {country}
+                    {courseCategoryOptions.map(cat => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
                       </SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-                <Select
-                  value={courseSortOrder}
-                  onValueChange={(val: any) => setCourseSortOrder(val)}
-                >
-                  <SelectTrigger className="h-10 w-[140px] border-slate-200 bg-slate-50/50">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest</SelectItem>
-                    <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                    <SelectItem value="price_desc">Price: High to Low</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
