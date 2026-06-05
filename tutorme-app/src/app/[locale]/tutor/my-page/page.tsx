@@ -1524,7 +1524,7 @@ export default function TutorMyPage() {
                   {
                     key: 'facebook',
                     label: 'Facebook',
-                    value: socialAccounts.facebook ? `@${socialAccounts.facebook}` : '—',
+                    value: socialAccounts.facebook ? socialAccounts.facebook : '—',
                     icon: Facebook,
                     bgClass: 'bg-blue-600',
                     muted: !socialAccounts.facebook,

@@ -1121,7 +1121,7 @@ export default function PublicTutorPage() {
                     key: 'facebook',
                     label: 'Facebook',
                     value: tutor.socialLinks?.facebook
-                      ? `@${stripAt(tutor.socialLinks.facebook)}`
+                      ? stripAt(tutor.socialLinks.facebook)
                       : '—',
                     icon: Facebook,
                     bgClass: 'bg-blue-600',
