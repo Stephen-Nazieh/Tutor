@@ -1181,7 +1181,7 @@ export default function PublicTutorPage() {
       </div>
 
       <div className={cn(panelCardClass, 'mt-8 overflow-hidden p-0')}>
-        <div className="bg-[#1E2832] p-6 sm:p-8">
+        <div className="bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] p-6 sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-xl font-bold text-white">Courses</h2>
