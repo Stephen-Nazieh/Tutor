@@ -1737,7 +1737,7 @@ export default function TutorMyPage() {
             )}
           </div>
           {profileSettingsOpen && (
-            <CardContent spacing="none" className="space-y-4 bg-white px-6 pb-6">
+            <CardContent spacing="none" className="space-y-4 bg-white px-6 py-4">
               <div className="grid gap-3 lg:grid-cols-2 lg:items-stretch">
                 <div className="flex min-h-[380px] flex-col gap-2 lg:min-h-0">
                   <Label className="text-sm text-[#1F2933]">Bio</Label>
