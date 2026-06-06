@@ -1526,7 +1526,7 @@ export default function TutorMyPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 border-white bg-transparent text-xs text-white hover:bg-white hover:text-blue-600 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="h-8 border border-white bg-transparent text-xs text-white hover:border-blue-600 hover:bg-white hover:text-blue-600 hover:shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                     onClick={handleCopyProfile}
                     disabled={!publicUrl}
                   >
@@ -1537,7 +1537,7 @@ export default function TutorMyPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 border-white bg-transparent text-xs text-white hover:bg-white hover:text-blue-600 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      className="h-8 border border-white bg-transparent text-xs text-white hover:border-blue-600 hover:bg-white hover:text-blue-600 hover:shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                       onClick={handleShareProfile}
                     >
                       <Share2 className="mr-1.5 h-3.5 w-3.5" />
