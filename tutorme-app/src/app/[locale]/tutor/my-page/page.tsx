@@ -1464,16 +1464,13 @@ export default function TutorMyPage() {
               <div className="flex h-14 items-center justify-between bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4">
                 <div className="flex items-center gap-3">
                   <Link2 className="h-5 w-5" />
-                  <div className="flex flex-col leading-tight">
-                    <span className="text-base font-semibold">Connect</span>
-                    <span className="text-xs text-white/70">Public profile and social channels.</span>
-                  </div>
+                  <span className="text-base font-semibold">Connect</span>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-8 border-white/30 bg-white/10 text-xs text-white hover:bg-white/20 hover:text-white"
+                    className="h-8 border-white bg-transparent text-xs text-white hover:bg-white hover:text-blue-600 focus-visible:ring-0 focus-visible:ring-offset-0"
                     onClick={handleCopyProfile}
                     disabled={!publicUrl}
                   >
@@ -1484,7 +1481,7 @@ export default function TutorMyPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 border-white/30 bg-white/10 text-xs text-white hover:bg-white/20 hover:text-white"
+                      className="h-8 border-white bg-transparent text-xs text-white hover:bg-white hover:text-blue-600 focus-visible:ring-0 focus-visible:ring-offset-0"
                       onClick={handleShareProfile}
                     >
                       <Share2 className="mr-1.5 h-3.5 w-3.5" />
@@ -1569,8 +1566,8 @@ export default function TutorMyPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="truncate text-base font-semibold text-slate-900">
-                          {item.label}{' '}
-                          <span className={cn('font-normal', item.muted ? 'text-slate-400' : 'text-slate-600')}>
+                          {item.label}
+                          <span className={cn('ml-2 font-normal', item.muted ? 'text-slate-400' : 'text-slate-600')}>
                             {item.value}
                           </span>
                         </div>
