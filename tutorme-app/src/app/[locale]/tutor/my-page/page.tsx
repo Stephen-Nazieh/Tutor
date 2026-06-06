@@ -101,7 +101,7 @@ const TikTokIcon = (props: SVGProps<SVGSVGElement>) => (
 )
 
 const charcoalHeaderClass =
-  'flex h-14 items-center gap-3 bg-[linear-gradient(135deg,#1F2933_0%,#374151_35%,#111827_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4'
+  'flex h-14 items-center gap-3 bg-[linear-gradient(135deg,#1F2933_0%,#374151_35%,#111827_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white'
 
 // My Courses Section Component
 interface Course {
