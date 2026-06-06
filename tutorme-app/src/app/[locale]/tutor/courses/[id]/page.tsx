@@ -166,6 +166,11 @@ export default function TutorCoursePage() {
   const [customCategories, setCustomCategories] = useState<string[]>([])
   const [customCategoryInput, setCustomCategoryInput] = useState('')
 
+  // Clear selected categories when country or region changes to prevent stale selections
+  useEffect(() => {
+    setSelectedCategories([])
+  }, [selectedCountryCode, selectedRegion])
+
   const totalLessons = useMemo(
     () => course?.modules?.reduce((sum, m) => sum + (m.lessons?.length ?? 0), 0) ?? 0,
     [course?.modules]
@@ -1171,7 +1176,7 @@ export default function TutorCoursePage() {
                                     )
                                 )
                                 .map(category => (
-                                  <div key={category.id} className="space-y-3">
+                                  <div key={`${selectedCountryCode}-${category.id}`} className="space-y-3">
                                     <h4 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                                       <Flag className="h-4 w-4 text-[#F17623]" />
                                       {category.label}
@@ -1187,7 +1192,7 @@ export default function TutorCoursePage() {
                                         )
                                         .map(exam => (
                                           <label
-                                            key={exam}
+                                            key={`${selectedCountryCode}-${exam}`}
                                             className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
                                           >
                                             <input
