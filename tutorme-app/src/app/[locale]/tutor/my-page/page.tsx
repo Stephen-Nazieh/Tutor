@@ -1378,25 +1378,25 @@ export default function TutorMyPage() {
                       {normalizedUsername ? normalizedUsername.slice(0, 2).toUpperCase() : 'TU'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute bottom-2 right-2 flex -space-x-2">
+                  <div className="absolute bottom-2 right-2 flex gap-1">
                     <Button
                       size="icon"
-                      className="h-8 w-8 rounded-full border border-white/40 bg-white text-[#1F2933] shadow hover:bg-white/90"
+                      className="h-5 w-5 rounded-md border border-white/40 bg-white text-[#1F2933] shadow hover:bg-white/90"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadingAvatar}
                       aria-label="Edit profile photo"
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Pencil className="h-3 w-3" />
                     </Button>
                     {avatarUrl && (
                       <Button
                         size="icon"
-                        className="h-8 w-8 rounded-full border border-white/40 bg-red-500 text-white shadow hover:bg-red-600"
+                        className="h-5 w-5 rounded-md border border-white/40 bg-red-500 text-white shadow hover:bg-red-600"
                         onClick={() => void handleDeleteAvatar()}
                         disabled={uploadingAvatar}
                         aria-label="Delete profile photo"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-3 w-3" />
                       </Button>
                     )}
                   </div>
@@ -1417,10 +1417,7 @@ export default function TutorMyPage() {
                     <h1 className="truncate text-3xl font-bold leading-tight text-white">
                       {displayName || normalizedUsername || 'Tutor'}
                     </h1>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-3 py-1 text-sm font-semibold text-emerald-50 ring-1 ring-emerald-300/30">
-                      <CheckCircle className="h-4 w-4" />
-                      Verified
-                    </span>
+
                   </div>
                   <div className="mt-1 text-sm font-medium text-white/80">
                     @{normalizedUsername}
@@ -1472,7 +1469,7 @@ export default function TutorMyPage() {
                         size="lg"
                         className="w-full border-0 bg-[#F17623] text-white shadow-[0_4px_14px_rgba(0,0,0,0.2)] hover:bg-white hover:text-[#F17623] sm:w-auto"
                       >
-                        Preview My Public Page
+                        Preview Public Page
                       </Button>
                     </Link>
                   ) : (
