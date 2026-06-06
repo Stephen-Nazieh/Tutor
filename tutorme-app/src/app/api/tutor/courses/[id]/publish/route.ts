@@ -247,6 +247,19 @@ export const POST = withCsrf(
       }
 
       try {
+        // Ensure CourseSchedule columns exist before any query touches them.
+        // Runs ADD COLUMN IF NOT EXISTS — instant no-op when columns already exist,
+        // self-healing when migrations haven't been applied to this environment.
+        await drizzleDb.execute(
+          sql`ALTER TABLE "CourseSchedule" ADD COLUMN IF NOT EXISTS "enrolledCount" integer NOT NULL DEFAULT 0`
+        )
+        await drizzleDb.execute(
+          sql`ALTER TABLE "CourseSchedule" ADD COLUMN IF NOT EXISTS "weeksToSchedule" integer NOT NULL DEFAULT 8`
+        )
+        await drizzleDb.execute(
+          sql`ALTER TABLE "CourseSchedule" ADD COLUMN IF NOT EXISTS "name" text`
+        )
+
         // Verify ownership of the template course
         const isOwner = await verifyCourseOwnership(templateCourseId, userId)
         if (!isOwner) {
