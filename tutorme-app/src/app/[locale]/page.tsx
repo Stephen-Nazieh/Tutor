@@ -1506,6 +1506,14 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
     }
   }, [query])
 
+  const formatCourseDate = (iso: string | null | undefined) => {
+    if (!iso) return 'Starts TBD'
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return 'Starts TBD'
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return `Starts ${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear().toString().slice(-2)}`
+  }
+
   const CourseSlot = ({ item }: { item: any }) => (
     <div
       role="button"
@@ -1518,7 +1526,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
       }}
     >
       <div
-        className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] overflow-hidden rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(30,40,50,0.65)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)] transition-all duration-300 hover:-translate-y-[2px] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)] hover:brightness-105"
+        className="h-[280px] w-[var(--card-width)] overflow-hidden rounded-[22px] border border-[rgba(255,255,255,0.08)] bg-[rgba(30,40,50,0.65)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)] transition-all duration-300 hover:-translate-y-[2px] hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)] hover:brightness-105"
         style={{
           backgroundImage:
             'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
@@ -1549,8 +1557,8 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
             </div>
           </div>
 
-          <div className="mt-3 flex-1 rounded-[14px] border border-[rgba(255,255,255,0.10)] bg-[rgba(255,255,255,0.06)] px-3 py-2">
-            <div className="line-clamp-4 text-[11px] leading-relaxed text-slate-200">
+          <div className="mt-3 flex-1 rounded-[14px] border border-[rgba(255,255,255,0.10)] bg-[rgba(255,255,255,0.06)] px-3 py-2 min-h-0">
+            <div className="line-clamp-6 text-[11px] leading-relaxed text-slate-200">
               {(item?.description || '').trim() || 'No course description provided yet.'}
             </div>
           </div>
@@ -1558,7 +1566,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
             <div className="truncate text-slate-300">
               {item?.isFree ? 'Free' : item?.price != null ? `$${item.price}` : 'Free'}
             </div>
-            <div className="text-blue-400">Details</div>
+            <div className="text-blue-400">{formatCourseDate(item?.updatedAt)}</div>
           </div>
         </div>
       </div>
@@ -1723,7 +1731,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
                 {visible.map((item: any, i: number) => (
                   <div key={item?.id || item?.__skeleton || i} className="w-[var(--card-width)]">
                     {item?.__skeleton ? (
-                      <div className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)] rounded-[22px] border border-dashed border-[rgba(255,255,255,0.20)] bg-[rgba(30,40,50,0.35)] shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_10px_25px_rgba(0,0,0,0.25)]">
+                      <div className={cn(kind === 'courses' ? 'h-[280px]' : 'h-[clamp(220px,18vw,280px)]', 'w-[var(--card-width)] rounded-[22px] border border-dashed border-[rgba(255,255,255,0.20)] bg-[rgba(30,40,50,0.35)] shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_10px_25px_rgba(0,0,0,0.25)]')}>
                         <div className="flex h-full w-full items-center justify-center">
                           <div className="text-center">
                             <div className="mx-auto mb-2 h-8 w-8 animate-pulse rounded-full bg-white/10" />
@@ -1741,7 +1749,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
                 {Array.from({ length: placeholders }).map((_, i) => (
                   <div
                     key={`placeholder-${kind}-${currentPage}-${i}`}
-                    className="h-[clamp(220px,18vw,280px)] w-[var(--card-width)]"
+                    className={cn(kind === 'courses' ? 'h-[280px]' : 'h-[clamp(220px,18vw,280px)]', 'w-[var(--card-width)]')}
                     aria-hidden="true"
                   />
                 ))}
