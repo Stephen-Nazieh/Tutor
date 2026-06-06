@@ -1545,21 +1545,16 @@ export default function TutorMyPage() {
               </div>
 
               {publicUrl ? (
-                <div className="flex items-center gap-4 border-b border-slate-100 py-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                    <span className="text-2xl font-bold">@</span>
-                  </div>
-                  <div className="min-w-0">
+                <div className="flex items-center justify-between gap-4 border-b border-slate-100 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                      <span className="text-2xl font-bold">@</span>
+                    </div>
                     <div className="text-lg font-semibold text-slate-900">@{normalizedUsername || 'username'}</div>
-                    <a
-                      href={publicUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-1 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
-                    >
-                      {publicUrl}
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <Link2 className="h-4 w-4" />
+                    <span>{publicUrl}</span>
                   </div>
                 </div>
               ) : (
