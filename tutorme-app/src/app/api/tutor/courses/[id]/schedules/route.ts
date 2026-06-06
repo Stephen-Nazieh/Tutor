@@ -84,13 +84,22 @@ export const POST = withCsrf(
             scheduleId: crypto.randomUUID(),
             courseId,
             scheduleIndex: nextIndex,
-            name: body.name ?? null,
             schedule: body.schedule || [],
             weeksToSchedule: body.weeksToSchedule ?? 8,
             maxStudents: body.maxStudents ?? null,
             enrolledCount: 0,
           })
-          .returning()
+          .returning({
+            scheduleId: courseSchedule.scheduleId,
+            courseId: courseSchedule.courseId,
+            scheduleIndex: courseSchedule.scheduleIndex,
+            schedule: courseSchedule.schedule,
+            weeksToSchedule: courseSchedule.weeksToSchedule,
+            maxStudents: courseSchedule.maxStudents,
+            enrolledCount: courseSchedule.enrolledCount,
+            createdAt: courseSchedule.createdAt,
+            updatedAt: courseSchedule.updatedAt,
+          })
 
         return NextResponse.json({ schedule: newSchedule[0] })
       } catch (error: any) {
@@ -127,7 +136,6 @@ export const PUT = withCsrf(
 
         const updateData: Record<string, unknown> = {}
         if (body.schedule !== undefined) updateData.schedule = body.schedule
-        if (body.name !== undefined) updateData.name = body.name
         if (body.weeksToSchedule !== undefined) updateData.weeksToSchedule = body.weeksToSchedule
         if (body.maxStudents !== undefined) updateData.maxStudents = body.maxStudents
 
@@ -140,7 +148,17 @@ export const PUT = withCsrf(
               eq(courseSchedule.courseId, courseId)
             )
           )
-          .returning()
+          .returning({
+            scheduleId: courseSchedule.scheduleId,
+            courseId: courseSchedule.courseId,
+            scheduleIndex: courseSchedule.scheduleIndex,
+            schedule: courseSchedule.schedule,
+            weeksToSchedule: courseSchedule.weeksToSchedule,
+            maxStudents: courseSchedule.maxStudents,
+            enrolledCount: courseSchedule.enrolledCount,
+            createdAt: courseSchedule.createdAt,
+            updatedAt: courseSchedule.updatedAt,
+          })
 
         if (updated.length === 0) {
           return NextResponse.json({ error: 'Schedule not found' }, { status: 404 })
