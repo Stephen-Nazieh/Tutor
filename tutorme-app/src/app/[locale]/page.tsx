@@ -1641,22 +1641,23 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
       disabled={disabled}
       className={cn(
         'shrink-0 transition-all duration-300',
-        'h-[clamp(220px,18vw,280px)] w-[clamp(44px,3.6vw,56px)]',
-        'flex items-center justify-center',
-        'rounded-2xl border border-white/20 bg-white/10 shadow-lg backdrop-blur-xl',
+        'h-[clamp(176px,14.4vw,224px)] w-[clamp(44px,3.6vw,56px)]',
+        'self-center',
         !disabled
-          ? 'cursor-pointer hover:bg-white/20 hover:-translate-y-[2px] hover:shadow-xl'
+          ? 'cursor-pointer hover:brightness-110 hover:-translate-y-[2px]'
           : 'cursor-not-allowed opacity-30 grayscale',
         className
       )}
+      style={{
+        clipPath:
+          direction === 'left'
+            ? 'polygon(100% 0, 100% 100%, 0 50%)'
+            : 'polygon(0 0, 0 100%, 100% 50%)',
+        background:
+          'linear-gradient(135deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.12) 100%)',
+      }}
       aria-label={label}
-    >
-      {direction === 'left' ? (
-        <ChevronLeft className="h-6 w-6 text-slate-600" />
-      ) : (
-        <ChevronRight className="h-6 w-6 text-slate-600" />
-      )}
-    </button>
+    />
   )
 
   const CarouselRow = ({
