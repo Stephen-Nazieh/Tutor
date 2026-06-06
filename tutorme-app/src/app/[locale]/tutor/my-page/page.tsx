@@ -292,7 +292,7 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
           Create Course
         </Button>
       </div>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-0">
         {/* Tabs */}
         <div className="flex gap-2 border-b border-[#E2E8F0] bg-white">
           {(['active', 'unpublished', 'catalogued'] as const).map(tab => (
@@ -1740,7 +1740,7 @@ export default function TutorMyPage() {
             )}
           </div>
           {profileSettingsOpen && (
-            <CardContent className="space-y-4 bg-white">
+            <CardContent className="space-y-4 bg-white pt-0">
               <div className="grid gap-3 lg:grid-cols-2 lg:items-stretch">
                 <div className="flex min-h-[380px] flex-col gap-2 lg:min-h-0">
                   <Label className="text-sm text-[#1F2933]">Bio</Label>
