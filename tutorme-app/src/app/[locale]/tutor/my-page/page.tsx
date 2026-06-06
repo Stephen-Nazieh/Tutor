@@ -347,7 +347,7 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
               {filteredCourses.map(course => (
                 <div
                   key={course.id}
-                  className="rounded-xl border border-[#E2E8F0] p-4 hover:border-slate-500"
+                  className="rounded-xl border border-[#E2E8F0] p-3 hover:border-slate-500"
                   style={{
                     background: 'linear-gradient(135deg, #1E2832 0%, #2D3B4A 50%, #1A2530 100%)',
                   }}
@@ -356,9 +356,9 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                     const hasDesc = course.isPublished && course.description
                     const showNationality = course.nationality && course.nationality !== 'Global'
                     return (
-                      <div className={cn('flex', hasDesc ? 'gap-4' : 'flex-col gap-2')}>
+                      <div className={cn('flex', hasDesc ? 'gap-3' : 'flex-col gap-2')}>
                         {/* Left: title + metadata */}
-                        <div className="flex min-w-0 flex-1 flex-col">
+                        <div className="flex min-w-0 flex-1 flex-col justify-center">
                           <div className={cn('flex min-w-0 items-center gap-2', !hasDesc && 'justify-between')}>
                             <div className="flex min-w-0 items-center gap-2">
                               <h4 className="truncate font-medium text-white">{course.name}</h4>
@@ -448,9 +448,18 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                           )}
                         </div>
 
-                        {/* Middle: action buttons (top-aligned) */}
+                        {/* Middle: description */}
                         {hasDesc && (
-                          <div className="flex shrink-0 items-center gap-2 self-start">
+                          <div className="w-[640px] shrink-0 self-center rounded-lg bg-white p-2.5">
+                            <p className="line-clamp-3 text-sm text-slate-700">
+                              {course.description}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Right: action buttons (vertically stacked) */}
+                        {hasDesc && (
+                          <div className="flex shrink-0 flex-col items-stretch gap-1 self-center">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -463,7 +472,7 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                                   `${prefix}/tutor/insights?tab=builder&courseId=${course.id}`
                                 )
                               }}
-                              className="text-blue-400 hover:bg-white/10"
+                              className="justify-start text-blue-400 hover:bg-white/10"
                             >
                               <Edit3 className="mr-1 h-4 w-4" />
                               Edit
@@ -473,11 +482,12 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleTogglePublish(course)}
-                                className={
+                                className={cn(
+                                  'justify-start hover:bg-white/10',
                                   course.isPublished
-                                    ? 'text-amber-400 hover:bg-white/10'
-                                    : 'text-emerald-400 hover:bg-white/10'
-                                }
+                                    ? 'text-amber-400'
+                                    : 'text-emerald-400'
+                                )}
                               >
                                 {course.isPublished ? (
                                   <>
@@ -494,21 +504,13 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                             )}
                             <Button
                               variant="ghost"
-                              size="icon"
+                              size="sm"
                               onClick={() => handleDeleteCourse(course.id)}
-                              className="text-red-400 hover:bg-white/10"
+                              className="justify-start text-red-400 hover:bg-white/10"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="mr-1 h-4 w-4" />
+                              Delete
                             </Button>
-                          </div>
-                        )}
-
-                        {/* Right: description */}
-                        {hasDesc && (
-                          <div className="w-[520px] shrink-0 rounded-lg bg-white p-3">
-                            <p className="line-clamp-3 text-sm text-slate-700">
-                              {course.description}
-                            </p>
                           </div>
                         )}
                       </div>
