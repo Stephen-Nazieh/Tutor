@@ -547,7 +547,6 @@ export default function PublicTutorPage() {
     followerCount: 0,
     loading: true,
   })
-  const [catalogLayout, setCatalogLayout] = useState<'grid' | 'list' | 'compact'>('compact')
   const [courseSearchQuery, setCourseSearchQuery] = useState('')
   const [courseCategoryFilter, setCourseCategoryFilter] = useState('')
   const searchParams = useSearchParams()
@@ -924,26 +923,86 @@ export default function PublicTutorPage() {
     'group rounded-[18px] bg-white p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)] transition-all duration-200 ease-in-out hover:shadow-[0_20px_60px_rgba(0,0,0,0.16)]'
 
 
-  const CourseCardGrid = ({ courses }: { courses: typeof enrollingCourses }) => {
-    const isList = catalogLayout === 'list'
-    const isCompact = catalogLayout === 'compact'
+  const StripArrow = ({
+    direction,
+    disabled,
+    onClick,
+    label,
+  }: {
+    direction: 'left' | 'right'
+    disabled: boolean
+    onClick: () => void
+    label: string
+  }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        'shrink-0 transition-all duration-300',
+        'h-[200px] w-[44px]',
+        'self-center',
+        !disabled
+          ? cn(
+              'cursor-pointer',
+              'hover:brightness-110',
+              'hover:-translate-y-[2px]',
+              direction === 'left' && 'hover:-translate-x-1',
+              direction === 'right' && 'hover:translate-x-1'
+            )
+          : 'cursor-not-allowed opacity-30 grayscale'
+      )}
+      style={{
+        clipPath:
+          direction === 'left'
+            ? 'polygon(100% 0, 100% 100%, 0 50%)'
+            : 'polygon(0 0, 0 100%, 100% 50%)',
+        background:
+          'linear-gradient(135deg, rgba(55,65,75,0.5) 0%, rgba(25,35,45,0.5) 100%)',
+        filter:
+          'drop-shadow(0 12px 24px rgba(0,0,0,0.35)) drop-shadow(0 0 2px rgba(30,40,50,0.5)) drop-shadow(0 0 4px rgba(30,40,50,0.3))',
+      }}
+      aria-label={label}
+    />
+  )
+
+  const CourseCardStrip = ({ courses }: { courses: typeof enrollingCourses }) => {
+    const [page, setPage] = useState(0)
+    const PAGE_SIZE = 5
+    const CARD_WIDTH = 240
+    const CARD_GAP = 32
+    const totalPages = Math.max(1, Math.ceil(courses.length / PAGE_SIZE))
+    const currentPage = Math.min(page, totalPages - 1)
+    const canPrev = currentPage > 0
+    const canNext = currentPage < totalPages - 1
+    const visible = courses.slice(
+      currentPage * PAGE_SIZE,
+      currentPage * PAGE_SIZE + PAGE_SIZE
+    )
+    const placeholders = Math.max(0, PAGE_SIZE - visible.length)
+
     return (
-      <div
-        className={cn(
-          catalogLayout === 'grid' && 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3',
-          catalogLayout === 'compact' &&
-            'grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4',
-          catalogLayout === 'list' && 'flex flex-col gap-4'
-        )}
-      >
-        
-          {courses.map(
-            (
-              course: PublicTutorResponse['courses'][number] & {
-                rating?: number | null
-                reviewCount?: number
-              }
-            ) => {
+      <div className="flex items-stretch gap-4">
+        <StripArrow
+          direction="left"
+          disabled={!canPrev}
+          onClick={() => setPage(p => Math.max(0, p - 1))}
+          label="Previous courses"
+        />
+        <div
+          className="overflow-hidden"
+          style={{
+            width: CARD_WIDTH * PAGE_SIZE + CARD_GAP * (PAGE_SIZE - 1),
+          }}
+        >
+          <div className="flex h-full gap-8">
+            {visible.map(
+              (
+                course: PublicTutorResponse['courses'][number] & {
+                  rating?: number | null
+                  reviewCount?: number
+                }
+              ) => {
             const scheduleText = course.scheduleSummary?.trim() || 'Schedule to be announced'
             const enrollmentStatus = course.enrollmentStatus ?? 'ongoing'
             const liveTotal = course.liveSessionsTotal ?? 0
@@ -963,12 +1022,13 @@ export default function PublicTutorPage() {
               descriptionText.length > 200
                 ? `${descriptionText.slice(0, 197)}...`
                 : descriptionText
-            const isList = catalogLayout === 'list'
-            const isCompact = catalogLayout === 'compact'
+            const isList = false
+            const isCompact = false
         
             return (
               <div
                 key={course.id}
+                style={{ width: CARD_WIDTH, flexShrink: 0 }}
                 className={cn(
                   'group relative flex h-full min-h-0 flex-col overflow-hidden rounded-[18px] text-left transition-all duration-300',
                   'border border-[rgba(255,255,255,0.08)]',
@@ -1346,7 +1406,21 @@ export default function PublicTutorPage() {
             )
           }
           )}
-        
+            {Array.from({ length: placeholders }).map((_, i) => (
+              <div
+                key={`placeholder-${i}`}
+                style={{ width: CARD_WIDTH, flexShrink: 0 }}
+                aria-hidden="true"
+              />
+            ))}
+          </div>
+        </div>
+        <StripArrow
+          direction="right"
+          disabled={!canNext}
+          onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+          label="Next courses"
+        />
       </div>
     )
   }
@@ -1369,26 +1443,38 @@ export default function PublicTutorPage() {
           className="mb-4 flex w-full items-center justify-between"
         >
           <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100">
+          <div
+            className={cn(
+              'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
+              isOpen
+                ? 'bg-blue-100 text-blue-600'
+                : 'bg-slate-100 text-slate-500'
+            )}
+          >
             {isOpen ? (
-              <ChevronDown className="h-5 w-5" />
+              <ChevronDown className="h-6 w-6" />
             ) : (
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-6 w-6" />
             )}
           </div>
         </button>
-        {isOpen && (
-          <>
+        <div
+          className={cn(
+            'grid transition-all duration-300 ease-in-out',
+            isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          )}
+        >
+          <div className="overflow-hidden">
             {courses.length === 0 ? (
               <div className="rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-slate-50/50 py-12 text-center">
                 <BookOpen className="mx-auto mb-3 h-12 w-12 text-slate-300" />
                 <p className="text-sm text-slate-500">{emptyMessage}</p>
               </div>
             ) : (
-              <CourseCardGrid courses={courses} />
+              <CourseCardStrip courses={courses} />
             )}
-          </>
-        )}
+          </div>
+        </div>
       </section>
     )
   }
@@ -1684,8 +1770,8 @@ export default function PublicTutorPage() {
                   <Input
                     type="search"
                     placeholder="Search course..."
-                    leftIcon={<Search className="h-4 w-4 text-white/50" />}
-                    className="h-9 w-full rounded-lg border border-white/10 bg-white/10 text-white placeholder:text-white/50 focus-visible:border-white/30"
+                    leftIcon={<Search className="h-4 w-4 text-slate-400" />}
+                    className="h-9 w-full rounded-lg border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-400 focus-visible:border-slate-300 focus-visible:ring-0 focus-visible:ring-offset-0"
                     value={courseSearchQuery}
                     onChange={e => setCourseSearchQuery(e.target.value)}
                   />
