@@ -47,6 +47,8 @@ import {
   Loader2,
   Video,
   Search,
+  ChevronDown,
+  ChevronRight,
   ExternalLink,
   User,
   BookOpen,
@@ -738,6 +740,27 @@ export default function PublicTutorPage() {
     return result
   }, [data?.courses, courseSearchQuery, courseCategoryFilter])
 
+  const enrollingCourses = useMemo(() =>
+    filteredCourses.filter(c => (c.liveSessionsCompleted ?? 0) === 0),
+    [filteredCourses]
+  )
+  const activeCourses = useMemo(() =>
+    filteredCourses.filter(c => {
+      const done = c.liveSessionsCompleted ?? 0
+      const total = c.liveSessionsTotal ?? 0
+      return done > 0 && (total === 0 || done < total)
+    }),
+    [filteredCourses]
+  )
+  const cataloguedCourses = useMemo(() =>
+    filteredCourses.filter(c => {
+      const total = c.liveSessionsTotal ?? 0
+      const done = c.liveSessionsCompleted ?? 0
+      return total > 0 && done >= total
+    }),
+    [filteredCourses]
+  )
+
   const sortedClassroomPickerSessions = useMemo(() => {
     const now = Date.now()
     const sessions = [...classroomPickerSessions]
@@ -899,6 +922,476 @@ export default function PublicTutorPage() {
     'rounded-[20px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-8 py-5 text-white'
   const panelCardClass =
     'group rounded-[18px] bg-white p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)] transition-all duration-200 ease-in-out hover:shadow-[0_20px_60px_rgba(0,0,0,0.16)]'
+
+
+  const CourseCardGrid = ({ courses }: { courses: typeof enrollingCourses }) => {
+    const isList = catalogLayout === 'list'
+    const isCompact = catalogLayout === 'compact'
+    return (
+      <div
+        className={cn(
+          catalogLayout === 'grid' && 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3',
+          catalogLayout === 'compact' &&
+            'grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4',
+          catalogLayout === 'list' && 'flex flex-col gap-4'
+        )}
+      >
+        
+          {courses.map(
+            (
+              course: PublicTutorResponse['courses'][number] & {
+                rating?: number | null
+                reviewCount?: number
+              }
+            ) => {
+            const scheduleText = course.scheduleSummary?.trim() || 'Schedule to be announced'
+            const enrollmentStatus = course.enrollmentStatus ?? 'ongoing'
+            const liveTotal = course.liveSessionsTotal ?? 0
+            const liveDone = course.liveSessionsCompleted ?? 0
+            const liveLine =
+              liveTotal > 0
+                ? `${liveDone} of ${liveTotal} live sessions completed`
+                : liveDone > 0
+                  ? `${liveDone} live session(s) completed`
+                  : 'No live sessions on record yet'
+            const description = course.description?.trim() || ''
+            const hasDescription = description.length > 0
+            const descriptionText = hasDescription
+              ? description
+              : 'No description provided for this course yet.'
+            const descriptionPreview =
+              descriptionText.length > 200
+                ? `${descriptionText.slice(0, 197)}...`
+                : descriptionText
+            const isList = catalogLayout === 'list'
+            const isCompact = catalogLayout === 'compact'
+        
+            return (
+              <div
+                key={course.id}
+                className={cn(
+                  'group relative flex h-full min-h-0 flex-col overflow-hidden rounded-[18px] text-left transition-all duration-300',
+                  'border border-[rgba(255,255,255,0.08)]',
+                  'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
+                  'shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)]',
+                  'hover:-translate-y-[2px] hover:brightness-105',
+                  'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]',
+                  isList &&
+                    'aspect-auto min-h-0 flex-row items-stretch sm:min-h-[148px] [&>*]:first:shrink-0',
+                  isCompact && 'text-xs'
+                )}
+                style={{
+                  backgroundImage:
+                    'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
+                }}
+              >
+                <div
+                  className={cn(
+                    'flex flex-1',
+                    isList
+                      ? 'min-w-0 flex-col py-4 pl-10 pr-4 sm:flex-row sm:items-center sm:gap-6 sm:pl-12'
+                      : 'flex-col p-3.5',
+                    isCompact && !isList && 'p-3'
+                  )}
+                >
+                  {isList ? (
+                    <div className="flex min-w-0 flex-1 items-center gap-6">
+                      <div className="w-[260px] min-w-0 shrink-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="line-clamp-2 text-base font-semibold text-slate-100">
+                            {course.name}
+                          </h3>
+                        </div>
+                        <p className="mt-0.5 text-xs font-medium text-slate-300">
+                          @{tutor.username}
+                        </p>
+                        <Badge
+                          variant="secondary"
+                          className="mt-2 w-fit border-0 bg-blue-600 text-[10px] font-semibold text-white transition-all hover:bg-blue-700 hover:brightness-105 sm:text-xs"
+                        >
+                          {course.country && course.country !== 'Global'
+                            ? `${course.variantCategory || course.categories[0] || 'general'} — ${course.country}`
+                            : course.categories[0] || 'general'}
+                        </Badge>
+                      </div>
+        
+                      <div className="min-w-0 flex-1 rounded-[12px] border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.045)] px-[18px] py-[14px] text-[rgba(255,255,255,0.86)]">
+                        <p className="line-clamp-3 text-sm leading-[1.45]">
+                          {descriptionPreview}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-1 flex-col">
+                      <div
+                        className={cn(
+                          'flex items-start justify-between gap-4',
+                          isCompact && 'gap-3'
+                        )}
+                      >
+                        <div className="min-w-0 flex-1">
+                          <h3
+                            className={cn(
+                              'line-clamp-2 font-semibold text-slate-100',
+                              isCompact ? 'text-sm' : 'text-[15px]'
+                            )}
+                          >
+                            {course.name}
+                          </h3>
+                          <p className="mt-0.5 text-xs font-medium text-slate-300">
+                            @{tutor.username}
+                          </p>
+                          <Badge
+                            variant="secondary"
+                            className={cn(
+                              'mt-1.5 w-fit border-0 bg-blue-600 text-[10px] font-semibold text-white transition-all hover:bg-blue-700 hover:brightness-105 sm:text-xs',
+                              isCompact && 'mt-1.5'
+                            )}
+                          >
+                            {course.country && course.country !== 'Global'
+                              ? `${course.variantCategory || course.categories[0] || 'general'} — ${course.country}`
+                              : course.categories[0] || 'general'}
+                          </Badge>
+                        </div>
+        
+                        <div
+                          className={cn(
+                            'shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_8px_20px_rgba(0,0,0,0.28)]',
+                            isCompact ? 'h-20 w-20' : 'h-[86px] w-[86px] sm:h-[94px] sm:w-[94px]'
+                          )}
+                        >
+                          {tutor.avatarUrl ? (
+                            <img
+                              src={tutor.avatarUrl}
+                              alt={course.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-[rgba(255,255,255,0.05)] text-slate-300">
+                              <User className="h-8 w-8 opacity-50" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+        
+                      {hasDescription ? (
+                        <div
+                          className={cn(
+                            'mt-3.5 rounded-[14px] border border-[rgba(15,23,42,0.10)] bg-white px-3.5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(15,23,42,0.06)]',
+                            isCompact && 'mt-3 rounded-[14px] px-3 py-2.5'
+                          )}
+                        >
+                          <p
+                            className={cn(
+                              'line-clamp-5 text-sm leading-relaxed text-slate-800',
+                              isCompact && 'text-[11px]'
+                            )}
+                          >
+                            {description}
+                          </p>
+                        </div>
+                      ) : (
+                        <p
+                          className={cn(
+                            'mt-4 text-xs text-slate-300/80',
+                            isCompact && 'mt-3 text-[11px]'
+                          )}
+                        >
+                          No course description provided yet.
+                        </p>
+                      )}
+        
+                      <div
+                        className={cn(
+                          'mt-3.5 flex items-baseline gap-3 text-xs text-slate-300',
+                          isCompact && 'mt-3 text-[11px]'
+                        )}
+                      >
+                        <div className="flex items-center gap-1.5 font-medium text-slate-200">
+                          <BookOpen className="h-4 w-4 text-slate-400" />
+                          {course.lessonCount} sessions
+                        </div>
+                        <div className="h-4 w-px self-center bg-[rgba(255,255,255,0.12)]" />
+                        <div className="min-w-0">
+                          {course.scheduleSummary ? (
+                            <button
+                              type="button"
+                              onClick={e => {
+                                e.preventDefault()
+                                setScheduleCourse(course)
+                              }}
+                              className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
+                            >
+                              <CalendarDays className="h-4 w-4" />
+                              Schedule <ExternalLink className="h-3 w-3" />
+                            </button>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 font-medium text-slate-300">
+                              <CalendarDays className="h-4 w-4 text-slate-400" />
+                              Schedule to be announced
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+        
+                  {/* Middle column (ONLY IN LIST MODE): Lessons, Schedule, Enrollment */}
+                  {isList && (
+                    <div className="flex min-w-[200px] shrink-0 flex-col gap-2.5 border-l border-[rgba(255,255,255,0.10)] py-1 pl-6">
+                      <div className="flex items-center gap-2 text-sm text-slate-200">
+                        <BookOpen className="h-4 w-4 text-slate-400" />
+                        <span>{course.lessonCount} sessions</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-slate-200">
+                        <CalendarDays className="h-4 w-4 text-slate-400" />
+                        {course.scheduleSummary ? (
+                          <button
+                            type="button"
+                            onClick={e => {
+                              e.preventDefault()
+                              setScheduleCourse(course)
+                            }}
+                            className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
+                          >
+                            Schedule <ExternalLink className="h-3 w-3" />
+                          </button>
+                        ) : (
+                          <span className="font-medium text-slate-300">
+                            Schedule to be announced
+                          </span>
+                        )}
+                      </div>
+                      <div className="pt-0.5">
+                        <Badge
+                          variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
+                          className={cn(
+                            'text-[10px] font-semibold transition-all hover:brightness-105 sm:text-xs',
+                            enrollmentStatus === 'ongoing'
+                              ? 'border-transparent bg-emerald-600 text-white hover:bg-emerald-600'
+                              : 'border-[rgba(255,255,255,0.2)] text-slate-300'
+                          )}
+                        >
+                          {enrollmentStatus === 'ended'
+                            ? 'Enrollment ended'
+                            : 'Enrollment ongoing'}
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+        
+                  {isList && (
+                    <div className="flex w-[148px] shrink-0 items-center justify-center border-l border-[rgba(255,255,255,0.10)] py-1 pl-6">
+                      <div className="h-24 w-[120px] shrink-0 overflow-hidden rounded-[12px] border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.03)] shadow-[0_8px_20px_rgba(0,0,0,0.28)]">
+                        {tutor.avatarUrl ? (
+                          <img
+                            src={tutor.avatarUrl}
+                            alt={tutor.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-[rgba(255,255,255,0.05)] text-slate-300">
+                            <User className="h-8 w-8 opacity-50" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+        
+                <div
+                  className={cn(
+                    'flex flex-col gap-2.5 border-t border-[rgba(255,255,255,0.1)] px-3.5 py-2.5',
+                    isList
+                      ? 'w-full min-w-[180px] max-w-[200px] justify-center border-l border-t-0'
+                      : 'w-full justify-between',
+                    isCompact && 'gap-2 px-3 py-2'
+                  )}
+                >
+                  {!isList && (
+                    <div className="flex w-full flex-wrap items-center justify-between gap-2">
+                      <Badge
+                        variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
+                        className={cn(
+                          'text-[10px] font-semibold transition-all hover:brightness-105 sm:text-xs',
+                          enrollmentStatus === 'ongoing'
+                            ? 'border-transparent bg-emerald-600 text-white hover:bg-emerald-600'
+                            : 'border-[rgba(255,255,255,0.2)] text-slate-300'
+                        )}
+                      >
+                        {enrollmentStatus === 'ended'
+                          ? 'Enrollment ended'
+                          : 'Enrollment ongoing'}
+                      </Badge>
+                      {course.isFree ? (
+                        <span className="text-[13px] font-bold text-emerald-400">Free</span>
+                      ) : course.price != null && course.price > 0 ? (
+                        <span className="text-[13px] font-bold text-slate-100">
+                          ${course.price}{' '}
+                          <span className="text-[10px] font-normal text-slate-400">
+                            / 1h session
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-[13px] font-bold text-emerald-400">Free</span>
+                      )}
+                    </div>
+                  )}
+        
+                  {isList && (
+                    <div className="flex w-full flex-col gap-4 px-2">
+                      <div>
+                        {course.isFree ? (
+                          <span className="text-lg font-bold text-emerald-400">Free</span>
+                        ) : course.price != null && course.price > 0 ? (
+                          <span className="text-lg font-bold text-slate-100">
+                            ${course.price}{' '}
+                            <span className="text-xs font-normal text-slate-400">
+                              / 1h session
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-lg font-bold text-emerald-400">Free</span>
+                        )}
+                      </div>
+                      <div className="h-px w-full bg-[rgba(255,255,255,0.1)]" />
+                    </div>
+                  )}
+        
+                  <div
+                    className={cn(
+                      'mt-auto flex w-full flex-wrap items-center gap-3.5 pt-1.5',
+                      isList ? 'justify-between px-2' : 'justify-start'
+                    )}
+                  >
+                    <button
+                      type="button"
+                      className={cn(
+                        'inline-flex items-center text-[13px] font-medium text-slate-300 transition-colors hover:text-white disabled:opacity-50',
+                        isCompact && 'text-xs'
+                      )}
+                      onClick={() => setDetailsCourse(course)}
+                    >
+                      <FileText className="mr-1.5 h-3 w-3" />
+                      Details
+                    </button>
+        
+                    {isTutorOwner ? (
+                      <button
+                        type="button"
+                        className={cn(
+                          'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
+                          isCompact && 'text-xs'
+                        )}
+                        onClick={() => handleEnterClassroom(course)}
+                        disabled={launchingCourseId === course.id}
+                      >
+                        <BookOpen className="mr-1.5 h-3 w-3" />
+                        {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
+                      </button>
+                    ) : (
+                      <>
+                        {session?.user?.role === 'STUDENT' &&
+                          course.enrollmentStatus !== 'ended' && (
+                            <>
+                              {enrolledCourseIds.has(course.id) ? (
+                                <button
+                                  type="button"
+                                  className={cn(
+                                    'inline-flex items-center text-[13px] font-medium text-emerald-400 disabled:opacity-50',
+                                    isCompact && 'text-xs'
+                                  )}
+                                  disabled
+                                >
+                                  <CheckCircle className="mr-1.5 h-3 w-3" />
+                                  Enrolled
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className={cn(
+                                    'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
+                                    isCompact && 'text-xs'
+                                  )}
+                                  onClick={() => handleEnrollClick(course)}
+                                  disabled={enrollingCourseId === course.id}
+                                >
+                                  {enrollingCourseId === course.id ? (
+                                    <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <UserPlus className="mr-1.5 h-3 w-3" />
+                                  )}
+                                  {enrollingCourseId === course.id ? 'Enrolling…' : 'Enroll'}
+                                </button>
+                              )}
+                            </>
+                          )}
+                        <button
+                          type="button"
+                          className={cn(
+                            'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
+                            isCompact && 'text-xs'
+                          )}
+                          onClick={() => void handleStudentEnterClassroom(course)}
+                          disabled={studentJoiningCourseId === course.id}
+                        >
+                          <BookOpen className="mr-1.5 h-3 w-3" />
+                          {studentJoiningCourseId === course.id ? 'Enrolling…' : 'Classroom'}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          }
+          )}
+        
+      </div>
+    )
+  }
+
+  function CourseSection({
+    title,
+    courses,
+    emptyMessage,
+  }: {
+    title: string
+    courses: typeof enrollingCourses
+    emptyMessage: string
+  }) {
+    const [isOpen, setIsOpen] = useState(courses.length > 0)
+    return (
+      <section>
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="mb-4 flex w-full items-center justify-between"
+        >
+          <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100">
+            {isOpen ? (
+              <ChevronDown className="h-5 w-5" />
+            ) : (
+              <ChevronRight className="h-5 w-5" />
+            )}
+          </div>
+        </button>
+        {isOpen && (
+          <>
+            {courses.length === 0 ? (
+              <div className="rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-slate-50/50 py-12 text-center">
+                <BookOpen className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                <p className="text-sm text-slate-500">{emptyMessage}</p>
+              </div>
+            ) : (
+              <CourseCardGrid courses={courses} />
+            )}
+          </>
+        )}
+      </section>
+    )
+  }
 
   return (
     <div
@@ -1222,465 +1715,24 @@ export default function PublicTutorPage() {
           </div>
         </div>
         <div className="space-y-10 px-6 pb-8 pt-8 sm:px-8">
-          {/* Enrolling */}
-          <section>
-            <h3 className="mb-4 text-lg font-semibold text-slate-800">Enrolling</h3>
-            {filteredCourses.length === 0 ? (
-              <div className="rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-slate-50/50 py-12 text-center">
-                <BookOpen className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-                <p className="text-sm text-slate-500">No published courses found.</p>
-              </div>
-            ) : (
-              <div
-                className={cn(
-                  catalogLayout === 'grid' && 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3',
-                  catalogLayout === 'compact' &&
-                    'grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4',
-                  catalogLayout === 'list' && 'flex flex-col gap-4'
-                )}
-              >
-                {filteredCourses.map(
-                  (
-                    course: PublicTutorResponse['courses'][number] & {
-                      rating?: number | null
-                      reviewCount?: number
-                    }
-                  ) => {
-                  const scheduleText = course.scheduleSummary?.trim() || 'Schedule to be announced'
-                  const enrollmentStatus = course.enrollmentStatus ?? 'ongoing'
-                  const liveTotal = course.liveSessionsTotal ?? 0
-                  const liveDone = course.liveSessionsCompleted ?? 0
-                  const liveLine =
-                    liveTotal > 0
-                      ? `${liveDone} of ${liveTotal} live sessions completed`
-                      : liveDone > 0
-                        ? `${liveDone} live session(s) completed`
-                        : 'No live sessions on record yet'
-                  const description = course.description?.trim() || ''
-                  const hasDescription = description.length > 0
-                  const descriptionText = hasDescription
-                    ? description
-                    : 'No description provided for this course yet.'
-                  const descriptionPreview =
-                    descriptionText.length > 200
-                      ? `${descriptionText.slice(0, 197)}...`
-                      : descriptionText
-                  const isList = catalogLayout === 'list'
-                  const isCompact = catalogLayout === 'compact'
-
-                  return (
-                    <div
-                      key={course.id}
-                      className={cn(
-                        'group relative flex h-full min-h-0 flex-col overflow-hidden rounded-[18px] text-left transition-all duration-300',
-                        'border border-[rgba(255,255,255,0.08)]',
-                        'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
-                        'shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)]',
-                        'hover:-translate-y-[2px] hover:brightness-105',
-                        'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]',
-                        isList &&
-                          'aspect-auto min-h-0 flex-row items-stretch sm:min-h-[148px] [&>*]:first:shrink-0',
-                        isCompact && 'text-xs'
-                      )}
-                      style={{
-                        backgroundImage:
-                          'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
-                      }}
-                    >
-                      <div
-                        className={cn(
-                          'flex flex-1',
-                          isList
-                            ? 'min-w-0 flex-col py-4 pl-10 pr-4 sm:flex-row sm:items-center sm:gap-6 sm:pl-12'
-                            : 'flex-col p-3.5',
-                          isCompact && !isList && 'p-3'
-                        )}
-                      >
-                        {isList ? (
-                          <div className="flex min-w-0 flex-1 items-center gap-6">
-                            <div className="w-[260px] min-w-0 shrink-0">
-                              <div className="flex items-start justify-between gap-2">
-                                <h3 className="line-clamp-2 text-base font-semibold text-slate-100">
-                                  {course.name}
-                                </h3>
-                              </div>
-                              <p className="mt-0.5 text-xs font-medium text-slate-300">
-                                @{tutor.username}
-                              </p>
-                              <Badge
-                                variant="secondary"
-                                className="mt-2 w-fit border-0 bg-blue-600 text-[10px] font-semibold text-white transition-all hover:bg-blue-700 hover:brightness-105 sm:text-xs"
-                              >
-                                {course.country && course.country !== 'Global'
-                                  ? `${course.variantCategory || course.categories[0] || 'general'} — ${course.country}`
-                                  : course.categories[0] || 'general'}
-                              </Badge>
-                            </div>
-
-                            <div className="min-w-0 flex-1 rounded-[12px] border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.045)] px-[18px] py-[14px] text-[rgba(255,255,255,0.86)]">
-                              <p className="line-clamp-3 text-sm leading-[1.45]">
-                                {descriptionPreview}
-                              </p>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex flex-1 flex-col">
-                            <div
-                              className={cn(
-                                'flex items-start justify-between gap-4',
-                                isCompact && 'gap-3'
-                              )}
-                            >
-                              <div className="min-w-0 flex-1">
-                                <h3
-                                  className={cn(
-                                    'line-clamp-2 font-semibold text-slate-100',
-                                    isCompact ? 'text-sm' : 'text-[15px]'
-                                  )}
-                                >
-                                  {course.name}
-                                </h3>
-                                <p className="mt-0.5 text-xs font-medium text-slate-300">
-                                  @{tutor.username}
-                                </p>
-                                <Badge
-                                  variant="secondary"
-                                  className={cn(
-                                    'mt-1.5 w-fit border-0 bg-blue-600 text-[10px] font-semibold text-white transition-all hover:bg-blue-700 hover:brightness-105 sm:text-xs',
-                                    isCompact && 'mt-1.5'
-                                  )}
-                                >
-                                  {course.country && course.country !== 'Global'
-                                    ? `${course.variantCategory || course.categories[0] || 'general'} — ${course.country}`
-                                    : course.categories[0] || 'general'}
-                                </Badge>
-                              </div>
-
-                              <div
-                                className={cn(
-                                  'shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_8px_20px_rgba(0,0,0,0.28)]',
-                                  isCompact ? 'h-20 w-20' : 'h-[86px] w-[86px] sm:h-[94px] sm:w-[94px]'
-                                )}
-                              >
-                                {tutor.avatarUrl ? (
-                                  <img
-                                    src={tutor.avatarUrl}
-                                    alt={course.name}
-                                    className="h-full w-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="flex h-full w-full items-center justify-center bg-[rgba(255,255,255,0.05)] text-slate-300">
-                                    <User className="h-8 w-8 opacity-50" />
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {hasDescription ? (
-                              <div
-                                className={cn(
-                                  'mt-3.5 rounded-[14px] border border-[rgba(15,23,42,0.10)] bg-white px-3.5 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(15,23,42,0.06)]',
-                                  isCompact && 'mt-3 rounded-[14px] px-3 py-2.5'
-                                )}
-                              >
-                                <p
-                                  className={cn(
-                                    'line-clamp-5 text-sm leading-relaxed text-slate-800',
-                                    isCompact && 'text-[11px]'
-                                  )}
-                                >
-                                  {description}
-                                </p>
-                              </div>
-                            ) : (
-                              <p
-                                className={cn(
-                                  'mt-4 text-xs text-slate-300/80',
-                                  isCompact && 'mt-3 text-[11px]'
-                                )}
-                              >
-                                No course description provided yet.
-                              </p>
-                            )}
-
-                            <div
-                              className={cn(
-                                'mt-3.5 flex items-baseline gap-3 text-xs text-slate-300',
-                                isCompact && 'mt-3 text-[11px]'
-                              )}
-                            >
-                              <div className="flex items-center gap-1.5 font-medium text-slate-200">
-                                <BookOpen className="h-4 w-4 text-slate-400" />
-                                {course.lessonCount} sessions
-                              </div>
-                              <div className="h-4 w-px self-center bg-[rgba(255,255,255,0.12)]" />
-                              <div className="min-w-0">
-                                {course.scheduleSummary ? (
-                                  <button
-                                    type="button"
-                                    onClick={e => {
-                                      e.preventDefault()
-                                      setScheduleCourse(course)
-                                    }}
-                                    className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
-                                  >
-                                    <CalendarDays className="h-4 w-4" />
-                                    Schedule <ExternalLink className="h-3 w-3" />
-                                  </button>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 font-medium text-slate-300">
-                                    <CalendarDays className="h-4 w-4 text-slate-400" />
-                                    Schedule to be announced
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Middle column (ONLY IN LIST MODE): Lessons, Schedule, Enrollment */}
-                        {isList && (
-                          <div className="flex min-w-[200px] shrink-0 flex-col gap-2.5 border-l border-[rgba(255,255,255,0.10)] py-1 pl-6">
-                            <div className="flex items-center gap-2 text-sm text-slate-200">
-                              <BookOpen className="h-4 w-4 text-slate-400" />
-                              <span>{course.lessonCount} sessions</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-slate-200">
-                              <CalendarDays className="h-4 w-4 text-slate-400" />
-                              {course.scheduleSummary ? (
-                                <button
-                                  type="button"
-                                  onClick={e => {
-                                    e.preventDefault()
-                                    setScheduleCourse(course)
-                                  }}
-                                  className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
-                                >
-                                  Schedule <ExternalLink className="h-3 w-3" />
-                                </button>
-                              ) : (
-                                <span className="font-medium text-slate-300">
-                                  Schedule to be announced
-                                </span>
-                              )}
-                            </div>
-                            <div className="pt-0.5">
-                              <Badge
-                                variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
-                                className={cn(
-                                  'text-[10px] font-semibold transition-all hover:brightness-105 sm:text-xs',
-                                  enrollmentStatus === 'ongoing'
-                                    ? 'border-transparent bg-emerald-600 text-white hover:bg-emerald-600'
-                                    : 'border-[rgba(255,255,255,0.2)] text-slate-300'
-                                )}
-                              >
-                                {enrollmentStatus === 'ended'
-                                  ? 'Enrollment ended'
-                                  : 'Enrollment ongoing'}
-                              </Badge>
-                            </div>
-                          </div>
-                        )}
-
-                        {isList && (
-                          <div className="flex w-[148px] shrink-0 items-center justify-center border-l border-[rgba(255,255,255,0.10)] py-1 pl-6">
-                            <div className="h-24 w-[120px] shrink-0 overflow-hidden rounded-[12px] border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.03)] shadow-[0_8px_20px_rgba(0,0,0,0.28)]">
-                              {tutor.avatarUrl ? (
-                                <img
-                                  src={tutor.avatarUrl}
-                                  alt={tutor.name}
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-[rgba(255,255,255,0.05)] text-slate-300">
-                                  <User className="h-8 w-8 opacity-50" />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div
-                        className={cn(
-                          'flex flex-col gap-2.5 border-t border-[rgba(255,255,255,0.1)] px-3.5 py-2.5',
-                          isList
-                            ? 'w-full min-w-[180px] max-w-[200px] justify-center border-l border-t-0'
-                            : 'w-full justify-between',
-                          isCompact && 'gap-2 px-3 py-2'
-                        )}
-                      >
-                        {!isList && (
-                          <div className="flex w-full flex-wrap items-center justify-between gap-2">
-                            <Badge
-                              variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
-                              className={cn(
-                                'text-[10px] font-semibold transition-all hover:brightness-105 sm:text-xs',
-                                enrollmentStatus === 'ongoing'
-                                  ? 'border-transparent bg-emerald-600 text-white hover:bg-emerald-600'
-                                  : 'border-[rgba(255,255,255,0.2)] text-slate-300'
-                              )}
-                            >
-                              {enrollmentStatus === 'ended'
-                                ? 'Enrollment ended'
-                                : 'Enrollment ongoing'}
-                            </Badge>
-                            {course.isFree ? (
-                              <span className="text-[13px] font-bold text-emerald-400">Free</span>
-                            ) : course.price != null && course.price > 0 ? (
-                              <span className="text-[13px] font-bold text-slate-100">
-                                ${course.price}{' '}
-                                <span className="text-[10px] font-normal text-slate-400">
-                                  / 1h session
-                                </span>
-                              </span>
-                            ) : (
-                              <span className="text-[13px] font-bold text-emerald-400">Free</span>
-                            )}
-                          </div>
-                        )}
-
-                        {isList && (
-                          <div className="flex w-full flex-col gap-4 px-2">
-                            <div>
-                              {course.isFree ? (
-                                <span className="text-lg font-bold text-emerald-400">Free</span>
-                              ) : course.price != null && course.price > 0 ? (
-                                <span className="text-lg font-bold text-slate-100">
-                                  ${course.price}{' '}
-                                  <span className="text-xs font-normal text-slate-400">
-                                    / 1h session
-                                  </span>
-                                </span>
-                              ) : (
-                                <span className="text-lg font-bold text-emerald-400">Free</span>
-                              )}
-                            </div>
-                            <div className="h-px w-full bg-[rgba(255,255,255,0.1)]" />
-                          </div>
-                        )}
-
-                        <div
-                          className={cn(
-                            'mt-auto flex w-full flex-wrap items-center gap-3.5 pt-1.5',
-                            isList ? 'justify-between px-2' : 'justify-start'
-                          )}
-                        >
-                          <button
-                            type="button"
-                            className={cn(
-                              'inline-flex items-center text-[13px] font-medium text-slate-300 transition-colors hover:text-white disabled:opacity-50',
-                              isCompact && 'text-xs'
-                            )}
-                            onClick={() => setDetailsCourse(course)}
-                          >
-                            <FileText className="mr-1.5 h-3 w-3" />
-                            Details
-                          </button>
-
-                          {isTutorOwner ? (
-                            <button
-                              type="button"
-                              className={cn(
-                                'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
-                                isCompact && 'text-xs'
-                              )}
-                              onClick={() => handleEnterClassroom(course)}
-                              disabled={launchingCourseId === course.id}
-                            >
-                              <BookOpen className="mr-1.5 h-3 w-3" />
-                              {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
-                            </button>
-                          ) : (
-                            <>
-                              {session?.user?.role === 'STUDENT' &&
-                                course.enrollmentStatus !== 'ended' && (
-                                  <>
-                                    {enrolledCourseIds.has(course.id) ? (
-                                      <button
-                                        type="button"
-                                        className={cn(
-                                          'inline-flex items-center text-[13px] font-medium text-emerald-400 disabled:opacity-50',
-                                          isCompact && 'text-xs'
-                                        )}
-                                        disabled
-                                      >
-                                        <CheckCircle className="mr-1.5 h-3 w-3" />
-                                        Enrolled
-                                      </button>
-                                    ) : (
-                                      <button
-                                        type="button"
-                                        className={cn(
-                                          'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
-                                          isCompact && 'text-xs'
-                                        )}
-                                        onClick={() => handleEnrollClick(course)}
-                                        disabled={enrollingCourseId === course.id}
-                                      >
-                                        {enrollingCourseId === course.id ? (
-                                          <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
-                                        ) : (
-                                          <UserPlus className="mr-1.5 h-3 w-3" />
-                                        )}
-                                        {enrollingCourseId === course.id ? 'Enrolling…' : 'Enroll'}
-                                      </button>
-                                    )}
-                                  </>
-                                )}
-                              <button
-                                type="button"
-                                className={cn(
-                                  'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
-                                  isCompact && 'text-xs'
-                                )}
-                                onClick={() => void handleStudentEnterClassroom(course)}
-                                disabled={studentJoiningCourseId === course.id}
-                              >
-                                <BookOpen className="mr-1.5 h-3 w-3" />
-                                {studentJoiningCourseId === course.id ? 'Enrolling…' : 'Classroom'}
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                }
-                )}
-              </div>
-            )}
-          </section>
-
-          {/* Active */}
-          <section>
-            <h3 className="mb-4 text-lg font-semibold text-slate-800">Active</h3>
-            <div
-              className={cn(
-                catalogLayout === 'grid' && 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3',
-                catalogLayout === 'compact' &&
-                  'grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4',
-                catalogLayout === 'list' && 'flex flex-col gap-4'
-              )}
-            />
-          </section>
-
-          {/* Catalogued */}
-          <section>
-            <h3 className="mb-4 text-lg font-semibold text-slate-800">Catalogued</h3>
-            <div
-              className={cn(
-                catalogLayout === 'grid' && 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3',
-                catalogLayout === 'compact' &&
-                  'grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4',
-                catalogLayout === 'list' && 'flex flex-col gap-4'
-              )}
-            />
-          </section>
+          <CourseSection
+            title="Enrolling"
+            courses={enrollingCourses}
+            emptyMessage="No published courses found."
+          />
+          <CourseSection
+            title="Active"
+            courses={activeCourses}
+            emptyMessage="This tutor has no active courses."
+          />
+          <CourseSection
+            title="Catalogued"
+            courses={cataloguedCourses}
+            emptyMessage="This tutor has no catalogued courses."
+          />
         </div>
       </div>
 
-      {/* Book 1 on 1 Dialog */}
       <Book1on1Dialog
         open={bookDialogOpen}
         onOpenChange={setBookDialogOpen}
