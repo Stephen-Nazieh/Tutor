@@ -1577,8 +1577,11 @@ export default function PublicTutorPage() {
               <span className="text-base font-semibold">Bio</span>
             </div>
 
-            <div className="flex min-h-0 flex-1 flex-col text-base text-slate-700">
-              <div className="flex-1">
+            <div className="flex min-h-0 flex-1 flex-col text-[18px] text-slate-700">
+              <div
+                className="flex-1 rounded-lg border border-slate-200 bg-white p-4"
+                style={{ fontFamily: "'EB Garamond', 'Garamond', 'Times New Roman', serif" }}
+              >
                 {tutor.bio?.trim() ? (
                   <p className="whitespace-pre-wrap leading-relaxed">{tutor.bio}</p>
                 ) : (

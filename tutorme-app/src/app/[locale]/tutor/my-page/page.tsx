@@ -1509,7 +1509,8 @@ export default function TutorMyPage() {
               <Textarea
                 value={bio}
                 readOnly
-                className="h-full min-h-[420px] flex-1 resize-none border-slate-200 bg-white text-base leading-relaxed text-slate-700 lg:min-h-0"
+                className="h-full min-h-[480px] flex-1 resize-none border-slate-200 bg-white text-[18px] leading-relaxed text-slate-700 lg:min-h-0"
+                style={{ fontFamily: "'EB Garamond', 'Garamond', 'Times New Roman', serif" }}
               />
             </div>
           </div>
