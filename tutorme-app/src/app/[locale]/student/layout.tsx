@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
-
 import { UserNav } from '@/components/user-nav'
 import {
   LayoutDashboard,
@@ -16,13 +16,12 @@ import {
   Video,
   Bell,
   ArrowLeft,
-  FileText,
   Compass,
   UserCircle,
-  PanelLeftClose,
-  PanelLeftOpen,
   ChevronRight,
   ChevronLeft,
+  LogOut,
+  Settings,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -36,8 +35,9 @@ const navItems: NavItem[] = [
   { href: '/student/feedback', label: 'Live Classroom', icon: Video },
   { href: '/student/messages', label: 'Messages', icon: MessageSquare },
   { href: '/student/help', label: 'Support', icon: HelpCircle },
-  { href: '/student/account', label: 'Account', icon: UserCircle },
 ]
+
+const bottomNavItems = [{ href: '/student/account', label: 'Account', icon: UserCircle }]
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -87,42 +87,40 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* Left Navigation Sidebar - Desktop */}
+    <div className="flex h-screen overflow-hidden bg-gray-50 isolate">
+      {/* Layout spacer — reserves space for sidebar without animation */}
+      <div className={cn('hidden shrink-0 lg:block', desktopNavOpen ? 'w-64' : 'w-0')} />
+
+      {/* Visual sidebar — fixed overlay, animates with transform only */}
       {!isFeedbackRoute && (
         <aside
           className={cn(
-            'relative z-fixed hidden h-screen shrink-0 flex-col transition-all duration-300 lg:flex',
-            desktopNavOpen ? 'w-64' : 'w-0 overflow-hidden'
+            'fixed left-0 top-0 z-fixed hidden h-screen lg:flex',
+            desktopNavOpen ? 'pointer-events-auto' : 'pointer-events-none'
           )}
         >
-          {/* Inner content wrapper with fixed width to prevent layout shifts when collapsing */}
           <div
             className={cn(
-              'fixed bottom-4 left-4 top-4 z-fixed hidden flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-300 lg:flex',
-              desktopNavOpen ? 'w-60' : 'w-0 overflow-hidden ring-0'
+              'm-4 flex h-[calc(100%-2rem)] w-60 flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-transform duration-300',
+              desktopNavOpen ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)]'
             )}
           >
             <div className="flex h-full w-60 flex-col">
               <div className="flex min-w-[240px] shrink-0 items-center justify-between px-4 py-2">
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={e => {
-                      e.stopPropagation()
-                      setDesktopNavOpen(false)
-                    }}
-                    title="Hide Navigation"
-                    className="text-gray-400"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </Button>
                   <Link
                     href="/student/dashboard"
                     className="text-lg font-bold text-blue-600"
                     aria-label="Student dashboard"
                   ></Link>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link href="/student/notifications" onClick={e => e.stopPropagation()}>
+                    <Button variant="ghost" size="icon" className="relative">
+                      <Bell className="h-5 w-5" />
+                      <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
+                    </Button>
+                  </Link>
                 </div>
               </div>
 
@@ -180,51 +178,88 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 )}
               </nav>
 
-              <div className="shrink-0 space-y-2 p-4">
-                <div className="pt-2">
-                  <UserNav />
-                </div>
+              <div className="shrink-0 space-y-1 px-4 pb-4">
+                {bottomNavItems.map(item => {
+                  const Icon = item.icon
+                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                  return (
+                    <Link
+                      key={`${item.href}-${item.label}`}
+                      href={item.href}
+                      onClick={e => e.stopPropagation()}
+                      className={cn(
+                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
+                        isActive
+                          ? 'bg-blue-50 font-medium text-blue-700'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      )}
+                    >
+                      <Icon className="h-5 w-5 flex-shrink-0" />
+                      <span className="font-medium">{item.label}</span>
+                    </Link>
+                  )
+                })}
+                <button
+                  onClick={e => {
+                    e.stopPropagation()
+                    signOut({ callbackUrl: '/' })
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                >
+                  <LogOut className="h-5 w-5 flex-shrink-0" />
+                  <span className="font-medium">Logout</span>
+                </button>
               </div>
             </div>
           </div>
         </aside>
       )}
 
-      {/* Floating collapsed pill */}
-      {!isFeedbackRoute && !desktopNavOpen && (
+      {/* Floating collapsed/expanded pill */}
+      {!isFeedbackRoute && (
         <div
-          className="fixed left-0 top-1/2 z-fixed hidden h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50 lg:flex"
-          onClick={() => setDesktopNavOpen(true)}
-          title="Show navigation"
+          className={cn(
+            'fixed top-1/2 z-fixed hidden h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:w-10 lg:flex',
+            desktopNavOpen ? 'left-64' : 'left-0',
+            desktopNavOpen ? 'bg-white border-[#E5E7EB]' : 'bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] border-[#1D4ED8]/30'
+          )}
+          onClick={() => setDesktopNavOpen(!desktopNavOpen)}
+          title={desktopNavOpen ? 'Hide navigation' : 'Show navigation'}
         >
-          <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
+          {desktopNavOpen ? (
+            <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
+          ) : (
+            <ChevronRight className="h-5 w-5 text-white" />
+          )}
         </div>
       )}
 
+      {/* Mobile Navigation Header */}
       {!isFeedbackRoute && (
-        <>
-          <div className="fixed left-4 top-4 z-50 flex items-center gap-2 lg:hidden">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="h-10 w-10 rounded-full bg-white shadow-[0_12px_30px_rgba(0,0,0,0.14)] ring-1 ring-black/5 hover:bg-slate-50"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-          </div>
-          <div className="fixed right-4 top-4 z-50 lg:hidden">
-            <div className="rounded-full bg-white p-1 shadow-[0_12px_30px_rgba(0,0,0,0.14)] ring-1 ring-black/5">
+        <div className="fixed left-0 right-0 top-0 z-50 border-b bg-white lg:hidden">
+          <div className="flex h-16 items-center justify-between px-4">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+              <Link href="/student/dashboard" className="text-xl font-bold text-blue-600"></Link>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/student/account">
+                <Button variant="ghost" size="icon">
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </Link>
               <UserNav />
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* Mobile Navigation Menu */}
       {!isFeedbackRoute && mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 overflow-y-auto bg-white p-4 pt-20 lg:hidden">
-          <nav className="space-y-3">
+        <div className="fixed inset-0 top-16 z-40 overflow-y-auto bg-white p-4 lg:hidden">
+          <nav className="space-y-0.5">
             {isLiveClassRoute ? (
               <div>
                 <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
@@ -254,26 +289,60 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 </div>
               </div>
             ) : (
-              navItems.map(item => {
-                const Icon = item.icon
-                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-3 transition-colors',
-                      isActive
-                        ? 'bg-blue-50 font-medium text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100'
-                    )}
+              <>
+                {navItems.map(item => {
+                  const Icon = item.icon
+                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={cn(
+                        'flex items-center gap-3 rounded-lg px-3 py-3 transition-colors',
+                        isActive
+                          ? 'bg-blue-50 font-medium text-blue-700'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                      <span className="font-medium">{item.label}</span>
+                    </Link>
+                  )
+                })}
+                <div className="border-t border-gray-100 pt-2 mt-2">
+                  {bottomNavItems.map(item => {
+                    const Icon = item.icon
+                    const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                    return (
+                      <Link
+                        key={`${item.href}-${item.label}`}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn(
+                          'flex items-center gap-3 rounded-lg px-3 py-3 transition-colors',
+                          isActive
+                            ? 'bg-blue-50 font-medium text-blue-700'
+                            : 'text-gray-600 hover:bg-gray-100'
+                        )}
+                      >
+                        <Icon className="h-5 w-5" />
+                        <span className="font-medium">{item.label}</span>
+                      </Link>
+                    )
+                  })}
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      signOut({ callbackUrl: '/' })
+                    }}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-gray-600 transition-colors hover:bg-gray-100"
                   >
-                    <Icon className="h-5 w-5" />
-                    <span className="font-medium">{item.label}</span>
-                  </Link>
-                )
-              })
+                    <LogOut className="h-5 w-5" />
+                    <span className="font-medium">Logout</span>
+                  </button>
+                </div>
+              </>
             )}
           </nav>
         </div>
@@ -282,8 +351,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       {/* Main Content */}
       <main
         className={cn(
-          'flex-1 overflow-hidden',
-          !isFeedbackRoute && 'pt-4 pb-4'
+          'relative z-0 h-screen flex-1 overflow-hidden',
+          !isFeedbackRoute && 'pt-16 lg:pt-4 lg:pb-4'
         )}
       >
         <div
