@@ -1,6 +1,6 @@
 # Solocorn — AI Coding Agent Guide
 
-> **Last updated:** 2026-06-05
+> **Last updated:** 2026-06-08
 > **Covers:** `tutorme-app/` (main Next.js app), `landing-page/` (Vite landing page), `services/adk/` (Google ADK microservice), `design-system/` (shared design tokens)
 
 ---
@@ -19,10 +19,10 @@ Solocorn (also marketed as CogniClass) is an AI-human hybrid tutoring platform. 
 - Real-time polling, chat, and presence via Socket.io.
 - Payment processing through Airwallex, Hitpay, WeChat Pay, and Alipay.
 
-**Target tutor-to-student ratio:** 1 : 50
-**Supported locales:** `en` (default), `zh-CN`, `es`, `fr`, `de`, `ja`, `ko`, `pt`, `ru`, `ar` (code supports 10 locales; only `en.json` and `zh-CN.json` translation files currently exist in `messages/`)
-**Main app default port:** `3003`
-**Landing page default port:** `3000`
+**Target tutor-to-student ratio:** 1 : 50  
+**Supported locales:** `en` (default), `zh-CN`, `es`, `fr`, `de`, `ja`, `ko`, `pt`, `ru`, `ar` (code supports 10 locales; only `en.json` and `zh-CN.json` translation files currently exist in `messages/`)  
+**Main app default port:** `3003`  
+**Landing page default port:** `3000`  
 **ADK service default port:** `8080` (configured via `PORT` env var; docker-compose maps to `4310`)
 
 ---
@@ -53,13 +53,13 @@ c:\VSCODE\Tutor/
 │   │   │   │   ├── session/
 │   │   │   │   ├── tutors/
 │   │   │   │   └── u/
-│   │   │   └── api/          # REST API endpoints (52 top-level domains, 216 route.ts files)
-│   │   ├── components/       # React components (feature-organized, ~150 files)
-│   │   ├── lib/              # Business logic, utilities, AI, db, security, etc. (~258 files)
+│   │   │   └── api/          # REST API endpoints (top-level domains, 214 route.ts files)
+│   │   ├── components/       # React components (feature-organized, 150 files)
+│   │   ├── lib/              # Business logic, utilities, AI, db, security, etc. (263 files)
 │   │   ├── hooks/            # Custom React hooks (11 files)
 │   │   └── stores/           # Zustand client stores (2 files)
 │   ├── e2e/                  # Playwright E2E specs (10 test files)
-│   ├── drizzle/              # Drizzle migration files (52+ SQL migrations)
+│   ├── drizzle/              # Drizzle migration files (77 SQL migrations)
 │   ├── messages/             # next-intl JSON translations (en.json, zh-CN.json)
 │   ├── scripts/              # Build, deployment & utility scripts (40+ files)
 │   ├── src/scripts/          # TypeScript runtime scripts (seed, verify, etc.)
@@ -129,7 +129,7 @@ c:\VSCODE\Tutor/
 | `tutorme-app/vitest.config.ts` | Main app | Unit tests in jsdom, includes `src/**/*.test.{ts,tsx}`, mocks `@google/genai` |
 | `tutorme-app/vitest.integration.config.ts` | Main app | Integration tests in node environment, 15s timeout, includes `src/__tests__/integration/**/*.test.ts` |
 | `tutorme-app/playwright.config.ts` | Main app | E2E matching `e2e/**/*.spec.ts` and `src/__tests__/accessibility/**/*.test.ts`, Chromium only, webServer command `npm run dev:next` |
-| `tutorme-app/.env.example` | Main app | Template for all required and optional environment variables |
+| `tutorme-app/.env.local.example` | Main app | Template for local environment overrides (KIMI_API_KEY, ADK_BASE_URL, ADK_AUTH_TOKEN, NEXTAUTH_URL) |
 | `landing-page/vite.config.ts` | Landing page | Vite 6 with React plugin, Tailwind CSS v4 vite plugin, static export to `dist/`, port 3000, HMR disabled when `DISABLE_HMR=true` |
 | `landing-page/tsconfig.json` | Landing page | ES2022, `moduleResolution: bundler`, path alias `@/*` → `./*`, `allowImportingTsExtensions: true` |
 | `services/adk/tsconfig.json` | ADK | `module: NodeNext`, `outDir: dist`, `rootDir: src`, `strict: false` |
@@ -297,7 +297,7 @@ npm run test      # node --import tsx --test
 
 ## Environment Configuration
 
-Copy `tutorme-app/.env.example` to `tutorme-app/.env.local` and configure.
+Copy `tutorme-app/.env.local.example` to `tutorme-app/.env.local` and configure.
 
 **Critical variables**
 
@@ -385,7 +385,7 @@ Startup environment validation lives in `src/lib/env.ts` and is called from `ser
 - `src/app/layout.tsx` — Root layout with metadata, PWA manifest, theme init script, service worker unregister script, Google Fonts (Fira Code, Fira Sans), and top-level providers (`Providers`, `PerformanceProviders`).
 - `src/app/[locale]/layout.tsx` — Locale layout wrapping `NextIntlClientProvider`, `ThemeProvider`, `NavigationOverlayProvider`, `FloatingVideoOverlay`, `PWAInstallPrompt`, `Toaster`, and `AuthProvider`. Validates locale param against configured locales.
 - `src/app/[locale]/` — All user-facing pages grouped by role (`student/`, `tutor/`, `parent/`, `admin/`) plus shared pages (`login/`, `register/`, `onboarding/`, `payment/`, `legal/`, `forgot-password/`, `api-docs/`, `categories/`, `session/`, `tutors/`, `u/`).
-- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files). There are 52 top-level API domains and 216 `route.ts` files.
+- `src/app/api/` — REST API endpoints mirroring the UI structure. Each folder contains `route.ts` (or segment-specific route files). There are 214 `route.ts` files across the API tree.
 
 **Role-specific layout behaviors:**
 - **Student layout** (`[locale]/student/layout.tsx`): Collapsible sidebar, special handling for `/student/tutors` (no sidebar), `/student/feedback` (hides nav entirely), and live class routes.
@@ -395,7 +395,7 @@ Startup environment validation lives in `src/lib/env.ts` and is called from `ser
 
 ### Components (`src/components/`)
 
-Organized by feature domain (~150 component files across 29 top-level directories):
+Organized by feature domain (150 component files across 29 top-level directories):
 - `ui/` — shadcn/ui primitives (Button, Card, Dialog, etc.) — ~30 components
 - `ai-chat/`, `ai-tutor/` — AI interaction UIs
 - `class/` — Live classroom (whiteboard, polls, breakout rooms, engagement)
@@ -407,7 +407,7 @@ Organized by feature domain (~150 component files across 29 top-level directorie
 
 ### Library (`src/lib/`)
 
-Domain-organized business logic (~258 files across 43 top-level directories):
+Domain-organized business logic (263 files across 43 top-level directories):
 - `lib/db/` — Drizzle client (`drizzle.ts`), schema (`schema/`), and migrations
 - `lib/ai/` — AI provider integrations (`kimi.ts`), prompts, teaching prompts, types, memory services
 - `lib/agents/` — Orchestrator (`orchestrator-llm.ts`), tutor agents, grading, live-monitor, content-generator, task-generator, tutor-chat-service
@@ -452,7 +452,7 @@ Zustand stores for client state:
   - `next-auth.ts` — NextAuth.js Drizzle adapter tables
   - `compliance.ts` — GDPR / COPPA / FERPA compliance tables
   - `landing.ts` — Landing page inquiry/signup tables
-- Migrations live in `drizzle/` (52+ SQL migrations) and are managed by `drizzle-kit`.
+- Migrations live in `drizzle/` (77 SQL migrations) and are managed by `drizzle-kit`.
 - Runtime client: `src/lib/db/drizzle.ts` uses `pg.Pool` with singleton pooling (dev pool cached on `globalThis`).
 - Legacy wrapper: `src/lib/db/index.ts` provides a query caching layer (Redis → in-memory fallback). Most app code imports `db` from here; new code should import `drizzleDb` from `./drizzle`.
 

@@ -9,7 +9,8 @@ echo "=== ADK Service Deployment ==="
 # Configuration
 export PROJECT_ID=project-29e0fd29-a707-458c-bd1
 export REGION=us-central1
-export KIMI_API_KEY=sk-nNHM3NxzlQI9DwwHoV92tEBplEiP8lBguvocsS3MLPWm0BFI
+# KIMI API key: DO NOT store real keys in scripts. Provide via env or Secret Manager.
+export KIMI_API_KEY="YOUR_KIMI_API_KEY"
 
 # Generate ADK auth token
 export ADK_AUTH_TOKEN=$(openssl rand -base64 32)
