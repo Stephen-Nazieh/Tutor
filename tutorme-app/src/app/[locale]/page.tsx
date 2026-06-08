@@ -1861,7 +1861,7 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
           </DialogHeader>
           <div className="flex-1 space-y-4 overflow-auto p-6 pt-0">
             <DialogPanel>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <div className="space-y-1">
                   <div className="text-sm font-medium text-muted-foreground">Category</div>
                   <div className="text-base font-semibold text-foreground">
@@ -1880,15 +1880,35 @@ const Panel2SearchResults = ({ query }: { query: string }) => {
                     {selectedCourse?.isFree
                       ? 'Free'
                       : selectedCourse?.price != null
-                        ? `$${selectedCourse.price} / 1h session`
+                        ? `$${selectedCourse.price}`
                         : 'Free'}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-sm font-medium text-muted-foreground">Schedule</div>
+                  <div className="text-sm font-medium text-muted-foreground">Cost per Session</div>
                   <div className="text-base font-semibold text-foreground">
-                    {selectedCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
+                    {selectedCourse?.isFree
+                      ? 'Free'
+                      : selectedCourse?.price != null && selectedCourse?.lessonCount
+                        ? `$${(selectedCourse.price / selectedCourse.lessonCount).toFixed(2)}`
+                        : '—'}
                   </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-sm font-medium text-muted-foreground">Starts</div>
+                  <div className="text-base font-semibold text-foreground">
+                    {selectedCourse?.startDate
+                      ? new Date(selectedCourse.startDate).toLocaleDateString()
+                      : 'TBA'}
+                  </div>
+                </div>
+              </div>
+            </DialogPanel>
+            <DialogPanel>
+              <div className="space-y-1">
+                <div className="text-sm font-medium text-muted-foreground">Schedule</div>
+                <div className="text-base font-semibold text-foreground">
+                  {selectedCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
                 </div>
               </div>
             </DialogPanel>
@@ -3827,10 +3847,10 @@ export default function LandingPage() {
               onClick={() => setHowItWorksOpen(true)}
               className="group relative mt-[22px] min-w-[140px] overflow-hidden rounded-full border border-white/20 bg-transparent px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-transparent focus-visible:!shadow-none focus:outline-none"
             >
-              <span className="block transition-opacity duration-300 group-hover:opacity-0">
+              <span className="block opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                 How It Works
               </span>
-              <span className="absolute inset-0 flex items-center justify-center gap-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+              <span className="absolute inset-0 flex items-center justify-center gap-0.5 transition-opacity duration-300 group-hover:opacity-0">
                 <motion.span
                   className="inline-flex h-5 w-5"
                   animate={{ rotate: 360 }}
