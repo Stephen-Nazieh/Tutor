@@ -109,6 +109,27 @@ const KakaoTalkIcon = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 )
 
+const KakaoTalkBrandIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 512 512" aria-hidden="true" {...props}>
+    <rect width="512" height="512" rx="115" fill="#FEE500" />
+    <path
+      d="M256 120c-79.5 0-144 53.5-144 119.5 0 42 27.5 78.5 69 100.5-3 11-11.5 35-13 41-1.5 5.5 2 8 6.5 5.5 16.5-9 55-33 72.5-46 3 0.5 6 0.5 9 0.5 79.5 0 144-53.5 144-119.5S335.5 120 256 120z"
+      fill="#3C1E1E"
+    />
+    <text
+      x="256"
+      y="275"
+      textAnchor="middle"
+      fill="#FEE500"
+      fontSize="80"
+      fontWeight="bold"
+      fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    >
+      TALK
+    </text>
+  </svg>
+)
+
 const charcoalHeaderClass =
   'flex h-14 items-center gap-3 bg-[linear-gradient(135deg,#1F2933_0%,#374151_35%,#111827_100%)] -mx-6 -mt-6 px-6 rounded-t-[18px] text-white'
 
@@ -1626,7 +1647,7 @@ export default function TutorMyPage() {
                           ? socialAccounts.kakaoTalk
                           : `https://${socialAccounts.kakaoTalk}`)
                       : '—',
-                    icon: KakaoTalkIcon,
+                    icon: KakaoTalkBrandIcon,
                     bgClass: 'bg-[#FEE500]',
                     muted: !socialAccounts.kakaoTalk,
                   },
@@ -1639,7 +1660,7 @@ export default function TutorMyPage() {
                         item.bgClass,
                         item.muted && 'opacity-40'
                       )}>
-                        <Icon className="h-6 w-6 text-white" />
+                        <Icon className={cn('text-white', item.key === 'kakaoTalk' ? 'h-10 w-10' : 'h-6 w-6')} />
                       </div>
                       <div className="min-w-0">
                         <div className="truncate text-base font-semibold text-slate-900">

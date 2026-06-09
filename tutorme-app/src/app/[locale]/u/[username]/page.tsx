@@ -1746,7 +1746,7 @@ export default function PublicTutorPage() {
                         item.bgClass,
                         item.muted && 'opacity-40'
                       )}>
-                        <Icon className="h-6 w-6 text-white" />
+                        <Icon className={cn('text-white', item.key === 'kakaoTalk' ? 'h-10 w-10' : 'h-6 w-6')} />
                       </div>
                       <div className="min-w-0">
                         <div className="truncate text-base font-semibold text-slate-900">
