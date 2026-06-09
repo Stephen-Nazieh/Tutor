@@ -1893,26 +1893,26 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
       >
         <DialogContent className="flex h-[80vh] w-[80vw] max-w-4xl flex-col overflow-hidden">
           <DialogHeader>
-            <DialogTitle className="text-2xl">{selectedCourse?.name}</DialogTitle>
+            <DialogTitle className="text-lg">{selectedCourse?.name}</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 space-y-4 overflow-auto p-6 pt-0">
-            <DialogPanel>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                <div className="space-y-1">
-                  <div className="text-sm font-medium text-muted-foreground">Category</div>
-                  <div className="text-base font-semibold text-foreground">
+          <div className="flex-1 space-y-2 p-3 pt-0">
+            <DialogPanel className="p-3">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-medium text-muted-foreground">Category</div>
+                  <div className="text-sm font-semibold text-foreground">
                     {selectedCourse?.categories?.[0] || 'general'}
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-sm font-medium text-muted-foreground">Sessions</div>
-                  <div className="text-base font-semibold text-foreground">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-medium text-muted-foreground">Sessions</div>
+                  <div className="text-sm font-semibold text-foreground">
                     {selectedCourse?.lessonCount ?? 0} sessions
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-sm font-medium text-muted-foreground">Price</div>
-                  <div className="text-base font-semibold text-foreground">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-medium text-muted-foreground">Price</div>
+                  <div className="text-sm font-semibold text-foreground">
                     {selectedCourse?.isFree
                       ? 'Free'
                       : selectedCourse?.price != null
@@ -1920,9 +1920,9 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                         : 'Free'}
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-sm font-medium text-muted-foreground">Cost per Session</div>
-                  <div className="text-base font-semibold text-foreground">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-medium text-muted-foreground">Cost per Session</div>
+                  <div className="text-sm font-semibold text-foreground">
                     {selectedCourse?.isFree
                       ? 'Free'
                       : selectedCourse?.price != null && selectedCourse?.lessonCount
@@ -1930,9 +1930,9 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                         : '—'}
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-sm font-medium text-muted-foreground">Starts</div>
-                  <div className="text-base font-semibold text-foreground">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-medium text-muted-foreground">Starts</div>
+                  <div className="text-sm font-semibold text-foreground">
                     {selectedCourse?.startDate
                       ? new Date(selectedCourse.startDate).toLocaleDateString()
                       : 'TBA'}
@@ -1940,27 +1940,27 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                 </div>
               </div>
             </DialogPanel>
-            <DialogPanel>
-              <div className="space-y-1">
-                <div className="text-sm font-medium text-muted-foreground">Schedule</div>
-                <div className="text-base font-semibold text-foreground">
+            <DialogPanel className="p-3">
+              <div className="space-y-0.5">
+                <div className="text-xs font-medium text-muted-foreground">Schedule</div>
+                <div className="text-sm font-semibold text-foreground">
                   {selectedCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
                 </div>
               </div>
             </DialogPanel>
-            <DialogPanel>
-              <h3 className="mb-4 text-lg font-semibold text-foreground">About this course</h3>
-              <p className="whitespace-pre-wrap leading-relaxed text-muted-foreground">
+            <DialogPanel className="p-3">
+              <h3 className="mb-2 text-sm font-semibold text-foreground">About this course</h3>
+              <p className="whitespace-pre-wrap text-sm leading-snug text-muted-foreground">
                 {selectedCourse?.description || 'More details will be available soon.'}
               </p>
             </DialogPanel>
-            <DialogPanel>
-              <div className="grid grid-cols-[auto_1fr] gap-4">
+            <DialogPanel className="p-3">
+              <div className="grid grid-cols-[auto_1fr] gap-3">
                 {/* Left column: heading + photo + name */}
-                <div className="flex flex-col gap-4">
-                  <h3 className="text-lg font-semibold text-foreground">About the tutor</h3>
-                  <div className="flex items-start gap-4">
-                    <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-sm font-semibold text-foreground">About the tutor</h3>
+                  <div className="flex items-start gap-3">
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
                       {selectedCourse?.tutor?.avatarUrl ? (
                         <img
                           src={selectedCourse.tutor.avatarUrl}
@@ -1969,15 +1969,15 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                          <User className="h-8 w-8" />
+                          <User className="h-5 w-5" />
                         </div>
                       )}
                     </div>
                     <div className="min-w-[140px] shrink-0">
-                      <div className="text-base font-semibold text-foreground">
+                      <div className="text-sm font-semibold text-foreground">
                         {selectedCourse?.tutor?.name || 'Anonymous Tutor'}
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-xs text-muted-foreground">
                         @{selectedCourse?.tutor?.username || 'tutor'}
                       </div>
                     </div>
@@ -1987,19 +1987,19 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                 {/* Right column: bio */}
                 {selectedCourse?.tutor?.bio && (
                   <div className="hidden self-stretch md:block">
-                    <div className="h-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                      <p className="line-clamp-5 text-sm leading-snug text-muted-foreground">
+                    <div className="h-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1">
+                      <p className="line-clamp-3 text-xs leading-snug text-muted-foreground">
                         {selectedCourse.tutor.bio}
                       </p>
                     </div>
                   </div>
                 )}
               </div>
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 {selectedCourse?.tutor?.createdAt && (
                   <>
-                    <div className="flex items-center gap-1.5">
-                      <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-1">
+                      <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
                       <span>
                         Tutor Since{' '}
                         <span className="font-semibold text-foreground">
@@ -2011,11 +2011,11 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                         </span>
                       </span>
                     </div>
-                    <div className="h-4 w-px bg-border" />
+                    <div className="h-3.5 w-px bg-border" />
                   </>
                 )}
-                <div className="flex items-center gap-1.5">
-                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-1">
+                  <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
                   <span>
                     Active Courses{' '}
                     <span className="font-semibold text-foreground">
@@ -2023,9 +2023,9 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                     </span>
                   </span>
                 </div>
-                <div className="h-4 w-px bg-border" />
-                <div className="flex items-center gap-1.5">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
+                <div className="h-3.5 w-px bg-border" />
+                <div className="flex items-center gap-1">
+                  <Globe className="h-3.5 w-3.5 text-muted-foreground" />
                   <span>
                     Country{' '}
                     <span className="font-semibold text-foreground">
@@ -2033,15 +2033,15 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                     </span>
                   </span>
                 </div>
-                <div className="h-4 w-px bg-border" />
-                <div className="flex items-center gap-1.5">
-                  <CheckCircle className="h-4 w-4 text-emerald-500" />
+                <div className="h-3.5 w-px bg-border" />
+                <div className="flex items-center gap-1">
+                  <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
                   <span className="font-semibold text-emerald-600">Verified</span>
                 </div>
               </div>
             </DialogPanel>
           </div>
-          <DialogFooter className="gap-3">
+          <DialogFooter className="gap-2">
             <Button
               variant="modal-primary-dark"
               onClick={() => {
