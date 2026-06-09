@@ -48,7 +48,6 @@ import {
   Video,
   Search,
   ChevronDown,
-  ChevronLeft,
   ChevronRight,
   ExternalLink,
   User,
@@ -931,37 +930,53 @@ export default function PublicTutorPage() {
     'group rounded-[18px] bg-white p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)] transition-all duration-200 ease-in-out hover:shadow-[0_20px_60px_rgba(0,0,0,0.16)]'
 
 
-  const StripArrow = ({
+  const TriangleArrow = ({
     direction,
     disabled,
     onClick,
     label,
+    className,
   }: {
     direction: 'left' | 'right'
     disabled: boolean
     onClick: () => void
     label: string
-  }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        'shrink-0 transition-all duration-300',
-        'flex h-10 w-10 items-center justify-center',
-        !disabled
-          ? 'cursor-pointer text-slate-500 hover:text-slate-800'
-          : 'cursor-not-allowed text-slate-300'
-      )}
-      aria-label={label}
-    >
-      {direction === 'left' ? (
-        <ChevronLeft className="h-6 w-6" />
-      ) : (
-        <ChevronRight className="h-6 w-6" />
-      )}
-    </button>
-  )
+    className?: string
+  }) => {
+    const bg = 'linear-gradient(135deg, rgba(55,65,75,0.5) 0%, rgba(25,35,45,0.5) 100%)'
+    const outline = 'drop-shadow(0 0 2px rgba(30,40,50,0.5)) drop-shadow(0 0 4px rgba(30,40,50,0.3))'
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className={cn(
+          'shrink-0 transition-all duration-300',
+          'h-[clamp(176px,14.4vw,224px)] w-[clamp(44px,3.6vw,56px)]',
+          'self-center',
+          !disabled
+            ? cn(
+                'cursor-pointer',
+                'hover:brightness-110',
+                'hover:-translate-y-[2px]',
+                direction === 'left' && 'hover:-translate-x-1',
+                direction === 'right' && 'hover:translate-x-1'
+              )
+            : 'cursor-not-allowed opacity-30 grayscale',
+          className
+        )}
+        style={{
+          clipPath:
+            direction === 'left'
+              ? 'polygon(100% 0, 100% 100%, 0 50%)'
+              : 'polygon(0 0, 0 100%, 100% 50%)',
+          background: bg,
+          filter: `drop-shadow(0 12px 24px rgba(0,0,0,0.35)) ${outline}`,
+        }}
+        aria-label={label}
+      />
+    )
+  }
 
   const CourseCardStrip = ({ courses }: { courses: typeof enrollingCourses }) => {
     const [page, setPage] = useState(0)
@@ -979,20 +994,20 @@ export default function PublicTutorPage() {
     const placeholders = Math.max(0, PAGE_SIZE - visible.length)
 
     return (
-      <div className="flex items-stretch justify-between">
-        <StripArrow
+      <div className="flex w-full items-center justify-center gap-[18px]">
+        <TriangleArrow
           direction="left"
           disabled={!canPrev}
           onClick={() => setPage(p => Math.max(0, p - 1))}
           label="Previous courses"
         />
         <div
-          className="overflow-hidden"
+          className="overflow-hidden py-3"
           style={{
             width: CARD_WIDTH * PAGE_SIZE + CARD_GAP * (PAGE_SIZE - 1),
           }}
         >
-          <div className="flex h-full gap-8">
+          <div className="grid grid-cols-3 gap-8">
             {visible.map(
               (
                 course: PublicTutorResponse['courses'][number] & {
@@ -1413,11 +1428,12 @@ export default function PublicTutorPage() {
             ))}
           </div>
         </div>
-        <StripArrow
+        <TriangleArrow
           direction="right"
           disabled={!canNext}
           onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
           label="Next courses"
+          className="mr-6"
         />
       </div>
     )
