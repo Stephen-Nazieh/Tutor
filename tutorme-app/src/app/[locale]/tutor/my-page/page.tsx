@@ -1429,25 +1429,25 @@ export default function TutorMyPage() {
                       {normalizedUsername ? normalizedUsername.slice(0, 2).toUpperCase() : 'TU'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute bottom-2 right-2 flex gap-1">
+                  <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1">
                     <Button
                       size="icon"
-                      className="h-8 w-8 rounded-xl border border-white/40 bg-white text-[#1F2933] shadow hover:bg-white/90"
+                      className="h-6 w-6 rounded-xl bg-white text-[#1F2933] shadow hover:bg-white/90"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={uploadingAvatar}
                       aria-label="Edit profile photo"
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Pencil className="h-3 w-3" />
                     </Button>
                     {avatarUrl && (
                       <Button
                         size="icon"
-                        className="h-8 w-8 rounded-xl border border-white/40 bg-red-500 text-white shadow hover:bg-red-600"
+                        className="h-6 w-6 rounded-xl bg-red-500 text-white shadow hover:bg-red-600"
                         onClick={() => void handleDeleteAvatar()}
                         disabled={uploadingAvatar}
                         aria-label="Delete profile photo"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-3 w-3" />
                       </Button>
                     )}
                   </div>
