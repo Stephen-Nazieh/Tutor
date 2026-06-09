@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useRealmSession } from '@/hooks/use-realm-session'
 import { Button } from '@/components/ui/button'
 import { UserNav } from '@/components/user-nav'
@@ -61,11 +61,6 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   const { data: session, status } = useSession()
   const { data: realmSession, status: realmStatus } = useRealmSession('tutor')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [desktopNavOpen, setDesktopNavOpen] = useState(() => {
-    // Initialize based on current path to prevent sidebar flash on My Page
-    const path = typeof window !== 'undefined' ? window.location.pathname : ''
-    return !/\/tutor\/my-page(\/|$)/.test(path)
-  })
   const [isPeeking, setIsPeeking] = useState(false)
   const localePrefix = useMemo(() => {
     const segments = pathname?.split('/').filter(Boolean) ?? []
@@ -74,6 +69,10 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       ? `/${first}`
       : ''
   }, [pathname])
+
+  // Compute isMyPage before useState so SSR/CSR initial state matches (prevents hydration mismatch)
+  const isMyPage = pathname === `${localePrefix}/tutor/my-page` || pathname?.startsWith(`${localePrefix}/tutor/my-page/`) || /\/tutor\/my-page(\/|$)/.test(pathname || '')
+  const [desktopNavOpen, setDesktopNavOpen] = useState(!isMyPage)
 
   // Scope scrollbar-gutter override to tutor pages (nested scroll containers, not html)
   useEffect(() => {
@@ -107,9 +106,6 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   // Pattern: /tutor/courses/[id] but not sub-paths like /tasks or /enrollments
   const isCoursePublishPage = pathname?.match(/^\/tutor\/courses\/[^\/]+$/) !== null
 
-  // Check if we're on My Page - hide sidebar and show back button instead
-  const isMyPage = pathname === `${localePrefix}/tutor/my-page` || pathname?.startsWith(`${localePrefix}/tutor/my-page/`) || /\/tutor\/my-page(\/|$)/.test(pathname || '')
-
   // Insights page has its own layout with course builder integrated
   const isInsightsPage = pathname === '/tutor/insights' || pathname?.startsWith('/tutor/insights/')
 
@@ -119,12 +115,18 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
   const isDashboard = pathname === `${localePrefix}/tutor/dashboard`
 
-  useEffect(() => {
-    if (isMyPage) {
-      setDesktopNavOpen(false)
-    } else {
-      setDesktopNavOpen(true)
+  // Ensure sidebar DOM always matches state (bypasses any hydration stalemates)
+  const sidebarRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    if (sidebarRef.current) {
+      sidebarRef.current.style.transform = desktopNavOpen ? 'translateX(0px)' : 'translateX(calc(-100% - 1rem))'
+      sidebarRef.current.style.opacity = desktopNavOpen ? '1' : '0'
     }
+  }, [desktopNavOpen])
+
+  // Auto-close on My Page, auto-open elsewhere
+  useEffect(() => {
+    setDesktopNavOpen(!isMyPage)
   }, [isMyPage])
   // Periodic peek animation for sidebar toggle
   useEffect(() => {
@@ -152,12 +154,13 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
         )}
       >
         <div
+          ref={sidebarRef}
           className={cn(
             'm-4 flex h-[calc(100%-2rem)] w-60 flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-300',
             desktopNavOpen ? 'pointer-events-auto' : 'pointer-events-none'
           )}
           style={{
-            transform: desktopNavOpen ? 'translateX(0)' : 'translateX(calc(-100% - 1rem))',
+            transform: desktopNavOpen ? 'translateX(0px)' : 'translateX(calc(-100% - 1rem))',
             opacity: desktopNavOpen ? 1 : 0,
           }}
         >
@@ -243,7 +246,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       {/* Floating collapsed/expanded pill */}
       <div
         className={cn(
-          'fixed top-1/2 z-fixed hidden h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:w-10 lg:flex',
+          'fixed top-1/2 z-[400] hidden h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:w-10 lg:flex',
           desktopNavOpen ? 'left-64' : 'left-0',
           desktopNavOpen ? 'bg-white border-[#E5E7EB]' : 'bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] border-[#1D4ED8]/30',
           isPeeking ? 'w-10' : 'w-8'
