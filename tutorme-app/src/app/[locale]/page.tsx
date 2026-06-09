@@ -3108,12 +3108,12 @@ const CategorySection = ({
     : exams
   if (filtered.length === 0) return null
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <h4 className="flex items-center gap-2 text-xs font-medium text-white">
         <Icon className="h-4 w-4 text-white/80" />
         {label}
       </h4>
-      <div className="grid grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
         {filtered.map((exam, idx) => (
           <label
             key={`${label}-${idx}-${exam}`}
@@ -3318,7 +3318,7 @@ const CategorySearchModal = ({
       <div className="absolute inset-0 bg-black/80" onClick={onClose} onWheel={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} />
       <div className="relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-xl animate-in zoom-in-95 duration-200">
           {/* Header */}
-          <div className="relative shrink-0 px-6 pt-4 pb-1">
+          <div className="relative shrink-0 px-6 pt-4 pb-4">
             <button
               onClick={onClose}
               className="absolute right-4 top-4 p-2 text-white/70 transition-colors hover:text-white"
@@ -3337,7 +3337,7 @@ const CategorySearchModal = ({
               <div className="flex min-w-0 flex-1 flex-col">
                 <div
                   ref={badgeScrollRef}
-                  className="flex h-10 min-w-0 items-center overflow-x-auto scrollbar-hide rounded-xl border border-slate-200 bg-white px-6 py-1"
+                  className="flex h-10 min-w-0 items-center overflow-x-auto scrollbar-hide rounded-md border border-slate-200 bg-white px-6 py-1"
                 >
                   <div className="flex min-w-0 flex-nowrap items-center gap-2">
                     {selectedCategories.length === 0 && (
@@ -3488,7 +3488,7 @@ const CategorySearchModal = ({
           {/* Tabs Content */}
           <div className="w-full pl-6 pr-2 pb-2">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <div className="border-b border-slate-200">
+              <div>
                 <TabsList className="flex w-full flex-wrap justify-between bg-transparent p-0">
                   <TabsTrigger value="global" className={tabTriggerClass} style={{ color: '#0A84FF' }}>
                     <Globe className="mr-1.5 h-4 w-4" /> Global
