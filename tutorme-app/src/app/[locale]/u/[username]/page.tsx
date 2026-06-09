@@ -48,6 +48,7 @@ import {
   Video,
   Search,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   ExternalLink,
   User,
@@ -947,36 +948,25 @@ export default function PublicTutorPage() {
       disabled={disabled}
       className={cn(
         'shrink-0 transition-all duration-300',
-        'h-[200px] w-[44px]',
-        'self-center',
+        'flex h-10 w-10 items-center justify-center',
         !disabled
-          ? cn(
-              'cursor-pointer',
-              'hover:brightness-110',
-              'hover:-translate-y-[2px]',
-              direction === 'left' && 'hover:-translate-x-1',
-              direction === 'right' && 'hover:translate-x-1'
-            )
-          : 'cursor-not-allowed opacity-30 grayscale'
+          ? 'cursor-pointer text-slate-500 hover:text-slate-800'
+          : 'cursor-not-allowed text-slate-300'
       )}
-      style={{
-        clipPath:
-          direction === 'left'
-            ? 'polygon(100% 0, 100% 100%, 0 50%)'
-            : 'polygon(0 0, 0 100%, 100% 50%)',
-        background:
-          'linear-gradient(135deg, rgba(55,65,75,0.5) 0%, rgba(25,35,45,0.5) 100%)',
-        filter:
-          'drop-shadow(0 12px 24px rgba(0,0,0,0.35)) drop-shadow(0 0 2px rgba(30,40,50,0.5)) drop-shadow(0 0 4px rgba(30,40,50,0.3))',
-      }}
       aria-label={label}
-    />
+    >
+      {direction === 'left' ? (
+        <ChevronLeft className="h-6 w-6" />
+      ) : (
+        <ChevronRight className="h-6 w-6" />
+      )}
+    </button>
   )
 
   const CourseCardStrip = ({ courses }: { courses: typeof enrollingCourses }) => {
     const [page, setPage] = useState(0)
-    const PAGE_SIZE = 5
-    const CARD_WIDTH = 240
+    const PAGE_SIZE = 3
+    const CARD_WIDTH = 320
     const CARD_GAP = 32
     const totalPages = Math.max(1, Math.ceil(courses.length / PAGE_SIZE))
     const currentPage = Math.min(page, totalPages - 1)
@@ -989,7 +979,7 @@ export default function PublicTutorPage() {
     const placeholders = Math.max(0, PAGE_SIZE - visible.length)
 
     return (
-      <div className="flex items-stretch gap-4">
+      <div className="flex items-stretch justify-between">
         <StripArrow
           direction="left"
           disabled={!canPrev}
@@ -1448,23 +1438,14 @@ export default function PublicTutorPage() {
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="mb-4 flex w-full items-center justify-between"
+          className="mb-4 flex w-full items-center gap-2"
         >
+          {isOpen ? (
+            <ChevronDown className="h-5 w-5 text-slate-500" />
+          ) : (
+            <ChevronRight className="h-5 w-5 text-slate-500" />
+          )}
           <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
-          <div
-            className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
-              isOpen
-                ? 'bg-blue-100 text-blue-600'
-                : 'bg-slate-100 text-slate-500'
-            )}
-          >
-            {isOpen ? (
-              <ChevronDown className="h-6 w-6" />
-            ) : (
-              <ChevronRight className="h-6 w-6" />
-            )}
-          </div>
         </button>
         <div
           className={cn(
