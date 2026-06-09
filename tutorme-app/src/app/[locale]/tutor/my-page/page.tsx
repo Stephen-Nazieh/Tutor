@@ -101,8 +101,23 @@ const TikTokIcon = (props: SVGProps<SVGSVGElement>) => (
 )
 
 const KakaoTalkIcon = (props: SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
-    <path d="M12 2C6.5 2 2 5.6 2 10c0 2.8 1.8 5.3 4.5 6.7-.2.8-.8 2.6-.9 3-.1.3.2.5.4.3.5-.4 2.2-1.5 3.2-2.2.8.2 1.6.3 2.5.3 5.5 0 10-3.6 10-8.1S17.5 2 12 2z" />
+  <svg viewBox="0 0 512 512" aria-hidden="true" {...props}>
+    <rect width="512" height="512" rx="115" fill="#FEE500" />
+    <path
+      d="M256 120c-79.5 0-144 53.5-144 119.5 0 42 27.5 78.5 69 100.5-3 11-11.5 35-13 41-1.5 5.5 2 8 6.5 5.5 16.5-9 55-33 72.5-46 3 0.5 6 0.5 9 0.5 79.5 0 144-53.5 144-119.5S335.5 120 256 120z"
+      fill="#3C1E1E"
+    />
+    <text
+      x="256"
+      y="275"
+      textAnchor="middle"
+      fill="#FEE500"
+      fontSize="80"
+      fontWeight="bold"
+      fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+    >
+      TALK
+    </text>
   </svg>
 )
 
@@ -1844,7 +1859,7 @@ export default function TutorMyPage() {
                     <div className="grid gap-2.5 md:grid-cols-2">
                       <div className="flex items-center gap-2">
                         <TikTokIcon className="h-9 w-9 shrink-0 text-[#64748B]" />
-                        <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#1D4ED8] focus-within:ring-offset-0">
+                        <div className="flex flex-1 rounded-md border border-[#E2E8F0]">
                           <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
                           <Input
                             placeholder="username"
@@ -1863,7 +1878,7 @@ export default function TutorMyPage() {
 
                       <div className="flex items-center gap-2">
                         <Youtube className="h-9 w-9 shrink-0 text-[#64748B]" />
-                        <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#1D4ED8] focus-within:ring-offset-0">
+                        <div className="flex flex-1 rounded-md border border-[#E2E8F0]">
                           <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
                           <Input
                             placeholder="username"
@@ -1882,7 +1897,7 @@ export default function TutorMyPage() {
 
                       <div className="flex items-center gap-2">
                         <Instagram className="h-9 w-9 shrink-0 text-[#64748B]" />
-                        <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#1D4ED8] focus-within:ring-offset-0">
+                        <div className="flex flex-1 rounded-md border border-[#E2E8F0]">
                           <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
                           <Input
                             placeholder="username"
@@ -1901,7 +1916,7 @@ export default function TutorMyPage() {
 
                       <div className="flex items-center gap-2">
                         <Facebook className="h-9 w-9 shrink-0 text-[#64748B]" />
-                        <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#1D4ED8] focus-within:ring-offset-0">
+                        <div className="flex flex-1 rounded-md border border-[#E2E8F0]">
                           <span className="inline-flex items-center pl-3 text-[#64748B] text-xs">https://</span>
                           <Input
                             placeholder="username"
@@ -1919,11 +1934,11 @@ export default function TutorMyPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <KakaoTalkIcon className="h-9 w-9 shrink-0 text-[#64748B]" />
-                        <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:ring-2 focus-within:ring-[#1D4ED8] focus-within:ring-offset-0">
+                        <KakaoTalkIcon className="h-9 w-9 shrink-0" />
+                        <div className="flex flex-1 rounded-md border border-[#E2E8F0]">
                           <span className="inline-flex items-center pl-3 text-[#64748B] text-xs">https://</span>
                           <Input
-                            placeholder="channels url"
+                            placeholder="username"
                             value={socialAccounts.kakaoTalk.replace(/^@+/, '')}
                             onChange={e =>
                               setSocialAccounts(prev => ({

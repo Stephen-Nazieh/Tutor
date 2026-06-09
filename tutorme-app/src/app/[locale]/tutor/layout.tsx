@@ -154,8 +154,12 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
         <div
           className={cn(
             'm-4 flex h-[calc(100%-2rem)] w-60 flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-300',
-            desktopNavOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none'
+            desktopNavOpen ? 'pointer-events-auto' : 'pointer-events-none'
           )}
+          style={{
+            transform: desktopNavOpen ? 'translateX(0)' : 'translateX(calc(-100% - 1rem))',
+            opacity: desktopNavOpen ? 1 : 0,
+          }}
         >
           <div className="flex h-full w-60 flex-col">
             <div className="flex min-w-[240px] shrink-0 items-center justify-between px-4 py-2">

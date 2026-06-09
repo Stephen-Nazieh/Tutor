@@ -1,0 +1,444 @@
+
+> solocorn-app@0.1.0 build
+> npm run build:sw && next build --webpack
+
+
+> solocorn-app@0.1.0 build:sw
+> node scripts/build-sw.js
+
+
+  public\sw.js  7.0kb
+
+Done in 10ms
+Service worker built successfully: C:\VSCODE\Tutor\tutorme-app\public\sw.js
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\VSCODE\Tutor\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * C:\VSCODE\Tutor\tutorme-app\package-lock.json
+
+▲ Next.js 16.2.3 (webpack)
+- Environments: .env.local, .env
+- Experiments (use with caution):
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+
+[1m[33mwarn[39m[22m - The class `duration-[160ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;160ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[ease]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;ease&rsqb;` to silence this warning.
+⚠ Compiled with warnings in 104s
+
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@prisma/instrumentation/dist/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/prisma.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/app/global-error.tsx
+
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@prisma/instrumentation/dist/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/prisma.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+Critical dependency: the request of a dependency is an expression
+
+Import trace for requested module:
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/instrumentation.js
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/node/index.js
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/platform/index.js
+./node_modules/@prisma/instrumentation/node_modules/@opentelemetry/instrumentation/build/esm/index.js
+./node_modules/@prisma/instrumentation/dist/index.js
+./node_modules/@sentry/node/build/cjs/integrations/tracing/prisma.js
+./node_modules/@sentry/node/build/cjs/index.js
+./node_modules/@sentry/nextjs/build/cjs/index.server.js
+./src/lib/monitoring/sentry-setup.ts
+./src/app/api/health/deployment/route.ts
+
+  Running TypeScript ...
+  Finished TypeScript in 75s ...
+  Collecting page data using 11 workers ...
+[DB] Drizzle client (default db) initialized
+[DB] Drizzle client (default db) initialized
+[DB] Drizzle client (default db) initialized
+[DB] Drizzle client (default db) initialized
+[DB] Drizzle client (default db) initialized
+[DB] Drizzle client (default db) initialized
+[DB] Drizzle client (default db) initialized
+[DB] Drizzle client (default db) initialized
+[DB] Drizzle client (default db) initialized
+[DB] Drizzle client (default db) initialized
+  Generating static pages using 11 workers (0/1129) ...
+  Generating static pages using 11 workers (282/1129) 
+  Generating static pages using 11 workers (564/1129) 
+  Generating static pages using 11 workers (846/1129) 
+✓ Generating static pages using 11 workers (1129/1129) in 21.3s
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ƒ /_not-found
+├ ƒ /[locale]
+├ ƒ /[locale]/admin
+├ ƒ /[locale]/admin/analytics
+├ ƒ /[locale]/admin/analytics/errors
+├ ƒ /[locale]/admin/analytics/revenue
+├ ƒ /[locale]/admin/audit-log
+├ ƒ /[locale]/admin/compliance
+├ ƒ /[locale]/admin/content
+├ ƒ /[locale]/admin/feature-flags
+├ ƒ /[locale]/admin/landing-submissions
+├ ƒ /[locale]/admin/llm
+├ ƒ /[locale]/admin/login
+├ ƒ /[locale]/admin/payments
+├ ƒ /[locale]/admin/security
+├ ƒ /[locale]/admin/settings
+├ ƒ /[locale]/admin/topology
+├ ƒ /[locale]/admin/users
+├ ƒ /[locale]/api-docs
+├ ƒ /[locale]/categories
+├ ƒ /[locale]/forgot-password
+├ ƒ /[locale]/legal/code-of-conduct
+├ ƒ /[locale]/legal/privacy
+├ ƒ /[locale]/legal/terms
+├ ƒ /[locale]/login
+├ ƒ /[locale]/onboarding/student
+├ ƒ /[locale]/onboarding/tutor
+├ ƒ /[locale]/parent/assignments
+├ ƒ /[locale]/parent/children
+├ ƒ /[locale]/parent/classes
+├ ƒ /[locale]/parent/courses
+├ ƒ /[locale]/parent/courses/[id]
+├ ƒ /[locale]/parent/dashboard
+├ ƒ /[locale]/parent/invoices
+├ ƒ /[locale]/parent/messages
+├ ƒ /[locale]/parent/notifications
+├ ƒ /[locale]/parent/payments
+├ ƒ /[locale]/parent/profile
+├ ƒ /[locale]/parent/progress
+├ ƒ /[locale]/parent/settings
+├ ƒ /[locale]/parent/students/[studentId]
+├ ƒ /[locale]/parent/students/[studentId]/ai-tutor
+├ ƒ /[locale]/parent/students/[studentId]/assignments
+├ ƒ /[locale]/parent/teachers
+├ ƒ /[locale]/payment
+├ ƒ /[locale]/payment/cancel
+├ ƒ /[locale]/payment/success
+├ ƒ /[locale]/register
+├ ƒ /[locale]/register/admin
+├ ƒ /[locale]/register/parent
+├ ƒ /[locale]/register/student
+├ ƒ /[locale]/register/tutor
+├ ƒ /[locale]/session/[sessionId]
+├ ƒ /[locale]/student/account
+├ ƒ /[locale]/student/agreement
+├ ƒ /[locale]/student/ai-tutor
+├ ƒ /[locale]/student/ai-tutor/browse
+├ ƒ /[locale]/student/ai-tutor/english
+├ ƒ /[locale]/student/ai-tutor/schedule
+├ ƒ /[locale]/student/assignments
+├ ƒ /[locale]/student/courses
+├ ƒ /[locale]/student/dashboard
+├ ƒ /[locale]/student/dashboard-details
+├ ƒ /[locale]/student/favorites
+├ ƒ /[locale]/student/feedback
+├ ƒ /[locale]/student/help
+├ ƒ /[locale]/student/learn/[contentId]
+├ ƒ /[locale]/student/lesson-replays
+├ ƒ /[locale]/student/live/[sessionId]
+├ ƒ /[locale]/student/messages
+├ ƒ /[locale]/student/missed-classes
+├ ƒ /[locale]/student/missed-lessons
+├ ƒ /[locale]/student/missions
+├ ƒ /[locale]/student/notifications
+├ ƒ /[locale]/student/onboarding
+├ ƒ /[locale]/student/progress
+├ ƒ /[locale]/student/quizzes
+├ ƒ /[locale]/student/quizzes/[id]
+├ ƒ /[locale]/student/resources
+├ ƒ /[locale]/student/review/[contentId]
+├ ƒ /[locale]/student/scores
+├ ƒ /[locale]/student/settings
+├ ƒ /[locale]/student/skills
+├ ƒ /[locale]/student/study-groups
+├ ƒ /[locale]/student/subjects/[subjectCode]
+├ ƒ /[locale]/student/subjects/[subjectCode]/chat
+├ ƒ /[locale]/student/subjects/[subjectCode]/courses
+├ ƒ /[locale]/student/subjects/[subjectCode]/courses/[courseId]
+├ ƒ /[locale]/student/subjects/[subjectCode]/courses/[courseId]/details
+├ ƒ /[locale]/student/subjects/[subjectCode]/signup
+├ ƒ /[locale]/student/tutors
+├ ƒ /[locale]/student/work
+├ ƒ /[locale]/student/worlds
+├ ƒ /[locale]/tutor/ai-assistant
+├ ƒ /[locale]/tutor/calendar
+├ ƒ /[locale]/tutor/classes
+├ ƒ /[locale]/tutor/classroom
+├ ƒ /[locale]/tutor/courses/[id]
+├ ƒ /[locale]/tutor/courses/[id]/enrollments
+├ ƒ /[locale]/tutor/courses/[id]/tasks
+├ ƒ /[locale]/tutor/courses/[id]/tasks/[taskId]/analytics
+├ ƒ /[locale]/tutor/courses/new
+├ ƒ /[locale]/tutor/dashboard
+├ ƒ /[locale]/tutor/documents
+├ ƒ /[locale]/tutor/help
+├ ƒ /[locale]/tutor/insights
+├ ƒ /[locale]/tutor/learning
+├ ƒ /[locale]/tutor/messages
+├ ƒ /[locale]/tutor/my-page
+├ ƒ /[locale]/tutor/notifications
+├ ƒ /[locale]/tutor/quizzes
+├ ƒ /[locale]/tutor/quizzes/[id]
+├ ƒ /[locale]/tutor/reports
+├ ƒ /[locale]/tutor/reports/[studentId]
+├ ƒ /[locale]/tutor/resources
+├ ƒ /[locale]/tutor/revenue
+├ ƒ /[locale]/tutor/sessions/[sessionId]
+├ ƒ /[locale]/tutor/settings
+├ ƒ /[locale]/tutor/students
+├ ƒ /[locale]/tutor/students/list
+├ ƒ /[locale]/tutor/support
+├ ƒ /[locale]/tutor/training
+├ ƒ /[locale]/tutors
+├ ƒ /[locale]/u/[username]
+├ ƒ /api/admin/analytics/topology
+├ ƒ /api/admin/api-keys
+├ ƒ /api/admin/api-keys/[id]
+├ ƒ /api/admin/audit-log
+├ ƒ /api/admin/auth/bridge
+├ ƒ /api/admin/auth/login
+├ ƒ /api/admin/auth/logout
+├ ƒ /api/admin/auth/session
+├ ƒ /api/admin/compliance
+├ ƒ /api/admin/feature-flags
+├ ƒ /api/admin/geolocation
+├ ƒ /api/admin/landing-submissions
+├ ƒ /api/admin/llm/providers
+├ ƒ /api/admin/llm/routing
+├ ƒ /api/admin/payments
+├ ƒ /api/admin/sessions/backfill
+├ ƒ /api/admin/settings
+├ ƒ /api/admin/webhook-events
+├ ƒ /api/ai/chat
+├ ƒ /api/ai/generate-dmi
+├ ƒ /api/ai/monitor-assistant
+├ ƒ /api/ai/pci-master
+├ ƒ /api/ai/status
+├ ƒ /api/ai/tutor
+├ ƒ /api/analytics/web-vitals
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/auth/forgot-password
+├ ƒ /api/auth/register
+├ ƒ /api/auth/register/admin
+├ ƒ /api/auth/register/student
+├ ƒ /api/auth/register/tutor
+├ ƒ /api/auth/session-realm
+├ ƒ /api/auth/set-realm-cookie
+├ ƒ /api/auth/signout
+├ ƒ /api/bookmarks
+├ ƒ /api/chat
+├ ƒ /api/chat/summary
+├ ƒ /api/class/engagement
+├ ƒ /api/class/join
+├ ƒ /api/class/payment-alert
+├ ƒ /api/class/polls
+├ ƒ /api/class/polls/[pollId]
+├ ƒ /api/class/polls/[pollId]/vote
+├ ƒ /api/class/rooms
+├ ƒ /api/class/rooms/[id]/join
+├ ƒ /api/classes
+├ ƒ /api/code/run
+├ ƒ /api/contact
+├ ƒ /api/content
+├ ƒ /api/content/[contentId]
+├ ƒ /api/content/[contentId]/analytics
+├ ƒ /api/content/[contentId]/quiz-skip
+├ ƒ /api/content/[contentId]/upload-complete
+├ ƒ /api/content/[contentId]/watch-events
+├ ƒ /api/content/upload/init
+├ ƒ /api/conversations
+├ ƒ /api/conversations/[id]/messages
+├ ƒ /api/conversations/[id]/messages/search
+├ ƒ /api/conversations/upload
+├ ƒ /api/courses/[id]
+├ ƒ /api/courses/[id]/enroll
+├ ƒ /api/courses/[id]/lessons/[lessonId]
+├ ƒ /api/courses/[id]/lessons/[lessonId]/chat
+├ ƒ /api/courses/[id]/lessons/[lessonId]/messages
+├ ƒ /api/courses/[id]/lessons/[lessonId]/session
+├ ƒ /api/courses/generate-description
+├ ƒ /api/courses/list
+├ ƒ /api/csp-report
+├ ƒ /api/csrf
+├ ƒ /api/feedback/[id]/review
+├ ƒ /api/feedback/batch-approve
+├ ƒ /api/feedback/pending
+├ ƒ /api/feedback/stats
+├ ƒ /api/follows
+├ ƒ /api/follows/list
+├ ƒ /api/health
+├ ƒ /api/health/deployment
+├ ƒ /api/health/enterprise
+├ ƒ /api/health/storage
+├ ƒ /api/landing/message
+├ ƒ /api/landing/signup
+├ ƒ /api/library
+├ ƒ /api/library/[taskId]
+├ ƒ /api/live-class/questions/extend
+├ ƒ /api/notifications
+├ ƒ /api/notifications/[id]
+├ ƒ /api/notifications/preferences
+├ ƒ /api/notifications/stream
+├ ƒ /api/onboarding/student
+├ ƒ /api/onboarding/tutor
+├ ƒ /api/one-on-one/cancel
+├ ƒ /api/one-on-one/request
+├ ƒ /api/one-on-one/respond
+├ ƒ /api/one-on-one/settings
+├ ƒ /api/one-on-one/status
+├ ƒ /api/parent/courses
+├ ƒ /api/parent/dashboard
+├ ƒ /api/parent/financial/budget
+├ ƒ /api/parent/financial/dashboard
+├ ƒ /api/parent/financial/payments
+├ ƒ /api/parent/financial/spending
+├ ƒ /api/parent/messages
+├ ƒ /api/parent/notifications
+├ ƒ /api/parent/payments
+├ ƒ /api/parent/progress
+├ ƒ /api/parent/students
+├ ƒ /api/parent/students/[studentId]
+├ ƒ /api/payments/chinese-gateways
+├ ƒ /api/payments/create
+├ ƒ /api/payments/refund
+├ ƒ /api/payments/webhooks/airwallex
+├ ƒ /api/payments/webhooks/hitpay
+├ ƒ /api/polls
+├ ƒ /api/polls/[pollId]
+├ ƒ /api/polls/[pollId]/vote
+├ ƒ /api/progress
+├ ƒ /api/proxy-file
+├ ƒ /api/public/avatar/[...path]
+├ ƒ /api/public/countries
+├ ƒ /api/public/courses
+├ ƒ /api/public/email-availability
+├ ƒ /api/public/test-kimi
+├ ƒ /api/public/test-ping
+├ ƒ /api/public/tutors
+├ ƒ /api/public/tutors/[username]
+├ ƒ /api/public/tutors/[username]/availability
+├ ƒ /api/public/username-availability
+├ ƒ /api/quiz/generate
+├ ƒ /api/serve-upload/[...path]
+├ ƒ /api/sessions/insights
+├ ƒ /api/socket
+├ ƒ /api/socket-token
+├ ƒ /api/student/assignments/[taskId]/upload
+├ ƒ /api/student/calendar/events
+├ ƒ /api/student/courses/[id]/sessions
+├ ƒ /api/student/directory
+├ ƒ /api/student/enrollments
+├ ƒ /api/student/enrollments/check
+├ ƒ /api/student/feedback/tasks
+├ ƒ /api/student/learning-path
+├ ƒ /api/student/lesson-replays
+├ ƒ /api/student/missed-classes
+├ ƒ /api/student/progress
+├ ƒ /api/student/progress/unified
+├ ƒ /api/student/reports/request
+├ ƒ /api/student/resources
+├ ƒ /api/student/reviews/snooze
+├ ƒ /api/student/sessions/[id]/request-materials
+├ ƒ /api/student/subjects/enroll
+├ ƒ /api/student/subjects/unenroll
+├ ƒ /api/tutor/assets
+├ ƒ /api/tutor/calendar/availability
+├ ƒ /api/tutor/calendar/check
+├ ƒ /api/tutor/calendar/events
+├ ƒ /api/tutor/calendar/events/[id]
+├ ƒ /api/tutor/calendar/exceptions
+├ ƒ /api/tutor/calendar/export
+├ ƒ /api/tutor/calendar/recommendations
+├ ƒ /api/tutor/calendar/sync
+├ ƒ /api/tutor/classes
+├ ƒ /api/tutor/classes/[id]
+├ ƒ /api/tutor/classes/start-ad-hoc
+├ ƒ /api/tutor/courses
+├ ƒ /api/tutor/courses/[id]
+├ ƒ /api/tutor/courses/[id]/clone
+├ ƒ /api/tutor/courses/[id]/course
+├ ƒ /api/tutor/courses/[id]/enrollments
+├ ƒ /api/tutor/courses/[id]/enrollments/[enrollmentId]
+├ ƒ /api/tutor/courses/[id]/materials
+├ ƒ /api/tutor/courses/[id]/materials/convert-and-outline
+├ ƒ /api/tutor/courses/[id]/materials/outline
+├ ƒ /api/tutor/courses/[id]/materials/upload
+├ ƒ /api/tutor/courses/[id]/publish
+├ ƒ /api/tutor/courses/[id]/schedule/populate-from-outline
+├ ƒ /api/tutor/courses/[id]/schedules
+├ ƒ /api/tutor/courses/[id]/sessions
+├ ƒ /api/tutor/courses/[id]/submissions-tree
+├ ƒ /api/tutor/courses/[id]/sync-content
+├ ƒ /api/tutor/courses/[id]/variants
+├ ƒ /api/tutor/courses/enrolled
+├ ƒ /api/tutor/courses/share
+├ ƒ /api/tutor/live-sessions/[sessionId]/recording
+├ ƒ /api/tutor/live-sessions/[sessionId]/replay-artifact/generate
+├ ƒ /api/tutor/live-sessions/[sessionId]/submissions
+├ ƒ /api/tutor/live-sessions/[sessionId]/transcription/start
+├ ƒ /api/tutor/live-sessions/[sessionId]/transcription/status
+├ ƒ /api/tutor/payouts
+├ ƒ /api/tutor/public-profile
+├ ƒ /api/tutor/public-profile/avatar
+├ ƒ /api/tutor/questions/generate
+├ ƒ /api/tutor/reports
+├ ƒ /api/tutor/resources
+├ ƒ /api/tutor/resources/[id]
+├ ƒ /api/tutor/resources/[id]/download
+├ ƒ /api/tutor/resources/[id]/share
+├ ƒ /api/tutor/resources/upload-proxy
+├ ƒ /api/tutor/resources/upload-url
+├ ƒ /api/tutor/revenue
+├ ƒ /api/tutor/revenue/balance
+├ ƒ /api/tutor/sessions/[id]
+├ ƒ /api/tutor/stats
+├ ƒ /api/tutor/students
+├ ƒ /api/tutors/by-subject
+├ ƒ /api/uploads/cleanup
+├ ƒ /api/uploads/documents
+├ ƒ /api/user/avatar
+├ ƒ /api/user/delete-account
+├ ƒ /api/user/gdpr/delete
+├ ƒ /api/user/gdpr/export
+├ ƒ /api/user/profile
+├ ƒ /api/users/search
+├ ƒ /api/version
+├ ƒ /api/webhooks/daily
+└ ƒ /api/whiteboard/render-formula
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

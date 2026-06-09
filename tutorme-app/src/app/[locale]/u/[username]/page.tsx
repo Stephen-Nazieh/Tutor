@@ -110,8 +110,11 @@ const TikTokIcon = (props: SVGProps<SVGSVGElement>) => (
 )
 
 const KakaoTalkIcon = (props: SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
-    <path d="M12 2C6.5 2 2 5.6 2 10c0 2.8 1.8 5.3 4.5 6.7-.2.8-.8 2.6-.9 3-.1.3.2.5.4.3.5-.4 2.2-1.5 3.2-2.2.8.2 1.6.3 2.5.3 5.5 0 10-3.6 10-8.1S17.5 2 12 2z" />
+  <svg viewBox="0 0 512 512" aria-hidden="true" {...props}>
+    <path
+      d="M256 120c-79.5 0-144 53.5-144 119.5 0 42 27.5 78.5 69 100.5-3 11-11.5 35-13 41-1.5 5.5 2 8 6.5 5.5 16.5-9 55-33 72.5-46 3 0.5 6 0.5 9 0.5 79.5 0 144-53.5 144-119.5S335.5 120 256 120z"
+      fill="#3C1E1E"
+    />
   </svg>
 )
 
