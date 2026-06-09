@@ -64,7 +64,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   const [desktopNavOpen, setDesktopNavOpen] = useState(() => {
     // Initialize based on current path to prevent sidebar flash on My Page
     const path = typeof window !== 'undefined' ? window.location.pathname : ''
-    return !(path === '/tutor/my-page' || path.startsWith('/tutor/my-page/'))
+    return !/\/tutor\/my-page(\/|$)/.test(path)
   })
   const [isPeeking, setIsPeeking] = useState(false)
   const localePrefix = useMemo(() => {
@@ -108,7 +108,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   const isCoursePublishPage = pathname?.match(/^\/tutor\/courses\/[^\/]+$/) !== null
 
   // Check if we're on My Page - hide sidebar and show back button instead
-  const isMyPage = pathname === '/tutor/my-page' || pathname?.startsWith('/tutor/my-page/')
+  const isMyPage = pathname === `${localePrefix}/tutor/my-page` || pathname?.startsWith(`${localePrefix}/tutor/my-page/`) || /\/tutor\/my-page(\/|$)/.test(pathname || '')
 
   // Insights page has its own layout with course builder integrated
   const isInsightsPage = pathname === '/tutor/insights' || pathname?.startsWith('/tutor/insights/')
@@ -153,8 +153,8 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       >
         <div
           className={cn(
-            'm-4 flex h-[calc(100%-2rem)] w-60 flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-transform duration-300',
-            desktopNavOpen ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)]'
+            'm-4 flex h-[calc(100%-2rem)] w-60 flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-300',
+            desktopNavOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 pointer-events-none'
           )}
         >
           <div className="flex h-full w-60 flex-col">
