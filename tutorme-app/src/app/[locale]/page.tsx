@@ -5,7 +5,7 @@
 
 'use client'
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   UserPlus,
@@ -3160,7 +3160,7 @@ const CategorySearchModal = ({
   const [selectedCountries, setSelectedCountries] = useState<string[]>([])
   const [activeTab, setActiveTab] = useState('global')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [globalContentHeight, setGlobalContentHeight] = useState<number>(380)
+  const [globalContentHeight, setGlobalContentHeight] = useState<number>(480)
   const globalContentRef = useRef<HTMLDivElement>(null)
 
   // Badge bar scroll navigation
@@ -3297,15 +3297,12 @@ const CategorySearchModal = ({
       : exams
 
   // Measure Global tab content height to establish container size for other tabs
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (activeTab !== 'global') return
-    const timer = setTimeout(() => {
-      if (globalContentRef.current) {
-        setGlobalContentHeight(globalContentRef.current.scrollHeight + 24)
-      }
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [activeTab])
+    if (globalContentRef.current) {
+      setGlobalContentHeight(globalContentRef.current.scrollHeight + 48)
+    }
+  }, [activeTab, isOpen])
 
   const hasResults = (exams: string[]) => filterExams(exams).length > 0
 
@@ -3549,7 +3546,7 @@ const CategorySearchModal = ({
                   <>
                     {/* Global */}
                     <TabsContent value="global" className="mt-0 space-y-8">
-                      <div ref={globalContentRef}>
+                      <div ref={globalContentRef} className="space-y-8">
                         {GLOBAL_EXAMS_CATEGORIES.map(cat => (
                         <CategorySection key={cat.id} label={cat.label} icon={BookOpen} exams={cat.exams} categorySearch={categorySearch} selectedCategories={selectedCategories} onToggleCategory={toggleCategory} color="#0A84FF" />
                       ))}
