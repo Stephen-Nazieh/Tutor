@@ -624,105 +624,12 @@ function TutorDashboardContent() {
           </div>
         )}
 
-        {/* Dashboard Stats */}
-        <div className="mb-8 space-y-4">
-          <Card className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-1 gap-6 divide-y divide-border/20 md:grid-cols-2 md:divide-x md:divide-y-0">
-                <div className="py-2 text-center md:py-0">
-                  <h3 className="text-muted-foreground text-lg font-medium">Total Classes</h3>
-                  <p className="mt-2 text-4xl font-bold text-foreground">{stats.totalClasses}</p>
-                </div>
-                <div className="py-2 text-center md:px-6 md:py-0">
-                  <h3 className="text-muted-foreground text-lg font-medium">Active Students</h3>
-                  <p className="mt-2 text-4xl font-bold text-foreground">{stats.totalStudents}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* 1-on-1 Requests */}
-        <div className="mb-8">
-          <Card className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
-            <CardHeader className="flex flex-row items-center justify-between gap-3">
-              <div>
-                <CardTitle className="text-card-foreground">1-on-1 Requests</CardTitle>
-                <p className="text-muted-foreground text-xs">Pending requests from students</p>
-              </div>
-              <Button asChild variant="outline" size="sm" className="transition-all duration-200 hover:bg-muted/80">
-                <Link href={withLocalePath('/tutor/notifications')}>View all</Link>
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {oneOnOneRequests.length === 0 ? (
-                <div className="text-muted-foreground rounded-lg border border-dashed border-border/30 p-6 text-center text-sm">
-                  No pending 1-on-1 requests.
-                </div>
-              ) : (
-                oneOnOneRequests.slice(0, 3).map(request => (
-                  <div
-                    key={request.requestId}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/20 bg-muted/30 p-4 transition-all duration-200 hover:border-border/40 hover:bg-muted/50"
-                  >
-                    <div className="min-w-0 space-y-1">
-                      <p className="truncate font-semibold text-foreground">
-                        @{request.student?.handle || 'student'}
-                      </p>
-                      <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-                        <span>
-                          {new Date(request.requestedDate).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}
-                        </span>
-                        <span>•</span>
-                        <span>
-                          {request.startTime} - {request.endTime}
-                        </span>
-                        <span>•</span>
-                        <span>{request.timezone}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={respondingRequestId === request.requestId}
-                        onClick={() => handleOneOnOneResponse(request.requestId, 'accept')}
-                        className="transition-all duration-200"
-                      >
-                        Accept
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-destructive transition-all duration-200 hover:bg-destructive/10"
-                        disabled={respondingRequestId === request.requestId}
-                        onClick={() => handleOneOnOneResponse(request.requestId, 'reject')}
-                      >
-                        Reject
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              )}
-              {oneOnOneRequests.length > 3 ? (
-                <p className="text-muted-foreground text-xs">
-                  +{oneOnOneRequests.length - 3} more pending requests
-                </p>
-              ) : null}
-            </CardContent>
-          </Card>
-        </div>
-
         <div className="mb-8">
           <Card className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
             <Tabs defaultValue="courses" className="w-full">
               <CardHeader className="pb-0">
                 <div className="flex items-center gap-3">
-                  <TabsList className="grid w-full max-w-md grid-cols-3 bg-[#2D2B4E] p-1 rounded-xl">
+                  <TabsList className="grid w-full max-w-md grid-cols-4 bg-[#2D2B4E] p-1 rounded-xl">
                     <TabsTrigger
                       value="courses"
                       className="rounded-lg text-white/70 hover:text-white data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
@@ -740,6 +647,12 @@ function TutorDashboardContent() {
                       className="rounded-lg text-white/70 hover:text-white data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
                     >
                       My Availability
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="oneOnOne"
+                      className="rounded-lg text-white/70 hover:text-white data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
+                    >
+                      1 on 1 Requests
                     </TabsTrigger>
                   </TabsList>
                   <Select value={timezone} onValueChange={setTimezone}>
@@ -882,6 +795,69 @@ function TutorDashboardContent() {
                         </div>
                       )
                     })
+                  )}
+                </div>
+              </TabsContent>
+              <TabsContent value="oneOnOne">
+                <div className="flex items-center justify-between mb-4">
+                  <CardTitle className="text-card-foreground">Pending 1 on 1 Requests</CardTitle>
+                  <Button asChild variant="outline" size="sm" className="transition-all duration-200 hover:bg-muted/80">
+                    <Link href={withLocalePath('/tutor/notifications')}>View all</Link>
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {oneOnOneRequests.length === 0 ? (
+                    <div className="text-muted-foreground rounded-lg border border-dashed border-border/30 p-6 text-center text-sm">
+                      No pending 1 on 1 requests.
+                    </div>
+                  ) : (
+                    oneOnOneRequests.map(request => (
+                      <div
+                        key={request.requestId}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/20 bg-muted/30 p-4 transition-all duration-200 hover:border-border/40 hover:bg-muted/50"
+                      >
+                        <div className="min-w-0 space-y-1">
+                          <p className="truncate font-semibold text-foreground">
+                            @{request.student?.handle || 'student'}
+                          </p>
+                          <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
+                            <span>
+                              {new Date(request.requestedDate).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
+                            </span>
+                            <span>•</span>
+                            <span>
+                              {request.startTime} - {request.endTime}
+                            </span>
+                            <span>•</span>
+                            <span>{request.timezone}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={respondingRequestId === request.requestId}
+                            onClick={() => handleOneOnOneResponse(request.requestId, 'accept')}
+                            className="transition-all duration-200"
+                          >
+                            Accept
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive transition-all duration-200 hover:bg-destructive/10"
+                            disabled={respondingRequestId === request.requestId}
+                            onClick={() => handleOneOnOneResponse(request.requestId, 'reject')}
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
               </TabsContent>

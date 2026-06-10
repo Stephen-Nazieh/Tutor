@@ -1877,37 +1877,26 @@ export default function PublicTutorPage() {
       >
         <DialogContent className="flex h-[80vh] w-[80vw] max-w-4xl flex-col overflow-hidden">
           <DialogHeader>
-            <DialogTitle className="text-2xl">{detailsCourse?.name}</DialogTitle>
-            <DialogDescription className="mt-2 text-base">
-              {detailsCourse?.description || 'No description provided.'}
-            </DialogDescription>
+            <DialogTitle className="text-lg">{detailsCourse?.name}</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 space-y-4 overflow-auto p-6 pt-0">
-            {detailsCourse?.startDate && (
-              <div className="flex justify-end">
-                <div className="inline-flex items-center gap-2 text-sm font-medium text-gray-600">
-                  <CalendarDays className="h-4 w-4" />
-                  Starts {new Date(detailsCourse.startDate).toLocaleDateString()}
-                </div>
-              </div>
-            )}
-            <DialogPanel>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                <div className="space-y-1">
-                  <div className="text-sm font-medium text-gray-600">Category</div>
-                  <div className="text-base font-semibold text-gray-900">
+          <div className="flex-1 space-y-2 p-3 pt-0">
+            <DialogPanel className="p-3">
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-medium text-muted-foreground">Category</div>
+                  <div className="text-sm font-semibold text-foreground">
                     {detailsCourse?.categories?.[0] || 'general'}
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-sm font-medium text-gray-600">Sessions</div>
-                  <div className="text-base font-semibold text-gray-900">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-medium text-muted-foreground">Sessions</div>
+                  <div className="text-sm font-semibold text-foreground">
                     {detailsCourse?.lessonCount ?? 0} sessions
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-sm font-medium text-gray-600">Price</div>
-                  <div className="text-base font-semibold text-gray-900">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-medium text-muted-foreground">Price</div>
+                  <div className="text-sm font-semibold text-foreground">
                     {detailsCourse?.isFree
                       ? 'Free'
                       : detailsCourse?.price != null
@@ -1915,22 +1904,19 @@ export default function PublicTutorPage() {
                         : 'Free'}
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-sm font-medium text-gray-600">Cost Per Session</div>
-                  <div className="text-base font-semibold text-gray-900">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-medium text-muted-foreground">Cost per Session</div>
+                  <div className="text-sm font-semibold text-foreground">
                     {detailsCourse?.isFree
                       ? 'Free'
-                      : (() => {
-                          const price = detailsCourse?.price ?? 0
-                          const sessions = detailsCourse?.lessonCount ?? 0
-                          if (!price || sessions === 0) return 'Free'
-                          return `$${(price / sessions).toFixed(2)}`
-                        })()}
+                      : detailsCourse?.price != null && detailsCourse?.lessonCount
+                        ? `$${(detailsCourse.price / detailsCourse.lessonCount).toFixed(2)}`
+                        : '—'}
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <div className="text-sm font-medium text-gray-600">Status</div>
-                  <div className="text-base font-semibold text-gray-900">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-medium text-muted-foreground">Status</div>
+                  <div className="text-sm font-semibold text-foreground">
                     {(() => {
                       const total = detailsCourse?.liveSessionsTotal ?? 0
                       const completed = detailsCourse?.liveSessionsCompleted ?? 0
@@ -1942,34 +1928,42 @@ export default function PublicTutorPage() {
                 </div>
               </div>
             </DialogPanel>
-            <DialogPanel>
-              <h3 className="mb-4 text-lg font-semibold text-gray-900">Schedule</h3>
-              <div className="text-base font-semibold text-gray-900">
-                {detailsCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
+            <DialogPanel className="p-3">
+              <div className="space-y-0.5">
+                <div className="text-xs font-medium text-muted-foreground">Schedule</div>
+                <div className="text-sm font-semibold text-foreground">
+                  {detailsCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
+                </div>
               </div>
             </DialogPanel>
-            <DialogPanel>
-              <h3 className="mb-4 text-lg font-semibold text-gray-900">About this course</h3>
-              <p className="whitespace-pre-wrap leading-relaxed text-gray-600">
+            <DialogPanel className="p-3">
+              <h3 className="mb-2 text-sm font-semibold text-foreground">About this course</h3>
+              <p className="whitespace-pre-wrap text-sm leading-snug text-muted-foreground">
                 {detailsCourse?.description || 'More details will be available soon.'}
               </p>
             </DialogPanel>
           </div>
-          <DialogFooter className="gap-3">
+          <DialogFooter className="gap-2">
             <Button
-              variant="modal-primary"
+              variant="modal-primary-dark"
               onClick={() => {
                 setDetailsCourse(null)
-                if (publicPath) router.push(publicPath)
+                if (!session?.user) {
+                  toast.info('Please log in to enroll')
+                  router.push(`/${locale}/login`)
+                  return
+                }
+                const subject = detailsCourse?.categories?.[0] || 'general'
+                router.push(
+                  `/${locale}/student/subjects/${encodeURIComponent(subject)}/courses/${encodeURIComponent(detailsCourse?.id || '')}`
+                )
               }}
-              className="h-10"
             >
-              Go To Public Page
+              Enroll
             </Button>
             <Button
-              variant="modal-secondary"
+              variant="modal-secondary-dark"
               onClick={() => setDetailsCourse(null)}
-              className="h-10"
             >
               Close
             </Button>
