@@ -667,7 +667,7 @@ function TutorDashboardContent() {
                       value="courses"
                       className="flex-1 rounded-lg text-white/80 hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:shadow-sm"
                     >
-                      Active Courses
+                      Sessions
                     </TabsTrigger>
                     <TabsTrigger
                       value="calendar"
@@ -725,7 +725,12 @@ function TutorDashboardContent() {
                 </TabsContent>
                 <TabsContent value="courses" className="flex-1 min-h-0 overflow-hidden mt-0">
                   <div className="h-full overflow-y-auto">
-                    <CardTitle className="mb-4 text-card-foreground">Courses With Enrolled Students</CardTitle>
+                    <CardTitle className="mb-4 text-card-foreground flex items-center gap-2">
+                      Session Schedule
+                      <span className="text-muted-foreground text-sm font-normal">
+                        {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                      </span>
+                    </CardTitle>
                     <div className="space-y-3">
                   {enrolledCourses.length === 0 ? (
                     <div className="text-muted-foreground rounded-lg border border-dashed border-border/30 p-6 text-center text-sm">

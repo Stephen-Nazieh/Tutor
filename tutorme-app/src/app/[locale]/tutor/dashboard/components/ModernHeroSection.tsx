@@ -127,7 +127,7 @@ export function ModernHeroSection({
 
   if (loading) {
     return (
-      <div className="relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-8 shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
+      <div className="relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-8 shadow-[0_14px_45px_rgba(0,0,0,0.12)] ring-1 ring-white/20">
         <div className="animate-pulse space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
@@ -152,7 +152,7 @@ export function ModernHeroSection({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
+    <div className="relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)] ring-1 ring-white/20">
       {/* Content */}
       <div className="relative z-10">
         {/* Header Row */}
@@ -289,8 +289,7 @@ export function ModernHeroSection({
           </Button>
           <Button
             size="sm"
-            variant="outline"
-            className="border-white text-white shadow-none hover:translate-y-0 hover:border-white hover:bg-white hover:text-[#2563EB] hover:shadow-none"
+            className="border border-white bg-[#65A30D] text-white shadow-none hover:translate-y-0 hover:bg-[#4D7C0F] hover:shadow-none"
             onClick={() => toast.info('Coming soon...')}
           >
             <Video className="mr-1.5 h-4 w-4" />

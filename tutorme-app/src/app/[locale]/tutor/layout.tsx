@@ -12,7 +12,7 @@ import {
   BarChart3,
   MessageSquare,
   Settings,
-  Lightbulb,
+  Wrench,
   Menu,
   X,
   Bell,
@@ -37,23 +37,24 @@ type NavItem = {
   label: string
   icon: typeof LayoutDashboard
   inactive?: boolean
+  iconColor: string
 }
 
 // Main Navigation - Flat list (no groups)
 const navItems: NavItem[] = [
-  { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/tutor/my-page', label: 'My Page', icon: Globe },
-  { href: '/tutor/insights', label: 'Course Builder', icon: Lightbulb },
-  { href: '/tutor/classes', label: 'Live Sessions', icon: Video },
-  { href: '/tutor/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/tutor/reports', label: 'Analytics', icon: BarChart3 },
-  { href: '/tutor/training', label: 'Training', icon: GraduationCap },
-  { href: '/tutor/support', label: 'Support', icon: HelpCircle },
+  { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard, iconColor: 'text-[#2563EB]' },
+  { href: '/tutor/my-page', label: 'My Page', icon: Globe, iconColor: 'text-[#7C3AED]' },
+  { href: '/tutor/insights', label: 'Course Builder', icon: Wrench, iconColor: 'text-[#EA580C]' },
+  { href: '/tutor/classes', label: 'Live Sessions', icon: Video, iconColor: 'text-[#16A34A]' },
+  { href: '/tutor/messages', label: 'Messages', icon: MessageSquare, iconColor: 'text-[#EC4899]' },
+  { href: '/tutor/reports', label: 'Analytics', icon: BarChart3, iconColor: 'text-[#F59E0B]' },
+  { href: '/tutor/training', label: 'Training', icon: GraduationCap, iconColor: 'text-[#06B6D4]' },
+  { href: '/tutor/support', label: 'Support', icon: HelpCircle, iconColor: 'text-[#8B5CF6]' },
 
   // Whiteboard audit links
 ]
 
-const bottomNavItems = [{ href: '/tutor/settings', label: 'Account', icon: User }]
+const bottomNavItems: NavItem[] = [{ href: '/tutor/settings', label: 'Account', icon: User, iconColor: 'text-[#64748B]' }]
 
 export default function TutorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -200,7 +201,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     )}
                   >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    <Icon className={cn('h-5 w-5 flex-shrink-0', item.iconColor)} />
                     <span className="text-sm font-medium">{item.label}</span>
                   </Link>
                 )
@@ -223,7 +224,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     )}
                   >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    <Icon className={cn('h-5 w-5 flex-shrink-0', item.iconColor)} />
                     <span className="font-medium">{item.label}</span>
                   </Link>
                 )
@@ -235,7 +236,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
                 }}
                 className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
               >
-                <LogOut className="h-5 w-5 flex-shrink-0" />
+                <LogOut className="h-5 w-5 flex-shrink-0 text-[#EF4444]" />
                 <span className="font-medium">Logout</span>
               </button>
             </div>
