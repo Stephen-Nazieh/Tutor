@@ -10298,7 +10298,7 @@ FEEDBACK: [your explanation]`
               </div>
             </div>
             <DialogFooter>
-              <Button variant="modal-secondary" onClick={() => setShowDmiVersionList(false)}>
+              <Button variant="modal-secondary-dark" onClick={() => setShowDmiVersionList(false)}>
                 Close
               </Button>
             </DialogFooter>
@@ -10345,7 +10345,7 @@ FEEDBACK: [your explanation]`
             </div>
             <DialogFooter>
               <Button
-                variant="modal-primary"
+                variant="modal-primary-dark"
                 onClick={() => {
                   if (previewDmiVersion) {
                     handleLoadDmiVersion(previewDmiVersion, mainBuilderTab)
@@ -10355,7 +10355,7 @@ FEEDBACK: [your explanation]`
               >
                 Load This Version
               </Button>
-              <Button variant="modal-secondary" onClick={() => setPreviewDmiVersion(null)}>
+              <Button variant="modal-secondary-dark" onClick={() => setPreviewDmiVersion(null)}>
                 Close
               </Button>
             </DialogFooter>
@@ -10415,7 +10415,7 @@ FEEDBACK: [your explanation]`
             </div>
             <DialogFooter>
               <Button
-                variant="modal-secondary"
+                variant="modal-secondary-dark"
                 onClick={() => setPptUploadDialog({ isOpen: false, file: null, target: null })}
               >
                 Cancel
@@ -10433,7 +10433,7 @@ FEEDBACK: [your explanation]`
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="modal-secondary" onClick={() => setComingSoonDialog(false)}>
+              <Button variant="modal-secondary-dark" onClick={() => setComingSoonDialog(false)}>
                 Close
               </Button>
             </DialogFooter>

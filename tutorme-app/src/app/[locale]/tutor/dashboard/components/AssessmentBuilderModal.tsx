@@ -358,13 +358,13 @@ export function AssessmentBuilderModal({
           </Tabs>
           <DialogFooter className="gap-2">
             <Button
-              variant="modal-secondary"
+              variant="modal-secondary-dark"
               onClick={onClose}
             >
               Cancel
             </Button>
             <Button
-              variant="modal-primary"
+              variant="modal-primary-dark"
               onClick={() => onSave({ ...data })}
             >
               Save

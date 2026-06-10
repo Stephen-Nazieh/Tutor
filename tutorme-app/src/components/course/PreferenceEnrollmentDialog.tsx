@@ -278,11 +278,11 @@ export function PreferenceEnrollmentDialog({
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button variant="modal-secondary" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+            <Button variant="modal-secondary-dark" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button
-              variant="modal-primary"
+              variant="modal-primary-dark"
               onClick={handleSubmit}
               disabled={isSubmitting}
             >

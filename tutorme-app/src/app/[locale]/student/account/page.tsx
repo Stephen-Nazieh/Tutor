@@ -866,7 +866,7 @@ export default function StudentAccount() {
           </div>
           <DialogFooter align="end" className="gap-3">
             <Button
-              variant="modal-secondary"
+              variant="modal-secondary-dark"
               className="h-10"
               onClick={() => setShowDeleteDialog(false)}
             >
@@ -910,13 +910,13 @@ export default function StudentAccount() {
           </div>
           <DialogFooter align="end" className="gap-3">
             <Button
-              variant="modal-secondary"
+              variant="modal-secondary-dark"
               className="h-10"
               onClick={() => setShowDeactivateDialog(false)}
             >
               Cancel
             </Button>
-            <Button variant="modal-primary" className="h-10" onClick={handleDeactivateAccount}>
+            <Button variant="modal-primary-dark" className="h-10" onClick={handleDeactivateAccount}>
               Deactivate
             </Button>
           </DialogFooter>

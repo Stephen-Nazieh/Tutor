@@ -351,11 +351,11 @@ export function AssignCourseModal({
         <DialogFooter className="gap-3">
           {step === 'select' ? (
             <>
-              <Button variant="modal-secondary" onClick={onClose}>
+              <Button variant="modal-secondary-dark" onClick={onClose}>
                 Cancel
               </Button>
               <Button
-                variant="modal-primary"
+                variant="modal-primary-dark"
                 onClick={() => setStep('preview')}
                 disabled={!canProceed}
                 className="gap-2"
@@ -366,11 +366,11 @@ export function AssignCourseModal({
             </>
           ) : (
             <>
-              <Button variant="modal-secondary" onClick={() => setStep('select')}>
+              <Button variant="modal-secondary-dark" onClick={() => setStep('select')}>
                 Back
               </Button>
               <Button
-                variant="modal-primary"
+                variant="modal-primary-dark"
                 onClick={handleAssign}
                 disabled={assigning}
                 className="gap-2"

@@ -209,20 +209,20 @@ export function GoLiveDialog({
         <DialogFooter className="gap-3">
           {step === 1 ? (
             <>
-              <Button variant="modal-secondary" onClick={() => onOpenChange(false)}>
+              <Button variant="modal-secondary-dark" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button variant="modal-primary" onClick={handleNext}>
+              <Button variant="modal-primary-dark" onClick={handleNext}>
                 Next
               </Button>
             </>
           ) : (
             <>
-              <Button variant="modal-secondary" onClick={handleBack} disabled={loading}>
+              <Button variant="modal-secondary-dark" onClick={handleBack} disabled={loading}>
                 Back
               </Button>
               <Button
-                variant="modal-primary"
+                variant="modal-primary-dark"
                 onClick={handleConfirm}
                 disabled={loading || (sessionType === 'training' && !token)}
               >

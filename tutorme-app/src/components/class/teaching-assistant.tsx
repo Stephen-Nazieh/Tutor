@@ -644,10 +644,10 @@ export function TeachingAssistant({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="modal-secondary" onClick={() => selectedReport && alert('Report downloaded!')}>
+            <Button variant="modal-secondary-dark" onClick={() => selectedReport && alert('Report downloaded!')}>
               <Download className="mr-1 h-4 w-4" /> Download
             </Button>
-            <Button variant="modal-primary" onClick={() => setShowReportDialog(false)}>Close</Button>
+            <Button variant="modal-primary-dark" onClick={() => setShowReportDialog(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

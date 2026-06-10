@@ -283,11 +283,11 @@ export function StudentReportsTab() {
           </div>
 
           <DialogFooter className="flex gap-2">
-            <Button variant="modal-secondary" onClick={() => handleSave(false)} disabled={isSaving}>
+            <Button variant="modal-secondary-dark" onClick={() => handleSave(false)} disabled={isSaving}>
               Save Draft
             </Button>
             <Button
-              variant="modal-primary"
+              variant="modal-primary-dark"
               onClick={() => handleSave(true)}
               disabled={isSaving}
             >

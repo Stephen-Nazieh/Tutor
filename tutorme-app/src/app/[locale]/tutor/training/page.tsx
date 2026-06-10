@@ -161,10 +161,10 @@ export default function TutorTrainingPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="modal-secondary" onClick={() => setDialogOpen(false)} disabled={starting}>
+            <Button variant="modal-secondary-dark" onClick={() => setDialogOpen(false)} disabled={starting}>
               Cancel
             </Button>
-            <Button variant="modal-primary" onClick={handleCreateTraining} disabled={starting || !token}>
+            <Button variant="modal-primary-dark" onClick={handleCreateTraining} disabled={starting || !token}>
               {starting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Start Training
             </Button>

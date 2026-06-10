@@ -1281,10 +1281,10 @@ function TutorInsightsPageInner() {
             }}
           />
           <DialogFooter>
-            <Button variant="modal-secondary" onClick={() => setIsCreateDialogOpen(false)}>
+            <Button variant="modal-secondary-dark" onClick={() => setIsCreateDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="modal-primary" onClick={handleCreateNewCourse}>Create</Button>
+            <Button variant="modal-primary-dark" onClick={handleCreateNewCourse}>Create</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1300,7 +1300,7 @@ function TutorInsightsPageInner() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="modal-secondary" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button variant="modal-secondary-dark" onClick={() => setIsDeleteDialogOpen(false)}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteCourse}>
@@ -1369,7 +1369,7 @@ function TutorInsightsPageInner() {
           </div>
           <DialogFooter>
             <Button
-              variant="modal-secondary"
+              variant="modal-secondary-dark"
               onClick={() => {
                 setPropagationDialogOpen(false)
                 setPendingSavePayload(null)

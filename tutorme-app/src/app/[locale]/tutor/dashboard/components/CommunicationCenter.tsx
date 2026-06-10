@@ -1193,11 +1193,11 @@ export function CommunicationCenter() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="modal-secondary" onClick={() => actions.setShowCompose(false)}>
+            <Button variant="modal-secondary-dark" onClick={() => actions.setShowCompose(false)}>
               Cancel
             </Button>
             <Button
-              variant="modal-primary"
+              variant="modal-primary-dark"
               onClick={() => {
                 toast.success('Message sent!')
                 actions.setShowCompose(false)
@@ -1287,7 +1287,7 @@ export function CommunicationCenter() {
             </div>
           </ScrollArea>
           <DialogFooter>
-            <Button variant="modal-secondary" onClick={() => actions.setShowQuickRepliesManager(false)}>Close</Button>
+            <Button variant="modal-secondary-dark" onClick={() => actions.setShowQuickRepliesManager(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1332,10 +1332,10 @@ export function CommunicationCenter() {
             </div>
           </div>
           <DialogFooter className="gap-3">
-            <Button variant="modal-secondary" onClick={() => actions.setShowAnnouncement(false)}>
+            <Button variant="modal-secondary-dark" onClick={() => actions.setShowAnnouncement(false)}>
               Cancel
             </Button>
-            <Button variant="modal-primary" onClick={() => {
+            <Button variant="modal-primary-dark" onClick={() => {
               toast.success('Announcement broadcasted!')
               actions.setShowAnnouncement(false)
             }}>

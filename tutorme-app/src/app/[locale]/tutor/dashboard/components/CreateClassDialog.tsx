@@ -265,14 +265,14 @@ export function CreateClassDialog({
         </div>
         <DialogFooter className="gap-3">
           <Button
-            variant="modal-secondary"
+            variant="modal-secondary-dark"
             onClick={() => handleOpenChange(false)}
             disabled={creating}
           >
             Cancel
           </Button>
           <Button
-            variant="modal-primary"
+            variant="modal-primary-dark"
             onClick={handleSubmit}
             disabled={creating}
             aria-busy={creating}

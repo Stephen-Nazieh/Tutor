@@ -943,11 +943,11 @@ export default function RevenuePage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="modal-secondary" onClick={() => setShowEmailDialog(false)}>
+            <Button variant="modal-secondary-dark" onClick={() => setShowEmailDialog(false)}>
               Cancel
             </Button>
             <Button
-              variant="modal-primary"
+              variant="modal-primary-dark"
               onClick={handleSendEmail}
               disabled={sendingEmail}
             >
@@ -1025,11 +1025,11 @@ export default function RevenuePage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="modal-secondary" onClick={() => setShowPayoutDialog(false)}>
+            <Button variant="modal-secondary-dark" onClick={() => setShowPayoutDialog(false)}>
               Cancel
             </Button>
             <Button
-              variant="modal-primary"
+              variant="modal-primary-dark"
               onClick={submitPayoutRequest}
               disabled={submittingPayout || !payoutAmount || parseFloat(payoutAmount) <= 0}
             >

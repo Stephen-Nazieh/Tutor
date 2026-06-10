@@ -160,7 +160,7 @@ export function PublishButton({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="modal-secondary" onClick={() => setIsDialogOpen(false)}>
+          <Button variant="modal-secondary-dark" onClick={() => setIsDialogOpen(false)}>
             Cancel
           </Button>
           <Button variant="destructive" onClick={togglePublish} disabled={isLoading}>
@@ -214,10 +214,10 @@ export function PublishButton({
         )}
 
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="modal-secondary" onClick={() => setIsDialogOpen(false)}>
+          <Button variant="modal-secondary-dark" onClick={() => setIsDialogOpen(false)}>
             Cancel
           </Button>
-          <Button variant="modal-primary" onClick={togglePublish} disabled={isLoading || !canPublish}>
+          <Button variant="modal-primary-dark" onClick={togglePublish} disabled={isLoading || !canPublish}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Publish Course
           </Button>
@@ -243,7 +243,7 @@ export function PublishButton({
             <DialogDescription>{publishResult?.description ?? ''}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="modal-secondary" onClick={() => setResultDialogOpen(false)}>OK</Button>
+            <Button variant="modal-secondary-dark" onClick={() => setResultDialogOpen(false)}>OK</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

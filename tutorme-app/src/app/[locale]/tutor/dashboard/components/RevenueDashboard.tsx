@@ -249,11 +249,11 @@ function EmailStatementDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="modal-secondary" onClick={() => onOpenChange(false)}>
+          <Button variant="modal-secondary-dark" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button
-            variant="modal-primary"
+            variant="modal-primary-dark"
             onClick={onSend}
             disabled={sendingEmail}
           >

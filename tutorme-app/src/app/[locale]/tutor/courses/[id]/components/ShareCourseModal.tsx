@@ -171,11 +171,11 @@ export function ShareCourseModal({
         </div>
 
         <DialogFooter className="gap-3">
-          <Button variant="modal-secondary" onClick={handleClose} disabled={sharing}>
+          <Button variant="modal-secondary-dark" onClick={handleClose} disabled={sharing}>
             Cancel
           </Button>
           <Button
-            variant="modal-primary"
+            variant="modal-primary-dark"
             onClick={handleShare}
             disabled={sharing || !emails.trim() || !message.trim()}
           >

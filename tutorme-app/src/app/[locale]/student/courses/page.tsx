@@ -544,7 +544,7 @@ function CoursePageInner() {
           </div>
           <DialogFooter align="end" className="gap-3">
             <Button
-              variant="modal-secondary"
+              variant="modal-secondary-dark"
               className="h-10"
               onClick={() => setDetailCourse(null)}
             >
@@ -591,7 +591,7 @@ function CoursePageInner() {
           </div>
           <DialogFooter align="end" className="gap-3">
             <Button
-              variant="modal-secondary"
+              variant="modal-secondary-dark"
               className="h-10"
               onClick={() => setScheduleCourse(null)}
             >
@@ -898,7 +898,7 @@ function CoursePageInner() {
                     <p className="text-sm font-medium text-red-700">Failed to load sessions</p>
                     <p className="mt-1 text-xs text-red-600">{sessionLoadError}</p>
                     <Button
-                      variant="modal-secondary"
+                      variant="modal-secondary-dark"
                       size="sm"
                       className="mt-3 h-10"
                       onClick={() => {
@@ -968,7 +968,7 @@ function CoursePageInner() {
           </div>
           <DialogFooter align="end" className="gap-3">
             <Button
-              variant="modal-secondary"
+              variant="modal-secondary-dark"
               className="h-10"
               onClick={() => setSessionsCourseId(null)}
             >

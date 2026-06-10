@@ -120,11 +120,11 @@ export function LessonSelectorDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="modal-secondary" onClick={onClose}>
+          <Button variant="modal-secondary-dark" onClick={onClose}>
             Cancel
           </Button>
           <Button
-            variant="modal-primary"
+            variant="modal-primary-dark"
             onClick={handleConfirm}
             disabled={!selectedCourseBuilderNodeId || !selectedLessonId}
           >

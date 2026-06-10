@@ -331,7 +331,7 @@ function Book1on1Dialog({
           </DialogHeader>
           <div className="space-y-4 p-6 pt-0">
             <DialogPanel className="py-8 text-center">
-              <Button variant="modal-primary" asChild className="h-10">
+              <Button variant="modal-primary-dark" asChild className="h-10">
                 <Link href={`/${locale}/login`}>Log In</Link>
               </Button>
             </DialogPanel>
@@ -361,7 +361,7 @@ function Book1on1Dialog({
             </DialogPanel>
           </div>
           <DialogFooter className="gap-3">
-            <Button variant="modal-secondary" onClick={() => onOpenChange(false)} className="h-10">
+            <Button variant="modal-secondary-dark" onClick={() => onOpenChange(false)} className="h-10">
               Close
             </Button>
           </DialogFooter>
@@ -2006,7 +2006,7 @@ export default function PublicTutorPage() {
           </div>
           <DialogFooter className="gap-3">
             <Button
-              variant="modal-secondary"
+              variant="modal-secondary-dark"
               onClick={() => setScheduleCourse(null)}
               className="h-10"
             >
@@ -2059,7 +2059,7 @@ export default function PublicTutorPage() {
                     )}
                   </div>
                   <Button
-                    variant="modal-primary"
+                    variant="modal-primary-dark"
                     size="sm"
                     className="h-10"
                     onClick={() => {

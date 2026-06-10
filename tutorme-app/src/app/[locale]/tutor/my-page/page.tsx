@@ -1761,14 +1761,14 @@ export default function TutorMyPage() {
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
               <Button
-                variant="modal-secondary"
+                variant="modal-secondary-dark"
                 onClick={closeCropDialog}
                 disabled={cropping || uploadingAvatar}
               >
                 Cancel
               </Button>
               <Button
-                variant="modal-primary"
+                variant="modal-primary-dark"
                 onClick={() => void confirmCropAndUpload()}
                 disabled={
                   cropping || uploadingAvatar || !cropSourceUrl || !cropSourceFile || !cropImageSize
@@ -2013,14 +2013,14 @@ export default function TutorMyPage() {
           </div>
           <DialogFooter className="mt-4">
             <Button
-              variant="modal-secondary"
+              variant="modal-secondary-dark"
               onClick={() => setCreateOpen(false)}
               disabled={creatingCourse}
             >
               Cancel
             </Button>
             <Button
-              variant="modal-primary"
+              variant="modal-primary-dark"
               onClick={handleCreateCourse}
               disabled={creatingCourse}
             >

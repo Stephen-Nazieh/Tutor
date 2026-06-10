@@ -612,7 +612,7 @@ export function AvatarUploader({
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               type="button"
-              variant="modal-secondary"
+              variant="modal-secondary-dark"
               onClick={closeCropDialog}
               disabled={cropping || uploading}
             >
@@ -620,7 +620,7 @@ export function AvatarUploader({
             </Button>
             <Button
               type="button"
-              variant="modal-primary"
+              variant="modal-primary-dark"
               onClick={() => void confirmCropAndUpload()}
               disabled={
                 cropping || uploading || !cropSourceUrl || !cropSourceFile || !cropImageSize

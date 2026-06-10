@@ -241,10 +241,10 @@ export function LessonBuilderModal({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="modal-secondary" onClick={onClose}>
+          <Button variant="modal-secondary-dark" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="modal-primary" onClick={() => onSave(data)}>Save Lesson</Button>
+          <Button variant="modal-primary-dark" onClick={() => onSave(data)}>Save Lesson</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
