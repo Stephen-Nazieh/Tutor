@@ -1545,7 +1545,7 @@ export default function TutorMyPage() {
                 <div className="grid grid-cols-1 gap-4 border-b border-slate-100 py-4 sm:grid-cols-2">
                   <div className="flex items-center gap-3">
                     <img
-                      src="/solocornlogo.png"
+                      src="/solocorn-app-icon.png"
                       alt="Solocorn"
                       className="h-12 w-12 shrink-0 rounded-xl object-cover"
                     />
@@ -1553,7 +1553,7 @@ export default function TutorMyPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <img
-                      src="/solocornlogo.png"
+                      src="/solocorn-app-icon.png"
                       alt="Solocorn"
                       className="h-12 w-12 shrink-0 rounded-xl object-cover"
                     />
