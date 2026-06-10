@@ -1663,11 +1663,24 @@ export default function PublicTutorPage() {
               </div>
 
               {publicUrl ? (
-                <div className="flex items-center gap-3 border-b border-slate-100 py-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                    <span className="text-2xl font-bold">@</span>
+                <div className="grid grid-cols-1 gap-4 border-b border-slate-100 py-4 sm:grid-cols-2">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                      <span className="text-2xl font-bold">@</span>
+                    </div>
+                    <div className="text-lg font-semibold text-slate-900">@{tutor.username}</div>
                   </div>
-                  <div className="text-lg font-semibold text-slate-900">@{tutor.username}</div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-600">
+                      <Link2 className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="truncate text-base font-semibold text-slate-900">
+                        Public Page
+                        <span className="ml-2 font-normal text-slate-600">{publicUrl}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="mt-4 rounded-2xl border border-dashed border-slate-200 p-4 text-sm text-slate-500">
@@ -1688,12 +1701,14 @@ export default function PublicTutorPage() {
                     muted: !tutor.socialLinks?.tiktok,
                   },
                   {
-                    key: 'public',
-                    label: 'Public Page',
-                    value: publicUrl,
-                    icon: Link2,
-                    bgClass: 'bg-blue-600',
-                    muted: false,
+                    key: 'youtube',
+                    label: 'YouTube',
+                    value: tutor.socialLinks?.youtube
+                      ? `@${stripAt(tutor.socialLinks.youtube)}`
+                      : '—',
+                    icon: Youtube,
+                    bgClass: 'bg-red-600',
+                    muted: !tutor.socialLinks?.youtube,
                   },
                   {
                     key: 'instagram',
@@ -1706,14 +1721,16 @@ export default function PublicTutorPage() {
                     muted: !tutor.socialLinks?.instagram,
                   },
                   {
-                    key: 'youtube',
-                    label: 'YouTube',
-                    value: tutor.socialLinks?.youtube
-                      ? `@${stripAt(tutor.socialLinks.youtube)}`
+                    key: 'kakaoTalk',
+                    label: 'KakaoTalk',
+                    value: tutor.socialLinks?.kakaoTalk
+                      ? (tutor.socialLinks.kakaoTalk.match(/^https?:\/\//)
+                          ? stripAt(tutor.socialLinks.kakaoTalk)
+                          : `https://${stripAt(tutor.socialLinks.kakaoTalk)}`)
                       : '—',
-                    icon: Youtube,
-                    bgClass: 'bg-red-600',
-                    muted: !tutor.socialLinks?.youtube,
+                    icon: KakaoTalkIcon,
+                    bgClass: 'bg-[#FEE500]',
+                    muted: !tutor.socialLinks?.kakaoTalk,
                   },
                   {
                     key: 'facebook',
@@ -1726,18 +1743,6 @@ export default function PublicTutorPage() {
                     icon: Facebook,
                     bgClass: 'bg-blue-600',
                     muted: !tutor.socialLinks?.facebook,
-                  },
-                  {
-                    key: 'kakaoTalk',
-                    label: 'KakaoTalk',
-                    value: tutor.socialLinks?.kakaoTalk
-                      ? (tutor.socialLinks.kakaoTalk.match(/^https?:\/\//)
-                          ? stripAt(tutor.socialLinks.kakaoTalk)
-                          : `https://${stripAt(tutor.socialLinks.kakaoTalk)}`)
-                      : '—',
-                    icon: KakaoTalkIcon,
-                    bgClass: 'bg-[#FEE500]',
-                    muted: !tutor.socialLinks?.kakaoTalk,
                   },
                 ].map(item => {
                   const Icon = item.icon
