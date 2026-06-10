@@ -55,6 +55,8 @@ import {
   Instagram,
   Youtube,
   Facebook,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -595,6 +597,13 @@ export default function PublicTutorPage() {
       scheduledAt?: string | Date | null
     }>
   >([])
+  const [coursesExpanded, setCoursesExpanded] = useState(false)
+  const coursesPanelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    document.body.style.overflow = coursesExpanded ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [coursesExpanded])
 
   useEffect(() => {
     loadTutorData()
@@ -1459,12 +1468,15 @@ export default function PublicTutorPage() {
     title,
     courses,
     emptyMessage,
+    forceOpen,
   }: {
     title: string
     courses: typeof enrollingCourses
     emptyMessage: string
+    forceOpen?: boolean
   }) {
     const [isOpen, setIsOpen] = useState(courses.length > 0)
+    const effectiveOpen = forceOpen ?? isOpen
     return (
       <section>
         <button
@@ -1472,7 +1484,7 @@ export default function PublicTutorPage() {
           onClick={() => setIsOpen(!isOpen)}
           className="mb-4 flex w-full items-center gap-2"
         >
-          {isOpen ? (
+          {effectiveOpen ? (
             <ChevronDown className="h-5 w-5 text-slate-500" />
           ) : (
             <ChevronRight className="h-5 w-5 text-slate-500" />
@@ -1482,7 +1494,7 @@ export default function PublicTutorPage() {
         <div
           className={cn(
             'grid transition-all duration-300 ease-in-out',
-            isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+            effectiveOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
           )}
         >
           <div className="overflow-hidden">
@@ -1801,8 +1813,30 @@ export default function PublicTutorPage() {
 
       </div>
 
-      <div className={cn(panelCardClass, 'mt-8 overflow-hidden p-0')}>
-        <div className="bg-[linear-gradient(135deg,#1E2832_0%,#2D3B4A_50%,#1A2530_100%)] p-6 sm:p-8">
+      <div
+        ref={coursesPanelRef}
+        className={cn(
+          panelCardClass,
+          'overflow-hidden p-0 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
+          coursesExpanded
+            ? 'mt-0 flex min-h-[calc(100vh-2rem)] flex-col'
+            : 'mt-8'
+        )}
+      >
+        <div
+          onClick={() => {
+            if (!coursesExpanded) {
+              setCoursesExpanded(true)
+              setTimeout(() => {
+                coursesPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }, 50)
+            }
+          }}
+          className={cn(
+            'bg-[linear-gradient(135deg,#1E2832_0%,#2D3B4A_50%,#1A2530_100%)] p-6 sm:p-8',
+            !coursesExpanded && 'cursor-pointer hover:brightness-110 transition-all duration-200'
+          )}
+        >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h2 className="text-xl font-bold text-white">Courses</h2>
@@ -1842,24 +1876,48 @@ export default function PublicTutorPage() {
                 </Select>
               </div>
 
+              {coursesExpanded ? (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setCoursesExpanded(false)
+                  }}
+                  className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20 transition-colors shrink-0"
+                >
+                  <Minimize2 className="h-4 w-4" />
+                  Back to Profile
+                </button>
+              ) : (
+                <Maximize2 className="hidden lg:block h-4 w-4 text-white/40 shrink-0 ml-2" />
+              )}
+
             </div>
           </div>
         </div>
-        <div className="space-y-10 px-6 pb-8 pt-8 sm:px-8">
+        <div className={cn(
+          'flex-1 overflow-y-auto',
+          coursesExpanded
+            ? 'flex flex-col gap-6 px-6 pb-6 pt-6 sm:px-8'
+            : 'space-y-10 px-6 pb-8 pt-8 sm:px-8'
+        )}>
           <CourseSection
             title="Enrolling"
             courses={enrollingCourses}
             emptyMessage="No published courses found."
+            forceOpen={coursesExpanded ? true : undefined}
           />
           <CourseSection
             title="Active"
             courses={activeCourses}
             emptyMessage="This tutor has no active courses."
+            forceOpen={coursesExpanded ? true : undefined}
           />
           <CourseSection
             title="Catalogued"
             courses={cataloguedCourses}
             emptyMessage="This tutor has no catalogued courses."
+            forceOpen={coursesExpanded ? true : undefined}
           />
         </div>
       </div>
