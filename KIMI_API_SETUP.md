@@ -70,4 +70,4 @@ gcloud run services update solocorn-app \
 
 5. Redeploy if necessary and verify logs for successful calls.
 
-Alternative: use the helper script `scripts/rotate-kimi-key.sh` in this repo to automate steps 1–4 (it requires `gcloud` and that you provide `NEW_KEY`, `PROJECT`, `SERVICE`, `REGION`, and `SERVICE_ACCOUNT`).
+Alternative: use the helper script `scripts/rotate-kimi-key.sh` in this repo to automate steps 1–4 (it requires `gcloud` and that you provide `NEW_KEY`, `PROJECT`, `SERVICE`, `REGION`, and `SERVICE_ACCOUNT`
