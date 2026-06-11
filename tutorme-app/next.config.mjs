@@ -65,10 +65,7 @@ const nextConfig = {
     }
 
     // Ignore optional native dependencies that cause build warnings
-    config.externals.push(
-      'fast-crc32c',
-      'request'
-    )
+    config.externals.push('fast-crc32c', 'request')
 
     return config
   },
@@ -97,10 +94,12 @@ const nextConfig = {
   async headers() {
     return [
       {
+        source: '/',
+        headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
+      },
+      {
         source: '/index.html',
-        headers: [
-          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
-        ],
+        headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }],
       },
       {
         source: '/sw.js',
@@ -111,9 +110,7 @@ const nextConfig = {
       },
       {
         source: '/assets/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
       },
     ]
   },
