@@ -1866,8 +1866,8 @@ function WeekView({
   }
 
   return (
-    <div className="flex min-h-full flex-row rounded-lg bg-white/50">
-      <div className="flex w-14 flex-col border-r bg-gray-50">
+    <div className="relative flex min-h-full flex-row rounded-lg bg-white/50">
+      <div className="flex w-14 flex-col bg-gray-50">
         <div className="h-10 shrink-0 border-b" />
         {hours.map(hour => (
           <div key={hour} className="h-10 shrink-0 border-b pt-1 text-center text-xs text-gray-500">
@@ -1876,6 +1876,7 @@ function WeekView({
         ))}
         <div className="flex-1 bg-gray-50" />
       </div>
+      <div className="absolute bottom-0 left-14 top-0 z-10 w-px bg-gray-300" />
 
       <div className="grid flex-1 grid-cols-7">
         {weekDays.map((day, index) => (
@@ -1954,8 +1955,8 @@ function DayView({ currentDate, events: _events, onEventClick, conflicts, readOn
     .sort((a: CalendarEvent, b: CalendarEvent) => a.date.getTime() - b.date.getTime())
 
   return (
-    <div className="flex min-h-full flex-row rounded-lg bg-white/50">
-      <div className="flex w-14 flex-col border-r bg-gray-50">
+    <div className="relative flex min-h-full flex-row rounded-lg bg-white/50">
+      <div className="flex w-14 flex-col bg-gray-50">
         {hours.map(hour => (
           <div
             key={hour}
@@ -1966,6 +1967,7 @@ function DayView({ currentDate, events: _events, onEventClick, conflicts, readOn
         ))}
         <div className="flex-1 bg-gray-50" />
       </div>
+      <div className="absolute bottom-0 left-14 top-0 z-10 w-px bg-gray-300" />
 
       <div className="relative flex flex-1 flex-col">
         {hours.map(hour => (
