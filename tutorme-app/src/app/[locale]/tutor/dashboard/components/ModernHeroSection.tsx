@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useSession } from 'next-auth/react'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -73,8 +73,8 @@ export function ModernHeroSection({
   stats,
   heroStats,
   loading,
-  nextSession,
-}: ModernHeroSectionProps & { nextSession?: string }) {
+  nextSessionAt,
+}: ModernHeroSectionProps & { nextSessionAt?: string }) {
   const { data: session } = useSession()
   const [greeting, setGreeting] = useState('Good morning')
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -98,6 +98,38 @@ export function ModernHeroSection({
     })
     return () => {
       active = false
+    }
+  }, [])
+
+  // Live countdown to next session
+  const [countdown, setCountdown] = useState('')
+  useEffect(() => {
+    if (!nextSessionAt) {
+      setCountdown('')
+      return
+    }
+    const target = new Date(nextSessionAt).getTime()
+    const tick = () => {
+      const diff = target - Date.now()
+      if (diff <= 0) {
+        setCountdown('Starting now')
+        return
+      }
+      const h = Math.floor(diff / 3600000)
+      const m = Math.floor((diff % 3600000) / 60000)
+      const s = Math.floor((diff % 60000) / 1000)
+      setCountdown(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
+    }
+    tick()
+    const interval = setInterval(tick, 1000)
+    return () => clearInterval(interval)
+  }, [nextSessionAt])
+
+  const timeZoneAbbr = useMemo(() => {
+    try {
+      return new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop() || ''
+    } catch {
+      return ''
     }
   }, [])
 
@@ -133,7 +165,6 @@ export function ModernHeroSection({
             <div className="space-y-2">
               <div className="h-4 w-40 rounded bg-white/10" />
               <div className="h-10 w-56 rounded bg-white/10" />
-              <div className="h-4 w-48 rounded bg-white/10" />
             </div>
             <div className="flex gap-3">
               {[1, 2, 3, 4].map(i => (
@@ -141,7 +172,7 @@ export function ModernHeroSection({
               ))}
             </div>
           </div>
-          <div className="mt-6 grid grid-cols-7 gap-2 rounded-[14px] bg-white/10 p-4">
+          <div className="mt-4 grid grid-cols-7 gap-1 rounded-[14px] bg-white/10 p-3">
             {[1, 2, 3, 4, 5, 6, 7].map(i => (
               <div key={i} className="h-16 rounded-xl bg-white/10" />
             ))}
@@ -152,7 +183,7 @@ export function ModernHeroSection({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)] ring-1 ring-white/20">
+    <div className="relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5 shadow-[0_24px_72px_rgba(0,0,0,0.20)] ring-1 ring-white/20">
       {/* Content */}
       <div className="relative z-10">
         {/* Header Row */}
@@ -279,35 +310,71 @@ export function ModernHeroSection({
 
         {/* Action Bar */}
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            size="sm"
-            className="border border-white bg-[#2563EB] text-white shadow-none hover:translate-y-0 hover:border-white hover:bg-white hover:text-[#2563EB] hover:shadow-none"
-            onClick={() => toast.info('Coming soon...')}
-          >
-            <Plus className="mr-1.5 h-4 w-4" />
-            Create Class
-          </Button>
-          <Button
-            size="sm"
-            className="border border-white bg-[#65A30D] text-white shadow-none hover:translate-y-0 hover:bg-[#4D7C0F] hover:shadow-none"
-            onClick={() => toast.info('Coming soon...')}
-          >
-            <Video className="mr-1.5 h-4 w-4" />
-            Go Live
-          </Button>
-          <div className="flex-1" />
-          <span className="text-xs text-white/60">
-            {formatDate(currentTime)} • {formatTime(currentTime)}
-          </span>
-          {nextSession && (
-            <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-300">
-              <Clock className="h-3.5 w-3.5" />
-              <span>Next session: {nextSession}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              className="border border-white bg-[#2563EB] text-white shadow-none hover:translate-y-0 hover:border-white hover:bg-white hover:text-[#2563EB] hover:shadow-none"
+              onClick={() => toast.info('Coming soon...')}
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              Create Class
+            </Button>
+            <Button
+              size="sm"
+              className="border border-white bg-[#65A30D] text-white shadow-none hover:translate-y-0 hover:bg-white hover:text-[#65A30D] hover:shadow-none"
+              onClick={() => toast.info('Coming soon...')}
+            >
+              <Video className="mr-1.5 h-4 w-4" />
+              Go Live
+            </Button>
+          </div>
+          <div className="flex-1 flex justify-center">
+            <span className="text-sm text-white/60">
+              {formatDate(currentTime)} • {formatTime(currentTime)} {timeZoneAbbr}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {countdown && (
+              <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-300">
+                <AnimatedClock className="h-3.5 w-3.5" />
+                <span>Next session: {countdown}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function AnimatedClock({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="10" />
+      <line
+        x1="12"
+        y1="12"
+        x2="12"
+        y2="6"
+        className="origin-[12px_12px] animate-[spin_12s_linear_infinite]"
+      />
+      <line
+        x1="12"
+        y1="12"
+        x2="12"
+        y2="8"
+        className="origin-[12px_12px] animate-[spin_2s_linear_infinite]"
+        strokeWidth="1.5"
+      />
+    </svg>
   )
 }
 

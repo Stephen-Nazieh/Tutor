@@ -599,7 +599,7 @@ function TutorDashboardContent() {
     })
   }
 
-  const getNextSessionText = () => {
+  const getNextSessionTime = () => {
     if (!classes || classes.length === 0) return null
     const now = new Date().getTime()
 
@@ -610,21 +610,7 @@ function TutorDashboardContent() {
       .sort((a, b) => a.time - b.time)[0]
 
     if (!upcoming) return null
-
-    const diff = upcoming.time - now
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
-
-    if (hours > 48) {
-      return new Date(upcoming.time).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    }
-    if (hours > 0) return `in ${hours}h ${minutes}m`
-    return `in ${minutes}m`
+    return upcoming.scheduledAt
   }
 
   return (
@@ -636,7 +622,7 @@ function TutorDashboardContent() {
             stats={stats}
             heroStats={heroStats}
             loading={loading}
-            nextSession={getNextSessionText() || undefined}
+            nextSessionAt={getNextSessionTime() || undefined}
           />
         </div>
 
