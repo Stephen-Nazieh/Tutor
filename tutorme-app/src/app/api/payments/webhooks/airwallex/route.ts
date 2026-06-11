@@ -20,10 +20,7 @@ import {
   oneOnOneBookingRequest,
 } from '@/lib/db/schema'
 import { AirwallexGateway } from '@/lib/payments'
-import {
-  sendPaymentConfirmation,
-  sendTutorPaymentReceived,
-} from '@/lib/notifications/payment-email'
+import { sendPaymentConfirmation } from '@/lib/notifications/payment-email'
 import { eq, and, sql } from 'drizzle-orm'
 
 export async function POST(req: NextRequest) {
@@ -123,37 +120,34 @@ export async function POST(req: NextRequest) {
           typeof meta.studentId === 'string'
         ) {
           const { enrollStudentInCourse } = await import('@/lib/enrollment')
-          enrollStudentInCourse(
+          await enrollStudentInCourse(
             meta.studentId as string,
             meta.courseId as string,
             meta.startDate as string | undefined
           )
-            .then(async () => {
-              const [enrollment] = await drizzleDb
-                .select({
-                  enrollmentId: courseEnrollment.enrollmentId,
-                  creatorId: course.creatorId,
-                })
-                .from(courseEnrollment)
-                .innerJoin(course, eq(course.courseId, courseEnrollment.courseId))
-                .where(
-                  and(
-                    eq(courseEnrollment.studentId, meta.studentId as string),
-                    eq(courseEnrollment.courseId, meta.courseId as string)
-                  )
-                )
-                .limit(1)
-              if (enrollment) {
-                await drizzleDb
-                  .update(payment)
-                  .set({
-                    enrollmentId: enrollment.enrollmentId,
-                    tutorId: enrollment.creatorId ?? paymentRow.tutorId,
-                  })
-                  .where(eq(payment.paymentId, paymentRow.paymentId))
-              }
+          const [enrollment] = await drizzleDb
+            .select({
+              enrollmentId: courseEnrollment.enrollmentId,
+              creatorId: course.creatorId,
             })
-            .catch(err => console.error('[Airwallex Webhook] Enrollment failed:', err))
+            .from(courseEnrollment)
+            .innerJoin(course, eq(course.courseId, courseEnrollment.courseId))
+            .where(
+              and(
+                eq(courseEnrollment.studentId, meta.studentId as string),
+                eq(courseEnrollment.courseId, meta.courseId as string)
+              )
+            )
+            .limit(1)
+          if (enrollment) {
+            await drizzleDb
+              .update(payment)
+              .set({
+                enrollmentId: enrollment.enrollmentId,
+                tutorId: enrollment.creatorId ?? paymentRow.tutorId,
+              })
+              .where(eq(payment.paymentId, paymentRow.paymentId))
+          }
           const [userRow] = await drizzleDb
             .select({
               email: user.email,

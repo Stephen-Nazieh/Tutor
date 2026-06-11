@@ -24,7 +24,7 @@ bash scripts/setup.sh
 cd tutorme-app
 npm run dev:all
 
-# 6. Open http://localhost:3000
+# 6. Open http://localhost:3003
 ```
 
 ### For Windows Users
@@ -56,7 +56,7 @@ bash scripts/setup.sh
 cd tutorme-app
 npm run dev:all
 
-# 7. Open http://localhost:3000 in your browser
+# 7. Open http://localhost:3003 in your browser
 ```
 
 **Option 2: Use Windows Command Prompt (Manual Steps)**
@@ -71,10 +71,8 @@ Before starting, verify you have:
 
 - [ ] **Node.js 20+** installed
   - Check: `node --version` should show v20.x.x
-  
 - [ ] **Docker Desktop** installed and running
   - Check: Docker icon in system tray/menu bar
-  
 - [ ] **Git** installed
   - Check: `git --version`
 
@@ -84,11 +82,11 @@ Before starting, verify you have:
 
 The setup script (`scripts/setup.sh`) automatically:
 
-1. ✅ Creates Next.js 14 project with TypeScript
+1. ✅ Runs the Next.js app with TypeScript
 2. ✅ Sets up Tailwind CSS and shadcn/ui components
 3. ✅ Installs all dependencies (30+ packages)
 4. ✅ Creates Docker Compose configuration (Postgres, Redis)
-5. ✅ Sets up Prisma database schema
+5. ✅ Sets up the Drizzle/PostgreSQL database schema
 6. ✅ Creates environment configuration files
 7. ✅ Generates helper scripts
 8. ✅ Creates initial page templates
@@ -109,8 +107,8 @@ cd %USERPROFILE%\projects\tutorme\tutorme-app   # Windows
 # Start everything (database + AI + app)
 npm run dev:all
 
-# Wait for "Ready on http://localhost:3000"
-# Open your browser to http://localhost:3000
+# Wait for "Ready on http://localhost:3003"
+# Open your browser to http://localhost:3003
 
 # When done: Press Ctrl+C to stop
 ```
@@ -120,23 +118,30 @@ npm run dev:all
 ## 🆘 Common Issues
 
 ### "Docker not running"
+
 **Fix:** Start Docker Desktop application
 
 ### "Port 3000 already in use"
+
 **Fix:** Either close other apps or use different port:
+
 ```bash
 npm run dev -- --port 3001
 ```
 
 ### "Cannot find module"
+
 **Fix:** Reinstall dependencies:
+
 ```bash
 cd ~/projects/tutorme/tutorme-app
 npm install
 ```
 
 ### Setup script failed
+
 **Fix:** Reset and try again:
+
 ```bash
 cd ~/projects/tutorme
 rm -rf tutorme-app
@@ -172,8 +177,8 @@ bash scripts/setup.sh
     │   ├── db/           ← Database client
     │   └── ...
     │
-    ├── prisma/
-    │   └── schema.prisma ← Database schema
+    ├── drizzle/
+    │   └── *.sql ← Database migrations
     │
     ├── .env.local        ← Your config
     └── package.json      ← Dependencies
@@ -183,15 +188,15 @@ bash scripts/setup.sh
 
 ## 🎮 Available Commands
 
-| Command | What It Does |
-|---------|-------------|
-| `npm run dev:all` | Start database + AI + dev server |
-| `npm run dev` | Start only dev server |
-| `npm run db:studio` | Open database editor |
-| `npm run db:migrate` | Update database schema |
-| `npm run db:reset` | Reset everything (⚠️ deletes data) |
-| `npm run docker:up` | Start Docker containers |
-| `npm run docker:down` | Stop Docker containers |
+| Command               | What It Does                       |
+| --------------------- | ---------------------------------- |
+| `npm run dev:all`     | Start database + AI + dev server   |
+| `npm run dev`         | Start only dev server              |
+| `npm run db:studio`   | Open database editor               |
+| `npm run db:migrate`  | Update database schema             |
+| `npm run db:reset`    | Reset everything (⚠️ deletes data) |
+| `npm run docker:up`   | Start Docker containers            |
+| `npm run docker:down` | Stop Docker containers             |
 
 ---
 
@@ -199,7 +204,7 @@ bash scripts/setup.sh
 
 Once setup is complete:
 
-1. **Test the app** - Open http://localhost:3000
+1. **Test the app** - Open http://localhost:3003
 2. **Verify database** - Run `npm run db:studio` and open http://localhost:5555
 3. **Update YourActions.md** - Mark Phase 0 and 1 as complete
 4. **Tell me** - I'll continue with Phase 2 (building actual features)

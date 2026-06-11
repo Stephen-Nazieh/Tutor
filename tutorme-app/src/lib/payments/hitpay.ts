@@ -95,10 +95,14 @@ export class HitpayGateway implements PaymentGateway {
     }
     const rawBody = typeof payload === 'string' ? payload : JSON.stringify(payload)
     const expected = crypto.createHmac('sha256', salt).update(rawBody).digest('hex')
-    if (expected.length !== signature.length) {
+    if (!/^[a-f0-9]+$/i.test(signature) || expected.length !== signature.length) {
       return false
     }
-    return crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(signature, 'hex'))
+    try {
+      return crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(signature, 'hex'))
+    } catch {
+      return false
+    }
   }
 
   async processWebhook(payload: unknown): Promise<WebhookResult> {

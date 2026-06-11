@@ -108,7 +108,7 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Lint
-        run: npm run lint:check -- --max-warnings=999999
+        run: npm run lint:ci
 
   format:
     name: Format
@@ -133,7 +133,6 @@ jobs:
   security:
     name: Security
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 

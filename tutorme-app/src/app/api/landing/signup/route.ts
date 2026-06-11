@@ -1,13 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { landingSignup } from '@/lib/db/schema'
+import { withRateLimitPreset } from '@/lib/api/middleware'
+import { z } from 'zod'
 import crypto from 'crypto'
 import { sendTutorSignupEmail } from '@/lib/email'
 
+const landingSignupSchema = z.strictObject({
+  username: z.string().trim().min(1).max(80),
+  bio: z.string().trim().max(1000).optional().nullable(),
+  country: z.string().trim().max(120).optional().nullable(),
+  photo: z.string().trim().url().max(2048).optional().nullable(),
+  isVerified: z.boolean().optional(),
+})
+
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const { username, bio, country, photo } = body
+    const { response: rateLimitResponse } = await withRateLimitPreset(req, 'register')
+    if (rateLimitResponse) return rateLimitResponse
+
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const parsed = landingSignupSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid signup data', details: parsed.error.issues },
+        { status: 400 }
+      )
+    }
+
+    const { username, bio, country, photo } = parsed.data
 
     if (!username) {
       return NextResponse.json({ error: 'Username is required' }, { status: 400 })
