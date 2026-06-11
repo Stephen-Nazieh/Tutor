@@ -698,11 +698,11 @@ function TutorDashboardContent() {
                           <Globe className="mr-1.5 h-3.5 w-3.5 text-slate-500" />
                           <SelectValue placeholder="Timezone" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg w-[var(--radix-select-trigger-width)] max-h-[280px]">
+                        <SelectContent className="!bg-white !bg-none !text-slate-700 rounded-lg border border-slate-200 p-1.5 shadow-lg w-[var(--radix-select-trigger-width)] max-h-[280px]">
                           {COMMON_TIMEZONES.map(tz => {
                             const { city } = formatTimezoneLabel(tz)
                             return (
-                              <SelectItem key={tz} value={tz} className="text-slate-700 text-xs hover:bg-slate-100 rounded-md">
+                              <SelectItem key={tz} value={tz} className="!text-slate-700 text-xs !hover:bg-slate-100 !focus:bg-slate-100 rounded-md">
                                 {city}
                               </SelectItem>
                             )

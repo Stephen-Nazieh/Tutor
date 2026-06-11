@@ -831,26 +831,26 @@ export function InteractiveCalendar({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
-                    <Button variant="outline" size="icon" className="h-9 w-9 rounded-sm border-[#374151] hover:bg-[#374151] hover:text-white" onClick={() => navigatePeriod(-1)}>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-sm border border-[#374151] hover:bg-[#374151] hover:text-white" onClick={() => navigatePeriod(-1)}>
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <h2 className="min-w-[140px] text-center text-base font-semibold">
                       {headerLabel}
                     </h2>
-                    <Button variant="outline" size="icon" className="h-9 w-9 rounded-sm border-[#374151] hover:bg-[#374151] hover:text-white" onClick={() => navigatePeriod(1)}>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-sm border border-[#374151] hover:bg-[#374151] hover:text-white" onClick={() => navigatePeriod(1)}>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
-                  <Button variant="outline" size="sm" className="h-9 rounded-sm border-[#374151] text-xs hover:bg-[#374151] hover:text-white" onClick={goToToday}>
+                  <Button variant="ghost" size="sm" className="h-9 rounded-sm border border-[#374151] text-xs hover:bg-[#374151] hover:text-white" onClick={goToToday}>
                     Today
                   </Button>
                   {!isStudent && (
                     <>
                       {/* Calendar Integrations */}
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        className="h-9 rounded-sm border-[#374151] text-xs hover:bg-[#374151] hover:text-white"
+                        className="h-9 rounded-sm border border-[#374151] text-xs hover:bg-[#374151] hover:text-white"
                         onClick={() => setShowCalendarIntegrations(true)}
                       >
                         <RefreshCw
@@ -869,15 +869,15 @@ export function InteractiveCalendar({
                       <Filter className="mr-1.5 h-3.5 w-3.5 text-slate-500" />
                       <SelectValue placeholder="Filter" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg w-[var(--radix-select-trigger-width)]">
-                      <SelectItem value="all" className="text-slate-700 text-xs hover:bg-slate-100 rounded-md">All Categories</SelectItem>
+                    <SelectContent className="!bg-white !bg-none !text-slate-700 rounded-lg border border-slate-200 p-1.5 shadow-lg w-[var(--radix-select-trigger-width)]">
+                      <SelectItem value="all" className="!text-slate-700 text-xs !hover:bg-slate-100 !focus:bg-slate-100 rounded-md">All Categories</SelectItem>
                       {!categoriesLoaded && (
-                        <SelectItem value="__loading__" disabled className="text-slate-700 text-xs rounded-md">
+                        <SelectItem value="__loading__" disabled className="!text-slate-700 text-xs rounded-md">
                           Loading…
                         </SelectItem>
                       )}
                       {categoryOptions.map(name => (
-                        <SelectItem key={name} value={name} className="text-slate-700 text-xs hover:bg-slate-100 rounded-md">
+                        <SelectItem key={name} value={name} className="!text-slate-700 text-xs !hover:bg-slate-100 !focus:bg-slate-100 rounded-md">
                           {name}
                         </SelectItem>
                       ))}
@@ -943,60 +943,62 @@ export function InteractiveCalendar({
           )}
         </CardHeader>
 
-        <CardContent ref={cardContentRef} spacing={embedded ? 'none' : 'default'} className={cn('flex-1 overflow-auto pt-0', embedded && 'px-4 pb-4')}>
-          {availabilityOnly ? (
-            <AvailabilityView
-              availability={availability}
-              onToggle={toggleAvailability}
-              onSave={() => toast.success('Availability updated!')}
-            />
-          ) : (
-            <>
-              {view === 'month' && (
-                <MonthView
-                  days={calendarDays}
-                  events={filteredEvents}
-                  onDateClick={handleDateClick}
-                  onEventClick={handleEventClick}
-                  isToday={isToday}
-                  getEventsForDate={getEventsForDate}
-                  conflicts={showConflictWarning}
-                />
-              )}
+        <CardContent ref={cardContentRef} spacing={embedded ? 'none' : 'default'} className={cn('flex-1 overflow-auto scrollbar-hide pt-0', embedded && 'px-4 pb-4')}>
+          <div className="border border-[#374151] rounded-lg overflow-hidden h-full">
+            {availabilityOnly ? (
+              <AvailabilityView
+                availability={availability}
+                onToggle={toggleAvailability}
+                onSave={() => toast.success('Availability updated!')}
+              />
+            ) : (
+              <>
+                {view === 'month' && (
+                  <MonthView
+                    days={calendarDays}
+                    events={filteredEvents}
+                    onDateClick={handleDateClick}
+                    onEventClick={handleEventClick}
+                    isToday={isToday}
+                    getEventsForDate={getEventsForDate}
+                    conflicts={showConflictWarning}
+                  />
+                )}
 
-              {view === 'week' && (
-                <WeekView
-                  currentDate={currentDate}
-                  events={filteredEvents}
-                  onEventClick={handleEventClick}
-                  onDateClick={handleDateClick}
-                  conflicts={showConflictWarning}
-                  readOnly={isStudent}
-                />
-              )}
+                {view === 'week' && (
+                  <WeekView
+                    currentDate={currentDate}
+                    events={filteredEvents}
+                    onEventClick={handleEventClick}
+                    onDateClick={handleDateClick}
+                    conflicts={showConflictWarning}
+                    readOnly={isStudent}
+                  />
+                )}
 
-              {view === 'day' && (
-                <DayView
-                  currentDate={currentDate}
-                  events={filteredEvents}
-                  onEventClick={handleEventClick}
-                  conflicts={showConflictWarning}
-                  readOnly={isStudent}
-                />
-              )}
+                {view === 'day' && (
+                  <DayView
+                    currentDate={currentDate}
+                    events={filteredEvents}
+                    onEventClick={handleEventClick}
+                    conflicts={showConflictWarning}
+                    readOnly={isStudent}
+                  />
+                )}
 
-              {!isStudent && view === 'availability' && (
-                <AvailabilityView
-                  availability={availability}
-                  onToggle={toggleAvailability}
-                  onSave={() => {
-                    toast.success('Availability updated!')
-                    setView('month')
-                  }}
-                />
-              )}
-            </>
-          )}
+                {!isStudent && view === 'availability' && (
+                  <AvailabilityView
+                    availability={availability}
+                    onToggle={toggleAvailability}
+                    onSave={() => {
+                      toast.success('Availability updated!')
+                      setView('month')
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </div>
         </CardContent>
 
         <Dialog
@@ -1718,7 +1720,7 @@ function MonthView({
   conflicts,
 }: any) {
   return (
-    <div className="overflow-hidden rounded-lg border border-[#2563EB] m-2">
+    <div className="overflow-hidden rounded-lg">
       <div className="grid grid-cols-7 border-b border-gray-100 bg-white/50">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
           <div key={day} className="p-1.5 text-center text-xs font-medium text-gray-600">
@@ -1816,7 +1818,7 @@ function WeekView({
   }
 
   return (
-    <div className="flex rounded-lg border border-[#2563EB] bg-white/50 m-2">
+    <div className="flex rounded-lg bg-white/50">
       <div className="w-14 border-r bg-gray-50">
         <div className="h-10 border-b" />
         {hours.map(hour => (
@@ -1897,7 +1899,7 @@ function DayView({ currentDate, events, onEventClick, conflicts, readOnly = fals
     .sort((a: CalendarEvent, b: CalendarEvent) => a.date.getTime() - b.date.getTime())
 
   return (
-    <div className="flex rounded-lg border border-[#2563EB] bg-white/50 m-2">
+    <div className="flex rounded-lg bg-white/50">
       <div className="w-14 border-r bg-gray-50">
         {hours.map(hour => (
           <div key={hour} className="h-10 border-b px-1 py-1 text-right text-xs text-gray-600">
