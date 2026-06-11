@@ -7,8 +7,9 @@
 'use client'
 
 import { Suspense } from 'react'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -58,9 +59,20 @@ function InsightsLayoutInner({ children }: { children: React.ReactNode }) {
   const [isInsightsOpen, setIsInsightsOpen] = useState(true)
   const searchParams = useSearchParams()
   const returnUrl = searchParams.get('return') || '/tutor/dashboard'
+  const sessionId = searchParams.get('sessionId')
+  const { data: authSession } = useSession()
 
   // Insights panel state
-  const { socket, isConnected } = useSocket()
+  const socketOptions = useMemo(() => {
+    if (!sessionId || !authSession?.user?.id) return undefined
+    return {
+      roomId: sessionId,
+      userId: authSession.user.id,
+      name: authSession.user.name || 'Tutor',
+      role: 'tutor' as const,
+    }
+  }, [sessionId, authSession?.user?.id, authSession?.user?.name])
+  const { socket, isConnected } = useSocket(socketOptions)
   const [activeTab, setActiveTab] = useState('analytics')
   const [inputText, setInputText] = useState('')
   const [analytics, setAnalytics] = useState<AnalyticsData>({
@@ -132,6 +144,8 @@ function InsightsLayoutInner({ children }: { children: React.ReactNode }) {
           options: [1, 2, 3, 4, 5],
           isActive: true,
           sentAt: new Date().toISOString(),
+          tutorId: authSession?.user?.id || '',
+          tutorName: authSession?.user?.name || 'Tutor',
         }
         socket.emit('send_poll', pollData)
         toast.success('Poll sent to students')
@@ -140,6 +154,8 @@ function InsightsLayoutInner({ children }: { children: React.ReactNode }) {
           id: `question-${Date.now()}`,
           question: inputText,
           sentAt: new Date().toISOString(),
+          tutorId: authSession?.user?.id || '',
+          tutorName: authSession?.user?.name || 'Tutor',
         }
         socket.emit('send_question', questionData)
         toast.success('Question sent to students')
@@ -150,7 +166,7 @@ function InsightsLayoutInner({ children }: { children: React.ReactNode }) {
     } finally {
       setIsSending(false)
     }
-  }, [activeTab, inputText, socket])
+  }, [activeTab, inputText, socket, authSession?.user?.id, authSession?.user?.name])
 
   const getPlaceholder = () => {
     switch (activeTab) {

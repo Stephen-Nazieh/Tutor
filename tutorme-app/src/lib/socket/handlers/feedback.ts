@@ -325,6 +325,10 @@ export function initFeedbackHandlers(io: SocketIOServer, socket: Socket) {
             optionIds: [],
             rating: data.option,
           })
+          await db
+            .update(dbPoll)
+            .set({ totalResponses: poll.responses.size })
+            .where(eq(dbPoll.pollId, data.pollId))
         })
         .catch(err => {
           console.error('[poll_response] Failed to persist poll response:', err)
