@@ -357,14 +357,15 @@ export function InteractiveCalendar({
   const [categoriesLoaded, setCategoriesLoaded] = useState(false)
   const cardContentRef = useRef<HTMLDivElement>(null)
 
+  // Auto-scroll: Day/Week snap to 4pm (hour 16), Month scroll past header
   useEffect(() => {
     if (!cardContentRef.current) return
-    if (view !== 'day' && view !== 'week') return
-    const now = new Date()
-    const hour = now.getHours() + now.getMinutes() / 60
     requestAnimationFrame(() => {
-      if (cardContentRef.current) {
-        cardContentRef.current.scrollTop = Math.max(0, hour * 40 - 40)
+      if (!cardContentRef.current) return
+      if (view === 'day' || view === 'week') {
+        cardContentRef.current.scrollTop = 16 * 40
+      } else if (view === 'month') {
+        cardContentRef.current.scrollTop = 80
       }
     })
   }, [view, currentDate])
@@ -944,7 +945,7 @@ export function InteractiveCalendar({
         </CardHeader>
 
         <CardContent ref={cardContentRef} spacing={embedded ? 'none' : 'default'} className={cn('flex-1 overflow-auto scrollbar-hide pt-0', embedded && 'px-4 pb-4')}>
-          <div className="border border-[#374151] rounded-lg overflow-hidden h-full">
+          <div className={cn('h-full pt-3', !availabilityOnly && 'border border-[#374151] rounded-lg overflow-auto scrollbar-hide')}>
             {availabilityOnly ? (
               <AvailabilityView
                 availability={availability}
