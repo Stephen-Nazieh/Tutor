@@ -3,10 +3,6 @@
  */
 
 import { Server as SocketIOServer, Socket } from 'socket.io'
-import * as Y from 'yjs'
-import { generateWithFallback } from '@/lib/agents'
-import { z } from 'zod'
-import { safeJsonParseWithSchema } from '@/lib/ai/json'
 import { eq, and } from 'drizzle-orm'
 import { drizzleDb as db } from '@/lib/db/drizzle'
 import {
@@ -14,93 +10,7 @@ import {
   pollOption as dbPollOption,
   pollResponse as dbPollResponse,
 } from '@/lib/db/schema'
-import {
-  CHAT_HISTORY_MAX,
-  CHAT_HISTORY_SLICE_TO_STUDENT,
-  LIVE_CLASS_EXPORTS_MAX,
-  LIVE_CLASS_SNAPSHOTS_MAX,
-  MAX_CHAT_MESSAGE_LENGTH,
-  MAX_DM_MESSAGE_LENGTH,
-  NAME_MAX_LENGTH,
-  PDF_EVENTS_MAX,
-  ROOM_CLEANUP_INTERVAL_MS,
-  DM_CLEANUP_INTERVAL_MS,
-  DM_ROOM_IDLE_CLEANUP_MS,
-  LIVE_DOC_CLEANUP_INTERVAL_MS,
-  PDF_CLEANUP_INTERVAL_MS,
-  ROOM_IDLE_CLEANUP_MS,
-  ROOM_ID_MAX_LENGTH,
-  USER_ID_MAX_LENGTH,
-  LCWB_AI_REGION_RATE_LIMIT_PER_MIN,
-  LCWB_AI_REGION_RATE_WINDOW_MS,
-  WHITEBOARD_OP_SEEN_MAX,
-  WHITEBOARD_OP_SEEN_TRIM,
-  WHITEBOARD_DEAD_LETTER_MAX,
-  WHITEBOARD_OP_LOG_MAX,
-  MAX_STROKES,
-  activeRooms,
-  directMessageRooms,
-  userSocketMap,
-  getConversationParticipantIds,
-  getPdfCollabRoom,
-  getLiveDocumentShareMap,
-  expandLiveShareForStudents,
-  activeWhiteboards,
-  whiteboardOpMetrics,
-  whiteboardSelectionPresence,
-  lcwbAiRegionRateLimit,
-  whiteboardOpSeenIds,
-  whiteboardDeadLetters,
-  whiteboardOpLog,
-  whiteboardOpSeq,
-  whiteboardBranches,
-  liveClassModeration,
-  liveClassSnapshots,
-  liveClassExports,
-  mathWhiteboardRooms,
-  mathSyncMetrics,
-  breakoutRooms,
-  mainRoomBreakouts,
-  getWhiteboardOpMetric,
-  trimWhiteboardOpTimestamps,
-  applyStrokeOps,
-  isValidStroke,
-  sanitizeWhiteboardOps,
-  pushWhiteboardDeadLetters,
-  appendWhiteboardOpLog,
-  getLiveClassModerationState,
-  appendLiveClassSnapshot,
-  getMathSyncMetric,
-  trimRecentUpdates,
-  getMathWhiteboardRoom,
-  trimPdfEvents,
-  pdfCollabRooms,
-  liveDocumentShares,
-  activePolls,
-  sessionPolls,
-  deployedTasks,
-  feedbackPolls,
-  feedbackQuestions,
-} from '@/lib/socket'
-import type {
-  StudentState,
-  ChatMessage,
-  ClassRoom,
-  DirectMessageRoom,
-  WhiteboardStroke,
-  WhiteboardStrokeOp,
-  WhiteboardShape,
-  WhiteboardText,
-  WhiteboardState,
-  WhiteboardSelectionPresence,
-  LiveClassModerationState,
-  LiveClassSnapshot,
-  MathWhiteboardRoomState,
-  BreakoutRoom,
-  PollState,
-  PdfCollabRoomState,
-  LiveDocumentShare,
-} from '@/lib/socket'
+import { deployedTasks, feedbackPolls, feedbackQuestions } from '@/lib/socket'
 
 export function initFeedbackHandlers(io: SocketIOServer, socket: Socket) {
   // Student joins feedback room
