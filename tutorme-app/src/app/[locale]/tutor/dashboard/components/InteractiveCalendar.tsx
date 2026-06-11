@@ -819,7 +819,7 @@ export function InteractiveCalendar({
             : 'h-[600px] border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md'
         )}
       >
-        <CardHeader className={cn('shrink-0', embedded ? 'px-4 pb-2 pt-4' : 'pb-3')}>
+        <CardHeader className={cn('shrink-0', embedded ? (mode === 'tutor' ? 'px-4 pb-4 pt-2' : 'px-4 pb-2 pt-4') : 'pb-3')}>
           {availabilityOnly ? (
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">My Availability</h2>
@@ -975,7 +975,8 @@ export function InteractiveCalendar({
         >
           <div
             className={cn(
-              'flex min-h-0 flex-1 flex-col pt-3',
+              'flex min-h-0 flex-1 flex-col',
+              mode === 'tutor' && embedded ? 'pt-5' : 'pt-3',
               !availabilityOnly && 'overflow-hidden rounded-lg border border-[#374151]'
             )}
           >

@@ -621,7 +621,7 @@ function TutorDashboardContent() {
     <div className="flex h-full flex-col overflow-hidden">
       <div className="flex h-full w-full flex-col px-3 lg:px-4">
         {/* Modern Hero Section */}
-        <div className="mb-4 flex-shrink-0">
+        <div className="mb-2 flex-shrink-0">
           <ModernHeroSection
             stats={stats}
             heroStats={heroStats}
@@ -648,13 +648,13 @@ function TutorDashboardContent() {
         )}
 
         <div className="flex min-h-0 flex-1 flex-col">
-          <Card className="flex h-full flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+          <Card className="flex h-full flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white !pb-4 shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
               className="flex h-full w-full flex-col"
             >
-              <CardHeader className="flex-shrink-0 pb-0 pt-4">
+              <CardHeader className="flex-shrink-0 px-6 pb-0 pt-2">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <TabsList className="flex gap-1.5 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] p-1.5">
                     <TabsTrigger
@@ -726,7 +726,7 @@ function TutorDashboardContent() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-4">
+              <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 pt-3 pb-2">
                 <TabsContent
                   value="calendar"
                   className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
