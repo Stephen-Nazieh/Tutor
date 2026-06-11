@@ -155,6 +155,9 @@ interface InteractiveCalendarProps {
   embedded?: boolean
   timezone?: string
   onTimezoneChange?: (tz: string) => void
+  /** Controlled view state */
+  view?: CalendarView
+  onViewChange?: (view: CalendarView) => void
 }
 
 const SUBJECTS = [
@@ -216,7 +219,7 @@ const generateAvailability = (): AvailabilityBlock[] => {
   return slots
 }
 
-type CalendarView = 'month' | 'week' | 'day' | 'availability'
+export type CalendarView = 'month' | 'week' | 'day' | 'availability'
 
 // Draggable Event Component
 function DraggableEvent({
@@ -297,6 +300,8 @@ export function InteractiveCalendar({
   embedded = false,
   timezone: timezoneProp,
   onTimezoneChange,
+  view: controlledView,
+  onViewChange,
 }: InteractiveCalendarProps) {
   const isStudent = mode === 'student'
   const router = useRouter()
@@ -314,6 +319,19 @@ export function InteractiveCalendar({
   )
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<CalendarView>(initialView)
+  // Sync controlled view prop
+  useEffect(() => {
+    if (controlledView !== undefined) {
+      setView(controlledView)
+    }
+  }, [controlledView])
+  const handleSetView = useCallback(
+    (v: CalendarView) => {
+      setView(v)
+      onViewChange?.(v)
+    },
+    [onViewChange]
+  )
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [subjectFilter, setSubjectFilter] = useState<string>('all')
@@ -813,17 +831,17 @@ export function InteractiveCalendar({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
-                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navigatePeriod(-1)}>
+                    <Button variant="outline" size="icon" className="h-9 w-9 rounded-sm border-[#374151] hover:bg-[#374151] hover:text-white" onClick={() => navigatePeriod(-1)}>
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <h2 className="min-w-[140px] text-center text-base font-semibold">
                       {headerLabel}
                     </h2>
-                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => navigatePeriod(1)}>
+                    <Button variant="outline" size="icon" className="h-9 w-9 rounded-sm border-[#374151] hover:bg-[#374151] hover:text-white" onClick={() => navigatePeriod(1)}>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
-                  <Button variant="outline" size="sm" className="h-8 text-xs" onClick={goToToday}>
+                  <Button variant="outline" size="sm" className="h-9 rounded-sm border-[#374151] text-xs hover:bg-[#374151] hover:text-white" onClick={goToToday}>
                     Today
                   </Button>
                   {!isStudent && (
@@ -832,7 +850,7 @@ export function InteractiveCalendar({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 text-xs"
+                        className="h-9 rounded-sm border-[#374151] text-xs hover:bg-[#374151] hover:text-white"
                         onClick={() => setShowCalendarIntegrations(true)}
                       >
                         <RefreshCw
@@ -847,19 +865,19 @@ export function InteractiveCalendar({
                   )}
                   {/* Filters */}
                   <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                    <SelectTrigger className="h-8 w-32 text-xs">
-                      <Filter className="mr-1.5 h-3.5 w-3.5" />
+                    <SelectTrigger className="h-9 w-40 rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:border-slate-400 hover:shadow-md focus-visible:shadow-none">
+                      <Filter className="mr-1.5 h-3.5 w-3.5 text-slate-500" />
                       <SelectValue placeholder="Filter" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
+                    <SelectContent className="rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg w-[var(--radix-select-trigger-width)]">
+                      <SelectItem value="all" className="text-slate-700 text-xs hover:bg-slate-100 rounded-md">All Categories</SelectItem>
                       {!categoriesLoaded && (
-                        <SelectItem value="__loading__" disabled>
+                        <SelectItem value="__loading__" disabled className="text-slate-700 text-xs rounded-md">
                           Loading…
                         </SelectItem>
                       )}
                       {categoryOptions.map(name => (
-                        <SelectItem key={name} value={name}>
+                        <SelectItem key={name} value={name} className="text-slate-700 text-xs hover:bg-slate-100 rounded-md">
                           {name}
                         </SelectItem>
                       ))}
@@ -873,27 +891,28 @@ export function InteractiveCalendar({
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
-
-                  {/* View Toggle - Reordered as Day, Week, Month */}
-                  <div className="grid h-8 grid-cols-3 min-w-[180px] rounded-xl bg-[#2D2B4E] p-1">
-                    {(view === 'availability'
-                      ? (['day', 'week', 'month'] as CalendarView[])
-                      : (['day', 'week', 'month'] as CalendarView[])
-                    ).map(v => (
-                      <button
-                        key={v}
-                        onClick={() => setView(v)}
-                        className={cn(
-                          'flex items-center justify-center rounded-lg text-sm font-medium capitalize transition-colors',
-                          view === v ? 'bg-white text-black shadow-sm' : 'text-white/70 hover:text-white'
-                        )}
-                      >
-                        {v}
-                      </button>
-                    ))}
+                {!controlledView && (
+                  <div className="flex items-center gap-2">
+                    {/* View Toggle - Reordered as Day, Week, Month */}
+                    <div className="grid h-9 grid-cols-3 min-w-[180px] rounded-xl bg-[#2D2B4E] p-1">
+                      {(view === 'availability'
+                        ? (['day', 'week', 'month'] as CalendarView[])
+                        : (['day', 'week', 'month'] as CalendarView[])
+                      ).map(v => (
+                        <button
+                          key={v}
+                          onClick={() => handleSetView(v)}
+                          className={cn(
+                            'flex items-center justify-center rounded-lg text-sm font-medium capitalize transition-colors',
+                            view === v ? 'bg-white text-black shadow-sm' : 'text-white/70 hover:text-white'
+                          )}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Conflict Warning Banner */}
@@ -919,36 +938,7 @@ export function InteractiveCalendar({
                 </div>
               )}
 
-              {/* Legend */}
-              <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
-                {categoriesLoaded ? (
-                  categoryOptions.map(name => (
-                    <button
-                      key={name}
-                      onClick={() => setSubjectFilter(subjectFilter === name ? 'all' : name)}
-                      className={cn(
-                        'flex items-center gap-1 rounded-full px-2 py-1 transition-colors',
-                        subjectFilter === name ? 'bg-gray-200' : 'hover:bg-gray-100'
-                      )}
-                    >
-                      <div
-                        className={cn(
-                          'h-3 w-3 rounded-full',
-                          SUBJECTS.find(s => s.name === name)?.color || 'bg-gray-300'
-                        )}
-                      />
-                      <span>{name}</span>
-                    </button>
-                  ))
-                ) : (
-                  <span className="text-muted-foreground text-xs">Loading categories…</span>
-                )}
-                {subjectFilter !== 'all' && (
-                  <Button variant="ghost" size="sm" onClick={() => setSubjectFilter('all')}>
-                    Clear Filter
-                  </Button>
-                )}
-              </div>
+
             </>
           )}
         </CardHeader>
@@ -1728,7 +1718,7 @@ function MonthView({
   conflicts,
 }: any) {
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 shadow-lg m-2">
+    <div className="overflow-hidden rounded-lg border border-[#2563EB] m-2">
       <div className="grid grid-cols-7 border-b border-gray-100 bg-white/50">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
           <div key={day} className="p-1.5 text-center text-xs font-medium text-gray-600">
@@ -1826,7 +1816,7 @@ function WeekView({
   }
 
   return (
-    <div className="flex rounded-lg border border-slate-200 bg-white/50 shadow-lg m-2">
+    <div className="flex rounded-lg border border-[#2563EB] bg-white/50 m-2">
       <div className="w-14 border-r bg-gray-50">
         <div className="h-10 border-b" />
         {hours.map(hour => (
@@ -1907,7 +1897,7 @@ function DayView({ currentDate, events, onEventClick, conflicts, readOnly = fals
     .sort((a: CalendarEvent, b: CalendarEvent) => a.date.getTime() - b.date.getTime())
 
   return (
-    <div className="flex rounded-lg border border-slate-200 bg-white/50 shadow-lg m-2">
+    <div className="flex rounded-lg border border-[#2563EB] bg-white/50 m-2">
       <div className="w-14 border-r bg-gray-50">
         {hours.map(hour => (
           <div key={hour} className="h-10 border-b px-1 py-1 text-right text-xs text-gray-600">

@@ -56,7 +56,7 @@ import {
   type UpcomingClass,
 
 } from './components'
-import { DEFAULT_TIMEZONE, SUPPORTED_TIMEZONES } from './components/InteractiveCalendar'
+import { DEFAULT_TIMEZONE, SUPPORTED_TIMEZONES, type CalendarView } from './components/InteractiveCalendar'
 import { ModernHeroSection } from './components/ModernHeroSection'
 
 const COMMON_TIMEZONES = [
@@ -187,6 +187,7 @@ function TutorDashboardContent() {
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [scheduleDate, setScheduleDate] = useState<Date | null>(null)
   const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE)
+  const [calendarView, setCalendarView] = useState<CalendarView>('day')
   const [activeTab, setActiveTab] = useState('courses')
 
   useEffect(() => {
@@ -675,28 +676,46 @@ function TutorDashboardContent() {
                     </TabsTrigger>
                   </TabsList>
                   {(activeTab === 'calendar' || activeTab === 'availability') && (
-                    <Select value={timezone} onValueChange={setTimezone}>
-                      <SelectTrigger className="h-8 w-[150px] rounded-lg border border-gray-300 bg-white text-xs text-gray-800 shadow-sm transition-all hover:bg-gray-50 focus-visible:ring-0 focus-visible:ring-offset-0">
-                        <Globe className="mr-1.5 h-3.5 w-3.5 text-gray-400" />
-                        <SelectValue placeholder="Timezone" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-lg border border-gray-200 bg-white p-1 shadow-lg max-h-[280px]">
-                        {COMMON_TIMEZONES.map(tz => {
-                          const { city } = formatTimezoneLabel(tz)
-                          return (
-                            <SelectItem key={tz} value={tz} className="text-gray-800 text-xs focus:text-gray-800 hover:bg-gray-100 focus:bg-gray-100 mx-1 focus:outline-none rounded-md">
-                              {city}
-                            </SelectItem>
-                          )
-                        })}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                      {activeTab === 'calendar' && (
+                        <div className="grid h-9 grid-cols-3 min-w-[180px] rounded-xl bg-[#2D2B4E] p-1">
+                          {(['day', 'week', 'month'] as CalendarView[]).map(v => (
+                            <button
+                              key={v}
+                              onClick={() => setCalendarView(v)}
+                              className={cn(
+                                'flex items-center justify-center rounded-lg text-xs font-medium capitalize transition-colors',
+                                calendarView === v ? 'bg-white text-black shadow-sm' : 'text-white/70 hover:text-white'
+                              )}
+                            >
+                              {v}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <Select value={timezone} onValueChange={setTimezone}>
+                        <SelectTrigger className="h-9 w-[150px] rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:border-slate-400 hover:shadow-md focus-visible:shadow-none">
+                          <Globe className="mr-1.5 h-3.5 w-3.5 text-slate-500" />
+                          <SelectValue placeholder="Timezone" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-lg border border-slate-200 bg-white p-1.5 shadow-lg w-[var(--radix-select-trigger-width)] max-h-[280px]">
+                          {COMMON_TIMEZONES.map(tz => {
+                            const { city } = formatTimezoneLabel(tz)
+                            return (
+                              <SelectItem key={tz} value={tz} className="text-slate-700 text-xs hover:bg-slate-100 rounded-md">
+                                {city}
+                              </SelectItem>
+                            )
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
                 </div>
               </CardHeader>
               <CardContent className="flex-1 min-h-0 overflow-hidden pt-4 flex flex-col">
                 <TabsContent value="calendar" className="flex-1 min-h-0 overflow-hidden mt-0">
-                  <InteractiveCalendar initialView="day" dayClickMode="create" loading={loading} embedded timezone={timezone} onTimezoneChange={setTimezone} />
+                  <InteractiveCalendar initialView="day" dayClickMode="create" loading={loading} embedded timezone={timezone} onTimezoneChange={setTimezone} view={calendarView} onViewChange={setCalendarView} />
                 </TabsContent>
                 <TabsContent value="availability" className="flex-1 min-h-0 overflow-hidden mt-0">
                   <InteractiveCalendar
@@ -707,6 +726,8 @@ function TutorDashboardContent() {
                     embedded
                     timezone={timezone}
                     onTimezoneChange={setTimezone}
+                    view={calendarView}
+                    onViewChange={setCalendarView}
                   />
                 </TabsContent>
                 <TabsContent value="courses" className="flex-1 min-h-0 overflow-hidden mt-0">
