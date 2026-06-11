@@ -1822,7 +1822,7 @@ export default function PublicTutorPage() {
           panelCardClass,
           'overflow-hidden p-0 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
           coursesExpanded
-            ? 'flex h-[calc(100vh-3rem)] flex-col'
+            ? 'mt-8 flex h-[calc(100vh-3rem)] flex-col'
             : 'mt-8'
         )}
       >
@@ -1903,7 +1903,7 @@ export default function PublicTutorPage() {
           </div>
         </div>
         <div className={cn(
-          'flex-1 overflow-y-auto',
+          'flex-1 overflow-y-auto scrollbar-hide',
           coursesExpanded
             ? 'flex flex-col gap-4 px-6 pb-6 pt-4 sm:px-8'
             : 'space-y-10 px-6 pb-8 pt-8 sm:px-8'
