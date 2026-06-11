@@ -60,12 +60,20 @@ export function StudentHeroSection() {
       .then(r => r.json())
       .then(data => {
         if (cancelled) return
-        const list: CalendarEventItem[] = Array.isArray(data?.events)
-          ? data.events.map((e: any) => ({
-              id: e.id || e.eventId || e.bookingId,
+        const rawEvents = data?.events as Array<
+          Partial<CalendarEventItem> & {
+            eventId?: string
+            bookingId?: string
+            startTime?: string
+            endTime?: string
+          }
+        >
+        const list: CalendarEventItem[] = Array.isArray(rawEvents)
+          ? rawEvents.map(e => ({
+              id: e.id || e.eventId || e.bookingId || '',
               title: e.title || 'Session',
-              start: e.start || e.startTime,
-              end: e.end || e.endTime,
+              start: e.start || e.startTime || '',
+              end: e.end || e.endTime || '',
               duration: e.duration || 60,
             }))
           : []
@@ -131,7 +139,6 @@ export function StudentHeroSection() {
             const d = new Date(currentTime)
             d.setDate(currentTime.getDate() + i)
             const dayEvents = eventsByDay.get(d.toDateString()) ?? []
-            const hasEvents = dayEvents.length > 0
 
             return (
               <div
@@ -145,9 +152,7 @@ export function StudentHeroSection() {
                 <span
                   className={cn(
                     'mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold',
-                    i === 0
-                      ? 'bg-white/30 text-white'
-                      : 'text-white group-hover:bg-white/10'
+                    i === 0 ? 'bg-white/30 text-white' : 'text-white group-hover:bg-white/10'
                   )}
                 >
                   {d.getDate()}

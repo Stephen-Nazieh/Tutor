@@ -54,9 +54,12 @@ import {
   UpcomingClassesCard,
   InteractiveCalendar,
   type UpcomingClass,
-
 } from './components'
-import { DEFAULT_TIMEZONE, SUPPORTED_TIMEZONES, type CalendarView } from './components/InteractiveCalendar'
+import {
+  DEFAULT_TIMEZONE,
+  SUPPORTED_TIMEZONES,
+  type CalendarView,
+} from './components/InteractiveCalendar'
 import { ModernHeroSection } from './components/ModernHeroSection'
 
 const COMMON_TIMEZONES = [
@@ -615,10 +618,10 @@ function TutorDashboardContent() {
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      <div className="w-full px-3 lg:px-4 flex flex-col h-full">
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="flex h-full w-full flex-col px-3 lg:px-4">
         {/* Modern Hero Section */}
-        <div className="flex-shrink-0 mb-4">
+        <div className="mb-4 flex-shrink-0">
           <ModernHeroSection
             stats={stats}
             heroStats={heroStats}
@@ -628,12 +631,12 @@ function TutorDashboardContent() {
         </div>
 
         {error && (
-          <div className="flex-shrink-0 mb-4 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="border-destructive/20 bg-destructive/10 text-destructive mb-4 flex-shrink-0 rounded-xl border p-3 text-sm">
             {error}
             <Button
               variant="outline"
               size="sm"
-              className="ml-2 transition-all duration-200 hover:bg-muted"
+              className="hover:bg-muted ml-2 transition-all duration-200"
               onClick={() => {
                 setLoading(true)
                 fetchData()
@@ -644,12 +647,16 @@ function TutorDashboardContent() {
           </div>
         )}
 
-        <div className="flex-1 flex flex-col min-h-0">
-          <Card className="flex flex-col h-full overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col h-full">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <Card className="flex h-full flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="flex h-full w-full flex-col"
+            >
               <CardHeader className="flex-shrink-0 pb-0 pt-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <TabsList className="flex bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] p-1.5 rounded-xl gap-1.5">
+                  <TabsList className="flex gap-1.5 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] p-1.5">
                     <TabsTrigger
                       value="courses"
                       className="flex-1 rounded-lg text-white/80 hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:shadow-sm"
@@ -678,14 +685,16 @@ function TutorDashboardContent() {
                   {(activeTab === 'calendar' || activeTab === 'availability') && (
                     <div className="flex items-center gap-2">
                       {activeTab === 'calendar' && (
-                        <div className="grid h-9 grid-cols-3 min-w-[180px] rounded-xl bg-[#2D2B4E] p-1">
+                        <div className="grid h-9 min-w-[180px] grid-cols-3 rounded-xl bg-[#2D2B4E] p-1">
                           {(['day', 'week', 'month'] as CalendarView[]).map(v => (
                             <button
                               key={v}
                               onClick={() => setCalendarView(v)}
                               className={cn(
                                 'flex items-center justify-center rounded-lg text-xs font-medium capitalize transition-colors',
-                                calendarView === v ? 'bg-white text-black shadow-sm' : 'text-white/70 hover:text-white'
+                                calendarView === v
+                                  ? 'bg-white text-black shadow-sm'
+                                  : 'text-white/70 hover:text-white'
                               )}
                             >
                               {v}
@@ -694,15 +703,19 @@ function TutorDashboardContent() {
                         </div>
                       )}
                       <Select value={timezone} onValueChange={setTimezone}>
-                        <SelectTrigger className="h-9 w-[150px] rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:border-slate-400 hover:shadow-md focus-visible:shadow-none">
+                        <SelectTrigger className="h-9 w-[150px] rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 hover:shadow-md focus-visible:shadow-none">
                           <Globe className="mr-1.5 h-3.5 w-3.5 text-slate-500" />
                           <SelectValue placeholder="Timezone" />
                         </SelectTrigger>
-                        <SelectContent className="!bg-white !bg-none !text-slate-700 rounded-lg border border-slate-200 p-1.5 shadow-lg w-[var(--radix-select-trigger-width)] max-h-[280px]">
+                        <SelectContent className="max-h-[280px] w-[var(--radix-select-trigger-width)] rounded-lg border border-slate-200 !bg-white !bg-none p-1.5 !text-slate-700 shadow-lg">
                           {COMMON_TIMEZONES.map(tz => {
                             const { city } = formatTimezoneLabel(tz)
                             return (
-                              <SelectItem key={tz} value={tz} className="!text-slate-700 text-xs !hover:bg-slate-100 !focus:bg-slate-100 rounded-md">
+                              <SelectItem
+                                key={tz}
+                                value={tz}
+                                className="!hover:bg-slate-100 !focus:bg-slate-100 rounded-md text-xs !text-slate-700"
+                              >
                                 {city}
                               </SelectItem>
                             )
@@ -713,11 +726,26 @@ function TutorDashboardContent() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 min-h-0 overflow-hidden pt-4 flex flex-col">
-                <TabsContent value="calendar" className="flex-1 min-h-0 overflow-hidden mt-0 flex flex-col">
-                  <InteractiveCalendar initialView="day" dayClickMode="create" loading={loading} embedded timezone={timezone} onTimezoneChange={setTimezone} view={calendarView} onViewChange={setCalendarView} />
+              <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden pt-4">
+                <TabsContent
+                  value="calendar"
+                  className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
+                >
+                  <InteractiveCalendar
+                    initialView="day"
+                    dayClickMode="create"
+                    loading={loading}
+                    embedded
+                    timezone={timezone}
+                    onTimezoneChange={setTimezone}
+                    view={calendarView}
+                    onViewChange={setCalendarView}
+                  />
                 </TabsContent>
-                <TabsContent value="availability" className="flex-1 min-h-0 overflow-hidden mt-0 flex flex-col">
+                <TabsContent
+                  value="availability"
+                  className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
+                >
                   <InteractiveCalendar
                     initialView="availability"
                     dayClickMode="availability"
@@ -730,196 +758,220 @@ function TutorDashboardContent() {
                     onViewChange={setCalendarView}
                   />
                 </TabsContent>
-                <TabsContent value="courses" className="flex-1 min-h-0 overflow-hidden mt-0 flex flex-col">
+                <TabsContent
+                  value="courses"
+                  className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
+                >
                   <div className="h-full overflow-y-auto">
-                    <CardTitle className="mb-4 text-card-foreground flex items-center gap-2">
+                    <CardTitle className="text-card-foreground mb-4 flex items-center gap-2">
                       Session Schedule
                       <span className="text-muted-foreground text-sm font-normal">
-                        {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                        {new Date().toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
                       </span>
                     </CardTitle>
                     <div className="space-y-3">
-                  {enrolledCourses.length === 0 ? (
-                    <div className="text-muted-foreground rounded-lg border border-dashed border-border/30 p-6 text-center text-sm">
-                      No courses have enrolled students yet.
-                    </div>
-                  ) : (
-                    enrolledCourses.map(course => {
-                      const courseClasses = classes.filter(c => c.courseId === course.id)
-                      const hasActive = courseClasses.some(
-                        c =>
-                          c.status === 'active' || c.status === 'live' || c.status === 'preparing'
-                      )
-                      const nextSession = courseClasses.find(c => c.status === 'scheduled')
-                      const isWithin1Hour =
-                        nextSession &&
-                        new Date(nextSession.scheduledAt).getTime() - Date.now() <= 3600000
+                      {enrolledCourses.length === 0 ? (
+                        <div className="text-muted-foreground border-border/30 rounded-lg border border-dashed p-6 text-center text-sm">
+                          No courses have enrolled students yet.
+                        </div>
+                      ) : (
+                        enrolledCourses.map(course => {
+                          const courseClasses = classes.filter(c => c.courseId === course.id)
+                          const hasActive = courseClasses.some(
+                            c =>
+                              c.status === 'active' ||
+                              c.status === 'live' ||
+                              c.status === 'preparing'
+                          )
+                          const nextSession = courseClasses.find(c => c.status === 'scheduled')
+                          const isWithin1Hour =
+                            nextSession &&
+                            new Date(nextSession.scheduledAt).getTime() - Date.now() <= 3600000
 
-                      return (
-                        <div
-                          key={course.id}
-                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/20 bg-muted/30 p-4 transition-all duration-200 hover:border-border/40 hover:bg-muted/50"
-                        >
-                          <div className="min-w-0 space-y-1">
-                            <div className="flex items-center gap-2">
-                              <p className="truncate font-semibold text-foreground">
-                                {course.nationality && course.nationality !== 'Global'
-                                  ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
-                                  : course.name}
-                              </p>
-                            </div>
-                            <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-                              <span>{(course.categories || [])[0] || 'Untitled'}</span>
-                              {course.price ? (
-                                <span>
-                                  • {course.currency ?? 'USD'} {course.price}
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Badge
-                                variant={hasActive || isWithin1Hour ? 'default' : 'secondary'}
-                                className={cn(
-                                  'cursor-pointer transition-all duration-200',
-                                  hasActive
-                                    ? 'bg-success text-success-foreground hover:brightness-110'
-                                    : isWithin1Hour
-                                      ? 'bg-warning text-warning-foreground hover:brightness-110'
-                                      : 'border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/70'
-                                )}
-                                onClick={() => handleOpenSessionsModal(course)}
-                              >
-                                {course.upcomingSessionsCount
-                                  ? `${course.upcomingSessionsCount} session${course.upcomingSessionsCount === 1 ? '' : 's'}`
-                                  : course.schedule && course.schedule.length > 0
-                                    ? `${course.schedule.length} slot${course.schedule.length === 1 ? '' : 's'}`
-                                    : '0 sessions'}
-                              </Badge>
-                              <Link
-                                href={withLocalePath(`/tutor/courses/${course.id}/enrollments`)}
-                              >
-                                <Badge
-                                  variant="secondary"
-                                  className="cursor-pointer border-border/30 bg-muted/50 text-muted-foreground transition-all duration-200 hover:bg-muted/70"
-                                >
-                                  {course.enrollmentCount} enrolled
-                                </Badge>
-                              </Link>
-                            </div>
-                            {courseClasses.length > 0 ? (
-                              <Button
-                                variant="default"
-                                size="sm"
-                                onClick={() => handleOpenSessionsModal(course)}
-                                className="transition-all duration-200"
-                              >
-                                <Eye className="mr-1 h-3 w-3" />
-                                View Sessions
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="default"
-                                size="sm"
-                                disabled={launchingCourseId === course.id}
-                                onClick={() => handleEnterCourseClassroom(course)}
-                                className="transition-all duration-200"
-                              >
-                                {launchingCourseId === course.id ? (
-                                  <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          return (
+                            <div
+                              key={course.id}
+                              className="border-border/20 bg-muted/30 hover:border-border/40 hover:bg-muted/50 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4 transition-all duration-200"
+                            >
+                              <div className="min-w-0 space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-foreground truncate font-semibold">
+                                    {course.nationality && course.nationality !== 'Global'
+                                      ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
+                                      : course.name}
+                                  </p>
+                                </div>
+                                <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
+                                  <span>{(course.categories || [])[0] || 'Untitled'}</span>
+                                  {course.price ? (
+                                    <span>
+                                      • {course.currency ?? 'USD'} {course.price}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                                  <Badge
+                                    variant={hasActive || isWithin1Hour ? 'default' : 'secondary'}
+                                    className={cn(
+                                      'cursor-pointer transition-all duration-200',
+                                      hasActive
+                                        ? 'bg-success text-success-foreground hover:brightness-110'
+                                        : isWithin1Hour
+                                          ? 'bg-warning text-warning-foreground hover:brightness-110'
+                                          : 'border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/70'
+                                    )}
+                                    onClick={() => handleOpenSessionsModal(course)}
+                                  >
+                                    {course.upcomingSessionsCount
+                                      ? `${course.upcomingSessionsCount} session${course.upcomingSessionsCount === 1 ? '' : 's'}`
+                                      : course.schedule && course.schedule.length > 0
+                                        ? `${course.schedule.length} slot${course.schedule.length === 1 ? '' : 's'}`
+                                        : '0 sessions'}
+                                  </Badge>
+                                  <Link
+                                    href={withLocalePath(`/tutor/courses/${course.id}/enrollments`)}
+                                  >
+                                    <Badge
+                                      variant="secondary"
+                                      className="border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/70 cursor-pointer transition-all duration-200"
+                                    >
+                                      {course.enrollmentCount} enrolled
+                                    </Badge>
+                                  </Link>
+                                </div>
+                                {courseClasses.length > 0 ? (
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    onClick={() => handleOpenSessionsModal(course)}
+                                    className="transition-all duration-200"
+                                  >
+                                    <Eye className="mr-1 h-3 w-3" />
+                                    View Sessions
+                                  </Button>
                                 ) : (
-                                  <Video className="mr-1 h-3 w-3" />
+                                  <Button
+                                    variant="default"
+                                    size="sm"
+                                    disabled={launchingCourseId === course.id}
+                                    onClick={() => handleEnterCourseClassroom(course)}
+                                    className="transition-all duration-200"
+                                  >
+                                    {launchingCourseId === course.id ? (
+                                      <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                    ) : (
+                                      <Video className="mr-1 h-3 w-3" />
+                                    )}
+                                    Create Session
+                                  </Button>
                                 )}
-                                Create Session
-                              </Button>
-                            )}
-                            <Button asChild variant="outline" size="sm" className="transition-all duration-200 hover:bg-muted/80">
-                              <Link
-                                href={withLocalePath(
-                                  `/tutor/insights?tab=builder&courseId=${course.id}&mode=edit`
-                                )}
-                              >
-                                Edit
-                              </Link>
-                            </Button>
-                          </div>
+                                <Button
+                                  asChild
+                                  variant="outline"
+                                  size="sm"
+                                  className="hover:bg-muted/80 transition-all duration-200"
+                                >
+                                  <Link
+                                    href={withLocalePath(
+                                      `/tutor/insights?tab=builder&courseId=${course.id}&mode=edit`
+                                    )}
+                                  >
+                                    Edit
+                                  </Link>
+                                </Button>
+                              </div>
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent
+                  value="oneOnOne"
+                  className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
+                >
+                  <div className="h-full overflow-y-auto">
+                    <div className="mb-4 flex items-center justify-between">
+                      <CardTitle className="text-card-foreground">
+                        Pending 1-on-1 Requests
+                      </CardTitle>
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="hover:bg-muted/80 transition-all duration-200"
+                      >
+                        <Link href={withLocalePath('/tutor/notifications')}>View all</Link>
+                      </Button>
+                    </div>
+                    <div className="space-y-3">
+                      {oneOnOneRequests.length === 0 ? (
+                        <div className="text-muted-foreground border-border/30 rounded-lg border border-dashed p-6 text-center text-sm">
+                          No pending 1 on 1 requests.
                         </div>
-                      )
-                    })
-                  )}
-                  </div>
-                </div>
-              </TabsContent>
-              <TabsContent value="oneOnOne" className="flex-1 min-h-0 overflow-hidden mt-0 flex flex-col">
-                <div className="h-full overflow-y-auto">
-                  <div className="flex items-center justify-between mb-4">
-                    <CardTitle className="text-card-foreground">Pending 1-on-1 Requests</CardTitle>
-                    <Button asChild variant="outline" size="sm" className="transition-all duration-200 hover:bg-muted/80">
-                      <Link href={withLocalePath('/tutor/notifications')}>View all</Link>
-                    </Button>
-                  </div>
-                  <div className="space-y-3">
-                    {oneOnOneRequests.length === 0 ? (
-                      <div className="text-muted-foreground rounded-lg border border-dashed border-border/30 p-6 text-center text-sm">
-                        No pending 1 on 1 requests.
-                      </div>
-                    ) : (
-                      oneOnOneRequests.map(request => (
-                        <div
-                          key={request.requestId}
-                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/20 bg-muted/30 p-4 transition-all duration-200 hover:border-border/40 hover:bg-muted/50"
-                        >
-                          <div className="min-w-0 space-y-1">
-                            <p className="truncate font-semibold text-foreground">
-                              @{request.student?.handle || 'student'}
-                            </p>
-                            <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
-                              <span>
-                                {new Date(request.requestedDate).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric',
-                                })}
-                              </span>
-                              <span>•</span>
-                              <span>
-                                {request.startTime} - {request.endTime}
-                              </span>
-                              <span>•</span>
-                              <span>{request.timezone}</span>
+                      ) : (
+                        oneOnOneRequests.map(request => (
+                          <div
+                            key={request.requestId}
+                            className="border-border/20 bg-muted/30 hover:border-border/40 hover:bg-muted/50 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4 transition-all duration-200"
+                          >
+                            <div className="min-w-0 space-y-1">
+                              <p className="text-foreground truncate font-semibold">
+                                @{request.student?.handle || 'student'}
+                              </p>
+                              <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
+                                <span>
+                                  {new Date(request.requestedDate).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric',
+                                  })}
+                                </span>
+                                <span>•</span>
+                                <span>
+                                  {request.startTime} - {request.endTime}
+                                </span>
+                                <span>•</span>
+                                <span>{request.timezone}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={respondingRequestId === request.requestId}
+                                onClick={() => handleOneOnOneResponse(request.requestId, 'accept')}
+                                className="transition-all duration-200"
+                              >
+                                Accept
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-destructive hover:bg-destructive/10 transition-all duration-200"
+                                disabled={respondingRequestId === request.requestId}
+                                onClick={() => handleOneOnOneResponse(request.requestId, 'reject')}
+                              >
+                                Reject
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={respondingRequestId === request.requestId}
-                              onClick={() => handleOneOnOneResponse(request.requestId, 'accept')}
-                              className="transition-all duration-200"
-                            >
-                              Accept
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-destructive transition-all duration-200 hover:bg-destructive/10"
-                              disabled={respondingRequestId === request.requestId}
-                              onClick={() => handleOneOnOneResponse(request.requestId, 'reject')}
-                            >
-                              Reject
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                    )}
+                        ))
+                      )}
+                    </div>
                   </div>
-                </div>
-              </TabsContent>
-            </CardContent>
-          </Tabs>
-        </Card>
-      </div>
+                </TabsContent>
+              </CardContent>
+            </Tabs>
+          </Card>
+        </div>
 
         {/* Create Class Dialog */}
         <CreateClassDialog
@@ -962,9 +1014,9 @@ function TutorDashboardContent() {
                   <div className="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" />
                 </div>
               ) : sessionLoadError ? (
-                <div className="rounded-lg border border-dashed border-destructive/20 p-6 text-center text-sm">
+                <div className="border-destructive/20 rounded-lg border border-dashed p-6 text-center text-sm">
                   <AlertCircle className="text-destructive/50 mx-auto mb-2 h-8 w-8" />
-                  <p className="font-medium text-destructive">Failed to load sessions</p>
+                  <p className="text-destructive font-medium">Failed to load sessions</p>
                   <p className="text-muted-foreground mt-1 text-xs">{sessionLoadError}</p>
                   <Button
                     variant="outline"
@@ -978,7 +1030,7 @@ function TutorDashboardContent() {
                   </Button>
                 </div>
               ) : courseSessions.length === 0 ? (
-                <div className="text-muted-foreground rounded-lg border border-dashed border-border/30 p-6 text-center text-sm">
+                <div className="text-muted-foreground border-border/30 rounded-lg border border-dashed p-6 text-center text-sm">
                   <Calendar className="text-muted-foreground/50 mx-auto mb-2 h-8 w-8" />
                   <p>No sessions found for this course.</p>
                   {selectedCourseForCancel && (
@@ -1035,7 +1087,7 @@ function TutorDashboardContent() {
                       return (
                         <div
                           key={session.id}
-                          className="flex items-center justify-between rounded-lg border border-border/30 bg-card/50 p-3 transition-all duration-200 hover:border-border/50 hover:bg-card"
+                          className="border-border/30 bg-card/50 hover:border-border/50 hover:bg-card flex items-center justify-between rounded-lg border p-3 transition-all duration-200"
                         >
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex items-center gap-2">
@@ -1099,7 +1151,7 @@ function TutorDashboardContent() {
                                   }
                                 }}
                                 disabled={cancellingSessionId === session.id}
-                                className="text-destructive transition-all duration-200 hover:bg-destructive/10 hover:text-destructive/80"
+                                className="text-destructive hover:bg-destructive/10 hover:text-destructive/80 transition-all duration-200"
                               >
                                 {cancellingSessionId === session.id ? (
                                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -1177,10 +1229,7 @@ function TutorDashboardContent() {
                 <AlertCircle className="h-4 w-4" />
                 <span>Cancelling a session will notify enrolled students</span>
               </div>
-              <Button
-                variant="modal-secondary-dark"
-                onClick={() => setCancelModalOpen(false)}
-              >
+              <Button variant="modal-secondary-dark" onClick={() => setCancelModalOpen(false)}>
                 Close
               </Button>
             </DialogFooter>

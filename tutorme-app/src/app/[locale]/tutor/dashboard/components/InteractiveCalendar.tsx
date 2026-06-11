@@ -10,10 +10,10 @@ import {
   type ReactNode,
 } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
+
 import {
   Dialog,
   DialogContent,
@@ -29,8 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
@@ -55,17 +54,12 @@ import { CSS } from '@dnd-kit/utilities'
 import {
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
   Calendar as CalendarIcon,
   Clock,
   Users,
   Plus,
   BookOpen,
   Video,
-  MoreVertical,
-  Edit,
-  Trash2,
-  AlertCircle,
   Filter,
   Bell,
   Repeat,
@@ -80,17 +74,7 @@ import {
 } from 'lucide-react'
 
 // Date manipulation
-import {
-  addDays,
-  addWeeks,
-  format,
-  isSameDay,
-  isBefore,
-  startOfDay,
-  startOfWeek,
-  eachDayOfInterval,
-  isWithinInterval,
-} from 'date-fns'
+import { addDays, addWeeks, format, isSameDay, isBefore, startOfDay, startOfWeek } from 'date-fns'
 
 interface CalendarEvent {
   id: string
@@ -134,9 +118,14 @@ interface CalendarConnection {
 export const DEFAULT_TIMEZONE =
   (typeof Intl !== 'undefined' && Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC'
 
+interface IntlWithSupportedValues {
+  supportedValuesOf: (key: 'timeZone') => string[]
+}
+
 export const SUPPORTED_TIMEZONES =
-  typeof Intl !== 'undefined' && typeof (Intl as any).supportedValuesOf === 'function'
-    ? ((Intl as any).supportedValuesOf('timeZone') as string[])
+  typeof Intl !== 'undefined' &&
+  typeof (Intl as unknown as IntlWithSupportedValues).supportedValuesOf === 'function'
+    ? (Intl as unknown as IntlWithSupportedValues).supportedValuesOf('timeZone')
     : [DEFAULT_TIMEZONE, 'UTC', 'Asia/Shanghai', 'America/New_York', 'Europe/London']
 
 interface InteractiveCalendarProps {
@@ -159,16 +148,6 @@ interface InteractiveCalendarProps {
   view?: CalendarView
   onViewChange?: (view: CalendarView) => void
 }
-
-const SUBJECTS = [
-  { name: 'Mathematics', color: 'bg-blue-500' },
-  { name: 'Physics', color: 'bg-purple-500' },
-  { name: 'English', color: 'bg-green-500' },
-  { name: 'Chemistry', color: 'bg-orange-500' },
-  { name: 'Biology', color: 'bg-pink-500' },
-  { name: 'History', color: 'bg-red-500' },
-  { name: 'Office Hours', color: 'bg-gray-500' },
-]
 
 const generateDemoEvents = (): CalendarEvent[] => {
   return []
@@ -335,13 +314,13 @@ export function InteractiveCalendar({
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [subjectFilter, setSubjectFilter] = useState<string>('all')
-  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [typeFilter] = useState<string>('all')
   const [showConflictWarning, setShowConflictWarning] = useState<CalendarEvent[]>([])
   const [notifications, setNotifications] = useState<string[]>([])
   const [availabilityDate, setAvailabilityDate] = useState<Date | null>(null)
   const [internalTimezone, setInternalTimezone] = useState(DEFAULT_TIMEZONE)
   const timezone = timezoneProp ?? internalTimezone
-  const setTimezone = onTimezoneChange ?? setInternalTimezone
+  const _setTimezone = onTimezoneChange ?? setInternalTimezone
   const [availabilitySaving, setAvailabilitySaving] = useState(false)
   const [availabilityLoading, setAvailabilityLoading] = useState(false)
 
@@ -405,7 +384,11 @@ export function InteractiveCalendar({
   // Derive category options from student events
   useEffect(() => {
     if (mode !== 'student') return
-    const subjects = Array.from(new Set((initialEvents ?? []).map(e => e.subject).filter((s): s is string => typeof s === 'string')))
+    const subjects = Array.from(
+      new Set(
+        (initialEvents ?? []).map(e => e.subject).filter((s): s is string => typeof s === 'string')
+      )
+    )
     setCategoryOptions(subjects)
     setCategoriesLoaded(true)
   }, [mode, initialEvents])
@@ -428,7 +411,12 @@ export function InteractiveCalendar({
         const base = generateAvailability()
         const normalized = base.map(block => {
           const found = apiAvailability.some(
-            (slot: any) =>
+            (slot: {
+              dayOfWeek: number
+              startTime: string
+              endTime: string
+              isAvailable: boolean
+            }) =>
               slot.dayOfWeek === block.dayOfWeek &&
               slot.startTime === block.startTime &&
               slot.endTime === block.endTime &&
@@ -445,7 +433,7 @@ export function InteractiveCalendar({
       }
     }
     loadAvailability()
-  }, [mode])
+  }, [mode, timezoneProp])
 
   // Load calendar events for the visible month (tutor mode)
   useEffect(() => {
@@ -556,23 +544,21 @@ export function InteractiveCalendar({
     })
   }, [events, subjectFilter, typeFilter])
 
-  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ]
-
   const headerLabel = useMemo(() => {
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ]
     if (view === 'week') {
       const weekStart = startOfWeek(currentDate)
       const weekEnd = addDays(weekStart, 6)
@@ -582,7 +568,7 @@ export function InteractiveCalendar({
       return format(currentDate, 'MMMM d, yyyy')
     }
     return `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`
-  }, [currentDate, monthNames, view])
+  }, [currentDate, view])
 
   const calendarDays = useMemo(() => {
     const year = currentDate.getFullYear()
@@ -803,11 +789,14 @@ export function InteractiveCalendar({
         className={cn(
           'h-[600px]',
           embedded
-            ? 'bg-transparent border-0 shadow-none'
+            ? 'border-0 bg-transparent shadow-none'
             : 'border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md'
         )}
       >
-        <CardContent spacing={embedded ? 'none' : 'default'} className="flex h-full items-center justify-center">
+        <CardContent
+          spacing={embedded ? 'none' : 'default'}
+          className="flex h-full items-center justify-center"
+        >
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
         </CardContent>
       </Card>
@@ -826,11 +815,11 @@ export function InteractiveCalendar({
         className={cn(
           'flex flex-col',
           embedded
-            ? 'flex-1 bg-transparent border-0 shadow-none'
+            ? 'flex-1 border-0 bg-transparent shadow-none'
             : 'h-[600px] border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md'
         )}
       >
-        <CardHeader className={cn('shrink-0', embedded ? 'px-4 pt-4 pb-2' : 'pb-3')}>
+        <CardHeader className={cn('shrink-0', embedded ? 'px-4 pb-2 pt-4' : 'pb-3')}>
           {availabilityOnly ? (
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">My Availability</h2>
@@ -840,17 +829,32 @@ export function InteractiveCalendar({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-sm border border-[#374151] hover:bg-[#374151] hover:text-white" onClick={() => navigatePeriod(-1)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-sm border border-[#374151] hover:bg-[#374151] hover:text-white"
+                      onClick={() => navigatePeriod(-1)}
+                    >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
                     <h2 className="min-w-[140px] text-center text-base font-semibold">
                       {headerLabel}
                     </h2>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-sm border border-[#374151] hover:bg-[#374151] hover:text-white" onClick={() => navigatePeriod(1)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 rounded-sm border border-[#374151] hover:bg-[#374151] hover:text-white"
+                      onClick={() => navigatePeriod(1)}
+                    >
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-9 rounded-sm border border-[#374151] text-xs hover:bg-[#374151] hover:text-white" onClick={goToToday}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 rounded-sm border border-[#374151] text-xs hover:bg-[#374151] hover:text-white"
+                    onClick={goToToday}
+                  >
                     Today
                   </Button>
                   {!isStudent && (
@@ -874,19 +878,32 @@ export function InteractiveCalendar({
                   )}
                   {/* Filters */}
                   <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                    <SelectTrigger className="h-9 w-40 rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-100 hover:border-slate-400 hover:shadow-md focus-visible:shadow-none">
+                    <SelectTrigger className="h-9 w-40 rounded-lg border border-slate-300 bg-slate-50 text-xs text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-400 hover:bg-slate-100 hover:shadow-md focus-visible:shadow-none">
                       <Filter className="mr-1.5 h-3.5 w-3.5 text-slate-500" />
                       <SelectValue placeholder="Filter" />
                     </SelectTrigger>
-                    <SelectContent className="!bg-white !bg-none !text-slate-700 rounded-lg border border-slate-200 p-1.5 shadow-lg w-[var(--radix-select-trigger-width)]">
-                      <SelectItem value="all" className="!text-slate-700 text-xs !hover:bg-slate-100 !focus:bg-slate-100 rounded-md">All Categories</SelectItem>
+                    <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-lg border border-slate-200 !bg-white !bg-none p-1.5 !text-slate-700 shadow-lg">
+                      <SelectItem
+                        value="all"
+                        className="!hover:bg-slate-100 !focus:bg-slate-100 rounded-md text-xs !text-slate-700"
+                      >
+                        All Categories
+                      </SelectItem>
                       {!categoriesLoaded && (
-                        <SelectItem value="__loading__" disabled className="!text-slate-700 text-xs rounded-md">
+                        <SelectItem
+                          value="__loading__"
+                          disabled
+                          className="rounded-md text-xs !text-slate-700"
+                        >
                           Loading…
                         </SelectItem>
                       )}
                       {categoryOptions.map(name => (
-                        <SelectItem key={name} value={name} className="!text-slate-700 text-xs !hover:bg-slate-100 !focus:bg-slate-100 rounded-md">
+                        <SelectItem
+                          key={name}
+                          value={name}
+                          className="!hover:bg-slate-100 !focus:bg-slate-100 rounded-md text-xs !text-slate-700"
+                        >
                           {name}
                         </SelectItem>
                       ))}
@@ -903,7 +920,7 @@ export function InteractiveCalendar({
                 {!controlledView && (
                   <div className="flex items-center gap-2">
                     {/* View Toggle - Reordered as Day, Week, Month */}
-                    <div className="grid h-9 grid-cols-3 min-w-[180px] rounded-xl bg-[#2D2B4E] p-1">
+                    <div className="grid h-9 min-w-[180px] grid-cols-3 rounded-xl bg-[#2D2B4E] p-1">
                       {(view === 'availability'
                         ? (['day', 'week', 'month'] as CalendarView[])
                         : (['day', 'week', 'month'] as CalendarView[])
@@ -913,7 +930,9 @@ export function InteractiveCalendar({
                           onClick={() => handleSetView(v)}
                           className={cn(
                             'flex items-center justify-center rounded-lg text-sm font-medium capitalize transition-colors',
-                            view === v ? 'bg-white text-black shadow-sm' : 'text-white/70 hover:text-white'
+                            view === v
+                              ? 'bg-white text-black shadow-sm'
+                              : 'text-white/70 hover:text-white'
                           )}
                         >
                           {v}
@@ -946,15 +965,21 @@ export function InteractiveCalendar({
                   </Button>
                 </div>
               )}
-
-
             </>
           )}
         </CardHeader>
 
-        <CardContent spacing={embedded ? 'none' : 'default'} className={cn('flex-1 flex flex-col overflow-hidden pt-0', embedded && 'px-4 pb-4')}>
-          <div className={cn('flex-1 pt-3 flex flex-col', !availabilityOnly && 'border border-[#374151] rounded-lg overflow-hidden')}>
-            <div ref={cardContentRef} className="flex-1 overflow-auto scrollbar-hide">
+        <CardContent
+          spacing={embedded ? 'none' : 'default'}
+          className={cn('flex flex-1 flex-col overflow-hidden pt-0', embedded && 'px-4 pb-4')}
+        >
+          <div
+            className={cn(
+              'flex flex-1 flex-col pt-3',
+              !availabilityOnly && 'overflow-hidden rounded-lg border border-[#374151]'
+            )}
+          >
+            <div ref={cardContentRef} className="scrollbar-hide flex-1 overflow-auto">
               {availabilityOnly ? (
                 <AvailabilityView
                   availability={availability}
@@ -1391,7 +1416,10 @@ export function InteractiveCalendar({
                 </div>
 
                 <DialogFooter className="gap-2">
-                  <Button variant="modal-secondary-dark" onClick={() => setShowCalendarIntegrations(false)}>
+                  <Button
+                    variant="modal-secondary-dark"
+                    onClick={() => setShowCalendarIntegrations(false)}
+                  >
                     Close
                   </Button>
                   <Button variant="modal-primary-dark" onClick={syncCalendars} className="gap-2">
@@ -1645,7 +1673,10 @@ export function InteractiveCalendar({
                 </div>
 
                 <DialogFooter>
-                  <Button variant="modal-secondary-dark" onClick={() => setShowConflictDialog(false)}>
+                  <Button
+                    variant="modal-secondary-dark"
+                    onClick={() => setShowConflictDialog(false)}
+                  >
                     Close
                   </Button>
                 </DialogFooter>
@@ -1723,7 +1754,7 @@ function DroppableHour({
 
 function MonthView({
   days,
-  events,
+  events: _events,
   onDateClick,
   onEventClick,
   isToday,
@@ -1781,8 +1812,10 @@ function MonthView({
                           }}
                         >
                           <span className="truncate font-medium">
-                            {event.date.getHours() > 12 ? event.date.getHours() - 12 : event.date.getHours()}:
-                            {event.date.getMinutes().toString().padStart(2, '0')} {event.title}
+                            {event.date.getHours() > 12
+                              ? event.date.getHours() - 12
+                              : event.date.getHours()}
+                            :{event.date.getMinutes().toString().padStart(2, '0')} {event.title}
                           </span>
                         </div>
                       )
@@ -1804,7 +1837,7 @@ function MonthView({
 
 function WeekView({
   currentDate,
-  events,
+  events: _events,
   onEventClick,
   onDateClick,
   conflicts,
@@ -1830,10 +1863,10 @@ function WeekView({
 
   return (
     <div className="flex min-h-full rounded-lg bg-white/50">
-      <div className="flex flex-col w-14 border-r bg-gray-50">
-        <div className="h-10 border-b shrink-0" />
+      <div className="flex w-14 flex-col border-r bg-gray-50">
+        <div className="h-10 shrink-0 border-b" />
         {hours.map(hour => (
-          <div key={hour} className="h-10 border-b shrink-0 pt-1 text-center text-xs text-gray-500">
+          <div key={hour} className="h-10 shrink-0 border-b pt-1 text-center text-xs text-gray-500">
             {formatHour(hour)}
           </div>
         ))}
@@ -1859,9 +1892,14 @@ function WeekView({
                 {day.getDate()}
               </p>
             </div>
-            <div className="relative flex-1 flex flex-col">
+            <div className="relative flex flex-1 flex-col">
               {hours.map(hour => (
-                <DroppableHour key={hour} date={day} hour={hour} className="h-10 border-b shrink-0" />
+                <DroppableHour
+                  key={hour}
+                  date={day}
+                  hour={hour}
+                  className="h-10 shrink-0 border-b"
+                />
               ))}
               <div className="flex-1" />
 
@@ -1897,7 +1935,7 @@ function WeekView({
   )
 }
 
-function DayView({ currentDate, events, onEventClick, conflicts, readOnly = false }: any) {
+function DayView({ currentDate, events: _events, onEventClick, conflicts, readOnly = false }: any) {
   const hours = Array.from({ length: 24 }, (_, i) => i)
 
   const formatHour = (hour: number) => {
@@ -1913,18 +1951,26 @@ function DayView({ currentDate, events, onEventClick, conflicts, readOnly = fals
 
   return (
     <div className="flex min-h-full rounded-lg bg-white/50">
-      <div className="flex flex-col w-14 border-r bg-gray-50">
+      <div className="flex w-14 flex-col border-r bg-gray-50">
         {hours.map(hour => (
-          <div key={hour} className="h-10 border-b shrink-0 px-1 py-1 text-right text-xs text-gray-600">
+          <div
+            key={hour}
+            className="h-10 shrink-0 border-b px-1 py-1 text-right text-xs text-gray-600"
+          >
             {formatHour(hour)}
           </div>
         ))}
         <div className="flex-1 bg-gray-50" />
       </div>
 
-      <div className="relative flex-1 flex flex-col">
+      <div className="relative flex flex-1 flex-col">
         {hours.map(hour => (
-          <DroppableHour key={hour} date={currentDate} hour={hour} className="h-10 border-b shrink-0" />
+          <DroppableHour
+            key={hour}
+            date={currentDate}
+            hour={hour}
+            className="h-10 shrink-0 border-b"
+          />
         ))}
         <div className="flex-1" />
 
