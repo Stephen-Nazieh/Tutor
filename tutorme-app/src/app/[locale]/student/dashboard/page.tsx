@@ -20,13 +20,15 @@ import {
   DashboardCalendar,
 } from './components'
 import { StudentHeroSection } from './components/StudentHeroSection'
+import { StudentDashboardProvider, useStudentDashboard } from './components/StudentDashboardContext'
 import type { DashboardClass, DashboardData } from './types'
 import { getDashboardStrings } from './dashboard-strings'
 import { DASHBOARD_THEMES, getThemeStyle } from '@/components/dashboard-theme'
 
-export default function StudentDashboard() {
+function StudentDashboardContent() {
   const router = useRouter()
   const { status } = useSession()
+  const { refreshStats } = useStudentDashboard()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<DashboardData | null>(null)
   const [bookingClassId, setBookingClassId] = useState<string | null>(null)
@@ -157,6 +159,7 @@ export default function StudentDashboard() {
           return
         }
         toast.success('Successfully booked session!')
+        refreshStats()
         setData(prev =>
           prev
             ? {
@@ -185,13 +188,13 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="text-foreground h-full flex flex-col overflow-hidden">
+    <div className="text-foreground flex h-full flex-col overflow-hidden">
       {/* Main Content */}
-      <div className="w-full px-3 lg:px-4 flex flex-col h-full" aria-busy={loading}>
+      <div className="flex h-full w-full flex-col px-3 lg:px-4" aria-busy={loading}>
         {fetchError && (
           <div
             role="alert"
-            className="mb-4 flex-shrink-0 flex items-center justify-between gap-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800"
+            className="mb-4 flex flex-shrink-0 items-center justify-between gap-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800"
           >
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 shrink-0" aria-hidden />
@@ -208,13 +211,16 @@ export default function StudentDashboard() {
           </div>
         )}
         {/* Welcome */}
-        <div className="flex-shrink-0 mb-4">
+        <div className="mb-4 flex-shrink-0">
           <StudentHeroSection />
         </div>
 
-        <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex min-h-0 flex-1 flex-col">
           <DashboardCalendar
-            onRefresh={fetchDashboardData}
+            onRefresh={() => {
+              fetchDashboardData()
+              refreshStats()
+            }}
             contents={
               (data?.contents ?? []) as {
                 id: string
@@ -250,5 +256,13 @@ export default function StudentDashboard() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function StudentDashboard() {
+  return (
+    <StudentDashboardProvider>
+      <StudentDashboardContent />
+    </StudentDashboardProvider>
   )
 }

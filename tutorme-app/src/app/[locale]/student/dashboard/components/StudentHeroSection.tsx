@@ -11,7 +11,8 @@ import {
   DialogTitle,
   DialogBody,
 } from '@/components/ui/dialog'
-import { BookOpen, Calendar, Sparkles } from 'lucide-react'
+import { BookOpen, Calendar, CheckCircle, Sparkles, Users } from 'lucide-react'
+import { useStudentDashboard } from './StudentDashboardContext'
 
 interface CalendarEventItem {
   id: string
@@ -30,6 +31,7 @@ interface DayEvent {
 
 export function StudentHeroSection() {
   const { data: session } = useSession()
+  const { stats, loading: statsLoading } = useStudentDashboard()
   const [greeting, setGreeting] = useState('Good morning')
   const [currentTime, setCurrentTime] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<{ date: Date; events: DayEvent[] } | null>(null)
@@ -131,6 +133,34 @@ export function StudentHeroSection() {
               </span>
             </div>
             <h1 className="text-3xl font-bold text-white">Welcome Back!</h1>
+          </div>
+
+          <div
+            className={cn(
+              'flex flex-wrap items-center justify-end gap-2',
+              statsLoading && 'animate-pulse'
+            )}
+          >
+            <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
+              <BookOpen className="h-4 w-4 text-white/80" />
+              <span className="text-xs font-medium text-white/80">Courses Enrolled</span>
+              <span className="text-sm font-bold text-white">{stats.coursesEnrolled}</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
+              <CheckCircle className="h-4 w-4 text-white/80" />
+              <span className="text-xs font-medium text-white/80">Courses Completed</span>
+              <span className="text-sm font-bold text-white">{stats.coursesCompleted}</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
+              <Calendar className="h-4 w-4 text-white/80" />
+              <span className="text-xs font-medium text-white/80">Upcoming Sessions</span>
+              <span className="text-sm font-bold text-white">{stats.upcomingSessions}</span>
+            </div>
+            <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
+              <Users className="h-4 w-4 text-white/80" />
+              <span className="text-xs font-medium text-white/80">Total Bookings</span>
+              <span className="text-sm font-bold text-white">{stats.totalBookings}</span>
+            </div>
           </div>
         </div>
 
