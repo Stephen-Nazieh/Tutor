@@ -562,10 +562,10 @@ export function InteractiveCalendar({
     if (view === 'week') {
       const weekStart = startOfWeek(currentDate)
       const weekEnd = addDays(weekStart, 6)
-      return `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}`
+      return `${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d')}`
     }
     if (view === 'day') {
-      return format(currentDate, 'MMMM d, yyyy')
+      return format(currentDate, 'MMMM d')
     }
     return `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`
   }, [currentDate, view])
@@ -837,7 +837,7 @@ export function InteractiveCalendar({
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <h2 className="min-w-[140px] text-center text-base font-semibold">
+                    <h2 className="w-[180px] whitespace-nowrap text-center text-base font-semibold">
                       {headerLabel}
                     </h2>
                     <Button
