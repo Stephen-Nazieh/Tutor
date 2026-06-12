@@ -4506,6 +4506,7 @@ FEEDBACK: [your explanation]`
                         assetToLoad.name.toLowerCase().endsWith('.pdf')
 
                       let pdfSplitSucceeded = false
+                      let pdfSplitError: string | null = null
 
                       if (isPdf && assetToLoad.url) {
                         let pdfBytes: ArrayBuffer | null = null
@@ -4528,9 +4529,14 @@ FEEDBACK: [your explanation]`
                             )
                             if (proxyRes.ok) {
                               pdfBytes = await proxyRes.arrayBuffer()
+                            } else {
+                              const errBody = await proxyRes.json().catch(() => null)
+                              pdfSplitError =
+                                errBody?.error || `Failed to fetch document (${proxyRes.status})`
                             }
-                          } catch {
-                            // Proxy also failed
+                          } catch (err) {
+                            pdfSplitError =
+                              err instanceof Error ? err.message : 'Failed to fetch document'
                           }
                         }
 
@@ -4597,12 +4603,32 @@ FEEDBACK: [your explanation]`
                             pdfSplitSucceeded = true
                           } catch (splitErr) {
                             console.error('PDF split/upload failed:', splitErr)
+                            pdfSplitError =
+                              splitErr instanceof Error
+                                ? splitErr.message
+                                : 'Failed to split PDF into pages'
                           }
+                        } else if (!pdfSplitError) {
+                          pdfSplitError = 'Could not download the document from storage'
                         }
                       }
 
+                      if (isPdf && assetToLoad.url && !pdfSplitSucceeded) {
+                        // The document is a PDF and we attempted to split it into one
+                        // task per page, but fetching/splitting failed (e.g. the file
+                        // is missing from storage or its link expired). Surface the
+                        // real reason instead of silently degrading to a single task
+                        // with a broken document link.
+                        toast.error(
+                          `Could not split '${assetToLoad.name}' into page tasks${
+                            pdfSplitError ? `: ${pdfSplitError}` : ''
+                          }. The task was left unchanged.`
+                        )
+                        return
+                      }
+
                       if (!pdfSplitSucceeded) {
-                        // Standard non-PDF handling (also fallback when PDF fetch/split fails)
+                        // Text-based split for non-PDF (or url-less) assets: one task per page.
                         pages.forEach((pageContent, idx) => {
                           if (existingTask && existingTaskIndex !== -1 && idx === 0) {
                             updatedExistingTask = {
