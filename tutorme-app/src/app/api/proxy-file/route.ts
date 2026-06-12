@@ -42,6 +42,18 @@ async function fetchFollowingRedirects(startUrl: string): Promise<Response> {
   throw new Error('Too many redirects')
 }
 
+/**
+ * GCS (and S3-compatible) error responses are a small XML document like:
+ *   <Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message>...</Error>
+ * Extract the code/message so the UI can show a clean, actionable message
+ * instead of dumping raw XML.
+ */
+function parseStorageError(body: string): { code: string | null; message: string | null } {
+  const code = /<Code>([^<]*)<\/Code>/i.exec(body)?.[1] ?? null
+  const message = /<Message>([^<]*)<\/Message>/i.exec(body)?.[1] ?? null
+  return { code, message }
+}
+
 async function readLimitedResponse(response: Response): Promise<Buffer> {
   if (!response.body) return Buffer.from(await response.arrayBuffer())
 
@@ -95,21 +107,25 @@ export const GET = withAuth(async (req: NextRequest) => {
       // Surface the upstream error body (often a short XML/JSON message from
       // GCS, e.g. "Request has expired" for a stale signed URL) so the UI can
       // show something actionable instead of a bare status code.
-      let detail = ''
+      let body = ''
       try {
-        detail = (await response.text()).slice(0, 500)
+        body = (await response.text()).slice(0, 1000)
       } catch {
         // ignore — body may not be readable
       }
+
+      const { code, message } = parseStorageError(body)
 
       // 4xx/5xx from the upstream (expired/invalid link, not found, forbidden,
       // upstream error) describe a real problem with the document itself —
       // pass the real status through. Only an unresolved redirect (3xx with no
       // Location) is a genuine gateway failure.
       const status = response.status >= 400 ? response.status : 502
+      const detail = message || body
       return NextResponse.json(
         {
           error: `Upstream returned ${response.status}${detail ? `: ${detail}` : ''}`,
+          code,
         },
         { status }
       )

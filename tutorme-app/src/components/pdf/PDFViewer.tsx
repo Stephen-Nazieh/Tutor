@@ -64,7 +64,14 @@ export function PDFViewer({
           let message = `Failed to fetch (${res.status})`
           if ((res.headers.get('content-type') || '').includes('application/json')) {
             const body = await res.json().catch(() => null)
-            if (body?.error) message = body.error
+            if (body?.code === 'NoSuchKey' || res.status === 404) {
+              message =
+                'This document could not be found in storage. It may have been deleted — remove it and re-upload the file.'
+            } else if (body?.code === 'ExpiredToken' || body?.code === 'AccessDenied') {
+              message = 'This document\'s storage link has expired and could not be refreshed.'
+            } else if (body?.error) {
+              message = body.error
+            }
           }
           throw new Error(message)
         }
