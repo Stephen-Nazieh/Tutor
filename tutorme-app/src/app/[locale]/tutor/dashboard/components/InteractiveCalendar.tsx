@@ -819,7 +819,7 @@ export function InteractiveCalendar({
             : 'h-[600px] border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-md'
         )}
       >
-        <CardHeader className={cn('shrink-0', embedded ? (mode === 'tutor' ? 'pb-4 pt-2' : 'px-4 pb-2 pt-4') : 'pb-3')}>
+        <CardHeader className={cn('shrink-0', embedded ? 'pb-4 pt-2' : 'pb-3')}>
           {availabilityOnly ? (
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">My Availability</h2>
@@ -971,12 +971,12 @@ export function InteractiveCalendar({
 
         <CardContent
           spacing={embedded ? 'none' : 'default'}
-          className={cn('flex flex-1 flex-col overflow-hidden pt-0', embedded && (mode === 'tutor' ? 'pb-4' : 'px-4 pb-4'))}
+          className={cn('flex flex-1 flex-col overflow-hidden pt-0', embedded && 'pb-4')}
         >
           <div
             className={cn(
               'flex min-h-0 flex-1 flex-col',
-              view === 'week' ? '' : mode === 'tutor' && embedded ? 'pt-5' : 'pt-3',
+              view === 'week' ? '' : embedded ? 'pt-5' : 'pt-3',
               !availabilityOnly && 'overflow-hidden rounded-lg border border-[#374151]'
             )}
           >
@@ -1905,7 +1905,10 @@ function WeekView({
         {/* Sticky time column */}
         <div className="sticky left-0 z-10 flex w-14 flex-col bg-gray-50">
           {hours.map(hour => (
-            <div key={hour} className="h-10 shrink-0 border-b px-1 py-1 text-center text-xs text-gray-500">
+            <div
+              key={hour}
+              className="h-10 shrink-0 border-b px-1 py-1 text-center text-xs text-gray-500"
+            >
               {formatHour(hour)}
             </div>
           ))}
