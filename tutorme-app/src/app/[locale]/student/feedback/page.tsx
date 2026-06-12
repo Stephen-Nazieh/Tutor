@@ -47,6 +47,7 @@ import {
   Monitor,
   GripHorizontal,
   Settings2,
+  X,
 } from 'lucide-react'
 import {
   Dialog,
