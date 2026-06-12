@@ -81,9 +81,9 @@ export default function App() {
                   {/* Search Bar */}
                   <motion.div
                     initial={{ y: 10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.35, duration: 0.5 }}
-                    className="relative max-w-2xl mx-auto mb-6"
+                    animate={{ y: 0, opacity: isHowItWorksOpen ? 0 : 1 }}
+                    transition={{ delay: 0.35, duration: 0.2 }}
+                    className={`relative max-w-2xl mx-auto mb-6 ${isHowItWorksOpen ? 'pointer-events-none' : ''}`}
                   >
                     <div className="flex items-center bg-white rounded-full h-14 px-5 shadow-lg">
                       <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
@@ -182,7 +182,7 @@ export default function App() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="glass-card relative flex max-h-[90vh] min-h-[60vh] w-full max-w-5xl flex-col items-center justify-center overflow-hidden p-6 md:min-h-[70vh] md:p-8"
+                className="relative flex max-h-[90vh] min-h-[60vh] w-full max-w-5xl flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/30 bg-white/25 p-6 shadow-lg backdrop-blur-xl md:min-h-[70vh] md:p-8"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Close button */}

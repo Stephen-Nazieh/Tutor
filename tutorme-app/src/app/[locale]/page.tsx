@@ -3445,7 +3445,7 @@ const CategorySearchModal = ({
         onWheel={e => e.stopPropagation()}
         onTouchMove={e => e.stopPropagation()}
       />
-      <div className="animate-in zoom-in-95 relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-xl duration-200">
+      <div className="animate-in zoom-in-95 relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/25 shadow-2xl backdrop-blur-xl duration-200">
         {/* Header */}
         <div className="relative shrink-0 px-6 pb-4 pt-4">
           <button
@@ -4245,7 +4245,7 @@ export default function LandingPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="relative flex max-h-[90vh] min-h-[60vh] w-full max-w-5xl flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-white/10 px-6 py-5 shadow-lg backdrop-blur-xl md:min-h-[70vh] md:px-8 md:py-6"
+              className="relative flex max-h-[90vh] min-h-[60vh] w-full max-w-5xl flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/30 bg-white/25 px-6 py-5 shadow-lg backdrop-blur-xl md:min-h-[70vh] md:px-8 md:py-6"
               onClick={e => e.stopPropagation()}
             >
               {/* Close button */}
@@ -4337,7 +4337,12 @@ export default function LandingPage() {
               Live AI-Augmented Tutoring Platform
             </h1>
 
-            <div className="mt-10 w-full">
+            <div
+              className={cn(
+                'mt-10 w-full transition-opacity duration-200',
+                (showCategories || howItWorksOpen) && 'pointer-events-none opacity-0'
+              )}
+            >
               <form
                 onSubmit={e => {
                   e.preventDefault()
