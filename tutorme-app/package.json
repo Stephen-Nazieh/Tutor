@@ -151,7 +151,7 @@
     "@types/ws": "^8.18.1",
     "dotenv": "^17.3.1",
     "drizzle-kit": "^0.31.10",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.28.1",
     "eslint": "^9",
     "eslint-config-next": "^16.1.6",
     "eslint-config-prettier": "^10",
@@ -169,7 +169,7 @@
     "react": "^18",
     "react-dom": "^18",
     "axios": "^1.15.0",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.28.1",
     "tmp": "^0.2.6"
   },
   "lint-staged": {
