@@ -206,7 +206,11 @@ export function ResourceImportPanel<
       } else {
         setData({ ...data, sourceDocument } as T)
       }
-      toast.success(parseDocuments ? 'Document imported. PDF and extracted text are available.' : 'Document imported.')
+      toast.success(
+        parseDocuments
+          ? 'Document imported. PDF and extracted text are available.'
+          : 'Document imported.'
+      )
     } catch (err: any) {
       toast.error(err?.message || 'Failed to upload document. Please try again.')
     } finally {

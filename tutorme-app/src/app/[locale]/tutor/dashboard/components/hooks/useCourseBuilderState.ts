@@ -57,11 +57,7 @@ function sanitizeBlobUrls(obj: unknown, path = ''): { sanitized: unknown; remove
     for (const [key, value] of Object.entries(obj)) {
       const newPath = path ? `${path}.${key}` : key
       // Preserve sourceDocument metadata, only clear the blob fileUrl
-      if (
-        key === 'sourceDocument' &&
-        value !== null &&
-        typeof value === 'object'
-      ) {
+      if (key === 'sourceDocument' && value !== null && typeof value === 'object') {
         const doc = value as Record<string, unknown>
         const hasBlobUrl = typeof doc.fileUrl === 'string' && doc.fileUrl.startsWith('blob:')
         if (hasBlobUrl) {
@@ -997,7 +993,12 @@ export function useCourseBuilderState(options: UseCourseBuilderStateOptions) {
       const lessonIndex = nodes[nodeIndex]?.lessons.findIndex(l => l.id === lessonId)
       if (nodeIndex === -1 || lessonIndex === -1) return
 
-      const uploadedDocs: Array<{ id: string; title: string; url: string; type: 'pdf' | 'doc' | 'ppt' | 'other' }> = []
+      const uploadedDocs: Array<{
+        id: string
+        title: string
+        url: string
+        type: 'pdf' | 'doc' | 'ppt' | 'other'
+      }> = []
 
       for (const file of Array.from(files)) {
         const ext = file.name.split('.').pop()?.toLowerCase()
@@ -1067,7 +1068,10 @@ export function useCourseBuilderState(options: UseCourseBuilderStateOptions) {
   )
 
   const handleAssetsDocUpload = useCallback(
-    async (files: FileList | null, getFirstLessonContext: () => { nodeId: string; lessonId: string }) => {
+    async (
+      files: FileList | null,
+      getFirstLessonContext: () => { nodeId: string; lessonId: string }
+    ) => {
       const { nodeId, lessonId } = getFirstLessonContext()
       await handleDocUpload(nodeId, lessonId, files)
     },

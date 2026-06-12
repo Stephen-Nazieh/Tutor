@@ -141,7 +141,10 @@ export function CategorySelector({
               variant={examType === 'specialties' ? 'default' : 'outline'}
               size="sm"
               onClick={() => handleExamTypeChange('specialties')}
-              className={cn('flex-1', examType === 'specialties' && 'bg-[#059669] hover:bg-[#047857]')}
+              className={cn(
+                'flex-1',
+                examType === 'specialties' && 'bg-[#059669] hover:bg-[#047857]'
+              )}
             >
               <Sparkles className="mr-2 h-4 w-4" />
               Specialties

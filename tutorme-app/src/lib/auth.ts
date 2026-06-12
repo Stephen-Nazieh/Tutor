@@ -80,7 +80,11 @@ export const authOptions: NextAuthOptions = {
         } catch (dbError: any) {
           const msg = dbError?.message || String(dbError)
           const code = dbError?.code
-          console.error('[Auth] Database error during login:', { message: msg, code, email: normalizedEmail })
+          console.error('[Auth] Database error during login:', {
+            message: msg,
+            code,
+            email: normalizedEmail,
+          })
           // Throw a specific error so NextAuth redirects with ?error=Configuration
           // and the login page can show a DB-specific message
           throw new Error(`DATABASE_ERROR|${msg}`)

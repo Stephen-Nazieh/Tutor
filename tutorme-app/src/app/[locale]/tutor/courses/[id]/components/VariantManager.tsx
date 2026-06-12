@@ -140,8 +140,12 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
     )
     const [variants, setVariants] = useState<VariantConfig[]>([])
     const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
-    const [scheduleDialogVariantIndex, setScheduleDialogVariantIndex] = useState<number | null>(null)
-    const [scheduleDialogScheduleIndex, setScheduleDialogScheduleIndex] = useState<number | null>(null)
+    const [scheduleDialogVariantIndex, setScheduleDialogVariantIndex] = useState<number | null>(
+      null
+    )
+    const [scheduleDialogScheduleIndex, setScheduleDialogScheduleIndex] = useState<number | null>(
+      null
+    )
     const modalContentRef = useRef<HTMLDivElement>(null)
     const [globalDefaultsOpen, setGlobalDefaultsOpen] = useState(true)
     const [generatedVariantsOpen, setGeneratedVariantsOpen] = useState(true)
@@ -156,24 +160,28 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
           if (!active) return
           const raw = (data as { variants?: VariantApiItem[] })?.variants ?? []
           const loaded: VariantConfig[] = raw.map(v => {
-            const schedules = Array.isArray(v.schedules) && v.schedules.length > 0
-              ? v.schedules.map((s: any, i: number) => ({
-                  scheduleId: typeof s.scheduleId === 'string' ? s.scheduleId : undefined,
-                  scheduleIndex: typeof s.scheduleIndex === 'number' ? s.scheduleIndex : i + 1,
-                  name: typeof s.name === 'string' ? s.name : null,
-                  schedule: Array.isArray(s.schedule) ? (s.schedule as ScheduleItem[]) : [],
-                  weeksToSchedule: typeof s.weeksToSchedule === 'number' ? s.weeksToSchedule : 8,
-                  maxStudents: typeof s.maxStudents === 'number' ? s.maxStudents : null,
-                }))
-              : Array.isArray(v.schedule) && v.schedule.length > 0
-                ? [{
-                    scheduleIndex: 1,
-                    name: null,
-                    schedule: v.schedule as ScheduleItem[],
-                    weeksToSchedule: typeof v.weeksToSchedule === 'number' ? v.weeksToSchedule : 8,
-                    maxStudents: null,
-                  }]
-                : []
+            const schedules =
+              Array.isArray(v.schedules) && v.schedules.length > 0
+                ? v.schedules.map((s: any, i: number) => ({
+                    scheduleId: typeof s.scheduleId === 'string' ? s.scheduleId : undefined,
+                    scheduleIndex: typeof s.scheduleIndex === 'number' ? s.scheduleIndex : i + 1,
+                    name: typeof s.name === 'string' ? s.name : null,
+                    schedule: Array.isArray(s.schedule) ? (s.schedule as ScheduleItem[]) : [],
+                    weeksToSchedule: typeof s.weeksToSchedule === 'number' ? s.weeksToSchedule : 8,
+                    maxStudents: typeof s.maxStudents === 'number' ? s.maxStudents : null,
+                  }))
+                : Array.isArray(v.schedule) && v.schedule.length > 0
+                  ? [
+                      {
+                        scheduleIndex: 1,
+                        name: null,
+                        schedule: v.schedule as ScheduleItem[],
+                        weeksToSchedule:
+                          typeof v.weeksToSchedule === 'number' ? v.weeksToSchedule : 8,
+                        maxStudents: null,
+                      },
+                    ]
+                  : []
             return {
               category: typeof v.category === 'string' ? v.category : '',
               nationality: typeof v.nationality === 'string' ? v.nationality : '',
@@ -233,9 +241,18 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
               price: globalIsFree ? 0 : globalPrice ? parseFloat(globalPrice) : null,
               currency: globalCurrency,
               languageOfInstruction: globalLanguage,
-              schedules: Array.isArray(defaultSchedule) && defaultSchedule.length > 0
-                ? [{ scheduleIndex: 1, name: null, schedule: [...defaultSchedule], weeksToSchedule: 8, maxStudents: null }]
-                : [],
+              schedules:
+                Array.isArray(defaultSchedule) && defaultSchedule.length > 0
+                  ? [
+                      {
+                        scheduleIndex: 1,
+                        name: null,
+                        schedule: [...defaultSchedule],
+                        weeksToSchedule: 8,
+                        maxStudents: null,
+                      },
+                    ]
+                  : [],
             })
             changed = true
           }
@@ -359,7 +376,8 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
       )
     }
 
-    const dialogVariant = scheduleDialogVariantIndex != null ? variants[scheduleDialogVariantIndex] : null
+    const dialogVariant =
+      scheduleDialogVariantIndex != null ? variants[scheduleDialogVariantIndex] : null
     const dialogSchedule =
       dialogVariant && scheduleDialogScheduleIndex != null
         ? dialogVariant.schedules[scheduleDialogScheduleIndex]
@@ -847,7 +865,9 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                 >
                   <VariantScheduleEditor
                     key={scheduleEditorKey}
-                    schedule={Array.isArray(dialogSchedule?.schedule) ? dialogSchedule.schedule : []}
+                    schedule={
+                      Array.isArray(dialogSchedule?.schedule) ? dialogSchedule.schedule : []
+                    }
                     onScheduleChange={updater =>
                       scheduleDialogVariantIndex != null &&
                       scheduleDialogScheduleIndex != null &&

@@ -244,7 +244,9 @@ export function LessonBuilderModal({
           <Button variant="modal-secondary-dark" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="modal-primary-dark" onClick={() => onSave(data)}>Save Lesson</Button>
+          <Button variant="modal-primary-dark" onClick={() => onSave(data)}>
+            Save Lesson
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

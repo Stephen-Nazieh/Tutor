@@ -209,19 +209,23 @@ export function PreferenceEnrollmentDialog({
                           Schedule {sch.scheduleIndex}
                         </p>
                         <div className="mt-1 grid gap-1 sm:grid-cols-2">
-                          {DAY_ORDER.filter(day => (schSlotsByDay.get(day)?.length ?? 0) > 0).map(day => {
-                            const slots = schSlotsByDay.get(day) ?? []
-                            return (
-                              <div key={day} className="flex flex-col gap-0.5">
-                                <p className="text-[11px] font-bold uppercase text-slate-500">{day}</p>
-                                {slots.map((slot, i) => (
-                                  <p key={i} className="text-xs text-slate-600">
-                                    {slotLabel(slot)}
+                          {DAY_ORDER.filter(day => (schSlotsByDay.get(day)?.length ?? 0) > 0).map(
+                            day => {
+                              const slots = schSlotsByDay.get(day) ?? []
+                              return (
+                                <div key={day} className="flex flex-col gap-0.5">
+                                  <p className="text-[11px] font-bold uppercase text-slate-500">
+                                    {day}
                                   </p>
-                                ))}
-                              </div>
-                            )
-                          })}
+                                  {slots.map((slot, i) => (
+                                    <p key={i} className="text-xs text-slate-600">
+                                      {slotLabel(slot)}
+                                    </p>
+                                  ))}
+                                </div>
+                              )
+                            }
+                          )}
                           {sch.schedule.length === 0 && (
                             <p className="text-xs italic text-gray-400">No slots configured</p>
                           )}
@@ -278,14 +282,14 @@ export function PreferenceEnrollmentDialog({
           </div>
 
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button variant="modal-secondary-dark" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
-              Cancel
-            </Button>
             <Button
-              variant="modal-primary-dark"
-              onClick={handleSubmit}
+              variant="modal-secondary-dark"
+              onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
+              Cancel
+            </Button>
+            <Button variant="modal-primary-dark" onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? 'Enrolling...' : 'Confirm Enrollment'}
             </Button>
           </div>

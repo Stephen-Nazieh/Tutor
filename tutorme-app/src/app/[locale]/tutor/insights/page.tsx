@@ -647,7 +647,11 @@ function TutorInsightsPageInner() {
         if (querySessionId && classSessions.some(s => s.id === querySessionId)) {
           // Already set, but confirming it exists in the list
           setSessionId(querySessionId)
-        } else if (!querySessionId && searchParams.get('tab') !== 'builder' && searchParams.get('mode') !== 'edit') {
+        } else if (
+          !querySessionId &&
+          searchParams.get('tab') !== 'builder' &&
+          searchParams.get('mode') !== 'edit'
+        ) {
           if (activeSession) {
             setSessionId(prev => prev ?? activeSession.id)
           } else if (classSessions.length > 0) {
@@ -1284,7 +1288,9 @@ function TutorInsightsPageInner() {
             <Button variant="modal-secondary-dark" onClick={() => setIsCreateDialogOpen(false)}>
               Cancel
             </Button>
-            <Button variant="modal-primary-dark" onClick={handleCreateNewCourse}>Create</Button>
+            <Button variant="modal-primary-dark" onClick={handleCreateNewCourse}>
+              Create
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

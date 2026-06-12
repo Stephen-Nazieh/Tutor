@@ -86,7 +86,11 @@ export class DailyCoProvider implements VideoProvider {
       method: 'POST',
       body: JSON.stringify(payload),
     })
-    console.log('[Daily.co] createRoom response:', { name: room.name, url: room.url, config: room.config })
+    console.log('[Daily.co] createRoom response:', {
+      name: room.name,
+      url: room.url,
+      config: room.config,
+    })
 
     return {
       id: room.name,

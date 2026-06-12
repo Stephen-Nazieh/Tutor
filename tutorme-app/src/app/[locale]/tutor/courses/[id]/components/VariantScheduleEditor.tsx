@@ -85,12 +85,7 @@ function timeToMinutes(time: string) {
   return h * 60 + m
 }
 
-function timesOverlap(
-  startA: string,
-  endA: string,
-  startB: string,
-  endB: string
-): boolean {
+function timesOverlap(startA: string, endA: string, startB: string, endB: string): boolean {
   return timeToMinutes(startA) < timeToMinutes(endB) && timeToMinutes(endA) > timeToMinutes(startB)
 }
 
@@ -206,9 +201,7 @@ export function VariantScheduleEditor({
         .padStart(2, '0')}:${(slotEndM % 60).toString().padStart(2, '0')}`
 
       // 1. Check recurring availability
-      const dayAvailability = availabilityData.availability.filter(
-        a => a.dayOfWeek === dayIndex
-      )
+      const dayAvailability = availabilityData.availability.filter(a => a.dayOfWeek === dayIndex)
       const withinAvailability = dayAvailability.some(a =>
         timesOverlap(slotStartStr, slotEndStr, a.startTime, a.endTime)
       )
@@ -398,7 +391,10 @@ export function VariantScheduleEditor({
     if (!status.available) {
       if (status.reason.includes('One-on-one')) {
         toast.error('This slot conflicts with a one-on-one booking.')
-      } else if (status.reason.includes('Existing booking') || status.reason.includes('Conflict:')) {
+      } else if (
+        status.reason.includes('Existing booking') ||
+        status.reason.includes('Conflict:')
+      ) {
         toast.error('This slot conflicts with an existing scheduled session.')
       } else if (status.reason.includes('exception')) {
         toast.error('This slot is blocked by a calendar exception.')
@@ -429,9 +425,7 @@ export function VariantScheduleEditor({
         const hasMatch = matchingIndex >= 0
         const template = extractTemplate(prev)
         const templateKey = `${day}|${timeStr}`
-        const templateIdx = template.findIndex(
-          s => s.dayOfWeek === day && s.startTime === timeStr
-        )
+        const templateIdx = template.findIndex(s => s.dayOfWeek === day && s.startTime === timeStr)
 
         if (hasMatch || templateIdx >= 0) {
           // Remove this day+time from template and regenerate
@@ -555,7 +549,7 @@ export function VariantScheduleEditor({
               Selected
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block h-3 w-3 rounded-sm bg-white border border-slate-200" />
+              <span className="inline-block h-3 w-3 rounded-sm border border-slate-200 bg-white" />
               Available
             </span>
             <span className="flex items-center gap-1">
@@ -747,9 +741,7 @@ export function VariantScheduleEditor({
                           aria-label={`${day} ${displayTime}${inRange ? ', selected' : ''}. Click to ${inRange ? 'remove' : 'add'} session.`}
                           title={isUnavailable ? slotStatus.reason : undefined}
                         >
-                          {inRange ? (
-                            <span className="text-[11px]">{sessionLabel}</span>
-                          ) : null}
+                          {inRange ? <span className="text-[11px]">{sessionLabel}</span> : null}
                         </div>
                       )
                     })}

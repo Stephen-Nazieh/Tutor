@@ -57,7 +57,9 @@ export async function GET() {
   const saCheck = await checkServiceAccountKey()
   checks.push(saCheck)
   if (saCheck.status !== 'healthy') {
-    recommendations.push('GCP_SA_KEY must be a valid JSON service-account key with type, project_id, private_key, and client_email fields.')
+    recommendations.push(
+      'GCP_SA_KEY must be a valid JSON service-account key with type, project_id, private_key, and client_email fields.'
+    )
   }
 
   // ─── 3. Bucket access ────────────────────────────────────────────────────
@@ -74,13 +76,19 @@ export async function GET() {
   if (uploadCheck.status !== 'healthy') {
     const details = uploadCheck.details ?? {}
     if (details.uploadFailed) {
-      recommendations.push('Upload failed — check that the service account can write to the bucket.')
+      recommendations.push(
+        'Upload failed — check that the service account can write to the bucket.'
+      )
     }
     if (details.signedUrlFailed) {
-      recommendations.push('Signed URL generation failed — grant the service account roles/iam.serviceAccountTokenCreator (or verify the private_key in GCP_SA_KEY is valid).')
+      recommendations.push(
+        'Signed URL generation failed — grant the service account roles/iam.serviceAccountTokenCreator (or verify the private_key in GCP_SA_KEY is valid).'
+      )
     }
     if (details.makePublicFailed && !details.uniformBucketLevelAccess) {
-      recommendations.push('makePublic() failed for a reason other than uniform bucket-level access.')
+      recommendations.push(
+        'makePublic() failed for a reason other than uniform bucket-level access.'
+      )
     }
   }
 
@@ -89,7 +97,8 @@ export async function GET() {
     overall,
     checks,
     timestamp: new Date().toISOString(),
-    recommendations: recommendations.length > 0 ? recommendations : ['GCS storage is fully operational.'],
+    recommendations:
+      recommendations.length > 0 ? recommendations : ['GCS storage is fully operational.'],
   }
 
   return NextResponse.json(result, {
@@ -126,7 +135,10 @@ async function checkEnvVars(): Promise<StorageCheck> {
       status: 'error',
       message: `Missing required environment variables: ${missing.join(', ')}`,
       duration: Date.now() - start,
-      details: { missing, present: ['GCS_BUCKET', 'GCP_PROJECT_ID', 'GCP_SA_KEY'].filter(v => !!process.env[v]) },
+      details: {
+        missing,
+        present: ['GCS_BUCKET', 'GCP_PROJECT_ID', 'GCP_SA_KEY'].filter(v => !!process.env[v]),
+      },
     }
   }
 
@@ -195,7 +207,8 @@ async function checkServiceAccountKey(): Promise<StorageCheck> {
     details: {
       project_id: parsed.project_id,
       client_email: parsed.client_email,
-      has_private_key: typeof parsed.private_key === 'string' && (parsed.private_key as string).length > 0,
+      has_private_key:
+        typeof parsed.private_key === 'string' && (parsed.private_key as string).length > 0,
     },
   }
 }
@@ -334,7 +347,8 @@ async function checkUploadAndSignedUrl(): Promise<StorageCheck> {
       return {
         name: 'upload_and_signed_url',
         status: 'warning',
-        message: 'Upload succeeded, but signed URL generation failed. The system will fall back to public URLs.',
+        message:
+          'Upload succeeded, but signed URL generation failed. The system will fall back to public URLs.',
         duration: Date.now() - start,
         details,
       }
@@ -344,7 +358,8 @@ async function checkUploadAndSignedUrl(): Promise<StorageCheck> {
       return {
         name: 'upload_and_signed_url',
         status: 'healthy',
-        message: 'Upload and signed URL generation work. Uniform bucket-level access is enabled (makePublic skipped — this is expected and secure).',
+        message:
+          'Upload and signed URL generation work. Uniform bucket-level access is enabled (makePublic skipped — this is expected and secure).',
         duration: Date.now() - start,
         details,
       }

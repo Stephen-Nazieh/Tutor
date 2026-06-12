@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, courseLesson, courseEnrollment, courseProgress, payment, courseSchedule } from '@/lib/db/schema'
+import {
+  course,
+  courseLesson,
+  courseEnrollment,
+  courseProgress,
+  payment,
+  courseSchedule,
+} from '@/lib/db/schema'
 import { eq, and, inArray, sql } from 'drizzle-orm'
 import { NotFoundError } from '@/lib/api/middleware'
 
@@ -81,7 +88,9 @@ export async function enrollStudentInCourse(
     const [existingEnrollment] = await tx
       .select({ enrollmentId: courseEnrollment.enrollmentId })
       .from(courseEnrollment)
-      .where(and(eq(courseEnrollment.studentId, studentId), eq(courseEnrollment.courseId, courseId)))
+      .where(
+        and(eq(courseEnrollment.studentId, studentId), eq(courseEnrollment.courseId, courseId))
+      )
       .limit(1)
 
     if (existingEnrollment) {
@@ -129,7 +138,9 @@ export async function enrollStudentInCourse(
     const [existingEnrollment] = await drizzleDb
       .select()
       .from(courseEnrollment)
-      .where(and(eq(courseEnrollment.studentId, studentId), eq(courseEnrollment.courseId, courseId)))
+      .where(
+        and(eq(courseEnrollment.studentId, studentId), eq(courseEnrollment.courseId, courseId))
+      )
       .limit(1)
     const [existingProgress] = await drizzleDb
       .select()

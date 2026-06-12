@@ -12,7 +12,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, handleApiError } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { calendarAvailability, calendarException, calendarEvent, oneOnOneBookingRequest, liveSession } from '@/lib/db/schema'
+import {
+  calendarAvailability,
+  calendarException,
+  calendarEvent,
+  oneOnOneBookingRequest,
+  liveSession,
+} from '@/lib/db/schema'
 import { eq, and, or, gte, lte, gt, lt, asc, isNull, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { nanoid } from 'nanoid'
@@ -152,7 +158,7 @@ export const GET = withAuth(
           })
 
         // Deduplicate: if a live session already has a calendar event on the same slot, prefer the calendar event
-        const eventMap = new Map<string, typeof calendarEventItems[0]>()
+        const eventMap = new Map<string, (typeof calendarEventItems)[0]>()
         for (const ev of calendarEventItems) {
           eventMap.set(`${ev.date}_${ev.startTime}_${ev.endTime}`, ev)
         }

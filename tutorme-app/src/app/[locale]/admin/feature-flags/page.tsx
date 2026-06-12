@@ -186,7 +186,11 @@ export default function FeatureFlagsPage() {
               <Button variant="modal-secondary" onClick={() => setIsCreateDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button variant="modal-primary" onClick={handleCreateFlag} disabled={!newFlag.key || !newFlag.name}>
+              <Button
+                variant="modal-primary"
+                onClick={handleCreateFlag}
+                disabled={!newFlag.key || !newFlag.name}
+              >
                 Create Flag
               </Button>
             </DialogFooter>

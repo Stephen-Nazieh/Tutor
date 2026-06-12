@@ -51,12 +51,9 @@ export const POST = withCsrf(
         const conflicts = await findConflicts(userId, slotStart, slotEnd)
 
         if (conflicts.length > 0) {
-          const alternativeSlots = await findAlternativeSlots(
-            userId,
-            slotStart,
-            durationMinutes,
-            { maxSuggestions: 3 }
-          )
+          const alternativeSlots = await findAlternativeSlots(userId, slotStart, durationMinutes, {
+            maxSuggestions: 3,
+          })
           return NextResponse.json(
             {
               error: 'You already have a session scheduled during this time slot.',

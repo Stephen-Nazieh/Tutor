@@ -20,10 +20,7 @@ const MAX_SCROLL_PAGES = 20
 
 function getProxiedPdfUrl(fileUrl: string): string {
   // Use the proxy for external URLs so the server can refresh expired GCS signatures
-  if (
-    fileUrl.startsWith('http://') ||
-    fileUrl.startsWith('https://')
-  ) {
+  if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
     return `/api/proxy-file?url=${encodeURIComponent(fileUrl)}`
   }
   return fileUrl
@@ -68,7 +65,7 @@ export function PDFViewer({
               message =
                 'This document could not be found in storage. It may have been deleted — remove it and re-upload the file.'
             } else if (body?.code === 'ExpiredToken' || body?.code === 'AccessDenied') {
-              message = 'This document\'s storage link has expired and could not be refreshed.'
+              message = "This document's storage link has expired and could not be refreshed."
             } else if (body?.error) {
               message = body.error
             }
@@ -89,7 +86,9 @@ export function PDFViewer({
     }
 
     fetchPdf()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [fileUrl, isBlobUrl])
 
   const isScrollMode = numPages > 0 && numPages <= MAX_SCROLL_PAGES

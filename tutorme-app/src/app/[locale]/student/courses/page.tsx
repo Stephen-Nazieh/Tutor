@@ -644,7 +644,7 @@ function CoursePageInner() {
       </Dialog>
 
       {/* Tabs */}
-      <Card className="flex flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)] lg:flex-1 lg:min-h-0">
+      <Card className="flex flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)] lg:min-h-0 lg:flex-1">
         <div className="flex-shrink-0 border-b border-gray-200 px-6 pt-4">
           <div className="scrollbar-hide flex overflow-x-auto">
             <button

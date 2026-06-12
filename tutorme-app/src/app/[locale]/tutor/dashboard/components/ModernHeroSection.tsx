@@ -120,7 +120,9 @@ export function ModernHeroSection({
       const h = Math.floor(diff / 3600000)
       const m = Math.floor((diff % 3600000) / 60000)
       const s = Math.floor((diff % 60000) / 1000)
-      setCountdown(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`)
+      setCountdown(
+        `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+      )
     }
     tick()
     const interval = setInterval(tick, 1000)
@@ -129,7 +131,9 @@ export function ModernHeroSection({
 
   const timeZoneAbbr = useMemo(() => {
     try {
-      return new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop() || ''
+      return (
+        new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop() || ''
+      )
     } catch {
       return ''
     }
@@ -259,9 +263,7 @@ export function ModernHeroSection({
                   <span
                     className={cn(
                       'mt-0.5 flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold',
-                      i === 0
-                        ? 'bg-white/30 text-white'
-                        : 'text-white group-hover:bg-white/10'
+                      i === 0 ? 'bg-white/30 text-white' : 'text-white group-hover:bg-white/10'
                     )}
                   >
                     {d.getDate()}

@@ -24,10 +24,7 @@ function normalizeRole(role: unknown): string {
  * Allows the owner, plus tutors for their own students' documents/submissions,
  * plus public/shared tutor resources.
  */
-export async function canReadUploadKey(
-  session: Session,
-  pathSegments: string[]
-): Promise<boolean> {
+export async function canReadUploadKey(session: Session, pathSegments: string[]): Promise<boolean> {
   const userId = session.user.id
   const role = normalizeRole(session.user.role)
 

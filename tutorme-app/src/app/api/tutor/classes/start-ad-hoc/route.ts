@@ -156,7 +156,8 @@ export const POST = withAuth(
         if (conflicts.length > 0) {
           return NextResponse.json(
             {
-              error: 'You have a scheduling conflict. Please end your current session or wait for it to finish before starting a new one.',
+              error:
+                'You have a scheduling conflict. Please end your current session or wait for it to finish before starting a new one.',
               conflicts: conflicts.map(c => ({
                 type: c.type,
                 title: c.title,

@@ -193,10 +193,7 @@ export async function findAlternativeSlots(
     .select()
     .from(calendarAvailability)
     .where(
-      and(
-        eq(calendarAvailability.tutorId, tutorId),
-        eq(calendarAvailability.isAvailable, true)
-      )
+      and(eq(calendarAvailability.tutorId, tutorId), eq(calendarAvailability.isAvailable, true))
     )
 
   // Get exceptions in range

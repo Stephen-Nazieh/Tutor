@@ -108,10 +108,7 @@ function setCachedRefreshedUrl(key: string, url: string, ttlSeconds: number): vo
  * If the URL is not a GCS public URL, returns it unchanged.
  * If GCS is not configured, returns the URL unchanged.
  */
-export async function refreshGcsUrl(
-  url: string,
-  expiresInSeconds: number = 3600
-): Promise<string> {
+export async function refreshGcsUrl(url: string, expiresInSeconds: number = 3600): Promise<string> {
   if (!isGcsConfigured()) return url
   const key = extractGcsKeyFromPublicUrl(url)
   if (!key) return url

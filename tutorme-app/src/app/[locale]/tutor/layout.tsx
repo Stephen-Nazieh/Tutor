@@ -42,7 +42,12 @@ type NavItem = {
 
 // Main Navigation - Flat list (no groups)
 const navItems: NavItem[] = [
-  { href: '/tutor/dashboard', label: 'Dashboard', icon: LayoutDashboard, iconColor: 'text-[#2563EB]' },
+  {
+    href: '/tutor/dashboard',
+    label: 'Dashboard',
+    icon: LayoutDashboard,
+    iconColor: 'text-[#2563EB]',
+  },
   { href: '/tutor/my-page', label: 'My Page', icon: Globe, iconColor: 'text-[#7C3AED]' },
   { href: '/tutor/insights', label: 'Course Builder', icon: Wrench, iconColor: 'text-[#EA580C]' },
   { href: '/tutor/classes', label: 'Live Sessions', icon: Video, iconColor: 'text-[#16A34A]' },
@@ -54,7 +59,9 @@ const navItems: NavItem[] = [
   // Whiteboard audit links
 ]
 
-const bottomNavItems: NavItem[] = [{ href: '/tutor/settings', label: 'Account', icon: User, iconColor: 'text-[#64748B]' }]
+const bottomNavItems: NavItem[] = [
+  { href: '/tutor/settings', label: 'Account', icon: User, iconColor: 'text-[#64748B]' },
+]
 
 export default function TutorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -72,7 +79,10 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   }, [pathname])
 
   // Compute isMyPage before useState so SSR/CSR initial state matches (prevents hydration mismatch)
-  const isMyPage = pathname === `${localePrefix}/tutor/my-page` || pathname?.startsWith(`${localePrefix}/tutor/my-page/`) || /\/tutor\/my-page(\/|$)/.test(pathname || '')
+  const isMyPage =
+    pathname === `${localePrefix}/tutor/my-page` ||
+    pathname?.startsWith(`${localePrefix}/tutor/my-page/`) ||
+    /\/tutor\/my-page(\/|$)/.test(pathname || '')
   const [desktopNavOpen, setDesktopNavOpen] = useState(!isMyPage)
 
   // Scope scrollbar-gutter override to tutor pages (nested scroll containers, not html)
@@ -120,7 +130,9 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   const sidebarRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
     if (sidebarRef.current) {
-      sidebarRef.current.style.transform = desktopNavOpen ? 'translateX(0px)' : 'translateX(calc(-100% - 1rem))'
+      sidebarRef.current.style.transform = desktopNavOpen
+        ? 'translateX(0px)'
+        : 'translateX(calc(-100% - 1rem))'
       sidebarRef.current.style.opacity = desktopNavOpen ? '1' : '0'
     }
   }, [desktopNavOpen])
@@ -143,14 +155,14 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 isolate">
+    <div className="isolate flex h-screen overflow-hidden bg-gray-50">
       {/* Layout spacer — reserves space for sidebar without animation */}
       <div className={cn('hidden shrink-0 lg:block', desktopNavOpen ? 'w-64' : 'w-0')} />
 
       {/* Visual sidebar — fixed overlay, animates with transform only */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-fixed hidden h-screen lg:flex',
+          'z-fixed fixed left-0 top-0 hidden h-screen lg:flex',
           desktopNavOpen ? 'pointer-events-auto' : 'pointer-events-none'
         )}
       >
@@ -180,7 +192,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
 
-            <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 pt-2 pb-4">
+            <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 pb-4 pt-2">
               {navItems.map(item => {
                 const Icon = item.icon
                 const href =
@@ -249,16 +261,22 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
         className={cn(
           'fixed top-1/2 z-[400] hidden h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:w-10 lg:flex',
           desktopNavOpen ? 'left-64' : 'left-0',
-          desktopNavOpen ? 'bg-white border-[#E5E7EB]' : 'bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] border-[#1D4ED8]/30',
+          desktopNavOpen
+            ? 'border-[#E5E7EB] bg-white'
+            : 'border-[#1D4ED8]/30 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)]',
           isPeeking ? 'w-10' : 'w-8'
         )}
         onClick={() => setDesktopNavOpen(!desktopNavOpen)}
         title={desktopNavOpen ? 'Hide navigation' : 'Show navigation'}
       >
         {desktopNavOpen ? (
-          <ChevronLeft className={cn("h-5 w-5", desktopNavOpen ? "text-[#2B5FB8]" : "text-white")} />
+          <ChevronLeft
+            className={cn('h-5 w-5', desktopNavOpen ? 'text-[#2B5FB8]' : 'text-white')}
+          />
         ) : (
-          <ChevronRight className={cn("h-5 w-5", desktopNavOpen ? "text-[#2B5FB8]" : "text-white")} />
+          <ChevronRight
+            className={cn('h-5 w-5', desktopNavOpen ? 'text-[#2B5FB8]' : 'text-white')}
+          />
         )}
       </div>
 
@@ -311,8 +329,16 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       )}
 
       {/* Main Content */}
-      <main className="relative z-0 h-screen flex-1 overflow-hidden pt-16 lg:pt-4 lg:pb-3">
-        <div className={cn('h-full overflow-y-auto', isDashboard && 'tutor-dashboard-scroll', isMyPage && 'tutor-mypage-scroll')}>{children}</div>
+      <main className="relative z-0 h-screen flex-1 overflow-hidden pt-16 lg:pb-3 lg:pt-4">
+        <div
+          className={cn(
+            'h-full overflow-y-auto',
+            isDashboard && 'tutor-dashboard-scroll',
+            isMyPage && 'tutor-mypage-scroll'
+          )}
+        >
+          {children}
+        </div>
       </main>
     </div>
   )

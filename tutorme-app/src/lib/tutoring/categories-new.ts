@@ -1173,9 +1173,7 @@ export const OTHER_COUNTRY: Country = {
 }
 
 // Specialty categories (Universities, Languages, Professional)
-import {
-  SPECIALTY_CATEGORIES,
-} from './specialty-categories'
+import { SPECIALTY_CATEGORIES } from './specialty-categories'
 
 export {
   SPECIALTY_CATEGORIES,

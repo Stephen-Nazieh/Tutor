@@ -30,7 +30,9 @@ import { createHash } from 'crypto'
 
 function makeIdempotencyKey(parts: string[]): string {
   const bucket = Math.floor(Date.now() / (5 * 60 * 1000))
-  return createHash('sha256').update([...parts, String(bucket)].join(':')).digest('hex')
+  return createHash('sha256')
+    .update([...parts, String(bucket)].join(':'))
+    .digest('hex')
 }
 
 const createPaymentSchema = z

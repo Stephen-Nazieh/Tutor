@@ -1287,7 +1287,12 @@ export function CommunicationCenter() {
             </div>
           </ScrollArea>
           <DialogFooter>
-            <Button variant="modal-secondary-dark" onClick={() => actions.setShowQuickRepliesManager(false)}>Close</Button>
+            <Button
+              variant="modal-secondary-dark"
+              onClick={() => actions.setShowQuickRepliesManager(false)}
+            >
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1332,13 +1337,19 @@ export function CommunicationCenter() {
             </div>
           </div>
           <DialogFooter className="gap-3">
-            <Button variant="modal-secondary-dark" onClick={() => actions.setShowAnnouncement(false)}>
+            <Button
+              variant="modal-secondary-dark"
+              onClick={() => actions.setShowAnnouncement(false)}
+            >
               Cancel
             </Button>
-            <Button variant="modal-primary-dark" onClick={() => {
-              toast.success('Announcement broadcasted!')
-              actions.setShowAnnouncement(false)
-            }}>
+            <Button
+              variant="modal-primary-dark"
+              onClick={() => {
+                toast.success('Announcement broadcasted!')
+                actions.setShowAnnouncement(false)
+              }}
+            >
               <Megaphone className="mr-2 h-4 w-4" />
               Broadcast
             </Button>

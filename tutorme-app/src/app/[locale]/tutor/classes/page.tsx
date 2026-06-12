@@ -569,7 +569,7 @@ export default function TutorClassesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <nav className="safe-top sticky top-0 z-sticky border-b bg-white">
+      <nav className="safe-top z-sticky sticky top-0 border-b bg-white">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 justify-between">
             <div className="flex items-center gap-4">
@@ -1003,7 +1003,11 @@ export default function TutorClassesPage() {
               <Button variant="modal-secondary-dark" onClick={() => setScheduleModalOpen(false)}>
                 Cancel
               </Button>
-              <Button variant="modal-primary-dark" onClick={handleScheduleTraining} disabled={!scheduleForm.title.trim()}>
+              <Button
+                variant="modal-primary-dark"
+                onClick={handleScheduleTraining}
+                disabled={!scheduleForm.title.trim()}
+              >
                 Schedule Session
               </Button>
             </DialogFooter>

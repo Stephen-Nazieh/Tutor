@@ -217,11 +217,13 @@ export default function TutorCoursePage() {
       const country = availableCountries.find(c => c.code === selectedCountryCode)
       const universities = UNIVERSITIES_BY_COUNTRY_CODE[selectedCountryCode]
       if (universities && universities.length > 0) {
-        return [{
-          id: `universities-${selectedCountryCode.toLowerCase()}`,
-          label: `Universities — ${country?.name || selectedCountryCode}`,
-          exams: universities,
-        }]
+        return [
+          {
+            id: `universities-${selectedCountryCode.toLowerCase()}`,
+            label: `Universities — ${country?.name || selectedCountryCode}`,
+            exams: universities,
+          },
+        ]
       }
       return []
     }
@@ -296,7 +298,11 @@ export default function TutorCoursePage() {
         if (data?.profile) {
           setTutorProfile(data.profile)
           // Load tutor's categories from profile if available (single category only)
-          if (data.profile.categories && Array.isArray(data.profile.categories) && data.profile.categories.length > 0) {
+          if (
+            data.profile.categories &&
+            Array.isArray(data.profile.categories) &&
+            data.profile.categories.length > 0
+          ) {
             setSelectedCategories([data.profile.categories[0]])
           }
           // Load custom categories from localStorage
@@ -817,13 +823,23 @@ export default function TutorCoursePage() {
                         <Globe className="h-4 w-4 text-[#1D4ED8]" />
                         Region
                       </Label>
-                      <Select value={selectedRegion} onValueChange={v => { setSelectedRegion(v); setSelectedCountryCode('') }}>
-                        <SelectTrigger className="h-10 w-full rounded-lg border border-slate-700/25 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:border-slate-400/50 hover:shadow-md focus-visible:!shadow-none focus:outline-none focus-visible:outline-none">
+                      <Select
+                        value={selectedRegion}
+                        onValueChange={v => {
+                          setSelectedRegion(v)
+                          setSelectedCountryCode('')
+                        }}
+                      >
+                        <SelectTrigger className="h-10 w-full rounded-lg border border-slate-700/25 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-400/50 hover:bg-slate-50 hover:shadow-md focus:outline-none focus-visible:!shadow-none focus-visible:outline-none">
                           <SelectValue placeholder="Select Regions..." />
                         </SelectTrigger>
-                        <SelectContent className="rounded-lg border border-white/20 bg-[#1E2832] p-1.5 shadow-lg w-[var(--radix-select-trigger-width)]">
+                        <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-lg border border-white/20 bg-[#1E2832] p-1.5 shadow-lg">
                           {REGIONS.map(region => (
-                            <SelectItem key={region.id} value={region.id} className="text-white focus:text-white hover:bg-white/20 focus:bg-white/20 mx-1.5 focus:outline-none rounded-md">
+                            <SelectItem
+                              key={region.id}
+                              value={region.id}
+                              className="mx-1.5 rounded-md text-white hover:bg-white/20 focus:bg-white/20 focus:text-white focus:outline-none"
+                            >
                               {region.name}
                             </SelectItem>
                           ))}
@@ -837,18 +853,30 @@ export default function TutorCoursePage() {
                         <MapPin className="h-4 w-4 text-[#F17623]" />
                         Country
                       </Label>
-                      <Select value={selectedCountryCode} onValueChange={setSelectedCountryCode} disabled={!selectedRegion}>
-                        <SelectTrigger className="h-10 w-full rounded-lg border border-slate-700/25 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:border-slate-400/50 hover:shadow-md disabled:bg-slate-100/50 disabled:border-slate-400/20 disabled:text-slate-400 disabled:hover:bg-slate-100/50 disabled:hover:border-slate-400/20 disabled:hover:shadow-none focus-visible:!shadow-none focus:outline-none focus-visible:outline-none">
-                          <SelectValue placeholder={selectedRegion ? 'Select Countries...' : 'Select Region First'} />
+                      <Select
+                        value={selectedCountryCode}
+                        onValueChange={setSelectedCountryCode}
+                        disabled={!selectedRegion}
+                      >
+                        <SelectTrigger className="h-10 w-full rounded-lg border border-slate-700/25 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-400/50 hover:bg-slate-50 hover:shadow-md focus:outline-none focus-visible:!shadow-none focus-visible:outline-none disabled:border-slate-400/20 disabled:bg-slate-100/50 disabled:text-slate-400 disabled:hover:border-slate-400/20 disabled:hover:bg-slate-100/50 disabled:hover:shadow-none">
+                          <SelectValue
+                            placeholder={
+                              selectedRegion ? 'Select Countries...' : 'Select Region First'
+                            }
+                          />
                         </SelectTrigger>
-                        <SelectContent className="rounded-lg border border-white/20 bg-[#1E2832] p-1.5 shadow-lg w-[var(--radix-select-trigger-width)]">
+                        <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-lg border border-white/20 bg-[#1E2832] p-1.5 shadow-lg">
                           {availableCountries.length === 0 ? (
                             <div className="py-4 text-center text-xs text-white/70">
                               No countries available
                             </div>
                           ) : (
                             availableCountries.map(country => (
-                              <SelectItem key={country.code} value={country.code} className="text-white focus:text-white hover:bg-white/20 focus:bg-white/20 mx-1.5 focus:outline-none rounded-md">
+                              <SelectItem
+                                key={country.code}
+                                value={country.code}
+                                className="mx-1.5 rounded-md text-white hover:bg-white/20 focus:bg-white/20 focus:text-white focus:outline-none"
+                              >
                                 {country.name}
                               </SelectItem>
                             ))
@@ -880,7 +908,9 @@ export default function TutorCoursePage() {
                                   disabled={isNational && nationalExams.length === 0}
                                   className={cn(
                                     'rounded-none border-b-2 border-transparent px-1 py-3 font-medium data-[state=active]:bg-transparent data-[state=active]:shadow-none',
-                                    isNational && nationalExams.length === 0 && 'disabled:opacity-50'
+                                    isNational &&
+                                      nationalExams.length === 0 &&
+                                      'disabled:opacity-50'
                                   )}
                                   style={{
                                     color: config.color,
@@ -922,7 +952,10 @@ export default function TutorCoursePage() {
                                 )
                             ).map(category => (
                               <div key={category.id} className="space-y-3">
-                                <CategoryHeading config={getTabConfig('global')!} label={category.label} />
+                                <CategoryHeading
+                                  config={getTabConfig('global')!}
+                                  label={category.label}
+                                />
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
@@ -962,7 +995,10 @@ export default function TutorCoursePage() {
                                 )
                             ).map(category => (
                               <div key={category.id} className="space-y-3">
-                                <CategoryHeading config={getTabConfig('ap')!} label={category.label} />
+                                <CategoryHeading
+                                  config={getTabConfig('ap')!}
+                                  label={category.label}
+                                />
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
@@ -1002,7 +1038,10 @@ export default function TutorCoursePage() {
                                 )
                             ).map(category => (
                               <div key={category.id} className="space-y-3">
-                                <CategoryHeading config={getTabConfig('alevel')!} label={category.label} />
+                                <CategoryHeading
+                                  config={getTabConfig('alevel')!}
+                                  label={category.label}
+                                />
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
@@ -1042,7 +1081,10 @@ export default function TutorCoursePage() {
                                 )
                             ).map(category => (
                               <div key={category.id} className="space-y-3">
-                                <CategoryHeading config={getTabConfig('ib')!} label={category.label} />
+                                <CategoryHeading
+                                  config={getTabConfig('ib')!}
+                                  label={category.label}
+                                />
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
@@ -1082,7 +1124,10 @@ export default function TutorCoursePage() {
                                 )
                             ).map(category => (
                               <div key={category.id} className="space-y-3">
-                                <CategoryHeading config={getTabConfig('igcse')!} label={category.label} />
+                                <CategoryHeading
+                                  config={getTabConfig('igcse')!}
+                                  label={category.label}
+                                />
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
@@ -1129,8 +1174,14 @@ export default function TutorCoursePage() {
                                     )
                                 )
                                 .map(category => (
-                                  <div key={`${selectedCountryCode}-${category.id}`} className="space-y-3">
-                                    <CategoryHeading config={getTabConfig('national')!} label={category.label} />
+                                  <div
+                                    key={`${selectedCountryCode}-${category.id}`}
+                                    className="space-y-3"
+                                  >
+                                    <CategoryHeading
+                                      config={getTabConfig('national')!}
+                                      label={category.label}
+                                    />
                                     <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                       {category.exams
                                         .filter(
@@ -1170,40 +1221,47 @@ export default function TutorCoursePage() {
                                 <p className="text-sm">Please select a region or country.</p>
                               </div>
                             ) : (
-                              filteredUniversityCategories.filter(
-                              cat =>
-                                !categorySearch ||
-                                cat.exams.some(e =>
-                                  e.toLowerCase().includes(categorySearch.toLowerCase())
-                                )
-                            ).map(category => (
-                              <div key={category.id} className="space-y-3">
-                                <CategoryHeading config={getTabConfig('universities')!} label={category.label} />
-                                <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
-                                  {category.exams
-                                    .filter(
-                                      exam =>
-                                        !categorySearch ||
-                                        exam.toLowerCase().includes(categorySearch.toLowerCase())
+                              filteredUniversityCategories
+                                .filter(
+                                  cat =>
+                                    !categorySearch ||
+                                    cat.exams.some(e =>
+                                      e.toLowerCase().includes(categorySearch.toLowerCase())
                                     )
-                                    .map(exam => (
-                                      <label
-                                        key={exam}
-                                        className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
-                                      >
-                                        <input
-                                          type="radio"
-                                          name="category"
-                                          checked={selectedCategories[0] === exam}
-                                          onChange={() => selectCategory(exam)}
-                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                                        />
-                                        <span className="text-sm text-slate-700">{exam}</span>
-                                      </label>
-                                    ))}
-                                </div>
-                              </div>
-                            ))
+                                )
+                                .map(category => (
+                                  <div key={category.id} className="space-y-3">
+                                    <CategoryHeading
+                                      config={getTabConfig('universities')!}
+                                      label={category.label}
+                                    />
+                                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
+                                      {category.exams
+                                        .filter(
+                                          exam =>
+                                            !categorySearch ||
+                                            exam
+                                              .toLowerCase()
+                                              .includes(categorySearch.toLowerCase())
+                                        )
+                                        .map(exam => (
+                                          <label
+                                            key={exam}
+                                            className="flex cursor-pointer items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-50"
+                                          >
+                                            <input
+                                              type="radio"
+                                              name="category"
+                                              checked={selectedCategories[0] === exam}
+                                              onChange={() => selectCategory(exam)}
+                                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                            />
+                                            <span className="text-sm text-slate-700">{exam}</span>
+                                          </label>
+                                        ))}
+                                    </div>
+                                  </div>
+                                ))
                             )}
                           </div>
                         </TabsContent>
@@ -1219,7 +1277,10 @@ export default function TutorCoursePage() {
                                 )
                             ).map(category => (
                               <div key={category.id} className="space-y-3">
-                                <CategoryHeading config={getTabConfig('languages')!} label={category.label} />
+                                <CategoryHeading
+                                  config={getTabConfig('languages')!}
+                                  label={category.label}
+                                />
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
@@ -1259,7 +1320,10 @@ export default function TutorCoursePage() {
                                 )
                             ).map(category => (
                               <div key={category.id} className="space-y-3">
-                                <CategoryHeading config={getTabConfig('professional')!} label={category.label} />
+                                <CategoryHeading
+                                  config={getTabConfig('professional')!}
+                                  label={category.label}
+                                />
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {category.exams
                                     .filter(
@@ -1293,7 +1357,7 @@ export default function TutorCoursePage() {
                           <div className="space-y-6">
                             {/* Add custom category input */}
                             <div className="flex items-center gap-3">
-                              <div className="relative flex-1 max-w-md">
+                              <div className="relative max-w-md flex-1">
                                 <Input
                                   placeholder="Enter custom category name..."
                                   value={customCategoryInput}
@@ -1325,11 +1389,16 @@ export default function TutorCoursePage() {
                               <div className="py-8 text-center text-slate-500">
                                 <Wrench className="mx-auto mb-3 h-12 w-12 text-slate-300" />
                                 <p>No custom categories yet.</p>
-                                <p className="text-sm text-slate-400">Create your own category above.</p>
+                                <p className="text-sm text-slate-400">
+                                  Create your own category above.
+                                </p>
                               </div>
                             ) : (
                               <div className="space-y-3">
-                                <CategoryHeading config={getTabConfig('diy')!} label="Your Custom Categories" />
+                                <CategoryHeading
+                                  config={getTabConfig('diy')!}
+                                  label="Your Custom Categories"
+                                />
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3 lg:grid-cols-4">
                                   {customCategories
                                     .filter(
@@ -1349,7 +1418,9 @@ export default function TutorCoursePage() {
                                           onChange={() => selectCategory(exam)}
                                           className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                                         />
-                                        <span className="flex-1 text-sm text-slate-700">{exam}</span>
+                                        <span className="flex-1 text-sm text-slate-700">
+                                          {exam}
+                                        </span>
                                         <button
                                           type="button"
                                           onClick={e => {
@@ -1357,7 +1428,7 @@ export default function TutorCoursePage() {
                                             e.stopPropagation()
                                             removeCustomCategory(exam)
                                           }}
-                                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-100 text-slate-400 hover:text-red-500 transition-opacity"
+                                          className="rounded p-1 text-slate-400 opacity-0 transition-opacity hover:bg-red-100 hover:text-red-500 group-hover:opacity-100"
                                           title="Remove"
                                         >
                                           <X className="h-3.5 w-3.5" />

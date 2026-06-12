@@ -7,12 +7,7 @@ import { NextResponse } from 'next/server'
 import { eq, and, gte, lt, count, isNull, sql, inArray } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  course,
-  liveSession,
-  courseEnrollment,
-  oneOnOneBookingRequest,
-} from '@/lib/db/schema'
+import { course, liveSession, courseEnrollment, oneOnOneBookingRequest } from '@/lib/db/schema'
 
 export const GET = withAuth(
   async (_req, session) => {
@@ -24,55 +19,51 @@ export const GET = withAuth(
     const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
 
     try {
-      const [
-        sessionsTodayRes,
-        publishedCoursesRes,
-        enrollmentsRes,
-        oneOnOneRequestsRes,
-      ] = await Promise.all([
-        // 1. Sessions scheduled for today
-        drizzleDb
-          .select({ value: count() })
-          .from(liveSession)
-          .where(
-            and(
-              eq(liveSession.tutorId, tutorId),
-              gte(liveSession.scheduledAt, startOfDay),
-              lt(liveSession.scheduledAt, endOfDay)
-            )
-          ),
+      const [sessionsTodayRes, publishedCoursesRes, enrollmentsRes, oneOnOneRequestsRes] =
+        await Promise.all([
+          // 1. Sessions scheduled for today
+          drizzleDb
+            .select({ value: count() })
+            .from(liveSession)
+            .where(
+              and(
+                eq(liveSession.tutorId, tutorId),
+                gte(liveSession.scheduledAt, startOfDay),
+                lt(liveSession.scheduledAt, endOfDay)
+              )
+            ),
 
-        // 2. Active courses: published, not deleted, with enrollments or sessions
-        // First get all published course IDs for this tutor
-        drizzleDb
-          .select({ courseId: course.courseId })
-          .from(course)
-          .where(
-            and(
-              eq(course.creatorId, tutorId),
-              eq(course.isPublished, true),
-              isNull(course.deletedAt)
-            )
-          ),
+          // 2. Active courses: published, not deleted, with enrollments or sessions
+          // First get all published course IDs for this tutor
+          drizzleDb
+            .select({ courseId: course.courseId })
+            .from(course)
+            .where(
+              and(
+                eq(course.creatorId, tutorId),
+                eq(course.isPublished, true),
+                isNull(course.deletedAt)
+              )
+            ),
 
-        // 3. Total enrollments across tutor's courses
-        drizzleDb
-          .select({ value: count() })
-          .from(courseEnrollment)
-          .innerJoin(course, eq(courseEnrollment.courseId, course.courseId))
-          .where(eq(course.creatorId, tutorId)),
+          // 3. Total enrollments across tutor's courses
+          drizzleDb
+            .select({ value: count() })
+            .from(courseEnrollment)
+            .innerJoin(course, eq(courseEnrollment.courseId, course.courseId))
+            .where(eq(course.creatorId, tutorId)),
 
-        // 4. Pending 1-on-1 requests
-        drizzleDb
-          .select({ value: count() })
-          .from(oneOnOneBookingRequest)
-          .where(
-            and(
-              eq(oneOnOneBookingRequest.tutorId, tutorId),
-              eq(oneOnOneBookingRequest.status, 'PENDING')
-            )
-          ),
-      ])
+          // 4. Pending 1-on-1 requests
+          drizzleDb
+            .select({ value: count() })
+            .from(oneOnOneBookingRequest)
+            .where(
+              and(
+                eq(oneOnOneBookingRequest.tutorId, tutorId),
+                eq(oneOnOneBookingRequest.status, 'PENDING')
+              )
+            ),
+        ])
 
       const sessionsToday = Number(sessionsTodayRes[0]?.value || 0)
       const enrollments = Number(enrollmentsRes[0]?.value || 0)

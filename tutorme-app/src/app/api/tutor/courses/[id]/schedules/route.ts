@@ -143,10 +143,7 @@ export const PUT = withCsrf(
           .update(courseSchedule)
           .set(updateData)
           .where(
-            and(
-              eq(courseSchedule.scheduleId, scheduleId),
-              eq(courseSchedule.courseId, courseId)
-            )
+            and(eq(courseSchedule.scheduleId, scheduleId), eq(courseSchedule.courseId, courseId))
           )
           .returning({
             scheduleId: courseSchedule.scheduleId,
@@ -202,10 +199,7 @@ export const DELETE = withCsrf(
           .select({ enrolledCount: courseSchedule.enrolledCount })
           .from(courseSchedule)
           .where(
-            and(
-              eq(courseSchedule.scheduleId, scheduleId),
-              eq(courseSchedule.courseId, courseId)
-            )
+            and(eq(courseSchedule.scheduleId, scheduleId), eq(courseSchedule.courseId, courseId))
           )
           .limit(1)
 
@@ -223,10 +217,7 @@ export const DELETE = withCsrf(
         await drizzleDb
           .delete(courseSchedule)
           .where(
-            and(
-              eq(courseSchedule.scheduleId, scheduleId),
-              eq(courseSchedule.courseId, courseId)
-            )
+            and(eq(courseSchedule.scheduleId, scheduleId), eq(courseSchedule.courseId, courseId))
           )
 
         return NextResponse.json({ success: true })

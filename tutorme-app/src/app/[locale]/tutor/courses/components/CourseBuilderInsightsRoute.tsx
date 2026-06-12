@@ -147,8 +147,7 @@ function CourseBuilderInsightsRouteInner({
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const isClassroomMode =
-    (pathname?.startsWith('/tutor/classroom') ?? false) ||
-    searchParams.get('view') === 'classroom'
+    (pathname?.startsWith('/tutor/classroom') ?? false) || searchParams.get('view') === 'classroom'
   const tabFromUrl = searchParams.get('tab') as 'live' | 'builder' | 'test-pci' | null
   const [activeMainTab, setActiveMainTab] = useState<'live' | 'builder' | 'test-pci'>(
     isClassroomMode ? 'live' : (tabFromUrl ?? (insightsProps.sessionId ? 'live' : 'builder'))
@@ -474,63 +473,62 @@ function CourseBuilderInsightsRouteInner({
                         : currentCourse.name}
                     </div>
                   )}
-                  {activeMainTab !== 'live' &&
-                    insightsProps.onCourseChange && (
-                      <Select
-                        value={courseId ?? ''}
-                        onValueChange={v => insightsProps.onCourseChange?.(v)}
-                      >
-                        <SelectTrigger className="h-9 min-w-[160px] max-w-[320px] border-none bg-transparent text-sm font-semibold shadow-none transition-colors hover:bg-slate-100 focus:ring-0">
-                          <SelectValue placeholder="Select course">
-                            {(() => {
-                              const c = currentCourse
-                              if (!c) return 'Select course'
-                              return c.nationality && c.nationality !== 'Global'
-                                ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
-                                : c.name
-                            })()}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {courses && courses.length > 0 && (
-                            <SelectItem
-                              value="__live-header__"
-                              disabled
-                              className="text-muted-foreground text-xs font-semibold"
-                            >
-                              Live Courses
-                            </SelectItem>
-                          )}
-                          {courses?.map(c => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.nationality && c.nationality !== 'Global'
-                                ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
-                                : c.isVariant
-                                  ? `${c.name} — Global`
-                                  : c.name}
-                            </SelectItem>
-                          ))}
-                          {draftCourses && draftCourses.length > 0 && (
-                            <SelectItem
-                              value="__draft-header__"
-                              disabled
-                              className="text-muted-foreground text-xs font-semibold"
-                            >
-                              Draft Courses
-                            </SelectItem>
-                          )}
-                          {draftCourses?.map(c => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.nationality && c.nationality !== 'Global'
-                                ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
-                                : c.isVariant
-                                  ? `${c.name} — Global`
-                                  : c.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                  {activeMainTab !== 'live' && insightsProps.onCourseChange && (
+                    <Select
+                      value={courseId ?? ''}
+                      onValueChange={v => insightsProps.onCourseChange?.(v)}
+                    >
+                      <SelectTrigger className="h-9 min-w-[160px] max-w-[320px] border-none bg-transparent text-sm font-semibold shadow-none transition-colors hover:bg-slate-100 focus:ring-0">
+                        <SelectValue placeholder="Select course">
+                          {(() => {
+                            const c = currentCourse
+                            if (!c) return 'Select course'
+                            return c.nationality && c.nationality !== 'Global'
+                              ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
+                              : c.name
+                          })()}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courses && courses.length > 0 && (
+                          <SelectItem
+                            value="__live-header__"
+                            disabled
+                            className="text-muted-foreground text-xs font-semibold"
+                          >
+                            Live Courses
+                          </SelectItem>
+                        )}
+                        {courses?.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nationality && c.nationality !== 'Global'
+                              ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
+                              : c.isVariant
+                                ? `${c.name} — Global`
+                                : c.name}
+                          </SelectItem>
+                        ))}
+                        {draftCourses && draftCourses.length > 0 && (
+                          <SelectItem
+                            value="__draft-header__"
+                            disabled
+                            className="text-muted-foreground text-xs font-semibold"
+                          >
+                            Draft Courses
+                          </SelectItem>
+                        )}
+                        {draftCourses?.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nationality && c.nationality !== 'Global'
+                              ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
+                              : c.isVariant
+                                ? `${c.name} — Global`
+                                : c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
 
                   {activeMainTab === 'builder' && saveMode === 'draft' && onCreateCourse && (
                     <Button
@@ -604,30 +602,32 @@ function CourseBuilderInsightsRouteInner({
 
             <div className="flex h-full flex-col items-end justify-between gap-4 pb-0">
               <div className="mt-0 flex shrink-0 items-center gap-2">
-                {(activeMainTab === 'builder' || activeMainTab === 'live') && onSaveModeChange && !modeLocked && (
-                  <Select
-                    value={saveMode}
-                    onValueChange={(val: 'live' | 'draft') => onSaveModeChange(val)}
-                  >
-                    <SelectTrigger className="h-9 w-[190px] border-slate-200 bg-white text-sm font-medium">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="live">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-green-500" />
-                          Live
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="draft">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-amber-500" />
-                          Editing
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
+                {(activeMainTab === 'builder' || activeMainTab === 'live') &&
+                  onSaveModeChange &&
+                  !modeLocked && (
+                    <Select
+                      value={saveMode}
+                      onValueChange={(val: 'live' | 'draft') => onSaveModeChange(val)}
+                    >
+                      <SelectTrigger className="h-9 w-[190px] border-slate-200 bg-white text-sm font-medium">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="live">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-green-500" />
+                            Live
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="draft">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-amber-500" />
+                            Editing
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
                 {(activeMainTab === 'builder' || activeMainTab === 'live') && modeLocked && (
                   <div className="flex h-9 w-[190px] items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-600">
                     <div className="h-2 w-2 rounded-full bg-amber-500" />
@@ -804,7 +804,9 @@ function CourseBuilderInsightsRouteInner({
             <Button variant="modal-secondary-dark" onClick={() => setIsCreateDialogOpen?.(false)}>
               Cancel
             </Button>
-            <Button variant="modal-primary-dark" onClick={onCreateNewCourse}>Create</Button>
+            <Button variant="modal-primary-dark" onClick={onCreateNewCourse}>
+              Create
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -871,7 +873,8 @@ function CourseBuilderInsightsRouteInner({
             <DialogHeader className="p-0">
               <DialogTitle>Reschedule as Independent Course</DialogTitle>
               <DialogDescription>
-                Create a new independent course with a different schedule. Original schedule slots are greyed out.
+                Create a new independent course with a different schedule. Original schedule slots
+                are greyed out.
               </DialogDescription>
             </DialogHeader>
 
@@ -905,10 +908,7 @@ function CourseBuilderInsightsRouteInner({
                       <span className="text-sm font-medium text-slate-600">
                         {rescheduleIsFree ? 'Yes' : 'No'}
                       </span>
-                      <Switch
-                        checked={rescheduleIsFree}
-                        onCheckedChange={setRescheduleIsFree}
-                      />
+                      <Switch checked={rescheduleIsFree} onCheckedChange={setRescheduleIsFree} />
                     </div>
                   </div>
                   <div>
@@ -930,10 +930,7 @@ function CourseBuilderInsightsRouteInner({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-white">Currency</Label>
-                    <Select
-                      value={rescheduleCurrency}
-                      onValueChange={setRescheduleCurrency}
-                    >
+                    <Select value={rescheduleCurrency} onValueChange={setRescheduleCurrency}>
                       <SelectTrigger className="mt-1 border-slate-200 bg-white">
                         <SelectValue />
                       </SelectTrigger>
@@ -964,14 +961,13 @@ function CourseBuilderInsightsRouteInner({
               <div className="mt-6">
                 <p className="mb-2 text-sm font-medium text-white">Schedule</p>
                 <p className="mb-3 text-xs text-white/60">
-                  Select a new schedule. Original course slots are greyed out and cannot be selected.
+                  Select a new schedule. Original course slots are greyed out and cannot be
+                  selected.
                 </p>
                 <VariantScheduleEditor
                   schedule={rescheduleSchedule}
-                  onScheduleChange={updater =>
-                    setRescheduleSchedule(prev => updater(prev))
-                  }
-                  price={rescheduleIsFree ? 0 : (parseFloat(reschedulePrice) || 0)}
+                  onScheduleChange={updater => setRescheduleSchedule(prev => updater(prev))}
+                  price={rescheduleIsFree ? 0 : parseFloat(reschedulePrice) || 0}
                   weeksToSchedule={8}
                   excludedSchedules={originalSchedule.length > 0 ? [originalSchedule] : undefined}
                   onWheelScroll={deltaY => {
@@ -996,9 +992,7 @@ function CourseBuilderInsightsRouteInner({
                 disabled={rescheduleSaving || !rescheduleName.trim()}
                 className="h-11 rounded-[12px] bg-white px-6 text-[#0B3A9B] hover:bg-white/90"
               >
-                {rescheduleSaving ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : null}
+                {rescheduleSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {rescheduleSaving ? 'Creating...' : 'Create Independent Course'}
               </Button>
             </div>

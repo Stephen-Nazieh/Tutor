@@ -42,11 +42,7 @@ function sanitizeBlobUrls(obj: unknown, path = ''): { sanitized: unknown; remove
     for (const [key, value] of Object.entries(obj)) {
       const newPath = path ? `${path}.${key}` : key
       // Preserve sourceDocument metadata, only clear the blob fileUrl
-      if (
-        key === 'sourceDocument' &&
-        value !== null &&
-        typeof value === 'object'
-      ) {
+      if (key === 'sourceDocument' && value !== null && typeof value === 'object') {
         const doc = value as Record<string, unknown>
         const hasBlobUrl = typeof doc.fileUrl === 'string' && doc.fileUrl.startsWith('blob:')
         if (hasBlobUrl) {
@@ -1733,19 +1729,22 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     /**
      * Collect all fileKey values from a lesson (tasks, assessments, content, docs).
      */
-    const collectLessonFileKeys = useCallback((lesson: Lesson): string[] => {
-      const keys: string[] = []
-      for (const task of lesson.tasks || []) {
-        keys.push(...collectTaskFileKeys(task))
-      }
-      for (const assessment of lesson.homework || []) {
-        keys.push(...collectAssessmentFileKeys(assessment))
-      }
-      for (const content of lesson.content || []) {
-        if (content.sourceDocument?.fileKey) keys.push(content.sourceDocument.fileKey)
-      }
-      return keys
-    }, [collectTaskFileKeys, collectAssessmentFileKeys])
+    const collectLessonFileKeys = useCallback(
+      (lesson: Lesson): string[] => {
+        const keys: string[] = []
+        for (const task of lesson.tasks || []) {
+          keys.push(...collectTaskFileKeys(task))
+        }
+        for (const assessment of lesson.homework || []) {
+          keys.push(...collectAssessmentFileKeys(assessment))
+        }
+        for (const content of lesson.content || []) {
+          if (content.sourceDocument?.fileKey) keys.push(content.sourceDocument.fileKey)
+        }
+        return keys
+      },
+      [collectTaskFileKeys, collectAssessmentFileKeys]
+    )
 
     const formatPciTranscript = (messages: { role: 'user' | 'assistant'; content: string }[]) =>
       messages
@@ -3303,9 +3302,7 @@ FEEDBACK: [your explanation]`
     }
 
     const deleteLesson = async (nodeId: string, lessonId: string) => {
-      const lessonToDelete = nodes
-        .find(m => m.id === nodeId)
-        ?.lessons.find(l => l.id === lessonId)
+      const lessonToDelete = nodes.find(m => m.id === nodeId)?.lessons.find(l => l.id === lessonId)
       if (lessonToDelete) {
         const keys = collectLessonFileKeys(lessonToDelete)
         if (keys.length > 0) await cleanupGcsFiles(keys)
@@ -3585,7 +3582,12 @@ FEEDBACK: [your explanation]`
       const lessonIndex = nodes[nodeIndex]?.lessons.findIndex(l => l.id === lessonId)
       if (nodeIndex === -1 || lessonIndex === -1) return
 
-      const uploadedDocs: Array<{ id: string; title: string; url: string; type: 'pdf' | 'doc' | 'ppt' | 'other' }> = []
+      const uploadedDocs: Array<{
+        id: string
+        title: string
+        url: string
+        type: 'pdf' | 'doc' | 'ppt' | 'other'
+      }> = []
 
       for (const file of Array.from(files)) {
         const ext = file.name.split('.').pop()?.toLowerCase()
@@ -3779,7 +3781,11 @@ FEEDBACK: [your explanation]`
 
               setAssessmentSourceDocument(newDoc)
               setAssessmentUploadedFiles([{ id: 'source', name: asset.name }])
-              setAssessmentBuilder(prev => ({ ...prev, sourceDocument: newDoc, taskContent: extractedText }))
+              setAssessmentBuilder(prev => ({
+                ...prev,
+                sourceDocument: newDoc,
+                taskContent: extractedText,
+              }))
 
               setCourseBuilderNodes(prev =>
                 prev.map(mod => ({
@@ -3831,9 +3837,7 @@ FEEDBACK: [your explanation]`
                   return {
                     ...prev,
                     extensions: prev.extensions.map(ext =>
-                      ext.id === prev.activeExtensionId
-                        ? { ...ext, sourceDocument: newDoc }
-                        : ext
+                      ext.id === prev.activeExtensionId ? { ...ext, sourceDocument: newDoc } : ext
                     ),
                   }
                 }
@@ -3868,9 +3872,10 @@ FEEDBACK: [your explanation]`
         e.preventDefault()
 
         // Check parsing preference once
-        const parsePref = typeof window !== 'undefined'
-          ? localStorage.getItem('tutor-parse-documents') === 'true'
-          : false
+        const parsePref =
+          typeof window !== 'undefined'
+            ? localStorage.getItem('tutor-parse-documents') === 'true'
+            : false
 
         if (target === 'assessment') {
           const f = files[0]
@@ -3948,7 +3953,11 @@ FEEDBACK: [your explanation]`
 
           setAssessmentSourceDocument(newDoc)
           setAssessmentUploadedFiles([{ id: 'source', name: newAsset.name }])
-          setAssessmentBuilder(prev => ({ ...prev, sourceDocument: newDoc, taskContent: newAsset.content || '' }))
+          setAssessmentBuilder(prev => ({
+            ...prev,
+            sourceDocument: newDoc,
+            taskContent: newAsset.content || '',
+          }))
 
           setCourseBuilderNodes(prev =>
             prev.map(mod => ({
@@ -4077,9 +4086,7 @@ FEEDBACK: [your explanation]`
                     return {
                       ...prev,
                       extensions: prev.extensions.map(ext =>
-                        ext.id === prev.activeExtensionId
-                          ? { ...ext, sourceDocument: newDoc }
-                          : ext
+                        ext.id === prev.activeExtensionId ? { ...ext, sourceDocument: newDoc } : ext
                       ),
                     }
                   }
@@ -4092,9 +4099,7 @@ FEEDBACK: [your explanation]`
                     lessons: mod.lessons.map(lesson => ({
                       ...lesson,
                       tasks: lesson.tasks.map(task =>
-                        task.id === currentId
-                          ? { ...task, sourceDocument: newDoc }
-                          : task
+                        task.id === currentId ? { ...task, sourceDocument: newDoc } : task
                       ),
                     })),
                   }))
@@ -4264,9 +4269,10 @@ FEEDBACK: [your explanation]`
                   className="hidden"
                   onChange={async (e: any) => {
                     const files = Array.from(e.target.files || []) as File[]
-                    const parsePref = typeof window !== 'undefined'
-                      ? localStorage.getItem('tutor-parse-documents') === 'true'
-                      : false
+                    const parsePref =
+                      typeof window !== 'undefined'
+                        ? localStorage.getItem('tutor-parse-documents') === 'true'
+                        : false
                     const newAssets = await Promise.all(
                       files.map(async (f: File) => {
                         let textContent = ''
@@ -4551,7 +4557,9 @@ FEEDBACK: [your explanation]`
                               newPdf.addPage(copiedPage)
                               const splitPdfBytes = await newPdf.save()
 
-                              const blob = new Blob([splitPdfBytes as any], { type: 'application/pdf' })
+                              const blob = new Blob([splitPdfBytes as any], {
+                                type: 'application/pdf',
+                              })
                               const formData = new FormData()
                               formData.append(
                                 'file',
@@ -4566,7 +4574,9 @@ FEEDBACK: [your explanation]`
 
                               if (!uploadRes.ok) {
                                 const errData = await uploadRes.json().catch(() => ({}))
-                                throw new Error(errData.error || `Upload failed (${uploadRes.status})`)
+                                throw new Error(
+                                  errData.error || `Upload failed (${uploadRes.status})`
+                                )
                               }
                               const uploadData = await uploadRes.json()
 
@@ -4580,7 +4590,8 @@ FEEDBACK: [your explanation]`
                                     fileKey: uploadData.key,
                                     mimeType: 'application/pdf',
                                     uploadedAt: new Date().toISOString(),
-                                    extractedText: pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
+                                    extractedText:
+                                      pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
                                   },
                                 }
                                 updatedTasks[existingTaskIndex] = updatedExistingTask
@@ -4595,7 +4606,8 @@ FEEDBACK: [your explanation]`
                                   fileKey: uploadData.key,
                                   mimeType: 'application/pdf',
                                   uploadedAt: new Date().toISOString(),
-                                  extractedText: pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
+                                  extractedText:
+                                    pages[i] || `Page ${i + 1} from ${assetToLoad.name}`,
                                 }
                                 newTasks.push(newTask)
                               }
@@ -4790,7 +4802,9 @@ FEEDBACK: [your explanation]`
                               newPdf.addPage(copiedPage)
                               const splitPdfBytes = await newPdf.save()
 
-                              const blob = new Blob([splitPdfBytes as any], { type: 'application/pdf' })
+                              const blob = new Blob([splitPdfBytes as any], {
+                                type: 'application/pdf',
+                              })
                               const formData = new FormData()
                               formData.append(
                                 'file',
@@ -4805,7 +4819,9 @@ FEEDBACK: [your explanation]`
 
                               if (!uploadRes.ok) {
                                 const errData = await uploadRes.json().catch(() => ({}))
-                                throw new Error(errData.error || `Upload failed (${uploadRes.status})`)
+                                throw new Error(
+                                  errData.error || `Upload failed (${uploadRes.status})`
+                                )
                               }
                               const uploadData = await uploadRes.json()
 
@@ -6124,8 +6140,15 @@ FEEDBACK: [your explanation]`
                                                                               dmiVersions:
                                                                                 assessmentDmiVersions,
                                                                               activeDmiVersionId:
-                                                                                testPciSource === 'assessment' && testPciViewMode.startsWith('dmi_')
-                                                                                  ? testPciViewMode.replace('dmi_', '')
+                                                                                testPciSource ===
+                                                                                  'assessment' &&
+                                                                                testPciViewMode.startsWith(
+                                                                                  'dmi_'
+                                                                                )
+                                                                                  ? testPciViewMode.replace(
+                                                                                      'dmi_',
+                                                                                      ''
+                                                                                    )
                                                                                   : hw.activeDmiVersionId,
                                                                               sourceDocument:
                                                                                 assessmentBuilder.sourceDocument,
@@ -6163,10 +6186,18 @@ FEEDBACK: [your explanation]`
                                                                             extensions:
                                                                               taskBuilder.extensions,
                                                                             dmiItems: taskDmiItems,
-                                                                            dmiVersions: taskDmiVersions,
+                                                                            dmiVersions:
+                                                                              taskDmiVersions,
                                                                             activeDmiVersionId:
-                                                                              testPciSource === 'task' && testPciViewMode.startsWith('dmi_')
-                                                                                ? testPciViewMode.replace('dmi_', '')
+                                                                              testPciSource ===
+                                                                                'task' &&
+                                                                              testPciViewMode.startsWith(
+                                                                                'dmi_'
+                                                                              )
+                                                                                ? testPciViewMode.replace(
+                                                                                    'dmi_',
+                                                                                    ''
+                                                                                  )
                                                                                 : t.activeDmiVersionId,
                                                                             sourceDocument:
                                                                               taskBuilder.sourceDocument,
@@ -6398,8 +6429,15 @@ FEEDBACK: [your explanation]`
                                                                                                 dmiVersions:
                                                                                                   taskDmiVersions,
                                                                                                 activeDmiVersionId:
-                                                                                                  testPciSource === 'task' && testPciViewMode.startsWith('dmi_')
-                                                                                                    ? testPciViewMode.replace('dmi_', '')
+                                                                                                  testPciSource ===
+                                                                                                    'task' &&
+                                                                                                  testPciViewMode.startsWith(
+                                                                                                    'dmi_'
+                                                                                                  )
+                                                                                                    ? testPciViewMode.replace(
+                                                                                                        'dmi_',
+                                                                                                        ''
+                                                                                                      )
                                                                                                     : t.activeDmiVersionId,
                                                                                                 sourceDocument:
                                                                                                   taskBuilder.sourceDocument,
@@ -6439,8 +6477,15 @@ FEEDBACK: [your explanation]`
                                                                                                 dmiVersions:
                                                                                                   assessmentDmiVersions,
                                                                                                 activeDmiVersionId:
-                                                                                                  testPciSource === 'assessment' && testPciViewMode.startsWith('dmi_')
-                                                                                                    ? testPciViewMode.replace('dmi_', '')
+                                                                                                  testPciSource ===
+                                                                                                    'assessment' &&
+                                                                                                  testPciViewMode.startsWith(
+                                                                                                    'dmi_'
+                                                                                                  )
+                                                                                                    ? testPciViewMode.replace(
+                                                                                                        'dmi_',
+                                                                                                        ''
+                                                                                                      )
                                                                                                     : h.activeDmiVersionId,
                                                                                                 sourceDocument:
                                                                                                   assessmentBuilder.sourceDocument,
@@ -6888,10 +6933,18 @@ FEEDBACK: [your explanation]`
                                                                         extensions:
                                                                           taskBuilder.extensions,
                                                                         dmiItems: taskDmiItems,
-                                                                        dmiVersions: taskDmiVersions,
+                                                                        dmiVersions:
+                                                                          taskDmiVersions,
                                                                         activeDmiVersionId:
-                                                                          testPciSource === 'task' && testPciViewMode.startsWith('dmi_')
-                                                                            ? testPciViewMode.replace('dmi_', '')
+                                                                          testPciSource ===
+                                                                            'task' &&
+                                                                          testPciViewMode.startsWith(
+                                                                            'dmi_'
+                                                                          )
+                                                                            ? testPciViewMode.replace(
+                                                                                'dmi_',
+                                                                                ''
+                                                                              )
                                                                             : t.activeDmiVersionId,
                                                                         sourceDocument:
                                                                           taskBuilder.sourceDocument,
@@ -6922,11 +6975,20 @@ FEEDBACK: [your explanation]`
                                                                           assessmentBuilder.taskContent,
                                                                         instructions:
                                                                           assessmentBuilder.taskPci,
-                                                                        dmiItems: assessmentDmiItems,
-                                                                        dmiVersions: assessmentDmiVersions,
+                                                                        dmiItems:
+                                                                          assessmentDmiItems,
+                                                                        dmiVersions:
+                                                                          assessmentDmiVersions,
                                                                         activeDmiVersionId:
-                                                                          testPciSource === 'assessment' && testPciViewMode.startsWith('dmi_')
-                                                                            ? testPciViewMode.replace('dmi_', '')
+                                                                          testPciSource ===
+                                                                            'assessment' &&
+                                                                          testPciViewMode.startsWith(
+                                                                            'dmi_'
+                                                                          )
+                                                                            ? testPciViewMode.replace(
+                                                                                'dmi_',
+                                                                                ''
+                                                                              )
                                                                             : h.activeDmiVersionId,
                                                                         sourceDocument:
                                                                           assessmentBuilder.sourceDocument,
@@ -8409,8 +8471,7 @@ FEEDBACK: [your explanation]`
                                                 ? liveTask?.sourceDocument
                                                 : liveAssessment?.sourceDocument
                                               : testPciSource === 'task'
-                                                ? currentTaskDocument ||
-                                                  taskBuilder.sourceDocument
+                                                ? currentTaskDocument || taskBuilder.sourceDocument
                                                 : currentAssessmentDocument
                                           const versionId = testPciViewMode.startsWith('dmi_')
                                             ? testPciViewMode.replace('dmi_', '')
@@ -8442,7 +8503,7 @@ FEEDBACK: [your explanation]`
                                           // so the PDF fills the entire tab area.
                                           if (hasDoc && !hasDmi) {
                                             return (
-                                              <div className="relative flex-1 w-full min-h-0">
+                                              <div className="relative min-h-0 w-full flex-1">
                                                 {doc?.fileUrl ? (
                                                   <PDFViewer
                                                     key={doc.fileUrl}

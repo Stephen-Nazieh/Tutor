@@ -1513,7 +1513,7 @@ export default function TutorSettings() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-3">
-                  {([
+                  {[
                     {
                       value: 'auto' as const,
                       label: 'Automatic',
@@ -1532,7 +1532,7 @@ export default function TutorSettings() {
                       description:
                         'A prompt asks you to confirm before syncing. Good for awareness of what students see.',
                     },
-                  ]).map(option => (
+                  ].map(option => (
                     <label
                       key={option.value}
                       className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors ${

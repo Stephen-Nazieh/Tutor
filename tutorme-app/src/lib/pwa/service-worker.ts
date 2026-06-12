@@ -199,10 +199,7 @@ self.addEventListener('fetch', (event: any) => {
   }
 
   // Fonts (Google Fonts etc)
-  if (
-    url.hostname.includes('fonts.googleapis.com') ||
-    url.hostname.includes('fonts.gstatic.com')
-  ) {
+  if (url.hostname.includes('fonts.googleapis.com') || url.hostname.includes('fonts.gstatic.com')) {
     event.respondWith(handleStaticRequest(event))
     return
   }
@@ -250,7 +247,13 @@ async function handleApiRequest(event: any): Promise<Response> {
     }
     return response
   } catch (err: any) {
-    console.error('[SW] API fetch failed:', event.request.url, event.request.method, err?.name, err?.message)
+    console.error(
+      '[SW] API fetch failed:',
+      event.request.url,
+      event.request.method,
+      err?.name,
+      err?.message
+    )
 
     // Try cache
     const cache = await caches.open(CACHE_NAMES.API)
@@ -335,7 +338,11 @@ async function handleStaticRequest(event: any): Promise<Response> {
         // Stale - background revalidate without blocking
         fetch(event.request)
           .then(async r => {
-            if (r.ok && r.status === 200 && (!expectedType || isValidStaticResponse(r, expectedType))) {
+            if (
+              r.ok &&
+              r.status === 200 &&
+              (!expectedType || isValidStaticResponse(r, expectedType))
+            ) {
               await cache.put(event.request, r.clone())
             }
           })
@@ -452,11 +459,7 @@ async function replayOfflineRequests(): Promise<void> {
           succeeded.push(req.id)
         } else {
           failed.push(req)
-          console.error(
-            '[Service Worker] Background sync HTTP error:',
-            req.id,
-            response.status
-          )
+          console.error('[Service Worker] Background sync HTTP error:', req.id, response.status)
         }
       } catch (err) {
         failed.push(req)
@@ -468,12 +471,9 @@ async function replayOfflineRequests(): Promise<void> {
     const cache = await caches.open(CACHE_NAMES.OFFLINE)
     await cache.put(
       'offline-queue',
-      new Response(
-        JSON.stringify({ requests: failed, lastSync: Date.now() }),
-        {
-          headers: { 'Content-Type': 'application/json' },
-        }
-      )
+      new Response(JSON.stringify({ requests: failed, lastSync: Date.now() }), {
+        headers: { 'Content-Type': 'application/json' },
+      })
     )
 
     const allSucceeded = failed.length === 0

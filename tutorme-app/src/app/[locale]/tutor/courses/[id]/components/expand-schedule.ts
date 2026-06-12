@@ -66,7 +66,8 @@ export function expandSchedule(
       if (parts.length !== 2) continue
       const h = parseInt(parts[0], 10)
       const m = parseInt(parts[1], 10)
-      if (!Number.isInteger(h) || !Number.isInteger(m) || h < 0 || h > 23 || m < 0 || m > 59) continue
+      if (!Number.isInteger(h) || !Number.isInteger(m) || h < 0 || h > 23 || m < 0 || m > 59)
+        continue
 
       const slotDate = new Date(weekStart)
       // DAY_TO_INDEX: Sunday=0, Monday=1, ... Saturday=6

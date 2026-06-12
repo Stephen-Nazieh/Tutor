@@ -59,10 +59,7 @@ export function TutorCard({
   const rawBio = tutor.bio || "This area is for the tutor's bio information."
 
   // Bio display: truncate at 300 chars
-  const bioText =
-    rawBio.length > BIO_MAX_DISPLAY
-      ? rawBio.slice(0, BIO_MAX_DISPLAY) + '…'
-      : rawBio
+  const bioText = rawBio.length > BIO_MAX_DISPLAY ? rawBio.slice(0, BIO_MAX_DISPLAY) + '…' : rawBio
 
   const avatarUrl = resolvePublicUrl(tutor.avatar)
 

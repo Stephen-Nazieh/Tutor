@@ -163,10 +163,7 @@ export default function CategoriesPage() {
   }
 
   // Render category section
-  const renderCategorySection = (
-    category: ExamCategory,
-    config?: CategoryTabConfig
-  ) => {
+  const renderCategorySection = (category: ExamCategory, config?: CategoryTabConfig) => {
     const tabConfig = config ?? getCategoryConfig(category.id)
     const Icon = tabConfig.icon
     const filteredExams = filterExams(category.exams)
@@ -375,10 +372,10 @@ export default function CategoriesPage() {
                         <TabsTrigger
                           key={config.value}
                           value={config.value}
-                          className={cn(
-                            'text-xs md:text-sm data-[state=active]:bg-transparent'
-                          )}
-                          disabled={isNational && (!selectedCountryCode || nationalExams.length === 0)}
+                          className={cn('text-xs data-[state=active]:bg-transparent md:text-sm')}
+                          disabled={
+                            isNational && (!selectedCountryCode || nationalExams.length === 0)
+                          }
                           style={{ color: config.color }}
                         >
                           <Icon
@@ -410,7 +407,9 @@ export default function CategoriesPage() {
                     <TabsContent value="global" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
-                          {GLOBAL_EXAMS_CATEGORIES.map(cat => renderCategorySection(cat, getTabConfig('global')!))}
+                          {GLOBAL_EXAMS_CATEGORIES.map(cat =>
+                            renderCategorySection(cat, getTabConfig('global')!)
+                          )}
                         </div>
                       </ScrollArea>
                     </TabsContent>
@@ -419,7 +418,9 @@ export default function CategoriesPage() {
                     <TabsContent value="ap" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
-                          {AP_CATEGORIES.map(cat => renderCategorySection(cat, getTabConfig('ap')!))}
+                          {AP_CATEGORIES.map(cat =>
+                            renderCategorySection(cat, getTabConfig('ap')!)
+                          )}
                         </div>
                       </ScrollArea>
                     </TabsContent>
@@ -428,7 +429,9 @@ export default function CategoriesPage() {
                     <TabsContent value="alevel" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
-                          {A_LEVEL_CATEGORIES.map(cat => renderCategorySection(cat, getTabConfig('alevel')!))}
+                          {A_LEVEL_CATEGORIES.map(cat =>
+                            renderCategorySection(cat, getTabConfig('alevel')!)
+                          )}
                         </div>
                       </ScrollArea>
                     </TabsContent>
@@ -437,7 +440,9 @@ export default function CategoriesPage() {
                     <TabsContent value="ib" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
-                          {IB_CATEGORIES.map(cat => renderCategorySection(cat, getTabConfig('ib')!))}
+                          {IB_CATEGORIES.map(cat =>
+                            renderCategorySection(cat, getTabConfig('ib')!)
+                          )}
                         </div>
                       </ScrollArea>
                     </TabsContent>
@@ -446,7 +451,9 @@ export default function CategoriesPage() {
                     <TabsContent value="igcse" className="m-0 h-full">
                       <ScrollArea className="h-full pr-4">
                         <div className="space-y-6 pb-4">
-                          {IGCSE_CATEGORIES.map(cat => renderCategorySection(cat, getTabConfig('igcse')!))}
+                          {IGCSE_CATEGORIES.map(cat =>
+                            renderCategorySection(cat, getTabConfig('igcse')!)
+                          )}
                         </div>
                       </ScrollArea>
                     </TabsContent>
@@ -466,7 +473,9 @@ export default function CategoriesPage() {
                               <p>No national exams available for {selectedCountry?.name}.</p>
                             </div>
                           ) : (
-                            nationalExams.map(cat => renderCategorySection(cat, getTabConfig('national')!))
+                            nationalExams.map(cat =>
+                              renderCategorySection(cat, getTabConfig('national')!)
+                            )
                           )}
                         </div>
                       </ScrollArea>

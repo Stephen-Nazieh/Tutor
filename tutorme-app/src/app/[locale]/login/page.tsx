@@ -48,10 +48,14 @@ function LoginForm() {
       })
 
       if (result?.error) {
-        const healthRes = await fetch('/api/health', { method: 'GET', cache: 'no-store' }).catch(() => null)
+        const healthRes = await fetch('/api/health', { method: 'GET', cache: 'no-store' }).catch(
+          () => null
+        )
         const healthOk = healthRes?.ok ?? false
         if (!healthOk) {
-          setError('Unable to reach the server. The database may be temporarily unavailable. Please try again later.')
+          setError(
+            'Unable to reach the server. The database may be temporarily unavailable. Please try again later.'
+          )
         } else {
           setError('Invalid email or password')
         }
@@ -102,32 +106,38 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted p-4">
+    <div className="from-background via-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       {/* Glassmorphism card */}
       <div
-        className="w-full max-w-sm overflow-hidden rounded-3xl border border-border/30 px-8 py-10 shadow-elevation-3"
+        className="border-border/30 shadow-elevation-3 w-full max-w-sm overflow-hidden rounded-3xl border px-8 py-10"
         style={{
-          background: 'linear-gradient(145deg, hsl(var(--card) / 0.95) 0%, hsl(var(--surface) / 0.92) 100%)',
+          background:
+            'linear-gradient(145deg, hsl(var(--card) / 0.95) 0%, hsl(var(--surface) / 0.92) 100%)',
           backdropFilter: 'blur(20px) saturate(140%)',
           WebkitBackdropFilter: 'blur(20px) saturate(140%)',
         }}
       >
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground drop-shadow-sm" style={{ fontFamily: "'Fira Code', monospace" }}>
+          <h1
+            className="text-foreground text-2xl font-bold drop-shadow-sm"
+            style={{ fontFamily: "'Fira Code', monospace" }}
+          >
             Sign In
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">Enter your email and password to continue</p>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Enter your email and password to continue
+          </p>
         </div>
 
         <div className="mt-8">
           {registered && (
-            <div className="mb-4 rounded-xl border border-success/20 bg-success/10 p-3 text-sm text-success">
+            <div className="border-success/20 bg-success/10 text-success mb-4 rounded-xl border p-3 text-sm">
               Registration successful! Please log in.
             </div>
           )}
 
           {(error || authError) && (
-            <div className="mb-4 flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="border-destructive/20 bg-destructive/10 text-destructive mb-4 flex items-start gap-2 rounded-xl border p-3 text-sm">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span className="leading-snug">
                 {error ||
@@ -140,7 +150,7 @@ function LoginForm() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs font-medium text-muted-foreground">
+              <Label htmlFor="email" className="text-muted-foreground text-xs font-medium">
                 Email
               </Label>
               <Input
@@ -151,18 +161,18 @@ function LoginForm() {
                 onChange={e => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
-                className="h-12 rounded-xl border-border/50 bg-input/60 px-5 text-base text-foreground shadow-sm ring-0 transition-all duration-200 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/25"
+                className="border-border/50 bg-input/60 text-foreground placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:bg-background focus-visible:ring-primary/25 h-12 rounded-xl px-5 text-base shadow-sm ring-0 transition-all duration-200 focus-visible:ring-2"
               />
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-xs font-medium text-muted-foreground">
+                <Label htmlFor="password" className="text-muted-foreground text-xs font-medium">
                   Password
                 </Label>
                 <Link
                   href={`${localePrefix}/forgot-password`}
-                  className="text-xs text-primary/80 transition-colors duration-200 hover:text-primary hover:underline"
+                  className="text-primary/80 hover:text-primary text-xs transition-colors duration-200 hover:underline"
                 >
                   Forgot Password?
                 </Link>
@@ -176,12 +186,12 @@ function LoginForm() {
                   onChange={e => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="h-12 rounded-xl border-border/50 bg-input/60 px-5 pr-12 text-base text-foreground shadow-sm ring-0 transition-all duration-200 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary/25"
+                  className="border-border/50 bg-input/60 text-foreground placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:bg-background focus-visible:ring-primary/25 h-12 rounded-xl px-5 pr-12 text-base shadow-sm ring-0 transition-all duration-200 focus-visible:ring-2"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-200 hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground absolute right-4 top-1/2 -translate-y-1/2 transition-colors duration-200"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -195,16 +205,16 @@ function LoginForm() {
                 checked={rememberMe}
                 onCheckedChange={checked => setRememberMe(checked as boolean)}
                 disabled={isLoading}
-                className="h-5 w-5 rounded-md border-border/50 transition-all duration-200 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+                className="border-border/50 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground h-5 w-5 rounded-md transition-all duration-200"
               />
-              <Label htmlFor="remember" className="text-sm font-normal text-muted-foreground">
+              <Label htmlFor="remember" className="text-muted-foreground text-sm font-normal">
                 Remember me
               </Label>
             </div>
 
             <Button
               type="submit"
-              className="h-12 w-full rounded-xl bg-primary text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98]"
+              className="bg-primary text-primary-foreground shadow-primary/20 hover:shadow-primary/30 h-12 w-full rounded-xl text-base font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:brightness-110 active:scale-[0.98]"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -223,17 +233,17 @@ function LoginForm() {
             <div className="mt-1">
               <Link
                 href={`${localePrefix}/register`}
-                className="font-medium text-primary underline underline-offset-2 transition-colors duration-200 hover:text-primary/80"
+                className="text-primary hover:text-primary/80 font-medium underline underline-offset-2 transition-colors duration-200"
               >
                 Sign up
               </Link>
             </div>
           </div>
 
-          <div className="mt-6 border-t border-border/30 pt-5 text-center">
+          <div className="border-border/30 mt-6 border-t pt-5 text-center">
             <Link
               href="/"
-              className="text-sm text-muted-foreground/70 transition-colors duration-200 hover:text-muted-foreground"
+              className="text-muted-foreground/70 hover:text-muted-foreground text-sm transition-colors duration-200"
             >
               &larr; Back to home
             </Link>
@@ -246,20 +256,23 @@ function LoginForm() {
 
 function LoginFormFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted p-4">
+    <div className="from-background via-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       <div
-        className="w-full max-w-sm overflow-hidden rounded-3xl border border-border/30 px-8 py-10 shadow-elevation-3"
+        className="border-border/30 shadow-elevation-3 w-full max-w-sm overflow-hidden rounded-3xl border px-8 py-10"
         style={{
-          background: 'linear-gradient(145deg, hsl(var(--card) / 0.95) 0%, hsl(var(--surface) / 0.92) 100%)',
+          background:
+            'linear-gradient(145deg, hsl(var(--card) / 0.95) 0%, hsl(var(--surface) / 0.92) 100%)',
           backdropFilter: 'blur(20px) saturate(140%)',
         }}
       >
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">Sign In</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Enter your email and password to continue</p>
+          <h1 className="text-foreground text-2xl font-bold">Sign In</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Enter your email and password to continue
+          </p>
         </div>
         <div className="flex items-center justify-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-primary/70" />
+          <Loader2 className="text-primary/70 h-8 w-8 animate-spin" />
         </div>
       </div>
     </div>

@@ -367,7 +367,12 @@ export function ReviewNodeModal({
             Mark as Known
           </Button>
 
-          <Button variant="modal-primary-dark" onClick={handleStartReview} disabled={isLoading} className="w-full sm:w-auto">
+          <Button
+            variant="modal-primary-dark"
+            onClick={handleStartReview}
+            disabled={isLoading}
+            className="w-full sm:w-auto"
+          >
             <Brain className="mr-2 h-4 w-4" />
             Start Review
           </Button>

@@ -112,7 +112,11 @@ export function ContentBuilderModal({ isOpen, onClose, onSave, initialData }: Bu
           <Button variant="modal-secondary-dark" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="modal-primary-dark" onClick={() => onSave(data)} disabled={!data.title.trim()}>
+          <Button
+            variant="modal-primary-dark"
+            onClick={() => onSave(data)}
+            disabled={!data.title.trim()}
+          >
             Save Content
           </Button>
         </DialogFooter>

@@ -367,7 +367,7 @@ export default function RevenuePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="safe-top sticky top-0 z-sticky border-b bg-white">
+      <header className="safe-top z-sticky sticky top-0 border-b bg-white">
         <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-4">
@@ -946,11 +946,7 @@ export default function RevenuePage() {
             <Button variant="modal-secondary-dark" onClick={() => setShowEmailDialog(false)}>
               Cancel
             </Button>
-            <Button
-              variant="modal-primary-dark"
-              onClick={handleSendEmail}
-              disabled={sendingEmail}
-            >
+            <Button variant="modal-primary-dark" onClick={handleSendEmail} disabled={sendingEmail}>
               {sendingEmail ? (
                 <>
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

@@ -11,7 +11,12 @@ import { getServerSession, authOptions } from '@/lib/auth'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { tutorAsset } from '@/lib/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
-import { deleteObject, extractGcsKeyFromPublicUrl, isGcsConfigured, refreshGcsUrl } from '@/lib/storage/gcs'
+import {
+  deleteObject,
+  extractGcsKeyFromPublicUrl,
+  isGcsConfigured,
+  refreshGcsUrl,
+} from '@/lib/storage/gcs'
 
 interface Asset {
   id: string
@@ -75,7 +80,11 @@ export async function GET(req: NextRequest) {
               try {
                 refreshedUrl = await refreshGcsUrl(refreshedUrl, 7 * 24 * 3600)
               } catch (err) {
-                console.error('[assets-get] URL refresh failed for extracted key:', extractedKey, err)
+                console.error(
+                  '[assets-get] URL refresh failed for extracted key:',
+                  extractedKey,
+                  err
+                )
               }
             }
           }

@@ -317,7 +317,11 @@ export default function StudyGroupsPage() {
                 <Button variant="modal-secondary-dark" onClick={() => setCreateDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button variant="modal-primary-dark" onClick={handleCreateGroup} disabled={creating}>
+                <Button
+                  variant="modal-primary-dark"
+                  onClick={handleCreateGroup}
+                  disabled={creating}
+                >
                   {creating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Group
                 </Button>

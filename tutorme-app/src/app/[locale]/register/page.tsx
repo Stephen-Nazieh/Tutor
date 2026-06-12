@@ -21,7 +21,7 @@ const roles = [
   {
     id: 'parent',
     title: 'Parent',
-    description: 'Monitor and support your child\'s learning',
+    description: "Monitor and support your child's learning",
     icon: Users,
     href: '/register/parent',
     color: 'bg-success',
@@ -58,12 +58,12 @@ export default function RoleSelectionPage() {
   const localePrefix = params?.locale ? `/${params.locale}` : ''
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted p-4">
+    <div className="from-background via-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       <div className="w-full max-w-3xl">
         {/* Header */}
         <div className="mb-8 text-center">
           <h1
-            className="mb-2 text-3xl font-bold text-foreground"
+            className="text-foreground mb-2 text-3xl font-bold"
             style={{ fontFamily: "'Fira Code', monospace" }}
           >
             Create Your Account
@@ -75,7 +75,7 @@ export default function RoleSelectionPage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {roles.map(role => (
             <Link key={role.id} href={`${localePrefix}${role.href}`}>
-              <Card className="card-translucent h-full cursor-pointer border-0 transition-all duration-250 hover:-translate-y-0.5">
+              <Card className="card-translucent duration-250 h-full cursor-pointer border-0 transition-all hover:-translate-y-0.5">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3">
                     <div
@@ -84,8 +84,8 @@ export default function RoleSelectionPage() {
                       <role.icon className="h-7 w-7" />
                     </div>
                     <div className="flex-1">
-                      <h2 className="text-xl font-bold text-foreground">{role.title}</h2>
-                      <p className="text-sm text-muted-foreground">{role.description}</p>
+                      <h2 className="text-foreground text-xl font-bold">{role.title}</h2>
+                      <p className="text-muted-foreground text-sm">{role.description}</p>
                     </div>
                   </div>
                   <Button
@@ -105,7 +105,7 @@ export default function RoleSelectionPage() {
             Already have an account?{' '}
             <Link
               href={`${localePrefix}/login`}
-              className="font-medium text-primary transition-colors duration-200 hover:text-primary/80 hover:underline"
+              className="text-primary hover:text-primary/80 font-medium transition-colors duration-200 hover:underline"
             >
               Sign in
             </Link>

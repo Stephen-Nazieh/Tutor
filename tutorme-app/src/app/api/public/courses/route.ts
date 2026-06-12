@@ -14,9 +14,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const searchQuery = searchParams.get('q')?.toLowerCase().trim() || ''
     const countryParam = searchParams.get('country')?.trim() || ''
-    const countryName = countryParam && countryParam !== 'global'
-      ? ALL_COUNTRIES.find(c => c.code === countryParam)?.name
-      : undefined
+    const countryName =
+      countryParam && countryParam !== 'global'
+        ? ALL_COUNTRIES.find(c => c.code === countryParam)?.name
+        : undefined
 
     const page = Math.max(1, Number(searchParams.get('page')) || 1)
     const pageSize = Math.min(60, Math.max(1, Number(searchParams.get('pageSize')) || 12))
@@ -142,7 +143,9 @@ export async function GET(request: NextRequest) {
       {} as Record<string, string | null>
     )
 
-    const creatorIds = Array.from(new Set(ordered.map(c => c.creatorId).filter((id): id is string => !!id)))
+    const creatorIds = Array.from(
+      new Set(ordered.map(c => c.creatorId).filter((id): id is string => !!id))
+    )
     const activeCourseCounts =
       creatorIds.length > 0
         ? await drizzleDb

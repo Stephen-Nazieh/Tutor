@@ -88,10 +88,12 @@ export const POST = withCsrf(
             type,
             stored: false,
             editable,
-            warning: 'Converted successfully but could not save: DB migration pending. Run npm run db:apply-schema on the server.',
-            message: type === 'topics'
-              ? 'Topics converted to editable format.'
-              : 'Content converted to editable format.',
+            warning:
+              'Converted successfully but could not save: DB migration pending. Run npm run db:apply-schema on the server.',
+            message:
+              type === 'topics'
+                ? 'Topics converted to editable format.'
+                : 'Content converted to editable format.',
           })
         }
         throw dbErr

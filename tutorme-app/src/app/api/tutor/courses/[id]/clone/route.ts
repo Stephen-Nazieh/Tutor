@@ -84,9 +84,7 @@ export const POST = withCsrf(
         const newCourseId = crypto.randomUUID()
 
         // Build categories array
-        const categories = body.category
-          ? [body.category]
-          : sourceCourse.categories || []
+        const categories = body.category ? [body.category] : sourceCourse.categories || []
 
         // Build schedule
         const schedule = Array.isArray(body.schedule) ? body.schedule : []
@@ -107,7 +105,8 @@ export const POST = withCsrf(
           updatedAt: now,
           creatorId: userId,
           isLiveOnline: sourceCourse.isLiveOnline ?? false,
-          languageOfInstruction: body.languageOfInstruction || sourceCourse.languageOfInstruction || null,
+          languageOfInstruction:
+            body.languageOfInstruction || sourceCourse.languageOfInstruction || null,
           price,
           currency: body.currency || sourceCourse.currency || 'USD',
           isFree,

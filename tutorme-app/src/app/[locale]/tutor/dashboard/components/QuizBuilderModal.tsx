@@ -190,7 +190,11 @@ export function QuizBuilderModal({
             <Button variant="modal-secondary-dark" onClick={onClose}>
               Cancel
             </Button>
-            <Button variant="modal-primary-dark" onClick={() => onSave({ ...data })} disabled={data.questions.length === 0}>
+            <Button
+              variant="modal-primary-dark"
+              onClick={() => onSave({ ...data })}
+              disabled={data.questions.length === 0}
+            >
               Save ({data.questions.length} questions)
             </Button>
           </DialogFooter>

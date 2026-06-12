@@ -252,11 +252,7 @@ function EmailStatementDialog({
           <Button variant="modal-secondary-dark" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button
-            variant="modal-primary-dark"
-            onClick={onSend}
-            disabled={sendingEmail}
-          >
+          <Button variant="modal-primary-dark" onClick={onSend} disabled={sendingEmail}>
             {sendingEmail ? (
               <>
                 <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

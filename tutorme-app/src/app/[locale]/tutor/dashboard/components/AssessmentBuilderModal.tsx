@@ -75,9 +75,9 @@ export function AssessmentBuilderModal({
               {isTask ? (
                 <ListTodo className="text-warning h-5 w-5" />
               ) : isHomework ? (
-                <Home className="h-5 w-5 text-primary" />
+                <Home className="text-primary h-5 w-5" />
               ) : (
-                <FileQuestion className="h-5 w-5 text-primary" />
+                <FileQuestion className="text-primary h-5 w-5" />
               )}
               {titleLabel} Builder
             </DialogTitle>
@@ -86,13 +86,13 @@ export function AssessmentBuilderModal({
             <TabsList className="bg-muted mb-4 grid w-full grid-cols-2 gap-1 rounded-xl border p-1">
               <TabsTrigger
                 value="edit"
-                className="rounded-lg border border-border/60 bg-card transition-all duration-200 hover:bg-muted/80 data-[state=active]:bg-muted data-[state=active]:text-foreground"
+                className="border-border/60 bg-card hover:bg-muted/80 data-[state=active]:bg-muted data-[state=active]:text-foreground rounded-lg border transition-all duration-200"
               >
                 Edit
               </TabsTrigger>
               <TabsTrigger
                 value="preview"
-                className="rounded-lg border border-border/60 bg-card transition-all duration-200 hover:bg-muted/80 data-[state=active]:bg-muted data-[state=active]:text-foreground"
+                className="border-border/60 bg-card hover:bg-muted/80 data-[state=active]:bg-muted data-[state=active]:text-foreground rounded-lg border transition-all duration-200"
               >
                 Preview (student view)
               </TabsTrigger>
@@ -130,7 +130,7 @@ export function AssessmentBuilderModal({
                     rows={4}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4 rounded-xl bg-card/50 p-4 shadow-sm backdrop-blur-sm">
+                <div className="bg-card/50 grid grid-cols-2 gap-4 rounded-xl p-4 shadow-sm backdrop-blur-sm">
                   <div className="space-y-2">
                     <Label>Submission</Label>
                     {isTask ? (
@@ -181,7 +181,7 @@ export function AssessmentBuilderModal({
 
                 {/* Questions Section - Only when submissionType is 'questions' */}
                 {data.submissionType === 'questions' && (
-                  <div className="space-y-4 rounded-lg border bg-secondary/10 p-4">
+                  <div className="bg-secondary/10 space-y-4 rounded-lg border p-4">
                     <QuestionEditor
                       questions={data.questions || []}
                       onChange={next => setData({ ...data, questions: next })}
@@ -233,8 +233,8 @@ export function AssessmentBuilderModal({
                 <div className="mt-4 border-t pt-4">
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-warning" />
-                      <Label className="font-medium text-warning">
+                      <Shield className="text-warning h-4 w-4" />
+                      <Label className="text-warning font-medium">
                         Instructor Answer Key (Protected)
                       </Label>
                     </div>
@@ -277,8 +277,8 @@ export function AssessmentBuilderModal({
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded border border-dashed border-border/50 bg-muted/50 p-3 text-center">
-                      <Lock className="mx-auto mb-1 h-4 w-4 text-muted-foreground" />
+                    <div className="border-border/50 bg-muted/50 rounded border border-dashed p-3 text-center">
+                      <Lock className="text-muted-foreground mx-auto mb-1 h-4 w-4" />
                       <span className="text-muted-foreground text-xs">
                         Answer key is hidden. Click &quot;Show&quot; to view/edit.
                       </span>
@@ -311,7 +311,7 @@ export function AssessmentBuilderModal({
                   <SourceDocumentPreview sourceDocument={data.sourceDocument} />
                 )}
                 {!isTask && (
-                  <div className="space-y-3 rounded-lg border bg-card p-3">
+                  <div className="bg-card space-y-3 rounded-lg border p-3">
                     <h4 className="text-sm font-medium">Settings</h4>
                     <div className="flex flex-wrap gap-4">
                       <div className="flex items-center gap-2">
@@ -357,16 +357,10 @@ export function AssessmentBuilderModal({
             </TabsContent>
           </Tabs>
           <DialogFooter className="gap-2">
-            <Button
-              variant="modal-secondary-dark"
-              onClick={onClose}
-            >
+            <Button variant="modal-secondary-dark" onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              variant="modal-primary-dark"
-              onClick={() => onSave({ ...data })}
-            >
+            <Button variant="modal-primary-dark" onClick={() => onSave({ ...data })}>
               Save
             </Button>
           </DialogFooter>

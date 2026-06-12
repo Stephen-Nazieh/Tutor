@@ -36,7 +36,6 @@ import {
   CheckCircle,
   Copy,
   Share2,
-
   Link2,
   List,
   PanelsTopLeft,
@@ -363,7 +362,11 @@ function Book1on1Dialog({
             </DialogPanel>
           </div>
           <DialogFooter className="gap-3">
-            <Button variant="modal-secondary-dark" onClick={() => onOpenChange(false)} className="h-10">
+            <Button
+              variant="modal-secondary-dark"
+              onClick={() => onOpenChange(false)}
+              className="h-10"
+            >
               Close
             </Button>
           </DialogFooter>
@@ -788,24 +791,26 @@ export default function PublicTutorPage() {
     return result
   }, [data?.courses, courseSearchQuery, courseCategoryFilter])
 
-  const enrollingCourses = useMemo(() =>
-    filteredCourses.filter(c => (c.liveSessionsCompleted ?? 0) === 0),
+  const enrollingCourses = useMemo(
+    () => filteredCourses.filter(c => (c.liveSessionsCompleted ?? 0) === 0),
     [filteredCourses]
   )
-  const activeCourses = useMemo(() =>
-    filteredCourses.filter(c => {
-      const done = c.liveSessionsCompleted ?? 0
-      const total = c.liveSessionsTotal ?? 0
-      return done > 0 && (total === 0 || done < total)
-    }),
+  const activeCourses = useMemo(
+    () =>
+      filteredCourses.filter(c => {
+        const done = c.liveSessionsCompleted ?? 0
+        const total = c.liveSessionsTotal ?? 0
+        return done > 0 && (total === 0 || done < total)
+      }),
     [filteredCourses]
   )
-  const cataloguedCourses = useMemo(() =>
-    filteredCourses.filter(c => {
-      const total = c.liveSessionsTotal ?? 0
-      const done = c.liveSessionsCompleted ?? 0
-      return total > 0 && done >= total
-    }),
+  const cataloguedCourses = useMemo(
+    () =>
+      filteredCourses.filter(c => {
+        const total = c.liveSessionsTotal ?? 0
+        const done = c.liveSessionsCompleted ?? 0
+        return total > 0 && done >= total
+      }),
     [filteredCourses]
   )
 
@@ -971,7 +976,6 @@ export default function PublicTutorPage() {
   const panelCardClass =
     'group rounded-[18px] bg-white p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)] transition-all duration-200 ease-in-out hover:shadow-[0_20px_60px_rgba(0,0,0,0.16)]'
 
-
   const TriangleArrow = ({
     direction,
     disabled,
@@ -986,7 +990,8 @@ export default function PublicTutorPage() {
     className?: string
   }) => {
     const bg = 'linear-gradient(135deg, rgba(55,65,75,0.5) 0%, rgba(25,35,45,0.5) 100%)'
-    const outline = 'drop-shadow(0 0 2px rgba(30,40,50,0.5)) drop-shadow(0 0 4px rgba(30,40,50,0.3))'
+    const outline =
+      'drop-shadow(0 0 2px rgba(30,40,50,0.5)) drop-shadow(0 0 4px rgba(30,40,50,0.3))'
     return (
       <button
         type="button"
@@ -1029,10 +1034,7 @@ export default function PublicTutorPage() {
     const currentPage = Math.min(page, totalPages - 1)
     const canPrev = currentPage > 0
     const canNext = currentPage < totalPages - 1
-    const visible = courses.slice(
-      currentPage * PAGE_SIZE,
-      currentPage * PAGE_SIZE + PAGE_SIZE
-    )
+    const visible = courses.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE)
     const placeholders = Math.max(0, PAGE_SIZE - visible.length)
 
     return (
@@ -1054,410 +1056,413 @@ export default function PublicTutorPage() {
                   reviewCount?: number
                 }
               ) => {
-            const scheduleText = course.scheduleSummary?.trim() || 'Schedule to be announced'
-            const enrollmentStatus = course.enrollmentStatus ?? 'ongoing'
-            const liveTotal = course.liveSessionsTotal ?? 0
-            const liveDone = course.liveSessionsCompleted ?? 0
-            const liveLine =
-              liveTotal > 0
-                ? `${liveDone} of ${liveTotal} live sessions completed`
-                : liveDone > 0
-                  ? `${liveDone} live session(s) completed`
-                  : 'No live sessions on record yet'
-            const description = course.description?.trim() || ''
-            const hasDescription = description.length > 0
-            const descriptionText = hasDescription
-              ? description
-              : 'No description provided for this course yet.'
-            const descriptionPreview =
-              descriptionText.length > 200
-                ? `${descriptionText.slice(0, 197)}...`
-                : descriptionText
-            const isList = false
-            const isCompact = false
-        
-            return (
-              <div
-                key={course.id}
-                className={cn(
-                  'group relative flex h-full min-h-0 flex-col overflow-hidden rounded-[18px] text-left transition-all duration-300',
-                  'border border-[rgba(255,255,255,0.08)]',
-                  'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
-                  'shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)]',
-                  'hover:-translate-y-[2px] hover:brightness-105',
-                  'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]',
-                  isList &&
-                    'aspect-auto min-h-0 flex-row items-stretch sm:min-h-[148px] [&>*]:first:shrink-0',
-                  isCompact && 'text-xs'
-                )}
-                style={{
-                  width: CARD_WIDTH,
-                  height: CARD_WIDTH,
-                  flexShrink: 0,
-                  backgroundImage:
-                    'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
-                }}
-              >
-                <div
-                  className={cn(
-                    'flex flex-1',
-                    isList
-                      ? 'min-w-0 flex-col py-4 pl-10 pr-4 sm:flex-row sm:items-center sm:gap-6 sm:pl-12'
-                      : 'flex-col p-3.5',
-                    isCompact && !isList && 'p-3'
-                  )}
-                >
-                  {isList ? (
-                    <div className="flex min-w-0 flex-1 items-center gap-6">
-                      <div className="w-[260px] min-w-0 shrink-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <h3 className="line-clamp-2 text-base font-semibold text-slate-100">
-                            {course.name}
-                          </h3>
-                        </div>
-                        <p className="mt-0.5 text-xs font-medium text-slate-300">
-                          @{tutor.username}
-                        </p>
-                        <Badge
-                          variant="secondary"
-                          className="mt-2 w-fit border-0 bg-blue-600 text-[10px] font-semibold text-white transition-all hover:bg-blue-700 hover:brightness-105 sm:text-xs"
-                        >
-                          {course.country && course.country !== 'Global'
-                            ? `${course.variantCategory || course.categories[0] || 'general'} — ${course.country}`
-                            : course.categories[0] || 'general'}
-                        </Badge>
-                      </div>
-        
-                      <div className="min-w-0 flex-1 rounded-[12px] border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.045)] px-[18px] py-[14px] text-[rgba(255,255,255,0.86)]">
-                        <p className="line-clamp-3 text-sm leading-[1.45]">
-                          {descriptionPreview}
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-1 flex-col">
-                      <div
-                        className={cn(
-                          'flex items-start justify-between gap-4',
-                          isCompact && 'gap-3'
-                        )}
-                      >
-                        <div className="min-w-0 flex-1">
-                          <h3
-                            className={cn(
-                              'line-clamp-2 font-semibold text-slate-100',
-                              isCompact ? 'text-sm' : 'text-[15px]'
-                            )}
-                          >
-                            {course.name}
-                          </h3>
-                          <p className="mt-0.5 text-xs font-medium text-slate-300">
-                            @{tutor.username}
-                          </p>
-                          <Badge
-                            variant="secondary"
-                            className={cn(
-                              'mt-1.5 w-fit border-0 bg-blue-600 text-[10px] font-semibold text-white transition-all hover:bg-blue-700 hover:brightness-105 sm:text-xs',
-                              isCompact && 'mt-1.5'
-                            )}
-                          >
-                            {course.country && course.country !== 'Global'
-                              ? `${course.variantCategory || course.categories[0] || 'general'} — ${course.country}`
-                              : course.categories[0] || 'general'}
-                          </Badge>
-                        </div>
-        
-                        <div
-                          className={cn(
-                            'shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_8px_20px_rgba(0,0,0,0.28)]',
-                            isCompact ? 'h-20 w-20' : 'h-[78px] w-[78px] sm:h-[86px] sm:w-[86px]'
-                          )}
-                        >
-                          {tutor.avatarUrl ? (
-                            <img
-                              src={tutor.avatarUrl}
-                              alt={course.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-[rgba(255,255,255,0.05)] text-slate-300">
-                              <User className="h-8 w-8 opacity-50" />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-        
-                      {hasDescription ? (
-                        <div
-                          className={cn(
-                            'mt-2 rounded-[12px] border border-[rgba(15,23,42,0.10)] bg-white px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(15,23,42,0.06)]',
-                            isCompact && 'mt-2 rounded-[12px] px-3 py-2'
-                          )}
-                        >
-                          <p
-                            className={cn(
-                              'line-clamp-4 text-[12px] leading-[1.3] text-slate-800',
-                              isCompact && 'text-[11px]'
-                            )}>
-                            {description}
-                          </p>
-                        </div>
-                      ) : (
-                        <p
-                          className={cn(
-                            'mt-2 text-[11px] text-slate-300/80',
-                            isCompact && 'mt-2 text-[11px]'
-                          )}
-                        >
-                          No description yet.
-                        </p>
-                      )}
-        
-                      <div
-                        className={cn(
-                          'mt-2 flex items-baseline gap-3 text-[11px] text-slate-300',
-                          isCompact && 'mt-2 text-[11px]'
-                        )}
-                      >
-                        <div className="flex items-center gap-1 font-medium text-slate-200">
-                          <BookOpen className="h-3.5 w-3.5 text-slate-400" />
-                          {course.lessonCount} sessions
-                        </div>
-                        <div className="h-3.5 w-px self-center bg-[rgba(255,255,255,0.12)]" />
-                        <div className="min-w-0">
-                          {course.scheduleSummary ? (
-                            <button
-                              type="button"
-                              onClick={e => {
-                                e.preventDefault()
-                                setScheduleCourse(course)
-                              }}
-                              className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
-                            >
-                              <CalendarDays className="h-3.5 w-3.5" />
-                              Schedule <ExternalLink className="h-3 w-3" />
-                            </button>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 font-medium text-slate-300">
-                              <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
-                              Schedule TBA
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-        
-                  {/* Middle column (ONLY IN LIST MODE): Lessons, Schedule, Enrollment */}
-                  {isList && (
-                    <div className="flex min-w-[200px] shrink-0 flex-col gap-2.5 border-l border-[rgba(255,255,255,0.10)] py-1 pl-6">
-                      <div className="flex items-center gap-2 text-sm text-slate-200">
-                        <BookOpen className="h-4 w-4 text-slate-400" />
-                        <span>{course.lessonCount} sessions</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-slate-200">
-                        <CalendarDays className="h-4 w-4 text-slate-400" />
-                        {course.scheduleSummary ? (
-                          <button
-                            type="button"
-                            onClick={e => {
-                              e.preventDefault()
-                              setScheduleCourse(course)
-                            }}
-                            className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
-                          >
-                            Schedule <ExternalLink className="h-3 w-3" />
-                          </button>
-                        ) : (
-                          <span className="font-medium text-slate-300">
-                            Schedule to be announced
-                          </span>
-                        )}
-                      </div>
-                      <div className="pt-0.5">
-                        <Badge
-                          variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
-                          className={cn(
-                            'text-[10px] font-semibold transition-all hover:brightness-105 sm:text-xs',
-                            enrollmentStatus === 'ongoing'
-                              ? 'border-transparent bg-emerald-600 text-white hover:bg-emerald-600'
-                              : 'border-[rgba(255,255,255,0.2)] text-slate-300'
-                          )}
-                        >
-                          {enrollmentStatus === 'ended'
-                            ? 'Enrollment ended'
-                            : 'Enrollment ongoing'}
-                        </Badge>
-                      </div>
-                    </div>
-                  )}
-        
-                  {isList && (
-                    <div className="flex w-[148px] shrink-0 items-center justify-center border-l border-[rgba(255,255,255,0.10)] py-1 pl-6">
-                      <div className="h-24 w-[120px] shrink-0 overflow-hidden rounded-[12px] border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.03)] shadow-[0_8px_20px_rgba(0,0,0,0.28)]">
-                        {tutor.avatarUrl ? (
-                          <img
-                            src={tutor.avatarUrl}
-                            alt={tutor.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-[rgba(255,255,255,0.05)] text-slate-300">
-                            <User className="h-8 w-8 opacity-50" />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-        
-                <div
-                  className={cn(
-                    'flex flex-col gap-2.5 border-t border-[rgba(255,255,255,0.1)] px-3.5 py-2.5',
-                    isList
-                      ? 'w-full min-w-[180px] max-w-[200px] justify-center border-l border-t-0'
-                      : 'w-full justify-between',
-                    isCompact && 'gap-2 px-3 py-2'
-                  )}
-                >
-                  {!isList && (
-                    <div className="flex w-full flex-wrap items-center justify-between gap-2">
-                      <Badge
-                        variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
-                        className={cn(
-                          'text-[10px] font-semibold transition-all hover:brightness-105 sm:text-xs',
-                          enrollmentStatus === 'ongoing'
-                            ? 'border-transparent bg-emerald-600 text-white hover:bg-emerald-600'
-                            : 'border-[rgba(255,255,255,0.2)] text-slate-300'
-                        )}
-                      >
-                        {enrollmentStatus === 'ended'
-                          ? 'Enrollment ended'
-                          : 'Enrollment ongoing'}
-                      </Badge>
-                      {course.isFree ? (
-                        <span className="text-[13px] font-bold text-emerald-400">Free</span>
-                      ) : course.price != null && course.price > 0 ? (
-                        <span className="text-[13px] font-bold text-slate-100">
-                          ${course.price}{' '}
-                          <span className="text-[10px] font-normal text-slate-400">
-                            / 1h session
-                          </span>
-                        </span>
-                      ) : (
-                        <span className="text-[13px] font-bold text-emerald-400">Free</span>
-                      )}
-                    </div>
-                  )}
-        
-                  {isList && (
-                    <div className="flex w-full flex-col gap-4 px-2">
-                      <div>
-                        {course.isFree ? (
-                          <span className="text-lg font-bold text-emerald-400">Free</span>
-                        ) : course.price != null && course.price > 0 ? (
-                          <span className="text-lg font-bold text-slate-100">
-                            ${course.price}{' '}
-                            <span className="text-xs font-normal text-slate-400">
-                              / 1h session
-                            </span>
-                          </span>
-                        ) : (
-                          <span className="text-lg font-bold text-emerald-400">Free</span>
-                        )}
-                      </div>
-                      <div className="h-px w-full bg-[rgba(255,255,255,0.1)]" />
-                    </div>
-                  )}
-        
+                const scheduleText = course.scheduleSummary?.trim() || 'Schedule to be announced'
+                const enrollmentStatus = course.enrollmentStatus ?? 'ongoing'
+                const liveTotal = course.liveSessionsTotal ?? 0
+                const liveDone = course.liveSessionsCompleted ?? 0
+                const liveLine =
+                  liveTotal > 0
+                    ? `${liveDone} of ${liveTotal} live sessions completed`
+                    : liveDone > 0
+                      ? `${liveDone} live session(s) completed`
+                      : 'No live sessions on record yet'
+                const description = course.description?.trim() || ''
+                const hasDescription = description.length > 0
+                const descriptionText = hasDescription
+                  ? description
+                  : 'No description provided for this course yet.'
+                const descriptionPreview =
+                  descriptionText.length > 200
+                    ? `${descriptionText.slice(0, 197)}...`
+                    : descriptionText
+                const isList = false
+                const isCompact = false
+
+                return (
                   <div
+                    key={course.id}
                     className={cn(
-                      'mt-auto flex w-full flex-wrap items-center gap-3.5 pt-1.5',
-                      isList ? 'justify-between px-2' : 'justify-start'
+                      'group relative flex h-full min-h-0 flex-col overflow-hidden rounded-[18px] text-left transition-all duration-300',
+                      'border border-[rgba(255,255,255,0.08)]',
+                      'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
+                      'shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)]',
+                      'hover:-translate-y-[2px] hover:brightness-105',
+                      'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]',
+                      isList &&
+                        'aspect-auto min-h-0 flex-row items-stretch sm:min-h-[148px] [&>*]:first:shrink-0',
+                      isCompact && 'text-xs'
                     )}
+                    style={{
+                      width: CARD_WIDTH,
+                      height: CARD_WIDTH,
+                      flexShrink: 0,
+                      backgroundImage:
+                        'linear-gradient(120deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.00) 65%), linear-gradient(145deg, rgba(55, 65, 75, 0.85), rgba(25, 35, 45, 0.95))',
+                    }}
                   >
-                    <button
-                      type="button"
+                    <div
                       className={cn(
-                        'inline-flex items-center text-[13px] font-medium text-slate-300 transition-colors hover:text-white disabled:opacity-50',
-                        isCompact && 'text-xs'
+                        'flex flex-1',
+                        isList
+                          ? 'min-w-0 flex-col py-4 pl-10 pr-4 sm:flex-row sm:items-center sm:gap-6 sm:pl-12'
+                          : 'flex-col p-3.5',
+                        isCompact && !isList && 'p-3'
                       )}
-                      onClick={() => setDetailsCourse(course)}
                     >
-                      <FileText className="mr-1.5 h-3 w-3" />
-                      Details
-                    </button>
-        
-                    {isTutorOwner ? (
-                      <button
-                        type="button"
-                        className={cn(
-                          'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
-                          isCompact && 'text-xs'
-                        )}
-                        onClick={() => handleEnterClassroom(course)}
-                        disabled={launchingCourseId === course.id}
-                      >
-                        <BookOpen className="mr-1.5 h-3 w-3" />
-                        {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
-                      </button>
-                    ) : (
-                      <>
-                        {session?.user?.role === 'STUDENT' &&
-                          course.enrollmentStatus !== 'ended' && (
-                            <>
-                              {enrolledCourseIds.has(course.id) ? (
+                      {isList ? (
+                        <div className="flex min-w-0 flex-1 items-center gap-6">
+                          <div className="w-[260px] min-w-0 shrink-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <h3 className="line-clamp-2 text-base font-semibold text-slate-100">
+                                {course.name}
+                              </h3>
+                            </div>
+                            <p className="mt-0.5 text-xs font-medium text-slate-300">
+                              @{tutor.username}
+                            </p>
+                            <Badge
+                              variant="secondary"
+                              className="mt-2 w-fit border-0 bg-blue-600 text-[10px] font-semibold text-white transition-all hover:bg-blue-700 hover:brightness-105 sm:text-xs"
+                            >
+                              {course.country && course.country !== 'Global'
+                                ? `${course.variantCategory || course.categories[0] || 'general'} — ${course.country}`
+                                : course.categories[0] || 'general'}
+                            </Badge>
+                          </div>
+
+                          <div className="min-w-0 flex-1 rounded-[12px] border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.045)] px-[18px] py-[14px] text-[rgba(255,255,255,0.86)]">
+                            <p className="line-clamp-3 text-sm leading-[1.45]">
+                              {descriptionPreview}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-1 flex-col">
+                          <div
+                            className={cn(
+                              'flex items-start justify-between gap-4',
+                              isCompact && 'gap-3'
+                            )}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <h3
+                                className={cn(
+                                  'line-clamp-2 font-semibold text-slate-100',
+                                  isCompact ? 'text-sm' : 'text-[15px]'
+                                )}
+                              >
+                                {course.name}
+                              </h3>
+                              <p className="mt-0.5 text-xs font-medium text-slate-300">
+                                @{tutor.username}
+                              </p>
+                              <Badge
+                                variant="secondary"
+                                className={cn(
+                                  'mt-1.5 w-fit border-0 bg-blue-600 text-[10px] font-semibold text-white transition-all hover:bg-blue-700 hover:brightness-105 sm:text-xs',
+                                  isCompact && 'mt-1.5'
+                                )}
+                              >
+                                {course.country && course.country !== 'Global'
+                                  ? `${course.variantCategory || course.categories[0] || 'general'} — ${course.country}`
+                                  : course.categories[0] || 'general'}
+                              </Badge>
+                            </div>
+
+                            <div
+                              className={cn(
+                                'shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_8px_20px_rgba(0,0,0,0.28)]',
+                                isCompact
+                                  ? 'h-20 w-20'
+                                  : 'h-[78px] w-[78px] sm:h-[86px] sm:w-[86px]'
+                              )}
+                            >
+                              {tutor.avatarUrl ? (
+                                <img
+                                  src={tutor.avatarUrl}
+                                  alt={course.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-[rgba(255,255,255,0.05)] text-slate-300">
+                                  <User className="h-8 w-8 opacity-50" />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {hasDescription ? (
+                            <div
+                              className={cn(
+                                'mt-2 rounded-[12px] border border-[rgba(15,23,42,0.10)] bg-white px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_1px_2px_rgba(15,23,42,0.06)]',
+                                isCompact && 'mt-2 rounded-[12px] px-3 py-2'
+                              )}
+                            >
+                              <p
+                                className={cn(
+                                  'line-clamp-4 text-[12px] leading-[1.3] text-slate-800',
+                                  isCompact && 'text-[11px]'
+                                )}
+                              >
+                                {description}
+                              </p>
+                            </div>
+                          ) : (
+                            <p
+                              className={cn(
+                                'mt-2 text-[11px] text-slate-300/80',
+                                isCompact && 'mt-2 text-[11px]'
+                              )}
+                            >
+                              No description yet.
+                            </p>
+                          )}
+
+                          <div
+                            className={cn(
+                              'mt-2 flex items-baseline gap-3 text-[11px] text-slate-300',
+                              isCompact && 'mt-2 text-[11px]'
+                            )}
+                          >
+                            <div className="flex items-center gap-1 font-medium text-slate-200">
+                              <BookOpen className="h-3.5 w-3.5 text-slate-400" />
+                              {course.lessonCount} sessions
+                            </div>
+                            <div className="h-3.5 w-px self-center bg-[rgba(255,255,255,0.12)]" />
+                            <div className="min-w-0">
+                              {course.scheduleSummary ? (
                                 <button
                                   type="button"
-                                  className={cn(
-                                    'inline-flex items-center text-[13px] font-medium text-emerald-400 disabled:opacity-50',
-                                    isCompact && 'text-xs'
-                                  )}
-                                  disabled
+                                  onClick={e => {
+                                    e.preventDefault()
+                                    setScheduleCourse(course)
+                                  }}
+                                  className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
                                 >
-                                  <CheckCircle className="mr-1.5 h-3 w-3" />
-                                  Enrolled
+                                  <CalendarDays className="h-3.5 w-3.5" />
+                                  Schedule <ExternalLink className="h-3 w-3" />
                                 </button>
                               ) : (
-                                <button
-                                  type="button"
-                                  className={cn(
-                                    'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
-                                    isCompact && 'text-xs'
-                                  )}
-                                  onClick={() => handleEnrollClick(course)}
-                                  disabled={enrollingCourseId === course.id}
-                                >
-                                  {enrollingCourseId === course.id ? (
-                                    <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
-                                  ) : (
-                                    <UserPlus className="mr-1.5 h-3 w-3" />
-                                  )}
-                                  {enrollingCourseId === course.id ? 'Enrolling…' : 'Enroll'}
-                                </button>
+                                <span className="inline-flex items-center gap-1 font-medium text-slate-300">
+                                  <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
+                                  Schedule TBA
+                                </span>
                               )}
-                            </>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Middle column (ONLY IN LIST MODE): Lessons, Schedule, Enrollment */}
+                      {isList && (
+                        <div className="flex min-w-[200px] shrink-0 flex-col gap-2.5 border-l border-[rgba(255,255,255,0.10)] py-1 pl-6">
+                          <div className="flex items-center gap-2 text-sm text-slate-200">
+                            <BookOpen className="h-4 w-4 text-slate-400" />
+                            <span>{course.lessonCount} sessions</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-slate-200">
+                            <CalendarDays className="h-4 w-4 text-slate-400" />
+                            {course.scheduleSummary ? (
+                              <button
+                                type="button"
+                                onClick={e => {
+                                  e.preventDefault()
+                                  setScheduleCourse(course)
+                                }}
+                                className="inline-flex items-center gap-1 font-medium text-blue-400 transition-colors hover:text-blue-300 hover:underline"
+                              >
+                                Schedule <ExternalLink className="h-3 w-3" />
+                              </button>
+                            ) : (
+                              <span className="font-medium text-slate-300">
+                                Schedule to be announced
+                              </span>
+                            )}
+                          </div>
+                          <div className="pt-0.5">
+                            <Badge
+                              variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
+                              className={cn(
+                                'text-[10px] font-semibold transition-all hover:brightness-105 sm:text-xs',
+                                enrollmentStatus === 'ongoing'
+                                  ? 'border-transparent bg-emerald-600 text-white hover:bg-emerald-600'
+                                  : 'border-[rgba(255,255,255,0.2)] text-slate-300'
+                              )}
+                            >
+                              {enrollmentStatus === 'ended'
+                                ? 'Enrollment ended'
+                                : 'Enrollment ongoing'}
+                            </Badge>
+                          </div>
+                        </div>
+                      )}
+
+                      {isList && (
+                        <div className="flex w-[148px] shrink-0 items-center justify-center border-l border-[rgba(255,255,255,0.10)] py-1 pl-6">
+                          <div className="h-24 w-[120px] shrink-0 overflow-hidden rounded-[12px] border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.03)] shadow-[0_8px_20px_rgba(0,0,0,0.28)]">
+                            {tutor.avatarUrl ? (
+                              <img
+                                src={tutor.avatarUrl}
+                                alt={tutor.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center bg-[rgba(255,255,255,0.05)] text-slate-300">
+                                <User className="h-8 w-8 opacity-50" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div
+                      className={cn(
+                        'flex flex-col gap-2.5 border-t border-[rgba(255,255,255,0.1)] px-3.5 py-2.5',
+                        isList
+                          ? 'w-full min-w-[180px] max-w-[200px] justify-center border-l border-t-0'
+                          : 'w-full justify-between',
+                        isCompact && 'gap-2 px-3 py-2'
+                      )}
+                    >
+                      {!isList && (
+                        <div className="flex w-full flex-wrap items-center justify-between gap-2">
+                          <Badge
+                            variant={enrollmentStatus === 'ended' ? 'outline' : 'default'}
+                            className={cn(
+                              'text-[10px] font-semibold transition-all hover:brightness-105 sm:text-xs',
+                              enrollmentStatus === 'ongoing'
+                                ? 'border-transparent bg-emerald-600 text-white hover:bg-emerald-600'
+                                : 'border-[rgba(255,255,255,0.2)] text-slate-300'
+                            )}
+                          >
+                            {enrollmentStatus === 'ended'
+                              ? 'Enrollment ended'
+                              : 'Enrollment ongoing'}
+                          </Badge>
+                          {course.isFree ? (
+                            <span className="text-[13px] font-bold text-emerald-400">Free</span>
+                          ) : course.price != null && course.price > 0 ? (
+                            <span className="text-[13px] font-bold text-slate-100">
+                              ${course.price}{' '}
+                              <span className="text-[10px] font-normal text-slate-400">
+                                / 1h session
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-[13px] font-bold text-emerald-400">Free</span>
                           )}
+                        </div>
+                      )}
+
+                      {isList && (
+                        <div className="flex w-full flex-col gap-4 px-2">
+                          <div>
+                            {course.isFree ? (
+                              <span className="text-lg font-bold text-emerald-400">Free</span>
+                            ) : course.price != null && course.price > 0 ? (
+                              <span className="text-lg font-bold text-slate-100">
+                                ${course.price}{' '}
+                                <span className="text-xs font-normal text-slate-400">
+                                  / 1h session
+                                </span>
+                              </span>
+                            ) : (
+                              <span className="text-lg font-bold text-emerald-400">Free</span>
+                            )}
+                          </div>
+                          <div className="h-px w-full bg-[rgba(255,255,255,0.1)]" />
+                        </div>
+                      )}
+
+                      <div
+                        className={cn(
+                          'mt-auto flex w-full flex-wrap items-center gap-3.5 pt-1.5',
+                          isList ? 'justify-between px-2' : 'justify-start'
+                        )}
+                      >
                         <button
                           type="button"
                           className={cn(
-                            'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
+                            'inline-flex items-center text-[13px] font-medium text-slate-300 transition-colors hover:text-white disabled:opacity-50',
                             isCompact && 'text-xs'
                           )}
-                          onClick={() => void handleStudentEnterClassroom(course)}
-                          disabled={studentJoiningCourseId === course.id}
+                          onClick={() => setDetailsCourse(course)}
                         >
-                          <BookOpen className="mr-1.5 h-3 w-3" />
-                          {studentJoiningCourseId === course.id ? 'Enrolling…' : 'Classroom'}
+                          <FileText className="mr-1.5 h-3 w-3" />
+                          Details
                         </button>
-                      </>
-                    )}
+
+                        {isTutorOwner ? (
+                          <button
+                            type="button"
+                            className={cn(
+                              'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
+                              isCompact && 'text-xs'
+                            )}
+                            onClick={() => handleEnterClassroom(course)}
+                            disabled={launchingCourseId === course.id}
+                          >
+                            <BookOpen className="mr-1.5 h-3 w-3" />
+                            {launchingCourseId === course.id ? 'Launching…' : 'Classroom'}
+                          </button>
+                        ) : (
+                          <>
+                            {session?.user?.role === 'STUDENT' &&
+                              course.enrollmentStatus !== 'ended' && (
+                                <>
+                                  {enrolledCourseIds.has(course.id) ? (
+                                    <button
+                                      type="button"
+                                      className={cn(
+                                        'inline-flex items-center text-[13px] font-medium text-emerald-400 disabled:opacity-50',
+                                        isCompact && 'text-xs'
+                                      )}
+                                      disabled
+                                    >
+                                      <CheckCircle className="mr-1.5 h-3 w-3" />
+                                      Enrolled
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className={cn(
+                                        'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
+                                        isCompact && 'text-xs'
+                                      )}
+                                      onClick={() => handleEnrollClick(course)}
+                                      disabled={enrollingCourseId === course.id}
+                                    >
+                                      {enrollingCourseId === course.id ? (
+                                        <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+                                      ) : (
+                                        <UserPlus className="mr-1.5 h-3 w-3" />
+                                      )}
+                                      {enrollingCourseId === course.id ? 'Enrolling…' : 'Enroll'}
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            <button
+                              type="button"
+                              className={cn(
+                                'inline-flex items-center text-[13px] font-medium text-blue-400 transition-colors hover:text-blue-300 disabled:opacity-50',
+                                isCompact && 'text-xs'
+                              )}
+                              onClick={() => void handleStudentEnterClassroom(course)}
+                              disabled={studentJoiningCourseId === course.id}
+                            >
+                              <BookOpen className="mr-1.5 h-3 w-3" />
+                              {studentJoiningCourseId === course.id ? 'Enrolling…' : 'Classroom'}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            )
-          }
-          )}
+                )
+              }
+            )}
             {Array.from({ length: placeholders }).map((_, i) => (
               <div
                 key={`placeholder-${i}`}
@@ -1629,7 +1634,7 @@ export default function PublicTutorPage() {
 
         <div className="mt-7 grid gap-5 lg:grid-cols-2 lg:items-stretch">
           <div className={cn(panelCardClass, 'flex h-full flex-col')}>
-            <div className="flex h-14 items-center gap-3 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4">
+            <div className="-mx-5 -mt-5 mb-4 flex h-14 items-center gap-3 rounded-t-[18px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-5 text-white">
               <User className="h-5 w-5" />
               <span className="text-base font-semibold">Bio</span>
             </div>
@@ -1668,7 +1673,7 @@ export default function PublicTutorPage() {
 
           <div className="flex h-full flex-col gap-5">
             <div className={panelCardClass}>
-              <div className="flex h-14 items-center justify-between bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4">
+              <div className="-mx-5 -mt-5 mb-4 flex h-14 items-center justify-between rounded-t-[18px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-5 text-white">
                 <div className="flex items-center gap-3">
                   <Link2 className="h-5 w-5" />
                   <span className="text-base font-semibold">Connect</span>
@@ -1764,9 +1769,9 @@ export default function PublicTutorPage() {
                     key: 'kakaoTalk',
                     label: 'KakaoTalk',
                     value: tutor.socialLinks?.kakaoTalk
-                      ? (tutor.socialLinks.kakaoTalk.match(/^https?:\/\//)
-                          ? stripAt(tutor.socialLinks.kakaoTalk)
-                          : `https://${stripAt(tutor.socialLinks.kakaoTalk)}`)
+                      ? tutor.socialLinks.kakaoTalk.match(/^https?:\/\//)
+                        ? stripAt(tutor.socialLinks.kakaoTalk)
+                        : `https://${stripAt(tutor.socialLinks.kakaoTalk)}`
                       : '—',
                     icon: KakaoTalkIcon,
                     bgClass: 'bg-[#FEE500]',
@@ -1776,9 +1781,9 @@ export default function PublicTutorPage() {
                     key: 'facebook',
                     label: 'Facebook',
                     value: tutor.socialLinks?.facebook
-                      ? (tutor.socialLinks.facebook.match(/^https?:\/\//)
-                          ? stripAt(tutor.socialLinks.facebook)
-                          : `https://${stripAt(tutor.socialLinks.facebook)}`)
+                      ? tutor.socialLinks.facebook.match(/^https?:\/\//)
+                        ? stripAt(tutor.socialLinks.facebook)
+                        : `https://${stripAt(tutor.socialLinks.facebook)}`
                       : '—',
                     icon: Facebook,
                     bgClass: 'bg-blue-600',
@@ -1788,17 +1793,29 @@ export default function PublicTutorPage() {
                   const Icon = item.icon
                   return (
                     <div key={item.key} className="flex items-center gap-4">
-                      <div className={cn(
-                        'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl',
-                        item.bgClass,
-                        item.muted && 'opacity-40'
-                      )}>
-                        <Icon className={cn('text-white', item.key === 'kakaoTalk' ? 'h-10 w-10' : 'h-6 w-6')} />
+                      <div
+                        className={cn(
+                          'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl',
+                          item.bgClass,
+                          item.muted && 'opacity-40'
+                        )}
+                      >
+                        <Icon
+                          className={cn(
+                            'text-white',
+                            item.key === 'kakaoTalk' ? 'h-10 w-10' : 'h-6 w-6'
+                          )}
+                        />
                       </div>
                       <div className="min-w-0">
                         <div className="truncate text-base font-semibold text-slate-900">
                           {item.label}
-                          <span className={cn('ml-2 font-normal', item.muted ? 'text-slate-400' : 'text-slate-600')}>
+                          <span
+                            className={cn(
+                              'ml-2 font-normal',
+                              item.muted ? 'text-slate-400' : 'text-slate-600'
+                            )}
+                          >
                             {item.value}
                           </span>
                         </div>
@@ -1810,7 +1827,7 @@ export default function PublicTutorPage() {
             </div>
 
             <div className={panelCardClass}>
-              <div className="flex h-14 items-center gap-3 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4">
+              <div className="-mx-5 -mt-5 mb-4 flex h-14 items-center gap-3 rounded-t-[18px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-5 text-white">
                 <PanelsTopLeft className="h-5 w-5" />
                 <span className="text-base font-semibold">Categories</span>
                 <span className="text-sm text-white">({tutor.specialties.length})</span>
@@ -1821,7 +1838,7 @@ export default function PublicTutorPage() {
                   tutor.specialties.map((s, i) => (
                     <span
                       key={`${s}-${i}`}
-                      className="rounded-full bg-slate-50 px-4 py-1.5 text-sm font-medium text-slate-700 border border-slate-100"
+                      className="rounded-full border border-slate-100 bg-slate-50 px-4 py-1.5 text-sm font-medium text-slate-700"
                     >
                       {s}
                     </span>
@@ -1833,8 +1850,6 @@ export default function PublicTutorPage() {
             </div>
           </div>
         </div>
-
-
       </div>
 
       <div
@@ -1842,9 +1857,7 @@ export default function PublicTutorPage() {
         className={cn(
           panelCardClass,
           'overflow-hidden p-0 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]',
-          coursesExpanded
-            ? 'mt-8 flex h-[calc(100vh-3rem)] flex-col'
-            : 'mt-8'
+          coursesExpanded ? 'mt-8 flex h-[calc(100vh-3rem)] flex-col' : 'mt-8'
         )}
       >
         <div ref={coursesHeaderRef} />
@@ -1861,7 +1874,7 @@ export default function PublicTutorPage() {
             }
           }}
           className={cn(
-            'bg-[linear-gradient(135deg,#1E2832_0%,#2D3B4A_50%,#1A2530_100%)] cursor-pointer hover:brightness-110 transition-all duration-200',
+            'cursor-pointer bg-[linear-gradient(135deg,#1E2832_0%,#2D3B4A_50%,#1A2530_100%)] transition-all duration-200 hover:brightness-110',
             coursesExpanded ? 'p-4 sm:p-5' : 'p-6 sm:p-8'
           )}
         >
@@ -1887,15 +1900,15 @@ export default function PublicTutorPage() {
                   value={courseCategoryFilter}
                   onValueChange={(val: any) => setCourseCategoryFilter(val)}
                 >
-                  <SelectTrigger className="h-9 w-[160px] rounded-lg border border-white/10 bg-white/10 text-sm text-white transition-all duration-200 hover:bg-white/20 hover:border-white/20 focus-visible:!shadow-none focus:outline-none focus-visible:outline-none">
+                  <SelectTrigger className="h-9 w-[160px] rounded-lg border border-white/10 bg-white/10 text-sm text-white transition-all duration-200 hover:border-white/20 hover:bg-white/20 focus:outline-none focus-visible:!shadow-none focus-visible:outline-none">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-lg border border-white/10 bg-white/10 backdrop-blur-md p-1.5 shadow-lg w-[var(--radix-select-trigger-width)]">
+                  <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-lg border border-white/10 bg-white/10 p-1.5 shadow-lg backdrop-blur-md">
                     {courseCategoryOptions.map(cat => (
                       <SelectItem
                         key={cat}
                         value={cat}
-                        className="text-white focus:text-white hover:bg-white/10 focus:bg-white/10 mx-1.5 focus:outline-none rounded-md"
+                        className="mx-1.5 rounded-md text-white hover:bg-white/10 focus:bg-white/10 focus:text-white focus:outline-none"
                       >
                         {cat}
                       </SelectItem>
@@ -1907,29 +1920,30 @@ export default function PublicTutorPage() {
               {coursesExpanded && showBackButton ? (
                 <button
                   type="button"
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation()
                     setCoursesExpanded(false)
                     window.scrollTo({ top: 0, behavior: 'smooth' })
                   }}
-                  className="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20 transition-colors shrink-0"
+                  className="flex shrink-0 items-center gap-1.5 rounded-lg bg-white/10 px-3 py-2 text-sm text-white transition-colors hover:bg-white/20"
                 >
                   <Minimize2 className="h-4 w-4" />
                   Back to Profile
                 </button>
               ) : coursesExpanded ? null : (
-                <Maximize2 className="hidden lg:block h-4 w-4 text-white/40 shrink-0 ml-2" />
+                <Maximize2 className="ml-2 hidden h-4 w-4 shrink-0 text-white/40 lg:block" />
               )}
-
             </div>
           </div>
         </div>
-        <div className={cn(
-          'flex-1 overflow-y-auto scrollbar-hide',
-          coursesExpanded
-            ? 'flex flex-col gap-4 px-6 pb-6 pt-4 sm:px-8'
-            : 'space-y-10 px-6 pb-8 pt-8 sm:px-8'
-        )}>
+        <div
+          className={cn(
+            'scrollbar-hide flex-1 overflow-y-auto',
+            coursesExpanded
+              ? 'flex flex-col gap-4 px-6 pb-6 pt-4 sm:px-8'
+              : 'space-y-10 px-6 pb-8 pt-8 sm:px-8'
+          )}
+        >
           <CourseSection
             title="Enrolling"
             courses={enrollingCourses}
@@ -1979,20 +1993,20 @@ export default function PublicTutorPage() {
             <DialogPanel className="p-3">
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
                 <div className="space-y-0.5">
-                  <div className="text-xs font-medium text-muted-foreground">Category</div>
-                  <div className="text-sm font-semibold text-foreground">
+                  <div className="text-muted-foreground text-xs font-medium">Category</div>
+                  <div className="text-foreground text-sm font-semibold">
                     {detailsCourse?.categories?.[0] || 'general'}
                   </div>
                 </div>
                 <div className="space-y-0.5">
-                  <div className="text-xs font-medium text-muted-foreground">Sessions</div>
-                  <div className="text-sm font-semibold text-foreground">
+                  <div className="text-muted-foreground text-xs font-medium">Sessions</div>
+                  <div className="text-foreground text-sm font-semibold">
                     {detailsCourse?.lessonCount ?? 0} sessions
                   </div>
                 </div>
                 <div className="space-y-0.5">
-                  <div className="text-xs font-medium text-muted-foreground">Price</div>
-                  <div className="text-sm font-semibold text-foreground">
+                  <div className="text-muted-foreground text-xs font-medium">Price</div>
+                  <div className="text-foreground text-sm font-semibold">
                     {detailsCourse?.isFree
                       ? 'Free'
                       : detailsCourse?.price != null
@@ -2001,8 +2015,8 @@ export default function PublicTutorPage() {
                   </div>
                 </div>
                 <div className="space-y-0.5">
-                  <div className="text-xs font-medium text-muted-foreground">Cost per Session</div>
-                  <div className="text-sm font-semibold text-foreground">
+                  <div className="text-muted-foreground text-xs font-medium">Cost per Session</div>
+                  <div className="text-foreground text-sm font-semibold">
                     {detailsCourse?.isFree
                       ? 'Free'
                       : detailsCourse?.price != null && detailsCourse?.lessonCount
@@ -2011,8 +2025,8 @@ export default function PublicTutorPage() {
                   </div>
                 </div>
                 <div className="space-y-0.5">
-                  <div className="text-xs font-medium text-muted-foreground">Status</div>
-                  <div className="text-sm font-semibold text-foreground">
+                  <div className="text-muted-foreground text-xs font-medium">Status</div>
+                  <div className="text-foreground text-sm font-semibold">
                     {(() => {
                       const total = detailsCourse?.liveSessionsTotal ?? 0
                       const completed = detailsCourse?.liveSessionsCompleted ?? 0
@@ -2026,15 +2040,15 @@ export default function PublicTutorPage() {
             </DialogPanel>
             <DialogPanel className="p-3">
               <div className="space-y-0.5">
-                <div className="text-xs font-medium text-muted-foreground">Schedule</div>
-                <div className="text-sm font-semibold text-foreground">
+                <div className="text-muted-foreground text-xs font-medium">Schedule</div>
+                <div className="text-foreground text-sm font-semibold">
                   {detailsCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
                 </div>
               </div>
             </DialogPanel>
             <DialogPanel className="p-3">
-              <h3 className="mb-2 text-sm font-semibold text-foreground">About this course</h3>
-              <p className="whitespace-pre-wrap text-sm leading-snug text-muted-foreground">
+              <h3 className="text-foreground mb-2 text-sm font-semibold">About this course</h3>
+              <p className="text-muted-foreground whitespace-pre-wrap text-sm leading-snug">
                 {detailsCourse?.description || 'More details will be available soon.'}
               </p>
             </DialogPanel>
@@ -2057,10 +2071,7 @@ export default function PublicTutorPage() {
             >
               Enroll
             </Button>
-            <Button
-              variant="modal-secondary-dark"
-              onClick={() => setDetailsCourse(null)}
-            >
+            <Button variant="modal-secondary-dark" onClick={() => setDetailsCourse(null)}>
               Close
             </Button>
           </DialogFooter>

@@ -423,8 +423,8 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                           </div>
                           {showNationality && (
                             <p className="mt-0.5 text-xs font-medium text-blue-400">
-                              {course.variantCategory || (course.categories || [])[0] || 'General'} —{' '}
-                              {course.nationality}
+                              {course.variantCategory || (course.categories || [])[0] || 'General'}{' '}
+                              — {course.nationality}
                             </p>
                           )}
                           <p className="mt-0.5 text-xs text-slate-300">
@@ -476,9 +476,7 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
                               onClick={() => handleTogglePublish(course)}
                               className={cn(
                                 'hover:bg-white/10 hover:text-white',
-                                course.isPublished
-                                  ? 'text-amber-400'
-                                  : 'text-emerald-400'
+                                course.isPublished ? 'text-amber-400' : 'text-emerald-400'
                               )}
                             >
                               {course.isPublished ? (
@@ -1355,8 +1353,7 @@ export default function TutorMyPage() {
       className="min-h-screen bg-white text-[#1F2933]"
       style={{ '--density-scale': '0.9' } as React.CSSProperties}
     >
-
-      <div className="w-full space-y-[calc(2rem*var(--density-scale,1))] px-6 pt-2 pb-[calc(2rem*var(--density-scale,1))]">
+      <div className="w-full space-y-[calc(2rem*var(--density-scale,1))] px-6 pb-[calc(2rem*var(--density-scale,1))] pt-2">
         <section className={headerCardClass}>
           <div className={headerInnerClass}>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -1413,7 +1410,6 @@ export default function TutorMyPage() {
                     <h1 className="truncate text-3xl font-bold leading-tight text-white">
                       {displayName || normalizedUsername || 'Tutor'}
                     </h1>
-
                   </div>
                   <div className="mt-1 text-sm font-medium text-white/80">
                     @{normalizedUsername}
@@ -1463,7 +1459,7 @@ export default function TutorMyPage() {
                     >
                       <Button
                         size="lg"
-                        className="w-full border border-white bg-[#F17623] text-white shadow-[0_4px_14px_rgba(0,0,0,0.2)] hover:translate-y-0 hover:bg-white hover:border-[#F17623] hover:text-[#F17623] sm:w-auto"
+                        className="w-full border border-white bg-[#F17623] text-white shadow-[0_4px_14px_rgba(0,0,0,0.2)] hover:translate-y-0 hover:border-[#F17623] hover:bg-white hover:text-[#F17623] sm:w-auto"
                       >
                         Preview Public Page
                       </Button>
@@ -1494,7 +1490,7 @@ export default function TutorMyPage() {
 
         <div className="grid gap-5 lg:grid-cols-2 lg:items-stretch">
           <div className={cn(panelCardClass, 'flex h-full flex-col')}>
-            <div className="flex h-14 items-center gap-3 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4">
+            <div className="-mx-5 -mt-5 mb-4 flex h-14 items-center gap-3 rounded-t-[18px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-5 text-white">
               <User className="h-5 w-5" />
               <span className="text-base font-semibold">Bio</span>
             </div>
@@ -1511,7 +1507,7 @@ export default function TutorMyPage() {
 
           <div className="flex h-full flex-col gap-5">
             <div className={panelCardClass}>
-              <div className="flex h-14 items-center justify-between bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4">
+              <div className="-mx-5 -mt-5 mb-4 flex h-14 items-center justify-between rounded-t-[18px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-5 text-white">
                 <div className="flex items-center gap-3">
                   <Link2 className="h-5 w-5" />
                   <span className="text-base font-semibold">Connect</span>
@@ -1549,7 +1545,9 @@ export default function TutorMyPage() {
                       alt="Solocorn"
                       className="h-12 w-12 shrink-0 rounded-xl object-cover"
                     />
-                    <div className="text-lg font-semibold text-slate-900">@{normalizedUsername || 'username'}</div>
+                    <div className="text-lg font-semibold text-slate-900">
+                      @{normalizedUsername || 'username'}
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <img
@@ -1601,9 +1599,9 @@ export default function TutorMyPage() {
                     key: 'kakaoTalk',
                     label: 'KakaoTalk',
                     value: socialAccounts.kakaoTalk
-                      ? (socialAccounts.kakaoTalk.match(/^https?:\/\//)
-                          ? socialAccounts.kakaoTalk
-                          : `https://${socialAccounts.kakaoTalk}`)
+                      ? socialAccounts.kakaoTalk.match(/^https?:\/\//)
+                        ? socialAccounts.kakaoTalk
+                        : `https://${socialAccounts.kakaoTalk}`
                       : '—',
                     icon: KakaoTalkBrandIcon,
                     bgClass: 'bg-[#FEE500]',
@@ -1613,9 +1611,9 @@ export default function TutorMyPage() {
                     key: 'facebook',
                     label: 'Facebook',
                     value: socialAccounts.facebook
-                      ? (socialAccounts.facebook.match(/^https?:\/\//)
-                          ? socialAccounts.facebook
-                          : `https://${socialAccounts.facebook}`)
+                      ? socialAccounts.facebook.match(/^https?:\/\//)
+                        ? socialAccounts.facebook
+                        : `https://${socialAccounts.facebook}`
                       : '—',
                     icon: Facebook,
                     bgClass: 'bg-blue-600',
@@ -1625,17 +1623,29 @@ export default function TutorMyPage() {
                   const Icon = item.icon
                   return (
                     <div key={item.key} className="flex items-center gap-4">
-                      <div className={cn(
-                        'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl',
-                        item.bgClass,
-                        item.muted && 'opacity-40'
-                      )}>
-                        <Icon className={cn('text-white', item.key === 'kakaoTalk' ? 'h-10 w-10' : 'h-6 w-6')} />
+                      <div
+                        className={cn(
+                          'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl',
+                          item.bgClass,
+                          item.muted && 'opacity-40'
+                        )}
+                      >
+                        <Icon
+                          className={cn(
+                            'text-white',
+                            item.key === 'kakaoTalk' ? 'h-10 w-10' : 'h-6 w-6'
+                          )}
+                        />
                       </div>
                       <div className="min-w-0">
                         <div className="truncate text-base font-semibold text-slate-900">
                           {item.label}
-                          <span className={cn('ml-2 font-normal', item.muted ? 'text-slate-400' : 'text-slate-600')}>
+                          <span
+                            className={cn(
+                              'ml-2 font-normal',
+                              item.muted ? 'text-slate-400' : 'text-slate-600'
+                            )}
+                          >
                             {item.value}
                           </span>
                         </div>
@@ -1647,7 +1657,7 @@ export default function TutorMyPage() {
             </div>
 
             <div className={panelCardClass}>
-              <div className="flex h-14 items-center gap-3 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] -mx-5 -mt-5 px-5 rounded-t-[18px] text-white mb-4">
+              <div className="-mx-5 -mt-5 mb-4 flex h-14 items-center gap-3 rounded-t-[18px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-5 text-white">
                 <PanelsTopLeft className="h-5 w-5" />
                 <span className="text-base font-semibold">Categories</span>
                 <span className="text-sm text-white/70">({publishedCourseCategories.length})</span>
@@ -1658,7 +1668,7 @@ export default function TutorMyPage() {
                   publishedCourseCategories.map((cat, i) => (
                     <span
                       key={`${cat}-${i}`}
-                      className="rounded-full bg-slate-50 px-4 py-1.5 text-sm font-medium text-slate-700 border border-slate-100"
+                      className="rounded-full border border-slate-100 bg-slate-50 px-4 py-1.5 text-sm font-medium text-slate-700"
                     >
                       {cat}
                     </span>
@@ -1835,101 +1845,105 @@ export default function TutorMyPage() {
 
                 <div className="flex min-h-[250px] flex-col gap-2 lg:min-h-0">
                   <Label className="text-sm text-[#1F2933]">Edit Social Media</Label>
-                    <div className="grid gap-2.5 md:grid-cols-2">
-                      <div className="flex items-center gap-2">
-                        <TikTokIcon className="h-9 w-9 shrink-0 text-[#64748B]" />
-                        <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:ring-0 focus-within:outline-none">
-                          <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                          <Input
-                            placeholder="username"
-                            value={socialAccounts.tiktok.replace(/^@+/, '')}
-                            onChange={e =>
-                              setSocialAccounts(prev => ({
-                                ...prev,
-                                tiktok: e.target.value.replace(/^@+/, ''),
-                              }))
-                            }
-                            disabled={loading || saving}
-                            className="border-0 pl-0 !ring-0 !outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Youtube className="h-9 w-9 shrink-0 text-[#64748B]" />
-                        <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:ring-0 focus-within:outline-none">
-                          <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                          <Input
-                            placeholder="username"
-                            value={socialAccounts.youtube.replace(/^@+/, '')}
-                            onChange={e =>
-                              setSocialAccounts(prev => ({
-                                ...prev,
-                                youtube: e.target.value.replace(/^@+/, ''),
-                              }))
-                            }
-                            disabled={loading || saving}
-                            className="border-0 pl-0 !ring-0 !outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Instagram className="h-9 w-9 shrink-0 text-[#64748B]" />
-                        <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:ring-0 focus-within:outline-none">
-                          <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
-                          <Input
-                            placeholder="username"
-                            value={socialAccounts.instagram.replace(/^@+/, '')}
-                            onChange={e =>
-                              setSocialAccounts(prev => ({
-                                ...prev,
-                                instagram: e.target.value.replace(/^@+/, ''),
-                              }))
-                            }
-                            disabled={loading || saving}
-                            className="border-0 pl-0 !ring-0 !outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Facebook className="h-9 w-9 shrink-0 text-[#64748B]" />
-                        <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:ring-0 focus-within:outline-none">
-                          <span className="inline-flex items-center pl-3 text-[#64748B] text-xs">https://</span>
-                          <Input
-                            placeholder="username"
-                            value={socialAccounts.facebook.replace(/^@+/, '')}
-                            onChange={e =>
-                              setSocialAccounts(prev => ({
-                                ...prev,
-                                facebook: e.target.value.replace(/^@+/, ''),
-                              }))
-                            }
-                            disabled={loading || saving}
-                            className="border-0 pl-0 !ring-0 !outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <KakaoTalkIcon className="h-9 w-9 shrink-0 text-[#64748B]" />
-                        <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:ring-0 focus-within:outline-none">
-                          <span className="inline-flex items-center pl-3 text-[#64748B] text-xs">https://</span>
-                          <Input
-                            value={socialAccounts.kakaoTalk.replace(/^@+/, '')}
-                            onChange={e =>
-                              setSocialAccounts(prev => ({
-                                ...prev,
-                                kakaoTalk: e.target.value.replace(/^@+/, ''),
-                              }))
-                            }
-                            disabled={loading || saving}
-                            className="border-0 pl-0 !ring-0 !outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                          />
-                        </div>
+                  <div className="grid gap-2.5 md:grid-cols-2">
+                    <div className="flex items-center gap-2">
+                      <TikTokIcon className="h-9 w-9 shrink-0 text-[#64748B]" />
+                      <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:outline-none focus-within:ring-0">
+                        <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                        <Input
+                          placeholder="username"
+                          value={socialAccounts.tiktok.replace(/^@+/, '')}
+                          onChange={e =>
+                            setSocialAccounts(prev => ({
+                              ...prev,
+                              tiktok: e.target.value.replace(/^@+/, ''),
+                            }))
+                          }
+                          disabled={loading || saving}
+                          className="border-0 pl-0 !outline-none !ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
                       </div>
                     </div>
+
+                    <div className="flex items-center gap-2">
+                      <Youtube className="h-9 w-9 shrink-0 text-[#64748B]" />
+                      <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:outline-none focus-within:ring-0">
+                        <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                        <Input
+                          placeholder="username"
+                          value={socialAccounts.youtube.replace(/^@+/, '')}
+                          onChange={e =>
+                            setSocialAccounts(prev => ({
+                              ...prev,
+                              youtube: e.target.value.replace(/^@+/, ''),
+                            }))
+                          }
+                          disabled={loading || saving}
+                          className="border-0 pl-0 !outline-none !ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Instagram className="h-9 w-9 shrink-0 text-[#64748B]" />
+                      <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:outline-none focus-within:ring-0">
+                        <span className="inline-flex items-center pl-3 text-[#64748B]">@</span>
+                        <Input
+                          placeholder="username"
+                          value={socialAccounts.instagram.replace(/^@+/, '')}
+                          onChange={e =>
+                            setSocialAccounts(prev => ({
+                              ...prev,
+                              instagram: e.target.value.replace(/^@+/, ''),
+                            }))
+                          }
+                          disabled={loading || saving}
+                          className="border-0 pl-0 !outline-none !ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Facebook className="h-9 w-9 shrink-0 text-[#64748B]" />
+                      <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:outline-none focus-within:ring-0">
+                        <span className="inline-flex items-center pl-3 text-xs text-[#64748B]">
+                          https://
+                        </span>
+                        <Input
+                          placeholder="username"
+                          value={socialAccounts.facebook.replace(/^@+/, '')}
+                          onChange={e =>
+                            setSocialAccounts(prev => ({
+                              ...prev,
+                              facebook: e.target.value.replace(/^@+/, ''),
+                            }))
+                          }
+                          disabled={loading || saving}
+                          className="border-0 pl-0 !outline-none !ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <KakaoTalkIcon className="h-9 w-9 shrink-0 text-[#64748B]" />
+                      <div className="flex flex-1 rounded-md border border-[#E2E8F0] focus-within:outline-none focus-within:ring-0">
+                        <span className="inline-flex items-center pl-3 text-xs text-[#64748B]">
+                          https://
+                        </span>
+                        <Input
+                          value={socialAccounts.kakaoTalk.replace(/^@+/, '')}
+                          onChange={e =>
+                            setSocialAccounts(prev => ({
+                              ...prev,
+                              kakaoTalk: e.target.value.replace(/^@+/, ''),
+                            }))
+                          }
+                          disabled={loading || saving}
+                          className="border-0 pl-0 !outline-none !ring-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>

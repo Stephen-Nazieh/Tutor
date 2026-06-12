@@ -1,6 +1,14 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback, useMemo, Suspense, type ComponentProps } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+  Suspense,
+  type ComponentProps,
+} from 'react'
 import { useSession } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -187,7 +195,9 @@ function TutorClassroomContent() {
         if (diff > 0) {
           const mins = Math.floor(diff / 60000)
           const secs = Math.floor((diff % 60000) / 1000)
-          setSessionTimer(`Starts in ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`)
+          setSessionTimer(
+            `Starts in ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+          )
         } else {
           setSessionTimer('Starting soon')
         }
@@ -224,7 +234,15 @@ function TutorClassroomContent() {
       onStudentJoined: (student: { userId: string; name: string; email?: string }) => {
         setParticipants(prev => {
           if (prev.some(p => p.studentId === student.userId)) return prev
-          return [...prev, { studentId: student.userId, name: student.name, email: student.email ?? null, joinedAt: new Date().toISOString() }]
+          return [
+            ...prev,
+            {
+              studentId: student.userId,
+              name: student.name,
+              email: student.email ?? null,
+              joinedAt: new Date().toISOString(),
+            },
+          ]
         })
         toast.info(`${student.name || 'A student'} joined`)
       },
@@ -234,11 +252,18 @@ function TutorClassroomContent() {
       onChatMessage: (msg: ChatMessage) => {
         setChatMessages(prev => [...prev.slice(-49), msg])
       },
-      onRoomState: (state: { students?: { userId: string; name: string }[]; chatHistory?: ChatMessage[]; tasks?: LiveTask[]; whiteboardData?: { tutorBoard?: { pages?: WhiteboardPage[]; pageIndex?: number } } }) => {
+      onRoomState: (state: {
+        students?: { userId: string; name: string }[]
+        chatHistory?: ChatMessage[]
+        tasks?: LiveTask[]
+        whiteboardData?: { tutorBoard?: { pages?: WhiteboardPage[]; pageIndex?: number } }
+      }) => {
         if (state.students) {
           setParticipants(prev => {
             const existing = new Set(prev.map(p => p.studentId))
-            const incoming = state.students!.filter(s => !existing.has(s.userId)).map(s => ({ studentId: s.userId, name: s.name, email: null, joinedAt: null }))
+            const incoming = state
+              .students!.filter(s => !existing.has(s.userId))
+              .map(s => ({ studentId: s.userId, name: s.name, email: null, joinedAt: null }))
             return [...prev, ...incoming]
           })
         }
@@ -256,16 +281,31 @@ function TutorClassroomContent() {
 
   const { socket, isConnected, error } = useSocket(socketOptions)
 
-  const deployTask = useCallback((task: BuilderTask) => {
-    if (!socket || !sessionId) return
-    socket.emit('task:deploy', { roomId: sessionId, task })
-    setDeployedTasks(prev => {
-      const exists = prev.some(t => t.id === task.taskId)
-      if (exists) return prev
-      return [...prev, { id: task.taskId, title: task.title, content: task.content ?? '', source: 'task' as const, deployedAt: Date.now(), polls: [], questions: [], dmiItems: [] }]
-    })
-    toast.success(`Task deployed: ${task.title}`)
-  }, [socket, sessionId])
+  const deployTask = useCallback(
+    (task: BuilderTask) => {
+      if (!socket || !sessionId) return
+      socket.emit('task:deploy', { roomId: sessionId, task })
+      setDeployedTasks(prev => {
+        const exists = prev.some(t => t.id === task.taskId)
+        if (exists) return prev
+        return [
+          ...prev,
+          {
+            id: task.taskId,
+            title: task.title,
+            content: task.content ?? '',
+            source: 'task' as const,
+            deployedAt: Date.now(),
+            polls: [],
+            questions: [],
+            dmiItems: [],
+          },
+        ]
+      })
+      toast.success(`Task deployed: ${task.title}`)
+    },
+    [socket, sessionId]
+  )
 
   const sendChat = useCallback(() => {
     if (!chatInput.trim() || !socket) return
@@ -354,7 +394,11 @@ function TutorClassroomContent() {
                       : 'border-slate-200 bg-slate-50 text-slate-600'
                 )}
               >
-                {sessionDetails?.status === 'active' ? '● Live' : sessionDetails?.status === 'scheduled' ? '⏳ Scheduled' : sessionDetails?.status ?? 'Unknown'}
+                {sessionDetails?.status === 'active'
+                  ? '● Live'
+                  : sessionDetails?.status === 'scheduled'
+                    ? '⏳ Scheduled'
+                    : (sessionDetails?.status ?? 'Unknown')}
               </Badge>
               {sessionTimer && (
                 <span className="font-mono text-xs text-slate-500">{sessionTimer}</span>
@@ -369,7 +413,12 @@ function TutorClassroomContent() {
                       : 'border-slate-200 bg-slate-50 text-slate-500'
                 )}
               >
-                <div className={cn('h-1.5 w-1.5 rounded-full', isConnected ? 'bg-emerald-500' : error ? 'bg-red-500' : 'bg-slate-400')} />
+                <div
+                  className={cn(
+                    'h-1.5 w-1.5 rounded-full',
+                    isConnected ? 'bg-emerald-500' : error ? 'bg-red-500' : 'bg-slate-400'
+                  )}
+                />
                 {isConnected ? 'Connected' : error ? 'Disconnected' : 'Connecting'}
               </div>
             </div>
@@ -402,7 +451,11 @@ function TutorClassroomContent() {
                 if (confirm('End this session for all participants?')) void endSession()
               }}
             >
-              {ending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <StopCircle className="h-3.5 w-3.5" />}
+              {ending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <StopCircle className="h-3.5 w-3.5" />
+              )}
               End Session
             </Button>
           </div>
@@ -417,7 +470,11 @@ function TutorClassroomContent() {
           style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
           onClick={() => setLeftPanelHidden(v => !v)}
         >
-          {leftPanelHidden ? <ChevronRight className="h-5 w-5 text-blue-600" /> : <ChevronLeft className="h-5 w-5 text-blue-600" />}
+          {leftPanelHidden ? (
+            <ChevronRight className="h-5 w-5 text-blue-600" />
+          ) : (
+            <ChevronLeft className="h-5 w-5 text-blue-600" />
+          )}
         </div>
 
         {/* Left: Deployed tasks + Chat */}
@@ -431,13 +488,20 @@ function TutorClassroomContent() {
             </div>
             <ScrollArea className="flex-1 p-3">
               {deployedTasks.length === 0 ? (
-                <p className="text-xs text-gray-400">No tasks deployed yet. Deploy from the Tasks panel.</p>
+                <p className="text-xs text-gray-400">
+                  No tasks deployed yet. Deploy from the Tasks panel.
+                </p>
               ) : (
                 <div className="space-y-2">
                   {deployedTasks.map(task => (
-                    <div key={task.id} className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2">
+                    <div
+                      key={task.id}
+                      className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2"
+                    >
                       <p className="text-sm font-medium text-gray-800">{task.title}</p>
-                      <p className="text-xs text-gray-400">Deployed {new Date(task.deployedAt).toLocaleTimeString()}</p>
+                      <p className="text-xs text-gray-400">
+                        Deployed {new Date(task.deployedAt).toLocaleTimeString()}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -462,11 +526,21 @@ function TutorClassroomContent() {
                 <Input
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat() } }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      sendChat()
+                    }
+                  }}
                   className="h-8 text-xs"
                   placeholder="Message to students..."
                 />
-                <Button size="icon" className="h-8 w-8 shrink-0" disabled={!chatInput.trim() || !socket} onClick={sendChat}>
+                <Button
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  disabled={!chatInput.trim() || !socket}
+                  onClick={sendChat}
+                >
                   <Send className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -512,7 +586,11 @@ function TutorClassroomContent() {
 
             <div className="shrink-0 px-4 pb-3" />
 
-            <TabsContent value="classroom" padding="none" className="flex h-full min-h-0 flex-1 flex-col outline-none">
+            <TabsContent
+              value="classroom"
+              padding="none"
+              className="flex h-full min-h-0 flex-1 flex-col outline-none"
+            >
               <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border-2 border-blue-200 bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)]">
                 <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-center">
                   <span className="rounded-b-md bg-blue-500 px-3 py-0.5 text-[11px] font-medium text-white">
@@ -522,14 +600,22 @@ function TutorClassroomContent() {
                 <div className="flex flex-1 items-center justify-center p-6 pt-8">
                   <div className="text-center text-gray-400">
                     <BookOpen className="mx-auto mb-3 h-12 w-12 opacity-30" />
-                    <p className="text-sm">Deploy a task from the Tasks panel to display it here for students.</p>
-                    <p className="mt-1 text-xs text-gray-300">Students see the active task in their classroom view.</p>
+                    <p className="text-sm">
+                      Deploy a task from the Tasks panel to display it here for students.
+                    </p>
+                    <p className="mt-1 text-xs text-gray-300">
+                      Students see the active task in their classroom view.
+                    </p>
                   </div>
                 </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="whiteboard" padding="none" className="flex h-full min-h-0 flex-1 flex-col outline-none">
+            <TabsContent
+              value="whiteboard"
+              padding="none"
+              className="flex h-full min-h-0 flex-1 flex-col outline-none"
+            >
               <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border-2 border-[#1e3a5f] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)]">
                 <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-center">
                   <span className="rounded-b-md bg-[#1e3a5f] px-3 py-0.5 text-[11px] font-medium text-white">
@@ -570,7 +656,13 @@ function TutorClassroomContent() {
                       : 'text-gray-500 hover:text-gray-900'
                   )}
                 >
-                  {tab === 'participants' ? <Users className="mr-1 h-3 w-3" /> : tab === 'tasks' ? <BookOpen className="mr-1 h-3 w-3" /> : <BarChart2 className="mr-1 h-3 w-3" />}
+                  {tab === 'participants' ? (
+                    <Users className="mr-1 h-3 w-3" />
+                  ) : tab === 'tasks' ? (
+                    <BookOpen className="mr-1 h-3 w-3" />
+                  ) : (
+                    <BarChart2 className="mr-1 h-3 w-3" />
+                  )}
                   {tab}
                 </Button>
               ))}
@@ -580,7 +672,9 @@ function TutorClassroomContent() {
           <div className="flex-1 overflow-y-auto p-3">
             {rightTab === 'participants' && (
               <div className="space-y-2">
-                <p className="mb-2 text-xs font-medium text-gray-400">{participants.length} connected</p>
+                <p className="mb-2 text-xs font-medium text-gray-400">
+                  {participants.length} connected
+                </p>
                 {participants.length === 0 ? (
                   <p className="text-xs text-gray-400">No students have joined yet.</p>
                 ) : (
@@ -591,9 +685,13 @@ function TutorClassroomContent() {
                           {(p.name ?? p.email ?? '?')[0].toUpperCase()}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-gray-800">{p.name ?? p.email ?? 'Student'}</p>
+                          <p className="truncate text-sm font-medium text-gray-800">
+                            {p.name ?? p.email ?? 'Student'}
+                          </p>
                           {p.joinedAt && (
-                            <p className="text-xs text-gray-400">Joined {new Date(p.joinedAt).toLocaleTimeString()}</p>
+                            <p className="text-xs text-gray-400">
+                              Joined {new Date(p.joinedAt).toLocaleTimeString()}
+                            </p>
                           )}
                         </div>
                       </CardContent>
@@ -605,18 +703,29 @@ function TutorClassroomContent() {
 
             {rightTab === 'tasks' && (
               <div className="space-y-2">
-                <p className="mb-2 text-xs font-medium text-gray-400">Select a task to deploy to students</p>
+                <p className="mb-2 text-xs font-medium text-gray-400">
+                  Select a task to deploy to students
+                </p>
                 {availableTasks.length === 0 ? (
-                  <p className="text-xs text-gray-400">No tasks found for this course. Build tasks in the Course Builder.</p>
+                  <p className="text-xs text-gray-400">
+                    No tasks found for this course. Build tasks in the Course Builder.
+                  </p>
                 ) : (
                   availableTasks
                     .filter(t => t.status === 'published')
                     .map(task => (
-                      <Card key={task.taskId} className="cursor-pointer shadow-none transition-shadow hover:shadow-sm">
+                      <Card
+                        key={task.taskId}
+                        className="cursor-pointer shadow-none transition-shadow hover:shadow-sm"
+                      >
                         <CardContent className="flex items-center justify-between gap-2 px-3 py-2">
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-gray-800">{task.title}</p>
-                            <Badge variant="outline" className="mt-0.5 text-[10px]">{task.type}</Badge>
+                            <p className="truncate text-sm font-medium text-gray-800">
+                              {task.title}
+                            </p>
+                            <Badge variant="outline" className="mt-0.5 text-[10px]">
+                              {task.type}
+                            </Badge>
                           </div>
                           <Button
                             size="sm"
@@ -651,7 +760,11 @@ function TutorClassroomContent() {
                         key={i}
                         placeholder={`Option ${i + 1}`}
                         value={opt}
-                        onChange={e => setPollOptions(prev => prev.map((o, idx) => idx === i ? e.target.value : o))}
+                        onChange={e =>
+                          setPollOptions(prev =>
+                            prev.map((o, idx) => (idx === i ? e.target.value : o))
+                          )
+                        }
                         className="h-8 text-sm"
                       />
                     ))}

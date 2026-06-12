@@ -135,42 +135,14 @@ const ASIA_UNIVERSITIES: Record<string, string[]> = {
     'National Tsing Hua University',
     'National Cheng Kung University',
   ],
-  TH: [
-    'Chulalongkorn University',
-    'Mahidol University',
-    'Thammasat University',
-  ],
-  MY: [
-    'University of Malaya',
-    'Universiti Teknologi Malaysia',
-    'Universiti Putra Malaysia',
-  ],
-  ID: [
-    'University of Indonesia',
-    'Gadjah Mada University',
-    'Bandung Institute of Technology',
-  ],
-  PH: [
-    'University of the Philippines',
-    'Ateneo de Manila University',
-    'De La Salle University',
-  ],
-  VN: [
-    'Vietnam National University Hanoi',
-    'Vietnam National University Ho Chi Minh City',
-  ],
-  BD: [
-    'University of Dhaka',
-    'Bangladesh University of Engineering and Technology',
-  ],
-  PK: [
-    'Quaid-i-Azam University',
-    'Lahore University of Management Sciences',
-  ],
-  LK: [
-    'University of Colombo',
-    'University of Peradeniya',
-  ],
+  TH: ['Chulalongkorn University', 'Mahidol University', 'Thammasat University'],
+  MY: ['University of Malaya', 'Universiti Teknologi Malaysia', 'Universiti Putra Malaysia'],
+  ID: ['University of Indonesia', 'Gadjah Mada University', 'Bandung Institute of Technology'],
+  PH: ['University of the Philippines', 'Ateneo de Manila University', 'De La Salle University'],
+  VN: ['Vietnam National University Hanoi', 'Vietnam National University Ho Chi Minh City'],
+  BD: ['University of Dhaka', 'Bangladesh University of Engineering and Technology'],
+  PK: ['Quaid-i-Azam University', 'Lahore University of Management Sciences'],
+  LK: ['University of Colombo', 'University of Peradeniya'],
   NP: ['Tribhuvan University'],
   MM: ['University of Yangon'],
   KH: ['Royal University of Phnom Penh'],
@@ -237,12 +209,7 @@ const EUROPE_UNIVERSITIES: Record<string, string[]> = {
     'Leiden University',
     'Eindhoven University of Technology',
   ],
-  CH: [
-    'ETH Zurich',
-    'EPFL',
-    'University of Zurich',
-    'University of Geneva',
-  ],
+  CH: ['ETH Zurich', 'EPFL', 'University of Zurich', 'University of Geneva'],
   IT: [
     'University of Bologna',
     'Sapienza University of Rome',
@@ -260,61 +227,20 @@ const EUROPE_UNIVERSITIES: Record<string, string[]> = {
     'KTH Royal Institute of Technology',
     'Uppsala University',
   ],
-  DK: [
-    'University of Copenhagen',
-    'Technical University of Denmark',
-    'Aarhus University',
-  ],
-  NO: [
-    'University of Oslo',
-    'Norwegian University of Science and Technology',
-  ],
-  FI: [
-    'University of Helsinki',
-    'Aalto University',
-  ],
-  BE: [
-    'KU Leuven',
-    'Ghent University',
-    'Université catholique de Louvain',
-  ],
-  AT: [
-    'University of Vienna',
-    'Vienna University of Technology',
-  ],
-  IE: [
-    'Trinity College Dublin',
-    'University College Dublin',
-  ],
-  PT: [
-    'University of Lisbon',
-    'University of Porto',
-  ],
-  PL: [
-    'University of Warsaw',
-    'Jagiellonian University',
-  ],
-  CZ: [
-    'Charles University',
-    'Czech Technical University in Prague',
-  ],
+  DK: ['University of Copenhagen', 'Technical University of Denmark', 'Aarhus University'],
+  NO: ['University of Oslo', 'Norwegian University of Science and Technology'],
+  FI: ['University of Helsinki', 'Aalto University'],
+  BE: ['KU Leuven', 'Ghent University', 'Université catholique de Louvain'],
+  AT: ['University of Vienna', 'Vienna University of Technology'],
+  IE: ['Trinity College Dublin', 'University College Dublin'],
+  PT: ['University of Lisbon', 'University of Porto'],
+  PL: ['University of Warsaw', 'Jagiellonian University'],
+  CZ: ['Charles University', 'Czech Technical University in Prague'],
   HU: ['Eötvös Loránd University'],
-  GR: [
-    'National and Kapodistrian University of Athens',
-    'Aristotle University of Thessaloniki',
-  ],
-  RU: [
-    'Lomonosov Moscow State University',
-    'Saint Petersburg State University',
-  ],
-  TR: [
-    'Middle East Technical University',
-    'Bilkent University',
-    'Koç University',
-  ],
-  UA: [
-    'Taras Shevchenko National University of Kyiv',
-  ],
+  GR: ['National and Kapodistrian University of Athens', 'Aristotle University of Thessaloniki'],
+  RU: ['Lomonosov Moscow State University', 'Saint Petersburg State University'],
+  TR: ['Middle East Technical University', 'Bilkent University', 'Koç University'],
+  UA: ['Taras Shevchenko National University of Kyiv'],
 }
 
 // North America
@@ -434,19 +360,10 @@ const MIDDLE_EAST_UNIVERSITIES: Record<string, string[]> = {
     'Carnegie Mellon University in Qatar',
   ],
   KW: ['Kuwait University'],
-  BH: [
-    'University of Bahrain',
-    'Arabian Gulf University',
-  ],
+  BH: ['University of Bahrain', 'Arabian Gulf University'],
   OM: ['Sultan Qaboos University'],
-  JO: [
-    'University of Jordan',
-    'Jordan University of Science and Technology',
-  ],
-  LB: [
-    'American University of Beirut',
-    'Lebanese University',
-  ],
+  JO: ['University of Jordan', 'Jordan University of Science and Technology'],
+  LB: ['American University of Beirut', 'Lebanese University'],
   EG: [
     'Cairo University',
     'Ain Shams University',
@@ -460,10 +377,7 @@ const MIDDLE_EAST_UNIVERSITIES: Record<string, string[]> = {
     'Sharif University of Technology',
     'Iran University of Science and Technology',
   ],
-  IQ: [
-    'University of Baghdad',
-    'University of Basrah',
-  ],
+  IQ: ['University of Baghdad', 'University of Basrah'],
   IL: [
     'Hebrew University of Jerusalem',
     'Technion — Israel Institute of Technology',
@@ -472,25 +386,13 @@ const MIDDLE_EAST_UNIVERSITIES: Record<string, string[]> = {
     'Bar-Ilan University',
   ],
   PS: ['Birzeit University'],
-  SY: [
-    'Damascus University',
-    'University of Aleppo',
-  ],
+  SY: ['Damascus University', 'University of Aleppo'],
   YE: ["Sana'a University"],
   LY: ['University of Tripoli'],
   SD: ['University of Khartoum'],
-  MA: [
-    'Mohammed V University',
-    'Cadi Ayyad University',
-  ],
-  TN: [
-    'University of Tunis',
-    'Tunis El Manar University',
-  ],
-  DZ: [
-    'University of Algiers',
-    'USTHB',
-  ],
+  MA: ['Mohammed V University', 'Cadi Ayyad University'],
+  TN: ['University of Tunis', 'Tunis El Manar University'],
+  DZ: ['University of Algiers', 'USTHB'],
 }
 
 // Oceania
@@ -529,10 +431,7 @@ const OCEANIA_UNIVERSITIES: Record<string, string[]> = {
     'Lincoln University',
     'Auckland University of Technology',
   ],
-  FJ: [
-    'University of the South Pacific',
-    'Fiji National University',
-  ],
+  FJ: ['University of the South Pacific', 'Fiji National University'],
   PG: ['University of Papua New Guinea'],
   WS: ['National University of Samoa'],
 }
@@ -568,18 +467,9 @@ const SOUTH_AMERICA_UNIVERSITIES: Record<string, string[]> = {
     'University of the Andes',
     'Pontifical Xavierian University',
   ],
-  PE: [
-    'National University of San Marcos',
-    'Pontifical Catholic University of Peru',
-  ],
-  VE: [
-    'Central University of Venezuela',
-    'Simón Bolívar University',
-  ],
-  EC: [
-    'Central University of Ecuador',
-    'Escuela Politécnica Nacional',
-  ],
+  PE: ['National University of San Marcos', 'Pontifical Catholic University of Peru'],
+  VE: ['Central University of Venezuela', 'Simón Bolívar University'],
+  EC: ['Central University of Ecuador', 'Escuela Politécnica Nacional'],
   UY: ['University of the Republic'],
   PY: ['National University of Asunción'],
   BO: ['Higher University of San Andrés'],
@@ -609,22 +499,13 @@ const AFRICA_UNIVERSITIES: Record<string, string[]> = {
     'University of Benin',
     'University of Ilorin',
   ],
-  KE: [
-    'University of Nairobi',
-    'Kenyatta University',
-    'Strathmore University',
-    'Moi University',
-  ],
+  KE: ['University of Nairobi', 'Kenyatta University', 'Strathmore University', 'Moi University'],
   GH: [
     'University of Ghana',
     'Kwame Nkrumah University of Science and Technology',
     'University of Cape Coast',
   ],
-  EG: [
-    'Cairo University',
-    'Ain Shams University',
-    'Alexandria University',
-  ],
+  EG: ['Cairo University', 'Ain Shams University', 'Alexandria University'],
   ET: ['Addis Ababa University'],
   UG: ['Makerere University'],
   TZ: ['University of Dar es Salaam'],

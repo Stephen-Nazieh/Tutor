@@ -66,7 +66,10 @@ export const POST = withCsrf(
 
       if (!outline.length) {
         return NextResponse.json(
-          { error: 'Could not extract lessons from course materials. Try uploading clearer content.' },
+          {
+            error:
+              'Could not extract lessons from course materials. Try uploading clearer content.',
+          },
           { status: 422 }
         )
       }

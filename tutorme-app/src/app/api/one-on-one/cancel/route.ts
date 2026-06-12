@@ -66,10 +66,7 @@ export async function PATCH(request: NextRequest) {
           .update(liveSession)
           .set({ status: 'ended', endedAt: new Date() })
           .where(
-            and(
-              eq(liveSession.sessionId, updatedEvent.externalId),
-              ne(liveSession.status, 'ended')
-            )
+            and(eq(liveSession.sessionId, updatedEvent.externalId), ne(liveSession.status, 'ended'))
           )
       }
     }

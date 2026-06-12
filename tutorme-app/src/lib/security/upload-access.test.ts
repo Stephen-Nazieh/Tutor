@@ -144,15 +144,15 @@ describe('canReadUploadKey', () => {
 
 describe('canDeleteUploadKey', () => {
   it('allows deleting your own document', () => {
-    expect(
-      canDeleteUploadKey(makeSession('user-1', 'STUDENT'), 'documents/user-1/file.pdf')
-    ).toBe(true)
+    expect(canDeleteUploadKey(makeSession('user-1', 'STUDENT'), 'documents/user-1/file.pdf')).toBe(
+      true
+    )
   })
 
   it('denies deleting another user document', () => {
-    expect(
-      canDeleteUploadKey(makeSession('user-1', 'STUDENT'), 'documents/user-2/file.pdf')
-    ).toBe(false)
+    expect(canDeleteUploadKey(makeSession('user-1', 'STUDENT'), 'documents/user-2/file.pdf')).toBe(
+      false
+    )
   })
 
   it('allows a student deleting their own submission', () => {
@@ -177,8 +177,6 @@ describe('canDeleteUploadKey', () => {
   })
 
   it('denies unrecognized path patterns by default', () => {
-    expect(canDeleteUploadKey(makeSession('user-1', 'STUDENT'), 'some/other/path.pdf')).toBe(
-      false
-    )
+    expect(canDeleteUploadKey(makeSession('user-1', 'STUDENT'), 'some/other/path.pdf')).toBe(false)
   })
 })

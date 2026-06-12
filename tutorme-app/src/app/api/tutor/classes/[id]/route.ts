@@ -322,9 +322,7 @@ export const PATCH = withCsrf(
         })
         .where(eq(liveSession.sessionId, classId))
 
-      getIO()
-        ?.to(classId)
-        .emit('session:ended', { sessionId: classId, reason: 'tutor-ended' })
+      getIO()?.to(classId).emit('session:ended', { sessionId: classId, reason: 'tutor-ended' })
 
       const [partCount, messagesCountResult] = await Promise.all([
         drizzleDb

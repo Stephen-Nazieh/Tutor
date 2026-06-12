@@ -839,7 +839,9 @@ export async function initEnhancedSocketServer(server: NetServer) {
       }
 
       // Add user to room with activity tracking
-      await (effectiveRole === 'student' ? addStudentToRoom(socket, room) : addTutorToRoom(socket, room))
+      await (effectiveRole === 'student'
+        ? addStudentToRoom(socket, room)
+        : addTutorToRoom(socket, room))
     })
 
     // Activity ping keeps room and student alive during quiet sessions
@@ -1107,7 +1109,11 @@ export async function initEnhancedSocketServer(server: NetServer) {
               id: (raw.id as string) || `sync-${Date.now()}-${Math.random()}`,
               title: (raw.title as string) || 'Untitled',
               content: (raw.description as string) || (raw.taskContent as string) || '',
-              source: tasks.includes(item) ? 'task' : assessments.includes(item) ? 'assessment' : 'homework',
+              source: tasks.includes(item)
+                ? 'task'
+                : assessments.includes(item)
+                  ? 'assessment'
+                  : 'homework',
               dmiItems: Array.isArray(raw.dmiItems)
                 ? (raw.dmiItems as Array<Record<string, unknown>>).map(d => ({
                     id: (d.id as string) || '',

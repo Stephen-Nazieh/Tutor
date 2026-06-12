@@ -115,7 +115,8 @@ export function AnalyticsPanel({
 
   const taskCompletions = useMemo(() => {
     const activeTask = liveTasks?.find(t => t.completedBy && t.completedBy.length > 0)
-    if (!activeTask?.completedBy) return { completed: 0, total: students?.length ?? 0, taskName: '' }
+    if (!activeTask?.completedBy)
+      return { completed: 0, total: students?.length ?? 0, taskName: '' }
     return {
       completed: activeTask.completedBy.length,
       total: students?.length ?? 0,

@@ -52,21 +52,22 @@ export const GET = withAuth(
 
       // Load schedules for each variant
       const variantIds = rows.map(r => r.publishedCourseId)
-      const schedules = variantIds.length > 0
-        ? await drizzleDb
-            .select({
-              scheduleId: courseSchedule.scheduleId,
-              courseId: courseSchedule.courseId,
-              scheduleIndex: courseSchedule.scheduleIndex,
-              schedule: courseSchedule.schedule,
-              weeksToSchedule: courseSchedule.weeksToSchedule,
-              maxStudents: courseSchedule.maxStudents,
-              enrolledCount: courseSchedule.enrolledCount,
-            })
-            .from(courseSchedule)
-            .where(inArray(courseSchedule.courseId, variantIds))
-            .orderBy(courseSchedule.scheduleIndex)
-        : []
+      const schedules =
+        variantIds.length > 0
+          ? await drizzleDb
+              .select({
+                scheduleId: courseSchedule.scheduleId,
+                courseId: courseSchedule.courseId,
+                scheduleIndex: courseSchedule.scheduleIndex,
+                schedule: courseSchedule.schedule,
+                weeksToSchedule: courseSchedule.weeksToSchedule,
+                maxStudents: courseSchedule.maxStudents,
+                enrolledCount: courseSchedule.enrolledCount,
+              })
+              .from(courseSchedule)
+              .where(inArray(courseSchedule.courseId, variantIds))
+              .orderBy(courseSchedule.scheduleIndex)
+          : []
 
       const schedulesByCourse = new Map<string, typeof schedules>()
       for (const s of schedules) {
@@ -158,9 +159,14 @@ function generateSessionDates(
     const hours = parseInt(timeParts[0], 10)
     const minutes = parseInt(timeParts[1], 10)
     if (
-      !Number.isInteger(hours) || !Number.isInteger(minutes) ||
-      hours < 0 || hours > 23 || minutes < 0 || minutes > 59
-    ) continue
+      !Number.isInteger(hours) ||
+      !Number.isInteger(minutes) ||
+      hours < 0 ||
+      hours > 23 ||
+      minutes < 0 ||
+      minutes > 59
+    )
+      continue
 
     if (slot.date) {
       // Manual specific date

@@ -63,19 +63,20 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted p-4">
+    <div className="from-background via-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       <Card
-        className="w-full max-w-md overflow-hidden rounded-3xl border-border/30 shadow-elevation-3"
+        className="border-border/30 shadow-elevation-3 w-full max-w-md overflow-hidden rounded-3xl"
         style={{
-          background: 'linear-gradient(145deg, hsl(var(--card) / 0.95) 0%, hsl(var(--surface) / 0.92) 100%)',
+          background:
+            'linear-gradient(145deg, hsl(var(--card) / 0.95) 0%, hsl(var(--surface) / 0.92) 100%)',
         }}
       >
-        <CardHeader className="text-center pb-4">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-            <Mail className="h-6 w-6 text-primary" />
+        <CardHeader className="pb-4 text-center">
+          <div className="bg-primary/10 mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl">
+            <Mail className="text-primary h-6 w-6" />
           </div>
           <CardTitle
-            className="text-2xl font-bold text-foreground"
+            className="text-foreground text-2xl font-bold"
             style={{ fontFamily: "'Fira Code', monospace" }}
           >
             Forgot Password
@@ -87,14 +88,17 @@ export default function ForgotPasswordPage() {
         <CardContent>
           {submitted ? (
             <div className="space-y-4">
-              <div className="flex items-start gap-3 rounded-xl border border-success/20 bg-success/10 p-4 text-sm text-success">
+              <div className="border-success/20 bg-success/10 text-success flex items-start gap-3 rounded-xl border p-4 text-sm">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>If an account exists for that email, you will receive a password reset link shortly.</span>
+                <span>
+                  If an account exists for that email, you will receive a password reset link
+                  shortly.
+                </span>
               </div>
               <Link href={`${localePrefix}/login`}>
                 <Button
                   variant="outline"
-                  className="w-full rounded-xl border-border/50 transition-all duration-200 hover:bg-muted"
+                  className="border-border/50 hover:bg-muted w-full rounded-xl transition-all duration-200"
                 >
                   Back to login
                 </Button>
@@ -103,7 +107,7 @@ export default function ForgotPasswordPage() {
           ) : (
             <>
               {error && (
-                <div className="mb-4 flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+                <div className="border-destructive/20 bg-destructive/10 text-destructive mb-4 flex items-center gap-2 rounded-xl border p-3 text-sm">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   {error}
                 </div>
@@ -121,12 +125,12 @@ export default function ForgotPasswordPage() {
                     onChange={e => setEmail(e.target.value)}
                     required
                     disabled={isLoading}
-                    className="h-12 rounded-xl border-border/50 bg-input/60 px-5 text-base transition-all duration-200 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/25"
+                    className="border-border/50 bg-input/60 placeholder:text-muted-foreground/60 focus-visible:border-primary focus-visible:ring-primary/25 h-12 rounded-xl px-5 text-base transition-all duration-200 focus-visible:ring-2"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="h-12 w-full rounded-xl bg-primary text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-200 hover:brightness-110 hover:shadow-xl hover:shadow-primary/30 active:scale-[0.98]"
+                  className="bg-primary text-primary-foreground shadow-primary/20 hover:shadow-primary/30 h-12 w-full rounded-xl text-base font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:brightness-110 active:scale-[0.98]"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -145,12 +149,12 @@ export default function ForgotPasswordPage() {
           <div className="mt-6 text-center">
             <Link
               href={`${localePrefix}/login`}
-              className="text-sm text-muted-foreground/70 transition-colors duration-200 hover:text-muted-foreground"
+              className="text-muted-foreground/70 hover:text-muted-foreground text-sm transition-colors duration-200"
             >
               &larr; Back to login
             </Link>
           </div>
-          <p className="mt-4 text-center text-xs text-muted-foreground/50" aria-hidden="true">
+          <p className="text-muted-foreground/50 mt-4 text-center text-xs" aria-hidden="true">
             Solocorn v1.0.1-beta
           </p>
         </CardContent>

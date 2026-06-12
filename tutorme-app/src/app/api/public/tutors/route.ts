@@ -112,9 +112,10 @@ export async function GET(request: NextRequest) {
     const combinationFilter = searchParams.get('combination')?.toLowerCase().trim() || ''
     const nationalityFilter = searchParams.get('nationality')?.toLowerCase().trim() || ''
     const countryParam = searchParams.get('country')?.trim() || ''
-    const countryName = countryParam && countryParam !== 'global'
-      ? ALL_COUNTRIES.find(c => c.code === countryParam)?.name
-      : undefined
+    const countryName =
+      countryParam && countryParam !== 'global'
+        ? ALL_COUNTRIES.find(c => c.code === countryParam)?.name
+        : undefined
     const sortBy = searchParams.get('sort') || 'popular'
 
     const page = Math.max(1, Number(searchParams.get('page')) || 1)
