@@ -154,6 +154,7 @@ export function ModernHeroSection({
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
+      year: 'numeric',
       month: 'long',
       day: 'numeric',
     })
@@ -320,30 +321,30 @@ export function ModernHeroSection({
 
         {/* Action Bar */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-1 items-center justify-start gap-2">
             <Button
               size="sm"
-              className="border border-white bg-[#2563EB] text-white shadow-none hover:translate-y-0 hover:border-white hover:bg-white hover:text-[#2563EB] hover:shadow-none"
+              className="h-[34px] border border-white bg-[#2563EB] px-3 text-[13px] text-white shadow-none hover:translate-y-0 hover:border-white hover:bg-white hover:text-[#2563EB] hover:shadow-none"
               onClick={() => toast.info('Coming soon...')}
             >
-              <Plus className="mr-1.5 h-4 w-4" />
+              <Plus className="mr-1 h-4 w-4" />
               Create Class
             </Button>
             <Button
               size="sm"
-              className="border border-white bg-[#65A30D] text-white shadow-none hover:translate-y-0 hover:bg-white hover:text-[#65A30D] hover:shadow-none"
+              className="h-[34px] border border-white bg-[#65A30D] px-3 text-[13px] text-white shadow-none hover:translate-y-0 hover:bg-white hover:text-[#65A30D] hover:shadow-none"
               onClick={() => toast.info('Coming soon...')}
             >
               <Video className="mr-1.5 h-4 w-4" />
               Go Live
             </Button>
           </div>
-          <div className="flex-1 flex justify-center">
+          <div className="flex-none text-center">
             <span className="text-base text-white">
               {formatDate(currentTime)} • {formatTime(currentTime)} {timeZoneAbbr}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-1 items-center justify-end gap-2">
             {countdown && (
               <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-300">
                 <AnimatedClock className="h-3.5 w-3.5" />
