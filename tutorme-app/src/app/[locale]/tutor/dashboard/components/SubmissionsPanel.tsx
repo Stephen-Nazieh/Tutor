@@ -104,6 +104,14 @@ export function SubmissionsPanel({
     setError(null)
     fetch(`/api/tutor/courses/${courseId}/submissions-tree`, { cache: 'no-store' })
       .then(async res => {
+        const contentType = res.headers.get('content-type') || ''
+        if (!contentType.includes('application/json')) {
+          if (res.status !== 404) {
+            setError(res.ok ? 'Failed to load submissions' : `Server error (${res.status})`)
+          }
+          setData(null)
+          return
+        }
         const json = await res.json()
         if (!res.ok || json?.error) {
           // Silently ignore 404 — course may not have sessions/submissions yet.

@@ -75,7 +75,19 @@ const server = createServer(async (req, res) => {
     if (!isReady) {
       res.statusCode = 503
       res.setHeader('Retry-After', '2')
-      res.end('Server is warming up... (Renderer preparing)')
+      // API clients call res.json() unconditionally in many places, so a plain-text
+      // body here would surface as a confusing "Unexpected token ... is not valid
+      // JSON" error in the UI. Return JSON for API requests so it lands in the
+      // normal { error } handling instead.
+      const wantsJson =
+        (req.url || '').startsWith('/api/') ||
+        (req.headers.accept || '').includes('application/json')
+      if (wantsJson) {
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify({ error: 'Server is warming up... (Renderer preparing)' }))
+      } else {
+        res.end('Server is warming up... (Renderer preparing)')
+      }
       return
     }
 

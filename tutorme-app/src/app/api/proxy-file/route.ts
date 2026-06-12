@@ -11,8 +11,36 @@ import { assertSafeProxyUrl } from '@/lib/security/proxy-url'
 import { isGcsConfigured, refreshGcsUrl } from '@/lib/storage/gcs'
 
 const MAX_SIZE_BYTES = 50 * 1024 * 1024 // 50MB
+const MAX_REDIRECTS = 5
 
 export const runtime = 'nodejs'
+
+/**
+ * Fetch a URL, following redirects manually so each hop can be re-validated
+ * with assertSafeProxyUrl (prevents SSRF via a redirect to an internal host).
+ */
+async function fetchFollowingRedirects(startUrl: string): Promise<Response> {
+  let currentUrl = startUrl
+  for (let i = 0; i <= MAX_REDIRECTS; i++) {
+    const response = await fetch(currentUrl, {
+      method: 'GET',
+      redirect: 'manual',
+      headers: { 'User-Agent': 'TutorMe-Proxy/1.0' },
+    })
+
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location')
+      if (!location) return response
+      const nextUrl = new URL(location, currentUrl)
+      const safeNext = await assertSafeProxyUrl(nextUrl.toString())
+      currentUrl = safeNext.toString()
+      continue
+    }
+
+    return response
+  }
+  throw new Error('Too many redirects')
+}
 
 async function readLimitedResponse(response: Response): Promise<Buffer> {
   if (!response.body) return Buffer.from(await response.arrayBuffer())
@@ -61,17 +89,29 @@ export const GET = withAuth(async (req: NextRequest) => {
       }
     }
 
-    const response = await fetch(urlToFetch, {
-      method: 'GET',
-      redirect: 'manual',
-      // Forward a minimal user-agent so GCS doesn't block us
-      headers: { 'User-Agent': 'TutorMe-Proxy/1.0' },
-    })
+    const response = await fetchFollowingRedirects(urlToFetch)
 
     if (!response.ok) {
+      // Surface the upstream error body (often a short XML/JSON message from
+      // GCS, e.g. "Request has expired" for a stale signed URL) so the UI can
+      // show something actionable instead of a bare status code.
+      let detail = ''
+      try {
+        detail = (await response.text()).slice(0, 500)
+      } catch {
+        // ignore — body may not be readable
+      }
+
+      // 4xx/5xx from the upstream (expired/invalid link, not found, forbidden,
+      // upstream error) describe a real problem with the document itself —
+      // pass the real status through. Only an unresolved redirect (3xx with no
+      // Location) is a genuine gateway failure.
+      const status = response.status >= 400 ? response.status : 502
       return NextResponse.json(
-        { error: `Upstream returned ${response.status}` },
-        { status: response.status >= 500 ? response.status : 502 }
+        {
+          error: `Upstream returned ${response.status}${detail ? `: ${detail}` : ''}`,
+        },
+        { status }
       )
     }
 

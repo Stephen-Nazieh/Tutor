@@ -61,7 +61,12 @@ export function PDFViewer({
         const proxiedUrl = getProxiedPdfUrl(fileUrl)
         const res = await fetch(proxiedUrl)
         if (!res.ok) {
-          throw new Error(`Failed to fetch (${res.status})`)
+          let message = `Failed to fetch (${res.status})`
+          if ((res.headers.get('content-type') || '').includes('application/json')) {
+            const body = await res.json().catch(() => null)
+            if (body?.error) message = body.error
+          }
+          throw new Error(message)
         }
         const buffer = await res.arrayBuffer()
         if (!cancelled) {
