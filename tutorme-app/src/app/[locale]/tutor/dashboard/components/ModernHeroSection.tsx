@@ -192,9 +192,9 @@ export function ModernHeroSection({
         {/* Header Row */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Avatar className="h-14 w-14 rounded-2xl border border-white/40 shadow-[0_12px_28px_rgba(0,0,0,0.18)]">
+            <Avatar className="h-14 w-14 rounded-lg border border-white/40 shadow-[0_12px_28px_rgba(0,0,0,0.18)]">
               <AvatarImage src={session?.user?.image || undefined} alt="Tutor avatar" />
-              <AvatarFallback className="rounded-2xl bg-white/15">
+              <AvatarFallback className="rounded-lg bg-white/15">
                 <User className="h-6 w-6 text-white/70" />
               </AvatarFallback>
             </Avatar>
