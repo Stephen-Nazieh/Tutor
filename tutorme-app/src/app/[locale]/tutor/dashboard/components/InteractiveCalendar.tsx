@@ -1766,9 +1766,12 @@ function MonthView({
 }: any) {
   return (
     <div className="min-h-full overflow-hidden rounded-lg">
-      <div className="grid grid-cols-7 border-b border-gray-100 bg-white/50">
+      <div className="grid grid-cols-7 border-b border-gray-300 bg-white">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-          <div key={day} className="p-1.5 text-center text-xs font-medium text-gray-600">
+          <div
+            key={day}
+            className="flex h-10 items-center justify-center p-1.5 text-center text-xs font-medium text-gray-600"
+          >
             {day}
           </div>
         ))}
@@ -1866,15 +1869,18 @@ function WeekView({
   return (
     <div className="flex min-h-full flex-col rounded-lg bg-white/50">
       {/* Sticky days-of-week header */}
-      <div className="sticky top-0 z-20 grid grid-cols-7 border-b border-gray-100 bg-white/50">
+      <div className="sticky top-0 z-20 grid grid-cols-7 border-b border-gray-300 bg-white shadow-sm">
         {weekDays.map((day, index) => {
           const isToday = day.toDateString() === new Date().toDateString()
           return (
-            <div key={index} className="p-1.5 text-center text-xs font-medium text-gray-600">
-              <p>{day.toLocaleDateString('en-US', { weekday: 'short' })}</p>
-              <p className={cn('text-sm', isToday && 'text-blue-600')}>
+            <div
+              key={index}
+              className="flex h-10 items-center justify-center gap-1 p-1.5 text-center text-xs font-medium text-gray-600"
+            >
+              <span>{day.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+              <span className={cn('text-sm', isToday && 'text-blue-600')}>
                 {day.getDate()}
-              </p>
+              </span>
             </div>
           )
         })}
