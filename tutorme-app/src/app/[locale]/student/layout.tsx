@@ -17,32 +17,62 @@ import {
   Bell,
   ArrowLeft,
   Compass,
-  UserCircle,
+  User,
   ChevronRight,
   ChevronLeft,
   LogOut,
   Settings,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
-type NavItem = { href: string; label: string; icon: React.ComponentType<{ className?: string }> }
+type NavItem = {
+  href: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  iconColor: string
+}
 
 const navItems: NavItem[] = [
-  { href: '/student/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/student/tutors', label: 'Book a Tutor', icon: Compass },
-  { href: '/student/courses', label: 'Courses', icon: GraduationCap },
-  { href: '/student/feedback', label: 'Live Classroom', icon: Video },
-  { href: '/student/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/student/help', label: 'Support', icon: HelpCircle },
+  {
+    href: '/student/dashboard',
+    label: 'Dashboard',
+    icon: LayoutDashboard,
+    iconColor: 'text-[#2563EB]',
+  },
+  { href: '/student/tutors', label: 'Book a Tutor', icon: Compass, iconColor: 'text-[#7C3AED]' },
+  { href: '/student/courses', label: 'Courses', icon: GraduationCap, iconColor: 'text-[#06B6D4]' },
+  { href: '/student/feedback', label: 'Live Classroom', icon: Video, iconColor: 'text-[#16A34A]' },
+  {
+    href: '/student/messages',
+    label: 'Messages',
+    icon: MessageSquare,
+    iconColor: 'text-[#EC4899]',
+  },
+  { href: '/student/help', label: 'Support', icon: HelpCircle, iconColor: 'text-[#8B5CF6]' },
 ]
 
-const bottomNavItems = [{ href: '/student/account', label: 'Account', icon: UserCircle }]
+const bottomNavItems: NavItem[] = [
+  { href: '/student/account', label: 'Account', icon: User, iconColor: 'text-[#64748B]' },
+]
 
 export default function StudentLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [desktopNavOpen, setDesktopNavOpen] = useState(true)
+  const [isPeeking, setIsPeeking] = useState(false)
+
+  useEffect(() => {
+    document.documentElement.classList.add('student-scroll-layout')
+    const peekInterval = setInterval(() => {
+      setIsPeeking(true)
+      setTimeout(() => setIsPeeking(false), 600)
+    }, 8000)
+    return () => {
+      document.documentElement.classList.remove('student-scroll-layout')
+      clearInterval(peekInterval)
+    }
+  }, [])
 
   const isLiveClassRoute = pathname.includes('/student/feedback')
   const isTutorDirectoryRoute = pathname.startsWith('/student/tutors')
@@ -53,9 +83,20 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       href: '/student/feedback',
       label: 'Live Classroom',
       icon: Video,
+      iconColor: 'text-[#16A34A]',
     },
-    { href: '/student/assignments', label: 'Visible Tasks', icon: ClipboardList },
-    { href: '/student/dashboard', label: 'Leave Class', icon: ArrowLeft },
+    {
+      href: '/student/assignments',
+      label: 'Visible Tasks',
+      icon: ClipboardList,
+      iconColor: 'text-[#F59E0B]',
+    },
+    {
+      href: '/student/dashboard',
+      label: 'Leave Class',
+      icon: ArrowLeft,
+      iconColor: 'text-[#64748B]',
+    },
   ]
 
   if (isTutorDirectoryRoute) {
@@ -87,15 +128,20 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 isolate">
+    <div className="isolate flex h-screen overflow-hidden bg-gray-50">
       {/* Layout spacer — reserves space for sidebar without animation */}
-      <div className={cn('hidden shrink-0 lg:block', isFeedbackRoute ? 'w-0' : desktopNavOpen ? 'w-64' : 'w-0')} />
+      <div
+        className={cn(
+          'hidden shrink-0 lg:block',
+          isFeedbackRoute ? 'w-0' : desktopNavOpen ? 'w-64' : 'w-0'
+        )}
+      />
 
       {/* Visual sidebar — fixed overlay, animates with transform only */}
       {!isFeedbackRoute && (
         <aside
           className={cn(
-            'fixed left-0 top-0 z-fixed hidden h-screen lg:flex',
+            'z-fixed fixed left-0 top-0 hidden h-screen lg:flex',
             desktopNavOpen ? 'pointer-events-auto' : 'pointer-events-none'
           )}
         >
@@ -124,7 +170,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                 </div>
               </div>
 
-              <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 pt-2 pb-4">
+              <nav className="min-h-0 flex-1 space-y-2 overflow-y-auto px-4 pb-4 pt-2">
                 {isLiveClassRoute ? (
                   <div>
                     <p className="mb-1.5 px-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
@@ -147,7 +193,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                             )}
                           >
-                            <Icon className="h-5 w-5 flex-shrink-0" />
+                            <Icon className={cn('h-5 w-5 flex-shrink-0', item.iconColor)} />
                             <span className="text-sm font-medium">{item.label}</span>
                           </Link>
                         )
@@ -170,7 +216,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                         )}
                       >
-                        <Icon className="h-5 w-5 flex-shrink-0" />
+                        <Icon className={cn('h-5 w-5 flex-shrink-0', item.iconColor)} />
                         <span className="text-sm font-medium">{item.label}</span>
                       </Link>
                     )
@@ -194,7 +240,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                           : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                       )}
                     >
-                      <Icon className="h-5 w-5 flex-shrink-0" />
+                      <Icon className={cn('h-5 w-5 flex-shrink-0', item.iconColor)} />
                       <span className="font-medium">{item.label}</span>
                     </Link>
                   )
@@ -206,7 +252,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                   }}
                   className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
                 >
-                  <LogOut className="h-5 w-5 flex-shrink-0" />
+                  <LogOut className="h-5 w-5 flex-shrink-0 text-[#EF4444]" />
                   <span className="font-medium">Logout</span>
                 </button>
               </div>
@@ -219,9 +265,12 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       {!isFeedbackRoute && (
         <div
           className={cn(
-            'fixed top-1/2 z-fixed hidden h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:w-10 lg:flex',
+            'fixed top-1/2 z-[400] hidden h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:w-10 lg:flex',
             desktopNavOpen ? 'left-64' : 'left-0',
-            desktopNavOpen ? 'bg-white border-[#E5E7EB]' : 'bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] border-[#1D4ED8]/30'
+            desktopNavOpen
+              ? 'border-[#E5E7EB] bg-white'
+              : 'border-[#1D4ED8]/30 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)]',
+            isPeeking ? 'w-10' : 'w-8'
           )}
           onClick={() => setDesktopNavOpen(!desktopNavOpen)}
           title={desktopNavOpen ? 'Hide navigation' : 'Show navigation'}
@@ -239,7 +288,11 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         <div className="fixed left-0 right-0 top-0 z-50 border-b bg-white lg:hidden">
           <div className="flex h-16 items-center justify-between px-4">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
                 {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
               <Link href="/student/dashboard" className="text-xl font-bold text-blue-600"></Link>
@@ -281,7 +334,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                             : 'text-gray-600 hover:bg-gray-100'
                         )}
                       >
-                        <Icon className="h-5 w-5" />
+                        <Icon className={cn('h-5 w-5', item.iconColor)} />
                         <span className="font-medium">{item.label}</span>
                       </Link>
                     )
@@ -305,12 +358,12 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                           : 'text-gray-600 hover:bg-gray-100'
                       )}
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className={cn('h-5 w-5', item.iconColor)} />
                       <span className="font-medium">{item.label}</span>
                     </Link>
                   )
                 })}
-                <div className="border-t border-gray-100 pt-2 mt-2">
+                <div className="mt-2 border-t border-gray-100 pt-2">
                   {bottomNavItems.map(item => {
                     const Icon = item.icon
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -326,7 +379,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                             : 'text-gray-600 hover:bg-gray-100'
                         )}
                       >
-                        <Icon className="h-5 w-5" />
+                        <Icon className={cn('h-5 w-5', item.iconColor)} />
                         <span className="font-medium">{item.label}</span>
                       </Link>
                     )
@@ -338,7 +391,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                     }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-gray-600 transition-colors hover:bg-gray-100"
                   >
-                    <LogOut className="h-5 w-5" />
+                    <LogOut className="h-5 w-5 text-[#EF4444]" />
                     <span className="font-medium">Logout</span>
                   </button>
                 </div>
@@ -352,15 +405,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       <main
         className={cn(
           'relative z-0 h-screen flex-1 overflow-hidden',
-          !isFeedbackRoute && 'pt-16 lg:pt-4 lg:pb-4'
+          !isFeedbackRoute && 'pt-16 lg:pb-4 lg:pt-4'
         )}
       >
-        <div
-          className={cn(
-            'h-full',
-            isFeedbackRoute ? 'overflow-hidden' : 'overflow-y-auto'
-          )}
-        >
+        <div className={cn('h-full', isFeedbackRoute ? 'overflow-hidden' : 'overflow-y-auto')}>
           {children}
         </div>
       </main>
