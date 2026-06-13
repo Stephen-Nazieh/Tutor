@@ -45,7 +45,6 @@ import {
   Minus,
   Presentation,
   Pencil,
-  Wifi,
 } from 'lucide-react'
 import {
   Dialog,
@@ -96,6 +95,55 @@ interface SessionSummary {
   status: string
 }
 
+function WifiSignal({ connected, error }: { connected: boolean; error: boolean }) {
+  const color = error ? 'text-red-500' : connected ? 'text-emerald-500' : 'text-amber-400'
+
+  return (
+    <div className="relative flex items-center justify-center">
+      <style jsx>{`
+        @keyframes wifi-bar {
+          0%,
+          100% {
+            opacity: 0.25;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+        .wifi-bar {
+          animation: wifi-bar 1.2s ease-in-out infinite;
+        }
+        .wifi-bar-1 {
+          animation-delay: 0s;
+        }
+        .wifi-bar-2 {
+          animation-delay: 0.3s;
+        }
+        .wifi-bar-3 {
+          animation-delay: 0.6s;
+        }
+        .wifi-dot {
+          animation-delay: 0.9s;
+        }
+      `}</style>
+      <svg
+        className={cn('h-4 w-4', color)}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M1.5 8.5a15 15 0 0 1 21 0" className="wifi-bar wifi-bar-3" />
+        <path d="M5 12.5a11 11 0 0 1 14 0" className="wifi-bar wifi-bar-2" />
+        <path d="M8.5 16.5a7 7 0 0 1 7 0" className="wifi-bar wifi-bar-1" />
+        <path d="M12 20h.01" className="wifi-bar wifi-dot" />
+      </svg>
+    </div>
+  )
+}
+
 interface ClassroomControlsPanelProps {
   followTutor: boolean
   setFollowTutor: (value: boolean) => void
@@ -121,8 +169,6 @@ function ClassroomControlsPanel({
   const [isDragging, setIsDragging] = useState(false)
   const dragControls = useDragControls()
 
-  const wifiColor = isConnected ? 'text-emerald-500' : error ? 'text-red-500' : 'text-amber-400'
-
   return (
     <div className="pointer-events-none fixed inset-0 z-50">
       <div className="pointer-events-none absolute bottom-4 right-4">
@@ -142,23 +188,6 @@ function ClassroomControlsPanel({
               : 'rounded-2xl bg-gray-800'
           )}
         >
-          <style jsx>{`
-            @keyframes wifi-pulse {
-              0%,
-              100% {
-                transform: scale(1);
-                opacity: 1;
-              }
-              50% {
-                transform: scale(1.25);
-                opacity: 0.6;
-              }
-            }
-            .wifi-signal {
-              animation: wifi-pulse 1.5s ease-in-out infinite;
-            }
-          `}</style>
-
           {/* Header / drag handle */}
           <button
             type="button"
@@ -183,12 +212,7 @@ function ClassroomControlsPanel({
             >
               Controls
             </span>
-            <Wifi
-              className={cn(
-                'wifi-signal h-4 w-4 shrink-0',
-                open ? wifiColor : isConnected ? 'text-emerald-400' : 'text-red-400'
-              )}
-            />
+            <WifiSignal connected={isConnected} error={!!error} />
           </button>
 
           {/* Controls */}
@@ -281,8 +305,6 @@ function StudentFeedbackContent() {
   const { data: session } = useSession()
   const searchParams = useSearchParams()
   const sessionIdFromQuery = searchParams.get('sessionId')
-  const courseNameFromQuery = searchParams.get('courseName')
-  const tutorHandleFromQuery = searchParams.get('tutorHandle')
 
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [sessionsLoading, setSessionsLoading] = useState(true)
@@ -318,7 +340,6 @@ function StudentFeedbackContent() {
     scheduledAt: string | null
     endedAt: string | null
   } | null>(null)
-  const [activeCourseName, setActiveCourseName] = useState<string | null>(null)
   const [sessionTimer, setSessionTimer] = useState<string>('')
   const [myBoardPages, setMyBoardPages] = useState<WhiteboardPage[]>(createDefaultWhiteboardPages)
   const [myBoardPageIndex, setMyBoardPageIndex] = useState(0)
@@ -359,41 +380,6 @@ function StudentFeedbackContent() {
   const [courseAssets, setCourseAssets] = useState<any[]>([])
   const [assetsLoading, setAssetsLoading] = useState(false)
   const [studentDirectory, setStudentDirectory] = useState<Record<string, Record<string, any>>>({})
-
-  // Derive the page title from session context, selected item, or directory
-  const pageTitle = useMemo(() => {
-    if (sessionContext?.courseName) return sessionContext.courseName
-    if (courseNameFromQuery) return courseNameFromQuery
-    if (activeCourseName) return activeCourseName
-    // Try to find course name from directory based on activeTaskId
-    if (activeTaskId && studentDirectory) {
-      for (const tutor of Object.values(studentDirectory)) {
-        for (const course of Object.values(tutor)) {
-          const allItems = [
-            ...(course.tasks || []),
-            ...(course.assessments || []),
-            ...(course.homework || []),
-            ...(course.recordedSessions || []),
-          ]
-          const item = allItems.find((i: any) => (i.itemId || i.id) === activeTaskId)
-          if (item?.courseName) return item.courseName
-        }
-      }
-    }
-    // If only one course exists, show it
-    const tutors = Object.values(studentDirectory || {})
-    if (tutors.length === 1) {
-      const courses = Object.keys(tutors[0] || {})
-      if (courses.length === 1) return courses[0]
-    }
-    return 'Live Classroom'
-  }, [
-    sessionContext?.courseName,
-    courseNameFromQuery,
-    activeCourseName,
-    activeTaskId,
-    studentDirectory,
-  ])
 
   const [directoryLoading, setDirectoryLoading] = useState(true)
   const [directoryError, setDirectoryError] = useState<string | null>(null)
@@ -1070,7 +1056,6 @@ function StudentFeedbackContent() {
       if (item.source === 'task' || item.source === 'assessment' || item.source === 'homework') {
         setSelectedDirectoryItem(item)
         setActiveTaskId(item.id)
-        setActiveCourseName(item.courseName || null)
         setUnseenTaskIds(prev => prev.filter(id => id !== item.id))
         setUnseenHomeworkIds(prev => prev.filter(id => id !== item.id))
         const notifId = taskNotifMap.current.get(item.id) || hwNotifMap.current.get(item.id)
@@ -1096,7 +1081,6 @@ function StudentFeedbackContent() {
 
           setSelectedDirectoryItem(parsed)
           setActiveTaskId(parsed.id)
-          setActiveCourseName(item.courseName || null)
           setUnseenTaskIds(prev => prev.filter(id => id !== parsed.id))
           setUnseenHomeworkIds(prev => prev.filter(id => id !== parsed.id))
           const notifId = taskNotifMap.current.get(parsed.id) || hwNotifMap.current.get(parsed.id)
@@ -1158,50 +1142,38 @@ function StudentFeedbackContent() {
               <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <div className="flex flex-col justify-center">
+              {sessionContext && (
                 <div className="flex items-center gap-2">
-                  <h1 className="text-base font-semibold tracking-tight">
-                    {pageTitle}
-                    {(tutorHandleFromQuery || sessionContext?.tutorUsername) && (
-                      <span className="ml-1.5 text-sm font-normal text-slate-500">
-                        (Tutor@
-                        {tutorHandleFromQuery || sessionContext?.tutorUsername})
-                      </span>
-                    )}
-                  </h1>
-                </div>
-                {sessionContext && (
-                  <div className="mt-0.5 flex items-center gap-2">
-                    <span
-                      className={cn(
-                        'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium',
-                        sessionContext.status === 'active'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : sessionContext.status === 'scheduled'
-                            ? 'bg-amber-100 text-amber-700'
-                            : sessionContext.status === 'ended'
-                              ? 'bg-slate-100 text-slate-600'
-                              : 'bg-gray-100 text-gray-600'
-                      )}
-                    >
-                      {sessionContext.status === 'active'
-                        ? '● Live'
+                  <span
+                    className={cn(
+                      'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium',
+                      sessionContext.status === 'active'
+                        ? 'bg-emerald-100 text-emerald-700'
                         : sessionContext.status === 'scheduled'
-                          ? '⏳ Scheduled'
+                          ? 'bg-amber-100 text-amber-700'
                           : sessionContext.status === 'ended'
-                            ? '■ Ended'
-                            : sessionContext.status || 'Unknown'}
-                    </span>
-                    {sessionTimer && (
-                      <span className="font-mono text-xs text-slate-500">{sessionTimer}</span>
+                            ? 'bg-slate-100 text-slate-600'
+                            : 'bg-gray-100 text-gray-600'
                     )}
-                  </div>
-                )}
-              </div>
+                  >
+                    {sessionContext.status === 'active'
+                      ? '● Live'
+                      : sessionContext.status === 'scheduled'
+                        ? '⏳ Scheduled'
+                        : sessionContext.status === 'ended'
+                          ? '■ Ended'
+                          : sessionContext.status || 'Unknown'}
+                  </span>
+                  {sessionTimer && (
+                    <span className="font-mono text-xs text-slate-500">{sessionTimer}</span>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Spacer to balance the left title block */}
-            <div className="hidden flex-1 items-center justify-end sm:flex" />
+            <div className="flex flex-1 items-center justify-end">
+              <WifiSignal connected={isConnected} error={!!error} />
+            </div>
           </div>
 
           {sessionContext && (sessionContext.topic || sessionContext.objectives) && (
@@ -1524,9 +1496,9 @@ function StudentFeedbackContent() {
                 className="flex h-full min-h-0 flex-1 flex-col outline-none"
               >
                 {/* Tutor Board viewer */}
-                <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border-2 border-[#1e3a5f] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all duration-200 hover:shadow-[0_12px_32px_rgba(31,41,51,0.14)]">
+                <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border-2 border-[#2563EB] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all duration-200 hover:shadow-[0_12px_32px_rgba(31,41,51,0.14)]">
                   <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-center">
-                    <span className="rounded-b-md bg-[#1e3a5f] px-3 py-0.5 text-[11px] font-medium text-white">
+                    <span className="rounded-b-md bg-[#2563EB] px-3 py-0.5 text-[11px] font-medium text-white">
                       Tutor Board
                     </span>
                   </div>
