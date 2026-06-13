@@ -305,6 +305,17 @@ function StudentFeedbackContent() {
   const rightResizeStartX = useRef(0)
   const rightResizeStartW = useRef(380)
 
+  // When My Board is active, hide the Lessons panel so the right panel can expand
+  // into that space and keep the center Classroom viewport at a stable size.
+  // Re-open Lessons automatically when leaving My Board.
+  useEffect(() => {
+    if (rightPanelTab === 'my-board') {
+      setLeftPanelHidden(true)
+    } else {
+      setLeftPanelHidden(false)
+    }
+  }, [rightPanelTab])
+
   // Assets state
   const [selectedReport, setSelectedReport] = useState<any | null>(null)
   const [reportModalOpen, setReportModalOpen] = useState(false)
@@ -1194,10 +1205,24 @@ function StudentFeedbackContent() {
         <div className="relative flex w-full flex-1 items-stretch gap-4 overflow-hidden px-4 pb-4 pt-2">
           {/* Floating collapsed/expanded pill */}
           <div
-            className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
+            className={cn(
+              'absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all',
+              rightPanelTab === 'my-board'
+                ? 'cursor-not-allowed opacity-60'
+                : 'cursor-pointer hover:w-10 hover:bg-slate-50'
+            )}
             style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
-            onClick={() => setLeftPanelHidden(!leftPanelHidden)}
-            title={leftPanelHidden ? 'Show lessons' : 'Hide lessons'}
+            onClick={() => {
+              if (rightPanelTab === 'my-board') return
+              setLeftPanelHidden(!leftPanelHidden)
+            }}
+            title={
+              rightPanelTab === 'my-board'
+                ? 'Lessons hidden while My Board is open'
+                : leftPanelHidden
+                  ? 'Show lessons'
+                  : 'Hide lessons'
+            }
           >
             {leftPanelHidden ? (
               <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />

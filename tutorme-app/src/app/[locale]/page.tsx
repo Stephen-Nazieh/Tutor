@@ -2636,43 +2636,13 @@ const SpecialAccessSection = ({
 }) => {
   const [code, setCode] = useState('')
   const [error, setError] = useState(false)
-  const [expanded, setExpanded] = useState(false)
-  const triggerRef = useRef<HTMLButtonElement>(null)
-  const [popoverPos, setPopoverPos] = useState<{ top: number; left: number } | null>(null)
-  const router = useRouter()
+  const [open, setOpen] = useState(false)
   const t = (key: string) => translations[key]?.[lang] || translations[key]?.['en'] || key
-
-  useEffect(() => {
-    if (!expanded) return
-
-    const width = 260
-    const margin = 12
-
-    const update = () => {
-      const rect = triggerRef.current?.getBoundingClientRect()
-      if (!rect) return
-
-      const left = Math.min(
-        window.innerWidth - width - margin,
-        Math.max(margin, rect.right - width)
-      )
-      const top =
-        popoverPlacement === 'bottom'
-          ? rect.bottom + margin
-          : Math.max(margin, rect.top - margin - 84)
-
-      setPopoverPos({ top, left })
-    }
-
-    update()
-    window.addEventListener('resize', update)
-    return () => window.removeEventListener('resize', update)
-  }, [expanded, popoverPlacement])
 
   const checkAccess = () => {
     const trimmed = code.trim()
     if (SPECIAL_CODES.includes(trimmed)) {
-      setExpanded(false)
+      setOpen(false)
       window.location.assign('/login')
     } else {
       setError(true)
@@ -2686,45 +2656,35 @@ const SpecialAccessSection = ({
   }
 
   return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setExpanded(v => !v)}
-        ref={triggerRef}
-        className={triggerClassName}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button type="button" className={triggerClassName}>
+          {triggerLabel}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        variant="panel"
+        align="end"
+        side={popoverPlacement}
+        sideOffset={12}
+        className="w-auto border-0 bg-transparent p-0 shadow-none backdrop-blur-none"
       >
-        {triggerLabel}
-      </button>
-
-      {expanded && (
-        <>
-          <div
-            className="animate-in fade-in fixed inset-0 z-[990] duration-150"
-            onClick={() => setExpanded(false)}
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder={t('enterCode')}
+            value={code}
+            onChange={e => setCode(e.target.value)}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            autoFocus
+            className={`h-10 w-[260px] rounded-full border border-white/20 bg-white/10 px-4 text-sm text-white shadow-md backdrop-blur-sm placeholder:text-white/60 focus:outline-none focus-visible:!shadow-none ${error ? 'border-red-400' : ''}`}
           />
-          <div
-            className="animate-in fade-in zoom-in-95 fixed z-[1000] duration-150"
-            style={popoverPos ?? undefined}
-            onClick={e => e.stopPropagation()}
-          >
-            <form onSubmit={handleSubmit}>
-              <input
-                type="text"
-                placeholder={t('enterCode')}
-                value={code}
-                onChange={e => setCode(e.target.value)}
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                autoFocus
-                className={`h-10 w-[260px] rounded-full border border-white/20 bg-white/10 px-4 text-sm text-white shadow-md backdrop-blur-sm placeholder:text-white/60 focus:outline-none focus-visible:!shadow-none ${error ? 'border-red-400' : ''}`}
-              />
-            </form>
-            {error && <p className="mt-2 text-xs font-medium text-red-300">{t('invalidCode')}</p>}
-          </div>
-        </>
-      )}
-    </div>
+        </form>
+        {error && <p className="mt-2 text-xs font-medium text-red-300">{t('invalidCode')}</p>}
+      </PopoverContent>
+    </Popover>
   )
 }
 

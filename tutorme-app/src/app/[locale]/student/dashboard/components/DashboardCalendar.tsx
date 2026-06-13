@@ -198,12 +198,14 @@ export function DashboardCalendar({
       tabs={[
         { value: 'classes', label: 'Sessions' },
         { value: 'calendar', label: 'Calendar' },
+        { value: 'bookings', label: 'Bookings' },
       ]}
       showCalendarControls={activeTab === 'calendar'}
       calendarView={calendarView}
       onCalendarViewChange={setCalendarView}
       timezone={timezone}
       onTimezoneChange={setTimezone}
+      variant="orange"
     >
       {/* My Calendar Tab */}
       <TabsContent value="calendar" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -218,6 +220,41 @@ export function DashboardCalendar({
           view={calendarView}
           onViewChange={setCalendarView}
         />
+      </TabsContent>
+
+      {/* Bookings Tab */}
+      <TabsContent value="bookings" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="grid h-full grid-cols-2 gap-4 overflow-hidden">
+          {/* Left column - 1 on 1 Sessions */}
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-white p-4 shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
+            <h3 className="mb-1 text-base font-semibold text-[#1F2933]">1 on 1 Sessions</h3>
+            <p className="mb-4 text-xs text-gray-500">Upcoming private tutoring sessions.</p>
+            <div className="flex-1 overflow-y-auto pr-1">
+              <div className="rounded-[12px] border border-dashed border-gray-200 bg-gray-50/60 py-10 text-center">
+                <BookOpen className="text-muted-foreground/60 mx-auto mb-3 h-10 w-10" />
+                <p className="text-muted-foreground text-sm">No 1-on-1 sessions booked yet.</p>
+                <p className="text-muted-foreground/70 mt-1 text-xs">
+                  Your upcoming private sessions will appear here.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right column - Tutor Info */}
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-white p-4 shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
+            <h3 className="mb-1 text-base font-semibold text-[#1F2933]">Tutor Info</h3>
+            <p className="mb-4 text-xs text-gray-500">Details about your assigned tutor.</p>
+            <div className="flex-1 overflow-y-auto pr-1">
+              <div className="rounded-[12px] border border-dashed border-gray-200 bg-gray-50/60 py-10 text-center">
+                <Users className="text-muted-foreground/60 mx-auto mb-3 h-10 w-10" />
+                <p className="text-muted-foreground text-sm">No tutor selected.</p>
+                <p className="text-muted-foreground/70 mt-1 text-xs">
+                  Tutor information will appear here once a session is booked.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </TabsContent>
 
       {/* My Classes Tab */}

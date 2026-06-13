@@ -59,6 +59,7 @@ interface SessionCalendarPanelProps {
   onCalendarViewChange?: (view: CalendarView) => void
   timezone?: string
   onTimezoneChange?: (tz: string) => void
+  variant?: 'blue' | 'orange'
 }
 
 export function SessionCalendarPanel({
@@ -71,18 +72,31 @@ export function SessionCalendarPanel({
   onCalendarViewChange,
   timezone,
   onTimezoneChange,
+  variant = 'blue',
 }: SessionCalendarPanelProps) {
   return (
     <Card className="flex h-full flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white !pb-4 shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
       <Tabs value={value} onValueChange={onValueChange} className="flex h-full w-full flex-col">
         <CardHeader className="flex-shrink-0 px-6 pb-0 pt-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <TabsList className="flex gap-1.5 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] p-1.5">
+            <TabsList
+              className={cn(
+                'flex gap-1.5 rounded-xl p-1.5',
+                variant === 'orange'
+                  ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C]'
+                  : 'bg-gradient-to-r from-[#2563EB] to-[#1D4ED8]'
+              )}
+            >
               {tabs.map(tab => (
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="flex-1 rounded-lg text-white/80 hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#2563EB] data-[state=active]:shadow-sm"
+                  className={cn(
+                    'flex-1 rounded-lg text-white/80 hover:text-white data-[state=active]:bg-white data-[state=active]:shadow-sm',
+                    variant === 'orange'
+                      ? 'data-[state=active]:text-[#EA580C]'
+                      : 'data-[state=active]:text-[#2563EB]'
+                  )}
                 >
                   {tab.label}
                 </TabsTrigger>
