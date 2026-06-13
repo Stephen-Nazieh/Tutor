@@ -824,24 +824,6 @@ const PROMO_VIDEO = {
   description: 'Watch the platform promo.',
 }
 
-const HOW_IT_WORKS_VIDEOS = [
-  {
-    id: 'dQw4w9WgXcQ',
-    title: 'Getting Started',
-    description: 'A quick overview of the platform.',
-  },
-  {
-    id: 'M7lc1UVf-VE',
-    title: 'Booking a Session',
-    description: 'How to find and book 1-on-1 tutoring.',
-  },
-  {
-    id: 'aqz-KE-bpKQ',
-    title: 'Joining Your Classroom',
-    description: 'Entering the live classroom and using the tools.',
-  },
-]
-
 const LANGUAGES: { code: Language; name: string; flag: string }[] = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'zh-CN', name: '简体中文 (Mandarin)', flag: '🇨🇳' },
@@ -4303,38 +4285,6 @@ export default function LandingPage() {
                   </a>
                 </div>
 
-                {/* Tutorial videos */}
-                <div className="w-full flex-1 overflow-y-auto py-4">
-                  <h3 className="mb-3 text-center text-sm font-medium text-white/80">Tutorials</h3>
-                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {HOW_IT_WORKS_VIDEOS.map(video => (
-                      <a
-                        key={video.id}
-                        href={`https://www.youtube.com/watch?v=${video.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group block overflow-hidden rounded-xl border border-white/10 bg-white/5 transition-colors hover:bg-white/10"
-                      >
-                        <div className="relative aspect-video overflow-hidden">
-                          <img
-                            src={`https://img.youtube.com/vi/${video.id}/hqdefault.jpg`}
-                            alt={video.title}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
-                            <Play className="h-10 w-10 fill-white text-white opacity-80 transition-opacity group-hover:opacity-100" />
-                          </div>
-                        </div>
-                        <div className="p-4">
-                          <h3 className="text-sm font-semibold text-white">{video.title}</h3>
-                          {video.description && (
-                            <p className="mt-1 text-xs text-white/70">{video.description}</p>
-                          )}
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                </div>
               </div>
             </motion.div>
           </motion.div>
