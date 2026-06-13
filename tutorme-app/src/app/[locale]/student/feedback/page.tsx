@@ -45,7 +45,6 @@ import {
   Minus,
   BookOpen,
   Monitor,
-  GripHorizontal,
   Wifi,
 } from 'lucide-react'
 import {
@@ -165,7 +164,9 @@ function ClassroomControlsPanel({
             type="button"
             className={cn(
               'relative flex w-full cursor-grab items-center active:cursor-grabbing',
-              open ? 'h-8 rounded-t-xl border-b border-slate-200' : 'h-10'
+              open
+                ? 'h-8 rounded-t-xl border-b border-slate-200 px-2'
+                : 'h-10 px-3'
             )}
             onPointerDown={e => dragControls.start(e)}
             onClick={() => {
@@ -173,12 +174,7 @@ function ClassroomControlsPanel({
               setOpen(v => !v)
             }}
           >
-            <GripHorizontal
-              className={cn(
-                'absolute left-0 h-4 w-4',
-                open ? 'text-slate-400' : 'text-white/70'
-              )}
-            />
+            <span className="w-4 shrink-0" aria-hidden="true" />
             <span
               className={cn(
                 'mx-auto text-xs font-semibold',
@@ -189,7 +185,7 @@ function ClassroomControlsPanel({
             </span>
             <Wifi
               className={cn(
-                'wifi-signal absolute right-0 h-4 w-4',
+                'wifi-signal h-4 w-4 shrink-0',
                 open ? wifiColor : isConnected ? 'text-emerald-400' : 'text-red-400'
               )}
             />
