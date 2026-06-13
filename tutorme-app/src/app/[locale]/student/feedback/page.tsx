@@ -1496,8 +1496,8 @@ function StudentFeedbackContent() {
                   className={cn(
                     'h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all',
                     rightPanelTab === 'interactions'
-                      ? 'bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
-                      : 'text-gray-500 hover:text-gray-900'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-500 hover:bg-white hover:text-gray-900'
                   )}
                 >
                   Interact
@@ -1509,11 +1509,11 @@ function StudentFeedbackContent() {
                   className={cn(
                     'h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all',
                     rightPanelTab === 'dmi'
-                      ? 'bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
-                      : 'text-gray-500 hover:text-gray-900'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-500 hover:bg-white hover:text-gray-900'
                   )}
                 >
-                  DMI
+                  Assessment
                 </Button>
                 <Button
                   variant="ghost"
@@ -1522,8 +1522,8 @@ function StudentFeedbackContent() {
                   className={cn(
                     'h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all',
                     rightPanelTab === 'my-board'
-                      ? 'bg-white text-gray-900 shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
-                      : 'text-gray-500 hover:text-gray-900'
+                      ? 'bg-gray-800 text-white'
+                      : 'text-gray-500 hover:bg-white hover:text-gray-900'
                   )}
                 >
                   My Board
