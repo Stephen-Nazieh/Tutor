@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Loader2, Wrench } from 'lucide-react'
+import { Wrench } from 'lucide-react'
 import { toast } from 'sonner'
 import { useSocket } from '@/hooks/use-socket'
 import { saveCourse } from '../courses/components/save-course'
@@ -1108,21 +1108,8 @@ function TutorInsightsPageInner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="p-6">
-          <div className="mx-auto max-w-xl">
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-                <Wrench className="h-8 w-8 text-blue-500" />
-                <div>
-                  <h1 className="text-lg font-semibold">Opening Insights…</h1>
-                  <p className="text-muted-foreground text-sm">Loading your latest course.</p>
-                </div>
-                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
       </div>
     )
   }
