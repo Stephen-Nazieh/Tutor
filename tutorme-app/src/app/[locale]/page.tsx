@@ -48,6 +48,7 @@ import {
   Settings,
   RefreshCw,
   MoreHorizontal,
+  Play,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -816,6 +817,30 @@ const CELEBRITY_TUTORS = [
 ]
 
 const SPECIAL_CODES = ['kim.kon#26', 'stephen#26']
+
+const PROMO_VIDEO = {
+  id: '_U8FwciBJxg',
+  title: 'Promo',
+  description: 'Watch the platform promo.',
+}
+
+const HOW_IT_WORKS_VIDEOS = [
+  {
+    id: 'dQw4w9WgXcQ',
+    title: 'Getting Started',
+    description: 'A quick overview of the platform.',
+  },
+  {
+    id: 'M7lc1UVf-VE',
+    title: 'Booking a Session',
+    description: 'How to find and book 1-on-1 tutoring.',
+  },
+  {
+    id: 'aqz-KE-bpKQ',
+    title: 'Joining Your Classroom',
+    description: 'Entering the live classroom and using the tools.',
+  },
+]
 
 const LANGUAGES: { code: Language; name: string; flag: string }[] = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
@@ -4229,19 +4254,19 @@ export default function LandingPage() {
                 <X className="h-5 w-5" />
               </button>
 
-              <div className="flex w-full max-w-3xl flex-1 flex-col items-center justify-center">
+              <div className="flex w-full max-w-4xl flex-1 flex-col overflow-hidden">
                 {/* Gear animation header */}
-                <div className="flex flex-col items-center justify-center py-2">
-                  <div className="flex items-center justify-center gap-0.5">
+                <div className="flex flex-col items-center justify-center pt-4">
+                  <div className="flex items-center justify-center gap-1">
                     <motion.span
-                      className="inline-flex h-5 w-5 text-white/90"
+                      className="inline-flex h-7 w-7 text-white/90"
                       animate={{ rotate: 360 }}
                       transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                     >
                       <Settings className="h-full w-full" />
                     </motion.span>
                     <motion.span
-                      className="-ml-0.5 -mt-1 inline-flex h-5 w-5 text-white/90"
+                      className="-ml-0.5 -mt-1.5 inline-flex h-7 w-7 text-white/90"
                       animate={{ rotate: -360 }}
                       transition={{ duration: 1.33, repeat: Infinity, ease: 'linear' }}
                     >
@@ -4250,12 +4275,64 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Video placeholder area */}
-                <div className="w-full py-6">
-                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-8 text-center text-white/70">
-                      <p className="text-sm">Video tutorials coming soon.</p>
+                {/* Promo section */}
+                <div className="w-full pt-2 pb-4">
+                  <h2 className="mb-3 text-center text-lg font-semibold text-white">Promo</h2>
+                  <a
+                    href={`https://www.youtube.com/watch?v=${PROMO_VIDEO.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group mx-auto block max-w-2xl overflow-hidden rounded-xl border border-white/10 bg-white/5 transition-colors hover:bg-white/10"
+                  >
+                    <div className="relative aspect-video overflow-hidden">
+                      <img
+                        src={`https://img.youtube.com/vi/${PROMO_VIDEO.id}/hqdefault.jpg`}
+                        alt={PROMO_VIDEO.title}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
+                        <Play className="h-12 w-12 fill-white text-white opacity-80 transition-opacity group-hover:opacity-100" />
+                      </div>
                     </div>
+                    <div className="p-4 text-center">
+                      <h3 className="text-base font-semibold text-white">{PROMO_VIDEO.title}</h3>
+                      {PROMO_VIDEO.description && (
+                        <p className="mt-1 text-xs text-white/70">{PROMO_VIDEO.description}</p>
+                      )}
+                    </div>
+                  </a>
+                </div>
+
+                {/* Tutorial videos */}
+                <div className="w-full flex-1 overflow-y-auto py-4">
+                  <h3 className="mb-3 text-center text-sm font-medium text-white/80">Tutorials</h3>
+                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {HOW_IT_WORKS_VIDEOS.map(video => (
+                      <a
+                        key={video.id}
+                        href={`https://www.youtube.com/watch?v=${video.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group block overflow-hidden rounded-xl border border-white/10 bg-white/5 transition-colors hover:bg-white/10"
+                      >
+                        <div className="relative aspect-video overflow-hidden">
+                          <img
+                            src={`https://img.youtube.com/vi/${video.id}/hqdefault.jpg`}
+                            alt={video.title}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
+                            <Play className="h-10 w-10 fill-white text-white opacity-80 transition-opacity group-hover:opacity-100" />
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <h3 className="text-sm font-semibold text-white">{video.title}</h3>
+                          {video.description && (
+                            <p className="mt-1 text-xs text-white/70">{video.description}</p>
+                          )}
+                        </div>
+                      </a>
+                    ))}
                   </div>
                 </div>
               </div>
