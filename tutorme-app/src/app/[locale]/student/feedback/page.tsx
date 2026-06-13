@@ -43,8 +43,8 @@ import {
   Video,
   Plus,
   Minus,
-  BookOpen,
-  Monitor,
+  Presentation,
+  Pencil,
   Wifi,
 } from 'lucide-react'
 import {
@@ -1347,7 +1347,7 @@ function StudentFeedbackContent() {
               onValueChange={v => setActiveTab(v as 'task' | 'tutor-board')}
               className="flex h-full min-h-0 flex-1 flex-col"
             >
-              <div className="flex shrink-0 items-start px-4 pt-0">
+              <div className="flex shrink-0 items-start pt-0">
                 <TabsList
                   className={cn(
                     'grid h-[52px] w-full grid-cols-2 gap-2 border-0 bg-transparent p-0 shadow-none transition-opacity',
@@ -1357,16 +1357,16 @@ function StudentFeedbackContent() {
                 >
                   <TabsTrigger
                     value="task"
-                    className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
+                    className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-gradient-to-br data-[state=active]:from-[#F97316] data-[state=active]:to-[#EA580C] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
                   >
-                    <BookOpen className="h-4 w-4" />
+                    <Presentation className="h-4 w-4" />
                     Classroom
                   </TabsTrigger>
                   <TabsTrigger
                     value="tutor-board"
-                    className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-[linear-gradient(145deg,rgba(18,20,22,0.82),rgba(62,68,75,0.62))] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
+                    className="flex items-center justify-center gap-2 rounded-full border-0 px-4 py-2.5 text-sm font-semibold shadow-[0_10px_24px_rgba(0,0,0,0.16)] transition-all data-[state=inactive]:bg-white data-[state=active]:bg-gradient-to-br data-[state=active]:from-[#2563EB] data-[state=active]:to-[#1D4ED8] data-[state=active]:text-white data-[state=inactive]:text-[#1F2933] data-[state=active]:shadow-[0_12px_26px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.14),inset_0_-1px_0_rgba(0,0,0,0.25)]"
                   >
-                    <Monitor className="h-4 w-4" />
+                    <Pencil className="h-4 w-4" />
                     Tutor Board
                   </TabsTrigger>
                 </TabsList>
