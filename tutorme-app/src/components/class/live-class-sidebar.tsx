@@ -46,7 +46,7 @@ const teachingItems = [
 
 const peopleItems = [
   { id: 'students', label: 'Students', href: '/tutor/students', icon: Users },
-  { id: 'messages', label: 'Messages', href: '/tutor/messages', icon: MessageSquare },
+  { id: 'messages', label: 'Communications', href: '/tutor/communications', icon: MessageSquare },
   { id: 'groups', label: 'My Groups', href: '/tutor/groups', icon: UsersRound },
 ]
 

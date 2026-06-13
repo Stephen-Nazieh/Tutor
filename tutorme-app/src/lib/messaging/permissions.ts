@@ -18,9 +18,9 @@ export function isConversationAllowedByRoles(roleA: AppRole, roleB: AppRole): bo
 export function getInboxPathByRole(role: AppRole): string {
   switch (role) {
     case 'TUTOR':
-      return '/tutor/messages'
+      return '/tutor/communications'
     case 'STUDENT':
-      return '/student/messages'
+      return '/student/communications'
     case 'PARENT':
       return '/parent/messages'
     default:

@@ -3,6 +3,7 @@
  * GET /api/notifications - Get user's notifications
  * PATCH /api/notifications - Mark notifications as read
  * DELETE /api/notifications - Delete old notifications
+ * DELETE /api/notifications?all=true - Delete all notifications for the user
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -94,7 +95,7 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
 
     if (markAll) {
       // Mark all as read
-      const result = await drizzleDb
+      await drizzleDb
         .update(notification)
         .set({ read: true, readAt: new Date() })
         .where(and(eq(notification.userId, userId), eq(notification.read, false)))
@@ -124,16 +125,24 @@ export const PATCH = withAuth(async (req: NextRequest, session) => {
   }
 })
 
-// DELETE - Delete old notifications
+// DELETE - Delete old notifications, or all notifications when ?all=true
 export const DELETE = withAuth(async (req: NextRequest, session) => {
   const userId = session.user.id
 
   try {
+    const { searchParams } = new URL(req.url)
+    const deleteAll = searchParams.get('all') === 'true'
+
+    if (deleteAll) {
+      await drizzleDb.delete(notification).where(eq(notification.userId, userId))
+      return NextResponse.json({ deleted: 'all' })
+    }
+
     // Delete notifications older than 30 days
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    const result = await drizzleDb
+    await drizzleDb
       .delete(notification)
       .where(
         and(
@@ -142,10 +151,6 @@ export const DELETE = withAuth(async (req: NextRequest, session) => {
           lt(notification.createdAt, thirtyDaysAgo)
         )
       )
-
-    // Node-postgres DML results don't return count directly the same way some ORMs do,
-    // but we can execute and get the rowCount if needed.
-    // Drizzle's delete().where() returns a promise that resolves when complete.
 
     return NextResponse.json({ deleted: 'completed' })
   } catch (error) {

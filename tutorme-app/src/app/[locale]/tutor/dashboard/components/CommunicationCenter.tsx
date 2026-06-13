@@ -708,7 +708,7 @@ export function CommunicationCenter() {
             variant="ghost"
             size="sm"
             className="h-6 text-xs"
-            onClick={() => router.push('/tutor/messages')}
+            onClick={() => router.push('/tutor/communications')}
           >
             Open Full Center
             <ChevronRight className="ml-1 h-3 w-3" />

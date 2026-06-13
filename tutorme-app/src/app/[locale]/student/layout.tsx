@@ -44,8 +44,8 @@ const navItems: NavItem[] = [
   { href: '/student/courses', label: 'Courses', icon: GraduationCap, iconColor: 'text-[#06B6D4]' },
   { href: '/student/feedback', label: 'Classroom', icon: Video, iconColor: 'text-[#16A34A]' },
   {
-    href: '/student/messages',
-    label: 'Messages',
+    href: '/student/communications',
+    label: 'Communications',
     icon: MessageSquare,
     iconColor: 'text-[#EC4899]',
   },
@@ -132,7 +132,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
                   ></Link>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Link href="/student/notifications" onClick={e => e.stopPropagation()}>
+                  <Link href="/student/communications" onClick={e => e.stopPropagation()}>
                     <Button variant="ghost" size="icon" className="relative">
                       <Bell className="h-5 w-5" />
                       <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />

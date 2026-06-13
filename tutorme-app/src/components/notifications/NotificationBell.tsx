@@ -310,7 +310,7 @@ export function NotificationBell() {
 
           {/* Footer */}
           <div className="border-t px-4 py-2">
-            <Link href="/student/notifications" onClick={() => setOpen(false)}>
+            <Link href="/student/communications" onClick={() => setOpen(false)}>
               <Button variant="ghost" size="sm" className="w-full text-xs">
                 View all notifications
               </Button>

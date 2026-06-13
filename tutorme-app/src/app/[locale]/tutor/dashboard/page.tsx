@@ -798,7 +798,7 @@ function TutorDashboardContent() {
                     size="sm"
                     className="hover:bg-muted/80 transition-all duration-200"
                   >
-                    <Link href={withLocalePath('/tutor/notifications')}>View all</Link>
+                    <Link href={withLocalePath('/tutor/communications')}>View all</Link>
                   </Button>
                 </div>
                 <div className="space-y-3">

@@ -51,7 +51,7 @@ const navItems: NavItem[] = [
   { href: '/tutor/my-page', label: 'My Page', icon: Globe, iconColor: 'text-[#7C3AED]' },
   { href: '/tutor/insights', label: 'Course Builder', icon: Wrench, iconColor: 'text-[#EA580C]' },
   { href: '/tutor/classes', label: 'Live Sessions', icon: Video, iconColor: 'text-[#16A34A]' },
-  { href: '/tutor/messages', label: 'Messages', icon: MessageSquare, iconColor: 'text-[#EC4899]' },
+  { href: '/tutor/communications', label: 'Communications', icon: MessageSquare, iconColor: 'text-[#EC4899]' },
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3, iconColor: 'text-[#F59E0B]' },
   { href: '/tutor/training', label: 'Training', icon: GraduationCap, iconColor: 'text-[#06B6D4]' },
   { href: '/tutor/support', label: 'Support', icon: HelpCircle, iconColor: 'text-[#8B5CF6]' },
@@ -183,7 +183,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
                 <Link href="/tutor/dashboard" className="text-xl font-bold text-blue-600"></Link>
               </div>
               <div className="flex items-center gap-2">
-                <Link href="/tutor/notifications" onClick={e => e.stopPropagation()}>
+                <Link href="/tutor/communications" onClick={e => e.stopPropagation()}>
                   <Button variant="ghost" size="icon" className="relative">
                     <Bell className="h-5 w-5" />
                     <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500" />
