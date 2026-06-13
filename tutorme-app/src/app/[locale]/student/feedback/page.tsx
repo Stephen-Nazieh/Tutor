@@ -305,16 +305,17 @@ function StudentFeedbackContent() {
   const rightResizeStartX = useRef(0)
   const rightResizeStartW = useRef(380)
 
-  // When My Board is active, hide the Lessons panel so the right panel can expand
-  // into that space and keep the center Classroom viewport at a stable size.
-  // Re-open Lessons automatically when leaving My Board.
+  // Expanded panels (My Board / Assessment) hide Lessons and widen the right panel
+  // so the center Classroom viewport stays at a stable size.
+  const isExpanded = rightPanelTab === 'my-board' || rightPanelTab === 'dmi'
+
   useEffect(() => {
-    if (rightPanelTab === 'my-board') {
+    if (isExpanded) {
       setLeftPanelHidden(true)
     } else {
       setLeftPanelHidden(false)
     }
-  }, [rightPanelTab])
+  }, [isExpanded])
 
   // Assets state
   const [selectedReport, setSelectedReport] = useState<any | null>(null)
@@ -1207,18 +1208,18 @@ function StudentFeedbackContent() {
           <div
             className={cn(
               'absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all',
-              rightPanelTab === 'my-board'
+              isExpanded
                 ? 'cursor-not-allowed opacity-60'
                 : 'cursor-pointer hover:w-10 hover:bg-slate-50'
             )}
             style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
             onClick={() => {
-              if (rightPanelTab === 'my-board') return
+              if (isExpanded) return
               setLeftPanelHidden(!leftPanelHidden)
             }}
             title={
-              rightPanelTab === 'my-board'
-                ? 'Lessons hidden while My Board is open'
+              isExpanded
+                ? 'Lessons hidden while expanded panel is open'
                 : leftPanelHidden
                   ? 'Show lessons'
                   : 'Hide lessons'
@@ -1498,14 +1499,14 @@ function StudentFeedbackContent() {
           <div
             className={cn(
               'relative flex h-full shrink-0 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)]',
-              rightPanelResizing ? 'transition-none' : 'transition-[width] duration-300 ease-out'
+              'transition-none'
             )}
             style={{
-              width: rightPanelWidth + (rightPanelTab === 'my-board' ? leftPanelWidth : 0),
+              width: rightPanelWidth + (isExpanded ? leftPanelWidth : 0),
             }}
           >
             {/* Resize handle */}
-            {rightPanelTab !== 'my-board' && (
+            {!isExpanded && (
               <div
                 className="absolute bottom-0 left-0 top-0 z-[100] flex w-3 cursor-col-resize items-center justify-center bg-slate-100/50 hover:bg-blue-500/30 active:bg-blue-500/50"
                 onMouseDown={e => {
@@ -1537,7 +1538,9 @@ function StudentFeedbackContent() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setRightPanelTab('dmi')}
+                  onClick={() =>
+                    setRightPanelTab(prev => (prev === 'dmi' ? 'interactions' : 'dmi'))
+                  }
                   className={cn(
                     'h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all',
                     rightPanelTab === 'dmi'
@@ -1550,7 +1553,9 @@ function StudentFeedbackContent() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setRightPanelTab('my-board')}
+                  onClick={() =>
+                    setRightPanelTab(prev => (prev === 'my-board' ? 'interactions' : 'my-board'))
+                  }
                   className={cn(
                     'h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all',
                     rightPanelTab === 'my-board'
@@ -1566,7 +1571,7 @@ function StudentFeedbackContent() {
             <div
               className={cn(
                 'flex-1',
-                rightPanelTab === 'my-board' ? 'overflow-hidden' : 'overflow-y-auto p-4'
+                isExpanded ? 'overflow-hidden' : 'overflow-y-auto p-4'
               )}
             >
               {rightPanelTab === 'dmi' ? (
