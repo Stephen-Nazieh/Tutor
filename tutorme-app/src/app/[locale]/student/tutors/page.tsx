@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { BookOpen, Search, Users, Maximize2, Minimize2 } from 'lucide-react'
+import { BookOpen, Search, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useNavigationOverlay } from '@/components/navigation/NavigationOverlay'
@@ -64,7 +64,6 @@ export default function StudentTutorDirectoryPage() {
   const [nationalityFilter, setNationalityFilter] = useState('all')
   const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'courses' | 'rate'>('popular')
   const [following, setFollowing] = useState<Set<string>>(new Set())
-  const [panelExpanded, setPanelExpanded] = useState(false)
 
   // Load following from API on mount
   useEffect(() => {
@@ -176,23 +175,12 @@ export default function StudentTutorDirectoryPage() {
     <div className="text-foreground flex h-full flex-col overflow-hidden">
       <div className="flex h-full w-full flex-col px-3 lg:px-4">
         {/* Lower panel: expandable header + filters + tutor grid */}
-        <div
-          className={cn(
-            'flex min-h-0 flex-col overflow-hidden rounded-[18px] border border-white/10 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]',
-            panelExpanded ? 'h-[calc(100vh-3rem)]' : 'flex-1'
-          )}
-        >
-          {/* Expandable header */}
-          <div
-            onClick={() => setPanelExpanded(v => !v)}
-            className={cn(
-              'cursor-pointer bg-[linear-gradient(135deg,#1E2832_0%,#2D3B4A_50%,#1A2530_100%)] transition-all duration-200 hover:brightness-110',
-              panelExpanded ? 'p-4' : 'p-5'
-            )}
-          >
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-white/10 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+          {/* Header */}
+          <div className="bg-[linear-gradient(135deg,#1E2832_0%,#2D3B4A_50%,#1A2530_100%)] p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-white">Solocorn Tutors</h2>
+                <h2 className="text-xl font-bold text-[#F97316]">Solocorn Tutors</h2>
                 <p className="mt-1 text-sm text-white/60">Find and book your tutor</p>
               </div>
 
@@ -222,12 +210,6 @@ export default function StudentTutorDirectoryPage() {
                   </span>
                 </div>
               </div>
-
-              {panelExpanded ? (
-                <Minimize2 className="h-5 w-5 text-white/70" />
-              ) : (
-                <Maximize2 className="h-5 w-5 text-white/70" />
-              )}
             </div>
           </div>
 
@@ -290,7 +272,7 @@ export default function StudentTutorDirectoryPage() {
                 Array.from({ length: 6 }).map((_, index) => (
                   <Card
                     key={`loading-${index}`}
-                    className="animate-pulse overflow-hidden rounded-[20px] border border-white/10 bg-[rgba(30,40,50,0.65)] shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
+                    className="animate-pulse overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
                   >
                     <CardHeader className="space-y-2 p-4">
                       <div className="h-5 w-2/3 rounded bg-white/10" />
@@ -303,7 +285,7 @@ export default function StudentTutorDirectoryPage() {
                   </Card>
                 ))
               ) : tutors.length === 0 ? (
-                <Card className="col-span-full overflow-hidden rounded-[20px] border border-white/10 bg-[rgba(30,40,50,0.65)] shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
+                <Card className="col-span-full overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
                   <CardHeader>
                     <CardTitle className="text-white">No tutors match your current filters</CardTitle>
                     <CardDescription className="text-white/70">

@@ -226,8 +226,8 @@ export function DashboardCalendar({
       <TabsContent value="bookings" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="grid h-full grid-cols-2 gap-4 overflow-hidden">
           {/* Left column - 1 on 1 Sessions */}
-          <div className="flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-white p-4 shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
-            <h3 className="mb-1 text-base font-semibold text-[#1F2933]">1 on 1 Sessions</h3>
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-gray-400 bg-white p-4 shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
+            <h3 className="mb-1 text-base font-semibold text-[#1F2933]">1-on-1 Sessions</h3>
             <p className="mb-4 text-xs text-gray-500">Upcoming private tutoring sessions.</p>
             <div className="flex-1 overflow-y-auto pr-1">
               <div className="rounded-[12px] border border-dashed border-gray-200 bg-gray-50/60 py-10 text-center">
@@ -241,7 +241,7 @@ export function DashboardCalendar({
           </div>
 
           {/* Right column - Tutor Info */}
-          <div className="flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-[rgba(0,0,0,0.04)] bg-white p-4 shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-[14px] border border-gray-400 bg-white p-4 shadow-[0_4px_14px_rgba(0,0,0,0.08)]">
             <h3 className="mb-1 text-base font-semibold text-[#1F2933]">Tutor Info</h3>
             <p className="mb-4 text-xs text-gray-500">Details about your assigned tutor.</p>
             <div className="flex-1 overflow-y-auto pr-1">
