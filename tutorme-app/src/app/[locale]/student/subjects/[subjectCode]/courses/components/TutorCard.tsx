@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Star, BookOpen, Users, UserPlus, CalendarDays, User, Video } from 'lucide-react'
+import { Star, UserPlus, CalendarDays } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { resolvePublicUrl } from '@/lib/utils'
 import { cn } from '@/lib/utils'
@@ -33,8 +33,7 @@ export interface TutorCardProps {
   className?: string
 }
 
-const BIO_MAX_INPUT = 500
-const BIO_MAX_DISPLAY = 300
+const BIO_MAX_DISPLAY = 400
 
 export function TutorCard({
   tutor,
@@ -72,7 +71,7 @@ export function TutorCard({
       )}
       style={{
         width: '100%',
-        height: '580px',
+        height: '460px',
       }}
     >
       {/* Header Row: Avatar | Info | Pills */}
@@ -151,37 +150,19 @@ export function TutorCard({
         </div>
       )}
 
-      {/* Bio — bordered box with icon + character count */}
-      <div className="flex min-h-[150px] flex-1 items-start gap-4 rounded-[18px] border border-white/20 bg-white/5 px-5 py-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10">
-          <User className="h-6 w-6 text-white/70" />
-        </div>
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center justify-between">
-            <p className="text-base font-semibold text-white">Bio</p>
-            <span className="text-[11px] text-white/40">
-              {rawBio.length} / {BIO_MAX_INPUT}
-            </span>
-          </div>
-          <p className="mt-2 text-sm leading-relaxed text-white/70">{bioText}</p>
-        </div>
+      {/* Bio */}
+      <div className="flex min-h-[120px] flex-1 flex-col rounded-[14px] border border-white/15 bg-white/5 px-4 py-3">
+        <p className="text-sm leading-relaxed text-white/80">{bioText}</p>
       </div>
 
       {/* Divider */}
       <div className="border-t border-white/10" />
 
-      {/* Stats — pill style */}
-      <div className="flex gap-4">
-        <div className="flex h-12 flex-1 items-center gap-3 rounded-full border border-white/15 bg-white/5 px-5">
-          <BookOpen className="h-5 w-5 text-white/70" />
-          <span className="text-sm text-white/80">Courses</span>
-          <span className="ml-auto text-lg font-bold text-white">{tutor.totalClasses}</span>
-        </div>
-        <div className="flex h-12 flex-1 items-center gap-3 rounded-full border border-white/15 bg-white/5 px-5">
-          <Users className="h-5 w-5 text-white/70" />
-          <span className="text-sm text-white/80">Enrollments</span>
-          <span className="ml-auto text-lg font-bold text-white">{tutor.totalStudents}</span>
-        </div>
+      {/* Stats — text only */}
+      <div className="flex items-center gap-4 text-sm text-white/70">
+        <span>Courses: <span className="font-semibold text-white">{tutor.totalClasses}</span></span>
+        <span className="text-white/30">·</span>
+        <span>Enrollments: <span className="font-semibold text-white">{tutor.totalStudents}</span></span>
       </div>
 
       {/* Actions — Book 1 on 1 (left, white) | Follow (right, outline) */}
@@ -191,16 +172,16 @@ export function TutorCard({
             href={bookHref}
             onClick={e => e.stopPropagation()}
             className={cn(
-              'flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-white text-sm font-semibold text-[#1e3a5f] transition-all duration-200 hover:bg-white/90'
+              'flex h-9 flex-1 items-center justify-center gap-2 rounded-full bg-white text-sm font-semibold text-[#1e3a5f] transition-all duration-200 hover:bg-white/90'
             )}
           >
-            <Video className="h-4 w-4" />
-            Book 1 on 1
+            <CalendarDays className="h-4 w-4" />
+            Book 1-on-1
           </Link>
         ) : (
-          <div className="flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-white/10 text-sm font-semibold text-white/50">
+          <div className="flex h-9 flex-1 items-center justify-center gap-2 rounded-full bg-white/10 text-sm font-semibold text-white/50">
             <CalendarDays className="h-4 w-4" />
-            Book 1 on 1
+            Book 1-on-1
           </div>
         )}
 
@@ -211,7 +192,7 @@ export function TutorCard({
               onFollowToggle()
             }}
             className={cn(
-              'flex h-12 min-w-[140px] items-center justify-center gap-2 rounded-full border px-6 text-sm font-semibold transition-all duration-200',
+              'flex h-9 min-w-[120px] items-center justify-center gap-2 rounded-full border px-5 text-sm font-semibold transition-all duration-200',
               followState === 'following'
                 ? 'border-emerald-400/40 bg-emerald-500/20 text-emerald-50 hover:bg-emerald-500/30'
                 : 'border-white/40 bg-white/10 text-white hover:bg-white/20'
@@ -224,7 +205,7 @@ export function TutorCard({
           <Button
             asChild
             variant="outline"
-            className="flex h-12 min-w-[140px] items-center justify-center gap-2 rounded-full border-white/40 bg-white/10 px-6 text-sm font-semibold text-white hover:bg-white/20 hover:text-white"
+            className="flex h-9 min-w-[120px] items-center justify-center gap-2 rounded-full border-white/40 bg-white/10 px-5 text-sm font-semibold text-white hover:bg-white/20 hover:text-white"
           >
             <Link href={`/u/${tutor.username || tutor.id}`} onClick={e => e.stopPropagation()}>
               <UserPlus className="h-4 w-4" />

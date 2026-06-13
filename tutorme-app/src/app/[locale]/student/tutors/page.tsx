@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { BookOpen, Search, Users } from 'lucide-react'
+import { BookOpen, Search, Users, Maximize2, Minimize2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useNavigationOverlay } from '@/components/navigation/NavigationOverlay'
@@ -64,6 +64,7 @@ export default function StudentTutorDirectoryPage() {
   const [nationalityFilter, setNationalityFilter] = useState('all')
   const [sortBy, setSortBy] = useState<'popular' | 'newest' | 'courses' | 'rate'>('popular')
   const [following, setFollowing] = useState<Set<string>>(new Set())
+  const [panelExpanded, setPanelExpanded] = useState(false)
 
   // Load following from API on mount
   useEffect(() => {
@@ -174,40 +175,70 @@ export default function StudentTutorDirectoryPage() {
   return (
     <div className="text-foreground flex h-full flex-col overflow-hidden">
       <div className="flex h-full w-full flex-col px-3 lg:px-4">
-        {/* Hero + Search & Filter */}
-        <Card className="mb-4 flex-shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] shadow-[0_14px_45px_rgba(0,0,0,0.12)] ring-1 ring-white/20">
-          <div className="flex flex-col gap-4 p-5">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <h1 className="text-3xl font-bold text-white">Find Your Tutor</h1>
+        {/* Hero */}
+        <Card className="mb-3 flex-shrink-0 overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] shadow-[0_14px_45px_rgba(0,0,0,0.12)] ring-1 ring-white/20">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4">
+            <h1 className="text-2xl font-bold text-white">Find Your Tutor</h1>
 
-              <div
-                className={cn(
-                  'flex flex-wrap items-center justify-end gap-2',
-                  loading && 'animate-pulse'
-                )}
-              >
-                <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
-                  <Users className="h-4 w-4 text-white/80" />
-                  <span className="text-xs font-medium text-white/80">Tutors</span>
-                  <span className="text-sm font-bold text-white">{headlineMetrics.tutorCount}</span>
-                </div>
-                <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
-                  <BookOpen className="h-4 w-4 text-white/80" />
-                  <span className="text-xs font-medium text-white/80">Published Courses</span>
-                  <span className="text-sm font-bold text-white">
-                    {headlineMetrics.totalCourses}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
-                  <Users className="h-4 w-4 text-white/80" />
-                  <span className="text-xs font-medium text-white/80">Total Enrollments</span>
-                  <span className="text-sm font-bold text-white">
-                    {headlineMetrics.totalEnrollments}
-                  </span>
-                </div>
+            <div
+              className={cn(
+                'flex flex-wrap items-center justify-end gap-2',
+                loading && 'animate-pulse'
+              )}
+            >
+              <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
+                <Users className="h-4 w-4 text-white/80" />
+                <span className="text-xs font-medium text-white/80">Tutors</span>
+                <span className="text-sm font-bold text-white">{headlineMetrics.tutorCount}</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
+                <BookOpen className="h-4 w-4 text-white/80" />
+                <span className="text-xs font-medium text-white/80">Published Courses</span>
+                <span className="text-sm font-bold text-white">
+                  {headlineMetrics.totalCourses}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
+                <Users className="h-4 w-4 text-white/80" />
+                <span className="text-xs font-medium text-white/80">Total Enrollments</span>
+                <span className="text-sm font-bold text-white">
+                  {headlineMetrics.totalEnrollments}
+                </span>
               </div>
             </div>
+          </div>
+        </Card>
 
+        {/* Lower panel: expandable header + filters + tutor grid */}
+        <div
+          className={cn(
+            'flex min-h-0 flex-col overflow-hidden rounded-[18px] border border-white/10 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]',
+            panelExpanded ? 'h-[calc(100vh-3rem)]' : 'flex-1'
+          )}
+        >
+          {/* Expandable header */}
+          <div
+            onClick={() => setPanelExpanded(v => !v)}
+            className={cn(
+              'cursor-pointer bg-[linear-gradient(135deg,#1E2832_0%,#2D3B4A_50%,#1A2530_100%)] transition-all duration-200 hover:brightness-110',
+              panelExpanded ? 'p-4' : 'p-5'
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-white">Solocorn Tutors</h2>
+                <p className="mt-1 text-sm text-white/60">Find and book your tutor</p>
+              </div>
+              {panelExpanded ? (
+                <Minimize2 className="h-5 w-5 text-white/70" />
+              ) : (
+                <Maximize2 className="h-5 w-5 text-white/70" />
+              )}
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="border-b border-gray-100 bg-white p-4">
             <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
               <div className="relative">
                 <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
@@ -215,11 +246,11 @@ export default function StudentTutorDirectoryPage() {
                   value={searchQuery}
                   onChange={event => setSearchQuery(event.target.value)}
                   placeholder="Search tutor, subject, specialty..."
-                  className="border-white/20 bg-white/95 pl-9 text-slate-900 placeholder:text-slate-400"
+                  className="border-slate-200 bg-white pl-9 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="border-white/20 bg-white/95 text-slate-900">
+                <SelectTrigger className="border-slate-200 bg-white text-slate-900">
                   <SelectValue placeholder="Filter by category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -232,7 +263,7 @@ export default function StudentTutorDirectoryPage() {
                 </SelectContent>
               </Select>
               <Select value={nationalityFilter} onValueChange={setNationalityFilter}>
-                <SelectTrigger className="border-white/20 bg-white/95 text-slate-900">
+                <SelectTrigger className="border-slate-200 bg-white text-slate-900">
                   <SelectValue placeholder="Filter by country" />
                 </SelectTrigger>
                 <SelectContent>
@@ -245,7 +276,7 @@ export default function StudentTutorDirectoryPage() {
                 </SelectContent>
               </Select>
               <Select value={sortBy} onValueChange={value => setSortBy(value as typeof sortBy)}>
-                <SelectTrigger className="border-white/20 bg-white/95 text-slate-900">
+                <SelectTrigger className="border-slate-200 bg-white text-slate-900">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -257,66 +288,66 @@ export default function StudentTutorDirectoryPage() {
               </Select>
             </div>
           </div>
-        </Card>
 
-        {/* Tutor grid */}
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="grid items-stretch gap-4 pb-4 sm:grid-cols-2 lg:grid-cols-3">
-            {loading ? (
-              Array.from({ length: 6 }).map((_, index) => (
-                <Card
-                  key={`loading-${index}`}
-                  className="animate-pulse overflow-hidden rounded-[20px] border border-white/10 bg-[rgba(30,40,50,0.65)] shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
-                >
-                  <CardHeader className="space-y-2 p-4">
-                    <div className="h-5 w-2/3 rounded bg-white/10" />
-                    <div className="h-3 w-1/2 rounded bg-white/10" />
+          {/* Tutor grid */}
+          <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50/50 p-4">
+            <div className="grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {loading ? (
+                Array.from({ length: 6 }).map((_, index) => (
+                  <Card
+                    key={`loading-${index}`}
+                    className="animate-pulse overflow-hidden rounded-[20px] border border-white/10 bg-[rgba(30,40,50,0.65)] shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
+                  >
+                    <CardHeader className="space-y-2 p-4">
+                      <div className="h-5 w-2/3 rounded bg-white/10" />
+                      <div className="h-3 w-1/2 rounded bg-white/10" />
+                    </CardHeader>
+                    <CardContent className="space-y-2 p-4 pt-0">
+                      <div className="h-3 rounded bg-white/10" />
+                      <div className="h-3 rounded bg-white/10" />
+                    </CardContent>
+                  </Card>
+                ))
+              ) : tutors.length === 0 ? (
+                <Card className="col-span-full overflow-hidden rounded-[20px] border border-white/10 bg-[rgba(30,40,50,0.65)] shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
+                  <CardHeader>
+                    <CardTitle className="text-white">No tutors match your current filters</CardTitle>
+                    <CardDescription className="text-white/70">
+                      Try broadening search terms or selecting a different subject or country.
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-2 p-4 pt-0">
-                    <div className="h-3 rounded bg-white/10" />
-                    <div className="h-3 rounded bg-white/10" />
-                  </CardContent>
                 </Card>
-              ))
-            ) : tutors.length === 0 ? (
-              <Card className="col-span-full overflow-hidden rounded-[20px] border border-white/10 bg-[rgba(30,40,50,0.65)] shadow-[0_12px_30px_rgba(0,0,0,0.25)]">
-                <CardHeader>
-                  <CardTitle className="text-white">No tutors match your current filters</CardTitle>
-                  <CardDescription className="text-white/70">
-                    Try broadening search terms or selecting a different subject or country.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            ) : (
-              tutors.map(tutor => (
-                <TutorCard
-                  key={tutor.id}
-                  tutor={{
-                    id: tutor.id,
-                    username: tutor.username,
-                    name: tutor.name,
-                    avatar: tutor.avatarUrl,
-                    bio: tutor.bio,
-                    rating: tutor.averageRating || 0,
-                    reviewCount: tutor.totalReviewCount || 0,
-                    hourlyRate: tutor.hourlyRate,
-                    currency: 'SGD',
-                    nextAvailableSlot: null,
-                    totalStudents: tutor.totalEnrollments,
-                    totalClasses: tutor.courseCount,
-                    specialties: tutor.categories,
-                    countries: tutor.tutorNationalities,
-                  }}
-                  onClick={() => {
-                    showOverlay()
-                    router.push(`/${locale}/u/${tutor.username}`)
-                  }}
-                  followState={following.has(tutor.id) ? 'following' : 'not-following'}
-                  onFollowToggle={() => toggleFollow(tutor.id)}
-                  bookHref={`/${locale}/u/${tutor.username}?book=1`}
-                />
-              ))
-            )}
+              ) : (
+                tutors.map(tutor => (
+                  <TutorCard
+                    key={tutor.id}
+                    tutor={{
+                      id: tutor.id,
+                      username: tutor.username,
+                      name: tutor.name,
+                      avatar: tutor.avatarUrl,
+                      bio: tutor.bio,
+                      rating: tutor.averageRating || 0,
+                      reviewCount: tutor.totalReviewCount || 0,
+                      hourlyRate: tutor.hourlyRate,
+                      currency: 'SGD',
+                      nextAvailableSlot: null,
+                      totalStudents: tutor.totalEnrollments,
+                      totalClasses: tutor.courseCount,
+                      specialties: tutor.categories,
+                      countries: tutor.tutorNationalities,
+                    }}
+                    onClick={() => {
+                      showOverlay()
+                      router.push(`/${locale}/u/${tutor.username}`)
+                    }}
+                    followState={following.has(tutor.id) ? 'following' : 'not-following'}
+                    onFollowToggle={() => toggleFollow(tutor.id)}
+                    bookHref={`/${locale}/u/${tutor.username}?book=1`}
+                  />
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
