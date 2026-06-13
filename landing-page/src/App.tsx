@@ -11,6 +11,7 @@ import {
   Settings,
   X,
   Play,
+  FileText,
 } from 'lucide-react';
 import {
   Navbar,
@@ -24,11 +25,112 @@ import { ContactModal } from './components/ContactModal';
 // Main App URL configuration
 const MAIN_APP_URL = import.meta.env.VITE_MAIN_APP_URL || 'http://localhost:3003';
 
-const PROMO_VIDEO = {
-  id: '_U8FwciBJxg',
-  title: 'Promo',
-  description: 'Watch the platform promo.',
+const HOW_IT_WORKS_VIDEOS: Record<string, { id: string; title: string; description: string }[]> = {
+  Promo: [
+    {
+      id: '_U8FwciBJxg',
+      title: 'Promo',
+      description: 'Watch the platform promo.',
+    },
+  ],
+  'Building Live Courses': [
+    {
+      id: 'PLACEHOLDER_1',
+      title: 'Creating a Course',
+      description: 'How to build your first live course.',
+    },
+    {
+      id: 'PLACEHOLDER_2',
+      title: 'Scheduling Sessions',
+      description: 'Set up live class schedules.',
+    },
+    {
+      id: 'PLACEHOLDER_3',
+      title: 'Publishing',
+      description: 'Publish and manage course variants.',
+    },
+  ],
+  'Pitch Deck': [
+    {
+      id: 'PLACEHOLDER_4',
+      title: 'Platform Overview',
+      description: 'High-level pitch for institutions.',
+    },
+    {
+      id: 'PLACEHOLDER_5',
+      title: 'Tutor Value Proposition',
+      description: 'Why tutors choose Solocorn.',
+    },
+    {
+      id: 'PLACEHOLDER_6',
+      title: 'Student Outcomes',
+      description: 'Results and success stories.',
+    },
+  ],
 };
+
+const HOW_IT_WORKS_DOCUMENTS = [
+  {
+    id: 'pitch-deck',
+    title: 'Solocorn Pitch Deck',
+    url: 'https://storage.googleapis.com/YOUR_BUCKET/how-it-works/pdfs/solocorn-pitch-deck.pdf',
+    filename: 'solocorn-pitch-deck.pdf',
+  },
+  {
+    id: 'course-builder-guide',
+    title: 'Course Builder Guide',
+    url: 'https://storage.googleapis.com/YOUR_BUCKET/how-it-works/pdfs/course-builder-guide.pdf',
+    filename: 'solocorn-course-builder-guide.pdf',
+  },
+];
+
+function HowItWorksVideoCard({ video }: { video: { id: string; title: string; description: string } }) {
+  return (
+    <a
+      href={`https://www.youtube.com/watch?v=${video.id}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block overflow-hidden rounded-lg border border-white/10 bg-white/5 transition-colors hover:bg-white/10"
+    >
+      <div className="relative aspect-video overflow-hidden">
+        <img
+          src={`https://img.youtube.com/vi/${video.id}/hqdefault.jpg`}
+          alt={video.title}
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
+          <Play className="h-8 w-8 fill-white text-white opacity-80 transition-opacity group-hover:opacity-100" />
+        </div>
+      </div>
+      <div className="p-2">
+        <h3 className="text-xs font-semibold text-white">{video.title}</h3>
+        {video.description && (
+          <p className="mt-0.5 text-[11px] text-white/70">{video.description}</p>
+        )}
+      </div>
+    </a>
+  );
+}
+
+function HowItWorksDocumentCard({ doc }: { doc: { id: string; title: string; url: string; filename: string } }) {
+  return (
+    <a
+      href={doc.url}
+      download={doc.filename}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-center gap-3 overflow-hidden rounded-lg border border-white/10 bg-white/5 p-3 transition-colors hover:bg-white/10"
+    >
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10">
+        <FileText className="h-5 w-5 text-white/80" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <h3 className="truncate text-xs font-semibold text-white">{doc.title}</h3>
+        <p className="mt-0.5 text-[11px] text-white/60">Download PDF</p>
+      </div>
+    </a>
+  );
+}
 
 export default function App() {
   const [view, setView] = useState<View>('home');
@@ -201,19 +303,19 @@ export default function App() {
                   <X className="h-5 w-5" />
                 </button>
 
-                <div className="flex w-full max-w-4xl flex-1 flex-col overflow-hidden">
+                <div className="flex w-full max-w-5xl flex-1 flex-col overflow-hidden">
                   {/* Gear animation header */}
-                  <div className="flex flex-col items-center justify-center pt-4">
+                  <div className="flex flex-col items-center justify-center py-2">
                     <div className="flex items-center justify-center gap-1">
                       <motion.span
-                        className="inline-flex h-7 w-7 text-white/90"
+                        className="inline-flex h-6 w-6 text-white/90"
                         animate={{ rotate: 360 }}
                         transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                       >
                         <Settings className="h-full w-full" />
                       </motion.span>
                       <motion.span
-                        className="-mt-1.5 -ml-0.5 inline-flex h-7 w-7 text-white/90"
+                        className="-mt-1.5 -ml-0.5 inline-flex h-6 w-6 text-white/90"
                         animate={{ rotate: -360 }}
                         transition={{ duration: 1.33, repeat: Infinity, ease: 'linear' }}
                       >
@@ -222,34 +324,37 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Promo section */}
-                  <div className="w-full pt-2 pb-4">
-                    <h2 className="mb-3 text-center text-lg font-semibold text-white">Promo</h2>
-                    <a
-                      href={`https://www.youtube.com/watch?v=${PROMO_VIDEO.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group mx-auto block max-w-2xl overflow-hidden rounded-xl border border-white/10 bg-white/5 transition-colors hover:bg-white/10"
-                    >
-                      <div className="relative aspect-video overflow-hidden">
-                        <img
-                          src={`https://img.youtube.com/vi/${PROMO_VIDEO.id}/hqdefault.jpg`}
-                          alt={PROMO_VIDEO.title}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/30">
-                          <Play className="h-12 w-12 fill-white text-white opacity-80 transition-opacity group-hover:opacity-100" />
+                  {/* Scrollable rows */}
+                  <div className="w-full flex-1 overflow-y-auto px-2 py-2">
+                    {Object.entries(HOW_IT_WORKS_VIDEOS).map(([section, videos], sectionIndex, sections) => (
+                      <div key={section}>
+                        <h2 className="mb-2 text-center text-base font-semibold text-white">{section}</h2>
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                          {videos.map(video => (
+                            <div key={video.id}>
+                              <HowItWorksVideoCard video={video} />
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                      <div className="p-4 text-center">
-                        <h3 className="text-base font-semibold text-white">{PROMO_VIDEO.title}</h3>
-                        {PROMO_VIDEO.description && (
-                          <p className="mt-1 text-xs text-white/70">{PROMO_VIDEO.description}</p>
+                        {sectionIndex < sections.length - 1 && (
+                          <div className="mx-2 my-3 h-px bg-white/20" />
                         )}
                       </div>
-                    </a>
-                  </div>
+                    ))}
 
+                    <div className="mx-2 my-3 h-px bg-white/20" />
+
+                    <div>
+                      <h2 className="mb-2 text-center text-base font-semibold text-white">Documents</h2>
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {HOW_IT_WORKS_DOCUMENTS.map(doc => (
+                          <div key={doc.id}>
+                            <HowItWorksDocumentCard doc={doc} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
