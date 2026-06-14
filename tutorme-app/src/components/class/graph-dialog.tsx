@@ -193,10 +193,10 @@ export function GraphDialog({
           )}
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="modal-secondary-dark" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handlePlot}>
+            <Button variant="modal-primary-dark" onClick={handlePlot}>
               <TrendingUp className="mr-1.5 h-4 w-4" />
               Plot
             </Button>
