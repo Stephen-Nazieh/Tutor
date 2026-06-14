@@ -25,7 +25,6 @@ import {
   BookOpen,
   FileText,
   ListOrdered,
-  CheckCircle2,
   Loader2,
   Radio,
   DollarSign,
@@ -74,6 +73,19 @@ import {
   getTabConfig,
   type CategoryTabConfig,
 } from '@/lib/data/category-tab-config'
+
+const TAB_COLORS: Record<string, { bg: string; text: string; close: string }> = {
+  global: { bg: 'bg-[#0A84FF]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+  ap: { bg: 'bg-[#FF1493]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+  alevel: { bg: 'bg-[#BF5AF2]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+  ib: { bg: 'bg-[#32D74B]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+  igcse: { bg: 'bg-[#64D2FF]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+  national: { bg: 'bg-[#FF9F0A]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+  universities: { bg: 'bg-[#FF375F]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+  languages: { bg: 'bg-[#00C7BE]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+  professional: { bg: 'bg-[#FFD60A]', text: 'text-slate-900', close: 'text-slate-900/60 hover:text-slate-900' },
+  diy: { bg: 'bg-[#FF9500]', text: 'text-white', close: 'text-white/60 hover:text-white' },
+}
 
 // Flatten all categories into a single list
 const ALL_CATEGORIES = [
@@ -193,6 +205,8 @@ export default function TutorCoursePage() {
   const [infoOpen, setInfoOpen] = useState(true)
   const [categoriesOpen, setCategoriesOpen] = useState(true)
   const [publishingVariants, setPublishingVariants] = useState(false)
+  const [globalContentHeight, setGlobalContentHeight] = useState<number>(480)
+  const globalContentRef = useRef<HTMLDivElement>(null)
   // Available countries based on selected region
   const availableCountries = useMemo<CountryData[]>(() => {
     if (!selectedRegion) return []
@@ -234,6 +248,35 @@ export default function TutorCoursePage() {
       return regionId === selectedRegion
     })
   }, [selectedRegion, selectedCountryCode, availableCountries])
+
+  const selectedCountryName = useMemo(() => {
+    if (!selectedCountryCode) return null
+    return availableCountries.find(c => c.code === selectedCountryCode)?.name || null
+  }, [selectedCountryCode, availableCountries])
+
+  const examToTabKey = useMemo(() => {
+    const map = new Map<string, string>()
+    const add = (cats: ExamCategory[], key: string) =>
+      cats.forEach(c => c.exams.forEach(e => map.set(e, key)))
+    add(GLOBAL_EXAMS_CATEGORIES, 'global')
+    add(AP_CATEGORIES, 'ap')
+    add(A_LEVEL_CATEGORIES, 'alevel')
+    add(IB_CATEGORIES, 'ib')
+    add(IGCSE_CATEGORIES, 'igcse')
+    add(LANGUAGE_CATEGORIES, 'languages')
+    add(PROFESSIONAL_CATEGORIES, 'professional')
+    nationalExams.forEach(c => c.exams.forEach(e => map.set(e, 'national')))
+    filteredUniversityCategories.forEach(c => c.exams.forEach(e => map.set(e, 'universities')))
+    return map
+  }, [nationalExams, filteredUniversityCategories])
+
+  // Measure the Global tab content height so every tab uses the same fixed height
+  useLayoutEffect(() => {
+    if (categoryTab !== 'global') return
+    if (globalContentRef.current) {
+      setGlobalContentHeight(globalContentRef.current.scrollHeight + 32)
+    }
+  }, [categoryTab, categoriesOpen])
   const [scheduleWeekOffset, setScheduleWeekOffset] = useState(0)
   const [scheduleRepeatWeekly, setScheduleRepeatWeekly] = useState(false)
   const [numberOfWeeks, setNumberOfWeeks] = useState(4)
@@ -886,6 +929,43 @@ export default function TutorCoursePage() {
                     </div>
                   </div>
 
+                  {/* Selected category badges */}
+                  <div className="flex flex-col">
+                    <div className="scrollbar-hide flex h-10 min-w-0 items-center overflow-x-auto rounded-md border border-slate-200 bg-white px-6 py-1">
+                      <div className="flex min-w-0 flex-nowrap items-center gap-2">
+                        {selectedCategories.length === 0 && (
+                          <span className="select-none text-sm text-slate-400">
+                            Select a category below
+                          </span>
+                        )}
+                        {selectedCategories.map(cat => {
+                          const tabKey = examToTabKey.get(cat) || 'diy'
+                          const colors = TAB_COLORS[tabKey] || {
+                            bg: 'bg-slate-100',
+                            text: 'text-slate-700',
+                            close: 'text-slate-500/60 hover:text-slate-700',
+                          }
+                          return (
+                            <span
+                              key={cat}
+                              className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full ${colors.bg} px-3 py-1 text-xs font-medium ${colors.text}`}
+                            >
+                              {cat} - {selectedCountryName || 'Global'}
+                              <button
+                                type="button"
+                                onClick={() => setSelectedCategories([])}
+                                className={`ml-0.5 ${colors.close}`}
+                                aria-label={`Remove ${cat}`}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Category Tabs */}
                   <div className="flex flex-col gap-4">
                     <Tabs
@@ -939,11 +1019,17 @@ export default function TutorCoursePage() {
                         </div>
                       </div>
 
-                      {/* Tab Contents - Auto height, no box styling */}
-                      <div className="py-4">
+                      {/* Tab Contents - Fixed to Global height, scrollable */}
+                      <div
+                        className="scrollbar-hide overflow-y-auto py-4"
+                        style={{
+                          height: globalContentHeight,
+                          maxHeight: globalContentHeight,
+                        }}
+                      >
                         {/* Global Tab */}
                         <TabsContent value="global" className="mt-0">
-                          <div className="space-y-6">
+                          <div ref={globalContentRef} className="space-y-6">
                             {GLOBAL_EXAMS_CATEGORIES.filter(
                               cat =>
                                 !categorySearch ||
@@ -1445,13 +1531,6 @@ export default function TutorCoursePage() {
                   </div>
                 </div>
 
-                {/* Selected Categories Summary */}
-                {selectedCategories.length > 0 && (
-                  <div className="flex items-center gap-2 pt-2 text-sm font-medium text-emerald-600">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span>Category: {selectedCategories[0]}</span>
-                  </div>
-                )}
               </CardContent>
             ) : null}
           </Card>
