@@ -85,12 +85,7 @@ export const CountdownTimer = () => {
 };
 
 export const LaunchCard = () => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.5, duration: 0.6 }}
-    className="glass-card px-6 py-5 md:px-8 md:py-6 w-[300px] sm:w-[360px] md:w-[400px]"
-  >
+  <div className="glass-card px-6 py-5 md:px-8 md:py-6 w-[300px] sm:w-[360px] md:w-[400px]">
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2 text-white/90">
         <Users className="w-4 h-4" />
@@ -107,7 +102,7 @@ export const LaunchCard = () => (
     <div className="text-center text-sm text-white/70 font-medium">
       Until Launch
     </div>
-  </motion.div>
+  </div>
 );
 
 export const TutorStrip = () => {

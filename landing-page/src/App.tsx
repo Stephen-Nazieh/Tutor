@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search,
@@ -50,21 +50,21 @@ const HOW_IT_WORKS_VIDEOS: Record<string, { id: string; title: string; descripti
       description: 'Publish and manage course variants.',
     },
   ],
-  'Pitch Deck': [
+  Testimonials: [
     {
       id: 'PLACEHOLDER_4',
-      title: 'Platform Overview',
-      description: 'High-level pitch for institutions.',
+      title: 'Maria S.',
+      description: '“This platform helped me reach students across the country.”',
     },
     {
       id: 'PLACEHOLDER_5',
-      title: 'Tutor Value Proposition',
-      description: 'Why tutors choose Solocorn.',
+      title: 'James L.',
+      description: '“Live sessions feel personal and my grades improved fast.”',
     },
     {
       id: 'PLACEHOLDER_6',
-      title: 'Student Outcomes',
-      description: 'Results and success stories.',
+      title: 'Elena R.',
+      description: '“Booking a tutor took seconds and the AI tools are a game changer.”',
     },
   ],
 };
@@ -185,9 +185,13 @@ function HowItWorksRow<T>({
   const canNext = currentPage < totalPages - 1;
   const visible = items.slice(currentPage * itemsPerPage, currentPage * itemsPerPage + itemsPerPage);
 
+  const trackWidth = `calc(${itemsPerPage} * 9rem + ${itemsPerPage - 1} * 0.5rem)`;
+
   return (
-    <div>
-      <h2 className="mb-1 text-center text-sm font-semibold text-white">{title}</h2>
+    <div className="flex flex-col items-center">
+      <div style={{ width: trackWidth }}>
+        <h2 className="mb-1 text-left text-sm font-semibold text-white">{title}</h2>
+      </div>
       <div className="flex items-center justify-center gap-3">
         <HowItWorksArrow
           direction="left"
@@ -196,9 +200,7 @@ function HowItWorksRow<T>({
         />
         <div
           className="scrollbar-hide flex gap-2 overflow-x-auto py-1"
-          style={{
-            width: `calc(${itemsPerPage} * 9rem + ${itemsPerPage - 1} * 0.5rem)`,
-          }}
+          style={{ width: trackWidth }}
         >
           {visible.map((item, i) => (
             <div key={i} className="shrink-0">
@@ -222,6 +224,17 @@ export default function App() {
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isHowItWorksOpen, setIsHowItWorksOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Lock background scrolling while the How It Works panel is open
+  useEffect(() => {
+    if (isHowItWorksOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isHowItWorksOpen]);
 
   const handleRegistration = (data: any) => {
     setUserProfile({ ...data, isVerified: true });
@@ -330,7 +343,19 @@ export default function App() {
 
               {/* Launch Card — Bottom Right */}
               <div className="flex-shrink-0 flex justify-end px-6 pb-10">
-                <LaunchCard />
+                <AnimatePresence>
+                  {!isHowItWorksOpen && (
+                    <motion.div
+                      key="launch-card"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      transition={{ delay: 0.5, duration: 0.6 }}
+                    >
+                      <LaunchCard />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.main>
           )}
