@@ -197,7 +197,7 @@ export function AdminTopologyPanel({ days }: { days: number }) {
                     <Button
                       type="button"
                       variant="outline"
-                      className="ml-auto h-7 border-slate-500 bg-slate-800 px-2 py-1 text-xs text-slate-100"
+                      className="ml-auto h-7 border-slate-500 bg-slate-800 px-2 py-1 text-xs text-slate-100 hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
                       onClick={() => setFocusedTutorId(null)}
                     >
                       Clear
@@ -217,7 +217,7 @@ export function AdminTopologyPanel({ days }: { days: number }) {
             </span>
             <button
               onClick={() => setAutoRotate(prev => !prev)}
-              className="flex items-center gap-2 rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs text-slate-200 transition-colors hover:bg-slate-700"
+              className="flex items-center gap-2 rounded-full border border-slate-600 bg-slate-800 px-3 py-1.5 text-xs text-slate-200 transition-colors hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
               title={autoRotate ? 'Pause rotation' : 'Resume rotation'}
             >
               {autoRotate ? (

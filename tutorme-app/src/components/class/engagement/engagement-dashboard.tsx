@@ -165,7 +165,7 @@ export function EngagementDashboard({
               variant="outline"
               size="icon"
               onClick={onToggle}
-              className="fixed right-4 top-20 z-40 border-slate-700 bg-slate-800 hover:bg-slate-700"
+              className="fixed right-4 top-20 z-40 border-slate-700 bg-slate-800 hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
             >
               <Activity className="h-4 w-4 text-blue-400" />
               {aggregateStats && aggregateStats.strugglingCount > 0 && (
@@ -263,7 +263,7 @@ export function EngagementDashboard({
                   'rounded-full px-2 py-0.5 text-[10px] capitalize transition-colors',
                   filter === f
                     ? 'bg-blue-600 text-white'
-                    : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                    : 'bg-slate-700 text-slate-400 hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white'
                 )}
               >
                 {f}

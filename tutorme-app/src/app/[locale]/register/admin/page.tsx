@@ -443,7 +443,7 @@ export default function AdminRegistrationPage() {
                 <div className="flex gap-3">
                   <Button
                     variant="outline"
-                    className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
+                    className="flex-1 border-slate-700 text-slate-300 hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
                     onClick={handleBack}
                   >
                     <ChevronLeft className="mr-2 h-4 w-4" />
@@ -611,7 +611,7 @@ export default function AdminRegistrationPage() {
                 <div className="flex gap-3">
                   <Button
                     variant="outline"
-                    className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800"
+                    className="flex-1 border-slate-700 text-slate-300 hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
                     onClick={handleBack}
                     disabled={isLoading}
                   >

@@ -733,7 +733,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                               <Button
                                 type="button"
                                 variant="outline"
-                                className="border-slate-200 bg-white"
+                                className="border-slate-200 bg-white hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
                                 onClick={() => openScheduleDialog(index, schIdx)}
                               >
                                 {Array.isArray(sch.schedule) && sch.schedule.length > 0
@@ -775,38 +775,6 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                         </Button>
                       </div>
 
-                      <div className="mt-4 flex justify-end">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
-                          onClick={() => {
-                            const source = variants[index]
-                            setVariants(prev =>
-                              prev.map(v =>
-                                v.category === source.category &&
-                                v.nationality === source.nationality
-                                  ? v
-                                  : {
-                                      ...v,
-                                      isFree: source.isFree,
-                                      price: source.price,
-                                      currency: source.currency,
-                                      languageOfInstruction: source.languageOfInstruction,
-                                      schedules: source.schedules.map(s => ({
-                                        ...s,
-                                        schedule: Array.isArray(s.schedule) ? [...s.schedule] : [],
-                                      })),
-                                    }
-                              )
-                            )
-                            toast.success(`Settings copied to all ${variants.length} variants`)
-                          }}
-                        >
-                          Copy settings to all variants
-                        </Button>
-                      </div>
                     </div>
                   </div>
                 ))}

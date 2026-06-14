@@ -2590,7 +2590,7 @@ export function EnhancedWhiteboard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 bg-slate-800/50 p-0 hover:bg-slate-700"
+                  className="h-6 w-6 bg-slate-800/50 p-0 hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
                   onClick={onToggleVideoFullscreen}
                 >
                   <Maximize className="h-3 w-3 text-white" />
@@ -2598,7 +2598,7 @@ export function EnhancedWhiteboard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 bg-slate-800/50 p-0 hover:bg-slate-700"
+                  className="h-6 w-6 bg-slate-800/50 p-0 hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
                   onClick={() => setShowVideo(false)}
                 >
                   <X className="h-3 w-3 text-white" />

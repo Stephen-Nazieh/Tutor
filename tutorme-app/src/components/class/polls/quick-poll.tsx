@@ -313,7 +313,7 @@ function CreatePollPanel({
               'rounded-lg border p-3 text-left text-sm transition-colors',
               selectedTemplate === index
                 ? 'border-purple-500 bg-purple-500/20'
-                : 'border-slate-700 bg-slate-800 hover:bg-slate-700'
+                : 'border-slate-700 bg-slate-800 hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white'
             )}
           >
             <div className="font-medium text-white">{template.question}</div>

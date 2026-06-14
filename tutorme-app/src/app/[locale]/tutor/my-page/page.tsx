@@ -1476,7 +1476,7 @@ export default function TutorMyPage() {
 
                   <Button
                     size="lg"
-                    className="w-full border border-white bg-[#1D4ED8] text-white shadow-[0_4px_14px_rgba(0,0,0,0.12)] hover:translate-y-0 hover:bg-[#1F2933] hover:text-white sm:w-auto"
+                    className="w-full border border-white bg-[#1D4ED8] text-white shadow-[0_4px_14px_rgba(0,0,0,0.12)] hover:translate-y-0 hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white sm:w-auto"
                     onClick={() => void save()}
                     disabled={loading || saving}
                   >

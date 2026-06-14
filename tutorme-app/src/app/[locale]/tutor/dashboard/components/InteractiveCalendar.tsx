@@ -832,7 +832,7 @@ export function InteractiveCalendar({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 rounded-sm border border-[#374151] hover:bg-[#374151] hover:text-white"
+                      className="h-9 w-9 rounded-sm border border-[#374151] hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
                       onClick={() => navigatePeriod(-1)}
                     >
                       <ChevronLeft className="h-4 w-4" />
@@ -843,7 +843,7 @@ export function InteractiveCalendar({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 rounded-sm border border-[#374151] hover:bg-[#374151] hover:text-white"
+                      className="h-9 w-9 rounded-sm border border-[#374151] hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
                       onClick={() => navigatePeriod(1)}
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -852,7 +852,7 @@ export function InteractiveCalendar({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-9 rounded-sm border border-[#374151] text-xs hover:bg-[#374151] hover:text-white"
+                    className="h-9 rounded-sm border border-[#374151] text-xs hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
                     onClick={goToToday}
                   >
                     Today
@@ -863,7 +863,7 @@ export function InteractiveCalendar({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-9 rounded-sm border border-[#374151] text-xs hover:bg-[#374151] hover:text-white"
+                        className="h-9 rounded-sm border border-[#374151] text-xs hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
                         onClick={() => setShowCalendarIntegrations(true)}
                       >
                         <RefreshCw

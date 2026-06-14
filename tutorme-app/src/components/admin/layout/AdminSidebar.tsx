@@ -122,7 +122,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
         <button
           onClick={onToggle}
           className={cn(
-            'flex h-8 w-8 items-center justify-center rounded-lg hover:bg-slate-800',
+            'flex h-8 w-8 items-center justify-center rounded-lg hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white',
             collapsed && 'mx-auto'
           )}
         >
