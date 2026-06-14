@@ -34,6 +34,7 @@ import {
   Users,
 } from 'lucide-react'
 import { StudentHeroSection } from '@/app/[locale]/student/dashboard/components/StudentHeroSection'
+import { SessionCalendarPanel } from '@/components/session-calendar-panel'
 import { useNavigationOverlay } from '@/components/navigation/NavigationOverlay'
 import {
   Dialog,
@@ -571,67 +572,22 @@ function CoursePageInner() {
       </Dialog>
 
       {/* Tabs */}
-      <Card className="flex flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)] lg:min-h-0 lg:flex-1">
-        <div className="flex-shrink-0 border-b border-gray-200 px-6 pt-4">
-          <div className="scrollbar-hide flex overflow-x-auto">
-            <button
-              className={cn(
-                'whitespace-nowrap border-b-2 px-6 py-3 text-sm font-medium transition-colors',
-                activeTab === 'mine'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              )}
-              onClick={() => setActiveTab('mine')}
-            >
-              Ongoing ({ongoing.length})
-            </button>
-            <button
-              className={cn(
-                'whitespace-nowrap border-b-2 px-6 py-3 text-sm font-medium transition-colors',
-                activeTab === 'pending'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              )}
-              onClick={() => setActiveTab('pending')}
-            >
-              Pending ({upcoming.length})
-            </button>
-            <button
-              className={cn(
-                'whitespace-nowrap border-b-2 px-6 py-3 text-sm font-medium transition-colors',
-                activeTab === 'completed'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              )}
-              onClick={() => setActiveTab('completed')}
-            >
-              Completed ({completed.length})
-            </button>
-            <button
-              className={cn(
-                'whitespace-nowrap border-b-2 px-6 py-3 text-sm font-medium transition-colors',
-                activeTab === 'favorites'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              )}
-              onClick={() => setActiveTab('favorites')}
-            >
-              Favorites ({favorites.length})
-            </button>
-            <button
-              className={cn(
-                'whitespace-nowrap border-b-2 px-6 py-3 text-sm font-medium transition-colors',
-                activeTab === 'following'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              )}
-              onClick={() => setActiveTab('following')}
-            >
-              Following ({followingTutors.length})
-            </button>
-          </div>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-6">
+      <SessionCalendarPanel
+        value={activeTab}
+        onValueChange={value => {
+          setActiveTab(value as typeof activeTab)
+          router.push(`?tab=${value}`, { scroll: false })
+        }}
+        variant="orange"
+        tabs={[
+          { value: 'mine', label: `Ongoing (${ongoing.length})` },
+          { value: 'pending', label: `Pending (${upcoming.length})` },
+          { value: 'completed', label: `Completed (${completed.length})` },
+          { value: 'favorites', label: `Favorites (${favorites.length})` },
+          { value: 'following', label: `Following (${followingTutors.length})` },
+        ]}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3].map(i => (
@@ -828,7 +784,7 @@ function CoursePageInner() {
             </div>
           )}
         </div>
-      </Card>
+      </SessionCalendarPanel>
 
       {selectedEnrollment && (
         <PreferenceEnrollmentDialog
