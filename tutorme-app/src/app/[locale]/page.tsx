@@ -4735,39 +4735,35 @@ export default function LandingPage() {
 
         {/* Footer */}
         <footer
-          className={`border-t px-6 py-20 ${mode === 'dark' ? 'border-white/5' : 'border-black/5'}`}
+          className="border-t border-white/10 px-6 py-20"
+          style={{
+            background:
+              'radial-gradient(ellipse at top left, #1d4ed8 0%, #0a2f78 40%, #041c4a 100%)',
+          }}
         >
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 md:flex-row">
-            <div
-              className={`text-2xl font-bold tracking-tighter ${mode === 'dark' ? '' : 'text-zinc-900'}`}
-            >
-              {t('footerBrand')}
-            </div>
-            <div
-              className={`flex gap-8 text-sm ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-600'}`}
-            >
+            <div className="text-2xl font-bold tracking-tighter text-white">{t('footerBrand')}</div>
+            <div className="flex gap-8 text-sm text-white/90">
               <button
                 onClick={() => setPrivacyOpen(true)}
-                className={`hover:text-${theme}-400 cursor-pointer border-0 bg-transparent transition-colors`}
+                className="cursor-pointer border-0 bg-transparent text-white transition-colors hover:text-white/80"
               >
                 {t('privacyPolicy')}
               </button>
               <button
                 onClick={() => setTermsOpen(true)}
-                className={`hover:text-${theme}-400 cursor-pointer border-0 bg-transparent transition-colors`}
+                className="cursor-pointer border-0 bg-transparent text-white transition-colors hover:text-white/80"
               >
                 {t('termsOfService')}
               </button>
               <button
                 onClick={() => setContactModalOpen(true)}
-                className={`hover:text-${theme}-400 cursor-pointer border-0 bg-transparent transition-colors`}
+                className="cursor-pointer border-0 bg-transparent text-white transition-colors hover:text-white/80"
               >
                 {t('contact')}
               </button>
             </div>
-            <div className={`text-sm ${mode === 'dark' ? 'text-zinc-600' : 'text-zinc-500'}`}>
-              {t('allRightsReserved')}
-            </div>
+            <div className="text-sm text-white/70">{t('allRightsReserved')}</div>
           </div>
         </footer>
       </motion.main>
