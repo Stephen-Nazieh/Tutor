@@ -411,7 +411,7 @@ export function VariantScheduleEditor({
         <TabsList className="relative grid h-auto w-full grid-cols-3 items-center rounded-xl bg-[#1F2933] p-3">
           <TabsTrigger
             value="schedule"
-            className="relative rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
+            className="relative rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:bg-transparent data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
           >
             {modeTab === 'schedule' && (
               <motion.div
@@ -424,7 +424,7 @@ export function VariantScheduleEditor({
           </TabsTrigger>
           <TabsTrigger
             value="summary"
-            className="relative rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
+            className="relative rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:bg-transparent data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
           >
             {modeTab === 'summary' && (
               <motion.div
@@ -437,7 +437,7 @@ export function VariantScheduleEditor({
           </TabsTrigger>
           <TabsTrigger
             value="content"
-            className="relative rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
+            className="relative rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:bg-transparent data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
           >
             {modeTab === 'content' && (
               <motion.div
@@ -583,7 +583,7 @@ export function VariantScheduleEditor({
             <div className="relative flex min-h-0 flex-1 flex-col">
               <div
                 ref={calendarScrollRef}
-                className="scrollbar-hide flex-1 overflow-y-auto"
+                className="scrollbar-hide flex-1 overflow-y-auto overscroll-contain"
               >
                 {availabilityData ? (
                   <div className="grid grid-cols-[150px_repeat(7,_1fr)]">
