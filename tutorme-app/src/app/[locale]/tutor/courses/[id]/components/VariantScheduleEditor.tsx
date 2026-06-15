@@ -6,12 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import {
-  ChevronLeft,
-  ChevronRight,
-  Calendar as CalendarIcon,
-  Loader2,
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ScheduleItem } from '../constants'
 import { DAYS, TIME_SLOT_OPTIONS } from '../constants'
@@ -504,8 +499,7 @@ export function VariantScheduleEditor({
             key={`week-${scheduleWeekStart.getTime()}`}
             className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[14px] bg-white"
             style={{
-              boxShadow:
-                '0 18px 45px rgba(0,0,0,0.14), 0 6px 18px rgba(0,0,0,0.08)',
+              boxShadow: '0 18px 45px rgba(0,0,0,0.14), 0 6px 18px rgba(0,0,0,0.08)',
             }}
           >
             <div className="flex flex-wrap items-center justify-between gap-2 rounded-t-[14px] border-b border-[rgba(209,213,219,0.85)] bg-[#1D4ED8] px-4 py-2 text-white">
@@ -587,104 +581,107 @@ export function VariantScheduleEditor({
               >
                 {availabilityData ? (
                   <div className="grid grid-cols-[150px_repeat(7,_1fr)]">
-                  {TIME_SLOT_OPTIONS.map(timeStr => {
-                    const hour = parseInt(timeStr.slice(0, 2), 10)
-                    const endHour = hour + 1
-                    const startLabel = `${hour % 12 || 12} ${hour >= 12 ? 'PM' : 'AM'}`
-                    const endLabel = `${endHour % 12 || 12} ${endHour >= 12 ? 'PM' : 'AM'}`
-                    const displayTime = `${startLabel} \u2013 ${endLabel}`
-                    return (
-                      <div key={timeStr} className="contents">
-                        <div className="flex h-12 items-center justify-center border-b border-r border-[rgba(209,213,219,0.85)] px-2 text-center text-[11px] font-semibold text-slate-600">
-                          {displayTime}
-                        </div>
-                        {DAYS.map((day, dayIndex) => {
-                          const dateKey = formatDateKey(weekDates[dayIndex])
-                          const validScheduleArray = Array.isArray(schedule)
-                            ? schedule.filter(Boolean)
-                            : []
-                          const matchingSlotIndex = validScheduleArray.findIndex(s => {
-                            if (!s || s.dayOfWeek !== day) return false
-                            // For dated slots (expanded schedule), match exact date
-                            if (s.date && s.date !== dateKey) return false
-                            // For non-dated slots (template), match any week
-                            const [sh, sm] = (s.startTime || '00:00').split(':').map(Number)
-                            const startM = sh * 60 + sm
-                            const endM = startM + (s.durationMinutes || 60)
-                            const [th, tm] = timeStr.split(':').map(Number)
-                            const slotM = th * 60 + tm
-                            return slotM >= startM && slotM < endM
-                          })
-                          const inRange = matchingSlotIndex >= 0
-                          // Show week number for expanded schedules, session index for templates
-                          let sessionLabel = ''
-                          if (inRange) {
-                            const currentSlot = validScheduleArray[matchingSlotIndex]
-                            if (currentSlot.date) {
-                              // Find which week this slot belongs to
-                              const allForDayTime = validScheduleArray.filter(
-                                s =>
-                                  s.dayOfWeek === currentSlot.dayOfWeek &&
-                                  s.startTime === currentSlot.startTime
-                              )
-                              const sorted = allForDayTime.sort((a, b) =>
-                                (a.date || '').localeCompare(b.date || '')
-                              )
-                              const weekNum = sorted.findIndex(s => s.date === currentSlot.date) + 1
-                              sessionLabel = `Week ${weekNum}`
-                            } else {
-                              const sortedSessions = [...validScheduleArray].sort((a, b) => {
-                                const aDate = a.date || ''
-                                const bDate = b.date || ''
-                                if (aDate !== bDate) return aDate.localeCompare(bDate)
-                                return (a.startTime || '').localeCompare(b.startTime || '')
-                              })
-                              const idx = sortedSessions.findIndex(
-                                s =>
-                                  s &&
-                                  s.dayOfWeek === currentSlot.dayOfWeek &&
-                                  s.startTime === currentSlot.startTime &&
-                                  s.date === currentSlot.date
-                              )
-                              sessionLabel = `Session ${idx + 1}`
+                    {TIME_SLOT_OPTIONS.map(timeStr => {
+                      const hour = parseInt(timeStr.slice(0, 2), 10)
+                      const endHour = hour + 1
+                      const startLabel = `${hour % 12 || 12} ${hour >= 12 ? 'PM' : 'AM'}`
+                      const endLabel = `${endHour % 12 || 12} ${endHour >= 12 ? 'PM' : 'AM'}`
+                      const displayTime = `${startLabel} \u2013 ${endLabel}`
+                      return (
+                        <div key={timeStr} className="contents">
+                          <div className="flex h-12 items-center justify-center border-b border-r border-[rgba(209,213,219,0.85)] px-2 text-center text-[11px] font-semibold text-slate-600">
+                            {displayTime}
+                          </div>
+                          {DAYS.map((day, dayIndex) => {
+                            const dateKey = formatDateKey(weekDates[dayIndex])
+                            const validScheduleArray = Array.isArray(schedule)
+                              ? schedule.filter(Boolean)
+                              : []
+                            const matchingSlotIndex = validScheduleArray.findIndex(s => {
+                              if (!s || s.dayOfWeek !== day) return false
+                              // For dated slots (expanded schedule), match exact date
+                              if (s.date && s.date !== dateKey) return false
+                              // For non-dated slots (template), match any week
+                              const [sh, sm] = (s.startTime || '00:00').split(':').map(Number)
+                              const startM = sh * 60 + sm
+                              const endM = startM + (s.durationMinutes || 60)
+                              const [th, tm] = timeStr.split(':').map(Number)
+                              const slotM = th * 60 + tm
+                              return slotM >= startM && slotM < endM
+                            })
+                            const inRange = matchingSlotIndex >= 0
+                            // Show week number for expanded schedules, session index for templates
+                            let sessionLabel = ''
+                            if (inRange) {
+                              const currentSlot = validScheduleArray[matchingSlotIndex]
+                              if (currentSlot.date) {
+                                // Find which week this slot belongs to
+                                const allForDayTime = validScheduleArray.filter(
+                                  s =>
+                                    s.dayOfWeek === currentSlot.dayOfWeek &&
+                                    s.startTime === currentSlot.startTime
+                                )
+                                const sorted = allForDayTime.sort((a, b) =>
+                                  (a.date || '').localeCompare(b.date || '')
+                                )
+                                const weekNum =
+                                  sorted.findIndex(s => s.date === currentSlot.date) + 1
+                                sessionLabel = `Week ${weekNum}`
+                              } else {
+                                const sortedSessions = [...validScheduleArray].sort((a, b) => {
+                                  const aDate = a.date || ''
+                                  const bDate = b.date || ''
+                                  if (aDate !== bDate) return aDate.localeCompare(bDate)
+                                  return (a.startTime || '').localeCompare(b.startTime || '')
+                                })
+                                const idx = sortedSessions.findIndex(
+                                  s =>
+                                    s &&
+                                    s.dayOfWeek === currentSlot.dayOfWeek &&
+                                    s.startTime === currentSlot.startTime &&
+                                    s.date === currentSlot.date
+                                )
+                                sessionLabel = `Session ${idx + 1}`
+                              }
                             }
-                          }
 
-                          const slotStatus = getSlotStatus(day, dateKey, timeStr, 60)
-                          const isUnavailable = !inRange && !slotStatus.available
+                            const slotStatus = getSlotStatus(day, dateKey, timeStr, 60)
+                            const isUnavailable = !inRange && !slotStatus.available
 
-                          const cellClass = inRange
-                            ? 'bg-[#1D4ED8] font-semibold text-white'
-                            : isUnavailable
-                              ? 'bg-red-500/10 text-slate-500 cursor-not-allowed'
-                              : 'bg-white text-slate-700 hover:bg-slate-50 cursor-pointer'
+                            const cellClass = inRange
+                              ? 'bg-[#1D4ED8] font-semibold text-white'
+                              : isUnavailable
+                                ? 'bg-red-500/10 text-slate-500 cursor-not-allowed'
+                                : 'bg-white text-slate-700 hover:bg-slate-50 cursor-pointer'
 
-                          return (
-                            <div
-                              key={`${day}-${timeStr}`}
-                              role="button"
-                              tabIndex={0}
-                              onClick={() => {
-                                if (!isUnavailable) toggleSlot(day, dateKey, timeStr)
-                              }}
-                              onKeyDown={e => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault()
+                            return (
+                              <div
+                                key={`${day}-${timeStr}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => {
                                   if (!isUnavailable) toggleSlot(day, dateKey, timeStr)
-                                }
-                              }}
-                              className={`flex h-12 w-full items-center justify-center border-b border-r border-[rgba(209,213,219,0.85)] px-2 text-center transition-colors ${cellClass}`}
-                              aria-pressed={inRange}
-                              aria-label={`${day} ${displayTime}${inRange ? ', selected' : ''}. Click to ${inRange ? 'remove' : 'add'} session.`}
-                              title={isUnavailable ? slotStatus.reason : undefined}
-                            >
-                              {inRange ? <span className="text-[11px]">{sessionLabel}</span> : null}
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )
-                  })}
+                                }}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    if (!isUnavailable) toggleSlot(day, dateKey, timeStr)
+                                  }
+                                }}
+                                className={`flex h-12 w-full items-center justify-center border-b border-r border-[rgba(209,213,219,0.85)] px-2 text-center transition-colors ${cellClass}`}
+                                aria-pressed={inRange}
+                                aria-label={`${day} ${displayTime}${inRange ? ', selected' : ''}. Click to ${inRange ? 'remove' : 'add'} session.`}
+                                title={isUnavailable ? slotStatus.reason : undefined}
+                              >
+                                {inRange ? (
+                                  <span className="text-[11px]">{sessionLabel}</span>
+                                ) : null}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )
+                    })}
                   </div>
                 ) : (
                   <div className="flex h-full min-h-[160px] items-center justify-center">
@@ -692,7 +689,6 @@ export function VariantScheduleEditor({
                   </div>
                 )}
               </div>
-
             </div>
           </div>
         </TabsContent>
