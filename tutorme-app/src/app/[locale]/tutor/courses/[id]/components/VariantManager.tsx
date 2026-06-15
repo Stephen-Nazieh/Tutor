@@ -146,6 +146,11 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
     const [scheduleDialogScheduleIndex, setScheduleDialogScheduleIndex] = useState<number | null>(
       null
     )
+    const [scheduleDialogSession, setScheduleDialogSession] = useState(0)
+    const [scheduleDialogOriginalState, setScheduleDialogOriginalState] = useState<{
+      schedule: ScheduleItem[]
+      weeksToSchedule: number
+    } | null>(null)
     const modalContentRef = useRef<HTMLDivElement>(null)
     const [globalDefaultsOpen, setGlobalDefaultsOpen] = useState(true)
     const [generatedVariantsOpen, setGeneratedVariantsOpen] = useState(true)
@@ -297,20 +302,54 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
     )
 
     const openScheduleDialog = useCallback((variantIndex: number, scheduleIdx: number) => {
+      setScheduleDialogSession(s => s + 1)
       setScheduleDialogVariantIndex(variantIndex)
       setScheduleDialogScheduleIndex(scheduleIdx)
+      const variant = variants[variantIndex]
+      const schedule = variant?.schedules[scheduleIdx]
+      if (schedule) {
+        setScheduleDialogOriginalState({
+          schedule: JSON.parse(JSON.stringify(schedule.schedule)) as ScheduleItem[],
+          weeksToSchedule: schedule.weeksToSchedule ?? 8,
+        })
+      }
       setTimeout(() => {
         setScheduleDialogOpen(true)
       }, 0)
-    }, [])
+    }, [variants])
 
     const closeScheduleDialog = useCallback(() => {
       setScheduleDialogOpen(false)
       setTimeout(() => {
         setScheduleDialogVariantIndex(null)
         setScheduleDialogScheduleIndex(null)
+        setScheduleDialogOriginalState(null)
       }, 300)
     }, [])
+
+    const cancelScheduleDialog = useCallback(() => {
+      if (
+        scheduleDialogOriginalState &&
+        scheduleDialogVariantIndex != null &&
+        scheduleDialogScheduleIndex != null
+      ) {
+        updateVariant(scheduleDialogVariantIndex, v => {
+          const newSchedules = [...v.schedules]
+          newSchedules[scheduleDialogScheduleIndex] = {
+            ...newSchedules[scheduleDialogScheduleIndex],
+            schedule: scheduleDialogOriginalState.schedule,
+            weeksToSchedule: scheduleDialogOriginalState.weeksToSchedule,
+          }
+          return { ...v, schedules: newSchedules }
+        })
+      }
+      setScheduleDialogOpen(false)
+      setTimeout(() => {
+        setScheduleDialogVariantIndex(null)
+        setScheduleDialogScheduleIndex(null)
+        setScheduleDialogOriginalState(null)
+      }, 300)
+    }, [scheduleDialogOriginalState, scheduleDialogVariantIndex, scheduleDialogScheduleIndex, updateVariant])
 
     const handleSave = useCallback(async () => {
       if (variants.length === 0) {
@@ -482,7 +521,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                     type="button"
                     variant="outline"
                     onClick={applyGlobalsToAll}
-                    className="w-full border-slate-200 bg-white hover:bg-slate-50"
+                    className="w-full border-slate-200 bg-white hover:bg-[#1F2933] hover:text-white"
                   >
                     Apply to all
                   </Button>
@@ -733,7 +772,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                               <Button
                                 type="button"
                                 variant="outline"
-                                className="border-slate-200 bg-white hover:bg-[#1F2933] hover:text-white hover:outline hover:outline-1 hover:outline-white"
+                                className="min-w-[120px] border-slate-200 bg-white hover:bg-[#1F2933] hover:text-white"
                                 onClick={() => openScheduleDialog(index, schIdx)}
                               >
                                 {Array.isArray(sch.schedule) && sch.schedule.length > 0
@@ -887,11 +926,19 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                 </div>
               )}
 
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={cancelScheduleDialog}
+                  className="h-11 rounded-full border-slate-200 bg-white px-6 text-slate-900 hover:bg-[#1F2933] hover:text-white hover:translate-y-0"
+                >
+                  Cancel
+                </Button>
                 <Button
                   type="button"
                   onClick={closeScheduleDialog}
-                  className="h-11 rounded-[12px] bg-white px-6 text-[#0B3A9B] hover:translate-y-0 hover:bg-white/90 hover:shadow-none active:scale-100"
+                  className="h-11 rounded-full bg-[#1D4ED8] px-6 text-white hover:bg-[#1D4ED8]/90 hover:translate-y-0"
                 >
                   Save
                 </Button>

@@ -63,7 +63,12 @@ export function CourseScheduleCard({
             onRemove={removeSlot}
           />
         ))}
-        <Button type="button" variant="outline" onClick={addSlot}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={addSlot}
+          className="border-slate-200 bg-white hover:bg-[#1F2933] hover:text-white"
+        >
           Add Session
         </Button>
       </CardContent>
