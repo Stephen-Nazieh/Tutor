@@ -412,6 +412,7 @@ export function VariantScheduleEditor({
               <motion.div
                 layoutId="schedule-editor-active-pill"
                 className="absolute inset-0 rounded-lg bg-white"
+                initial={false}
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               />
             )}
@@ -425,6 +426,7 @@ export function VariantScheduleEditor({
               <motion.div
                 layoutId="schedule-editor-active-pill"
                 className="absolute inset-0 rounded-lg bg-white"
+                initial={false}
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               />
             )}
@@ -438,6 +440,7 @@ export function VariantScheduleEditor({
               <motion.div
                 layoutId="schedule-editor-active-pill"
                 className="absolute inset-0 rounded-lg bg-white"
+                initial={false}
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
               />
             )}

@@ -60,7 +60,7 @@ interface SessionCalendarPanelProps {
   onCalendarViewChange?: (view: CalendarView) => void
   timezone?: string
   onTimezoneChange?: (tz: string) => void
-  variant?: 'blue' | 'orange'
+  variant?: 'blue' | 'orange' | 'charcoal'
 }
 
 export function SessionCalendarPanel({
@@ -85,7 +85,9 @@ export function SessionCalendarPanel({
                 'flex gap-1.5 rounded-xl p-1.5',
                 variant === 'orange'
                   ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C]'
-                  : 'bg-gradient-to-r from-[#2563EB] to-[#1D4ED8]'
+                  : variant === 'charcoal'
+                    ? 'bg-[#1F2933]'
+                    : 'bg-gradient-to-r from-[#2563EB] to-[#1D4ED8]'
               )}
             >
               {tabs.map(tab => (
@@ -95,17 +97,17 @@ export function SessionCalendarPanel({
                   className={cn(
                     'relative flex-1 rounded-lg text-white/80 hover:text-white data-[state=active]:bg-transparent data-[state=active]:shadow-none',
                     variant === 'orange'
-                      ? 'data-[state=active]:text-white'
-                      : 'data-[state=active]:text-[#2563EB]'
+                      ? 'data-[state=active]:text-[#EA580C]'
+                      : variant === 'charcoal'
+                        ? 'data-[state=active]:text-[#1F2933]'
+                        : 'data-[state=active]:text-[#2563EB]'
                   )}
                 >
                   {value === tab.value && (
                     <motion.div
                       layoutId="session-calendar-active-pill"
-                      className={cn(
-                        'absolute inset-0 rounded-lg shadow-sm',
-                        variant === 'orange' ? 'bg-[#1F2933]' : 'bg-white'
-                      )}
+                      className="absolute inset-0 rounded-lg bg-white shadow-sm"
+                      initial={false}
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
                   )}

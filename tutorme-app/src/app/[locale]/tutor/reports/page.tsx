@@ -379,7 +379,7 @@ export default function TutorReports() {
             <SessionCalendarPanel
               value={activeTab}
               onValueChange={setActiveTab}
-              variant="orange"
+              variant="charcoal"
               tabs={[
                 { value: 'overview', label: 'Overview' },
                 { value: 'revenue', label: 'Revenue Insights' },
