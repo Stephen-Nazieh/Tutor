@@ -566,7 +566,7 @@ export function VariantScheduleEditor({
             <div className="relative flex min-h-0 flex-1 flex-col">
               <div
                 ref={calendarScrollRef}
-                className="scrollbar-hide flex-1 overflow-y-auto overscroll-contain"
+                className="scrollbar-hide min-h-0 flex-1 overflow-y-auto overscroll-contain"
               >
                 {availabilityData ? (
                   <div className="grid grid-cols-[150px_repeat(7,_1fr)]">
