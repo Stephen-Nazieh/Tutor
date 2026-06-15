@@ -418,7 +418,8 @@ export function VariantScheduleEditor({
                 triggerRefs.current[i] = el
               }}
               value={tabValue}
-              className="relative z-10 rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:bg-transparent data-[state=active]:!text-[#1F2933] data-[state=active]:shadow-none"
+              className="relative z-10 rounded-lg py-1.5 text-white/80 transition-colors hover:text-white data-[state=active]:bg-transparent data-[state=active]:!text-[#1F2933] data-[state=active]:shadow-none"
+              style={{ color: modeTab === tabValue ? '#1F2933' : undefined }}
             >
               {tabValue === 'schedule' && 'Schedule'}
               {tabValue === 'summary' && 'Summary'}

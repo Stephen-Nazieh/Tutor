@@ -81,6 +81,8 @@ export function SessionCalendarPanel({
   const triggerRefs = useRef<(HTMLButtonElement | null)[]>([])
   const activeIndex = tabs.findIndex(tab => tab.value === value)
   const { left, width } = useSlidingPillMetrics(triggerRefs, activeIndex)
+  const activeTextColor =
+    variant === 'orange' ? '#EA580C' : variant === 'charcoal' ? '#1F2933' : '#2563EB'
 
   return (
     <Card className="flex h-full flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white !pb-4 shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
@@ -106,13 +108,14 @@ export function SessionCalendarPanel({
                   }}
                   value={tab.value}
                   className={cn(
-                    'relative z-10 flex-1 rounded-lg text-white/80 hover:text-white data-[state=active]:bg-transparent data-[state=active]:shadow-none',
+                    'relative z-10 flex-1 rounded-lg text-white/80 transition-colors hover:text-white data-[state=active]:bg-transparent data-[state=active]:shadow-none',
                     variant === 'orange'
                       ? 'data-[state=active]:!text-[#EA580C]'
                       : variant === 'charcoal'
                         ? 'data-[state=active]:!text-[#1F2933]'
                         : 'data-[state=active]:!text-[#2563EB]'
                   )}
+                  style={{ color: tab.value === value ? activeTextColor : undefined }}
                 >
                   {tab.label}
                 </TabsTrigger>
