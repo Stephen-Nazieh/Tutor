@@ -97,10 +97,10 @@ export function SessionCalendarPanel({
                   className={cn(
                     'relative flex-1 rounded-lg text-white/80 hover:text-white data-[state=active]:bg-transparent data-[state=active]:shadow-none',
                     variant === 'orange'
-                      ? 'data-[state=active]:text-[#EA580C]'
+                      ? 'data-[state=active]:!text-[#EA580C]'
                       : variant === 'charcoal'
-                        ? 'data-[state=active]:text-[#1F2933]'
-                        : 'data-[state=active]:text-[#2563EB]'
+                        ? 'data-[state=active]:!text-[#1F2933]'
+                        : 'data-[state=active]:!text-[#2563EB]'
                   )}
                 >
                   {value === tab.value && (
