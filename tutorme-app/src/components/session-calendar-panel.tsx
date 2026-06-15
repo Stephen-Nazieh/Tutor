@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { motion } from 'framer-motion'
 import { Globe } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -92,12 +93,22 @@ export function SessionCalendarPanel({
                   key={tab.value}
                   value={tab.value}
                   className={cn(
-                    'flex-1 rounded-lg text-white/80 hover:text-white data-[state=active]:bg-white data-[state=active]:shadow-sm',
+                    'relative flex-1 rounded-lg text-white/80 hover:text-white data-[state=active]:shadow-none',
                     variant === 'orange'
-                      ? 'data-[state=active]:text-[#EA580C]'
+                      ? 'data-[state=active]:text-white'
                       : 'data-[state=active]:text-[#2563EB]'
                   )}
                 >
+                  {value === tab.value && (
+                    <motion.div
+                      layoutId="session-calendar-active-pill"
+                      className={cn(
+                        'absolute inset-0 -z-10 rounded-lg shadow-sm',
+                        variant === 'orange' ? 'bg-[#1F2933]' : 'bg-white'
+                      )}
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
+                  )}
                   {tab.label}
                 </TabsTrigger>
               ))}

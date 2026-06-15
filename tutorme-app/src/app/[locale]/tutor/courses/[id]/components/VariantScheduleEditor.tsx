@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
+import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -407,23 +408,44 @@ export function VariantScheduleEditor({
   return (
     <div className="flex h-full flex-col">
       <Tabs value={modeTab} onValueChange={setModeTab} className="flex w-full flex-1 flex-col">
-        <TabsList className="grid h-auto w-full grid-cols-3 items-center rounded-xl bg-[#1F2933] p-3">
+        <TabsList className="relative grid h-auto w-full grid-cols-3 items-center rounded-xl bg-[#1F2933] p-3">
           <TabsTrigger
             value="schedule"
-            className="rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
+            className="relative rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
           >
+            {modeTab === 'schedule' && (
+              <motion.div
+                layoutId="schedule-editor-active-pill"
+                className="absolute inset-0 -z-10 rounded-lg bg-white"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
             Schedule
           </TabsTrigger>
           <TabsTrigger
             value="summary"
-            className="rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
+            className="relative rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
           >
+            {modeTab === 'summary' && (
+              <motion.div
+                layoutId="schedule-editor-active-pill"
+                className="absolute inset-0 -z-10 rounded-lg bg-white"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
             Summary
           </TabsTrigger>
           <TabsTrigger
             value="content"
-            className="rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
+            className="relative rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-none"
           >
+            {modeTab === 'content' && (
+              <motion.div
+                layoutId="schedule-editor-active-pill"
+                className="absolute inset-0 -z-10 rounded-lg bg-white"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
             Content
           </TabsTrigger>
         </TabsList>
