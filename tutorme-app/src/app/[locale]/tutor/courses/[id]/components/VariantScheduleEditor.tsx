@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ScheduleItem } from '../constants'
@@ -462,44 +463,36 @@ export function VariantScheduleEditor({
             <span className="text-sm font-semibold">weeks.</span>
           </div>
 
-          {/* Calendar grid */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-white/70">
-              Click a time slot to add or remove a 1-hour session.
-              {availabilityData && ' Unavailable slots are greyed out.'}
-            </p>
-            {availabilityData && (
-              <div className="flex flex-wrap items-center gap-3 rounded-lg bg-white px-3 py-2 text-[10px] font-medium text-slate-600 shadow-sm">
-                <span className="flex items-center gap-1">
-                  <span className="inline-block h-3 w-3 rounded-sm bg-[#1D4ED8]" />
-                  Selected
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block h-3 w-3 rounded-sm border border-slate-200 bg-white" />
-                  Available
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block h-3 w-3 rounded-sm bg-red-500/10" />
-                  Unavailable
-                </span>
-              </div>
-            )}
+          {/* Calendar legend */}
+          <div className="flex flex-wrap items-center gap-3 rounded-lg bg-white px-3 py-2 text-[10px] font-medium text-slate-600 shadow-sm">
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-3 w-3 rounded-sm bg-[#1D4ED8]" />
+              Selected
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-3 w-3 rounded-sm border border-slate-200 bg-white" />
+              Available
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block h-3 w-3 rounded-sm bg-red-500/10" />
+              Unavailable
+            </span>
           </div>
           <div
             key={`week-${scheduleWeekStart.getTime()}`}
             className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[14px] bg-white"
             style={{
               boxShadow:
-                '0 18px 45px rgba(0,0,0,0.14), 0 6px 18px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+                '0 18px 45px rgba(0,0,0,0.14), 0 6px 18px rgba(0,0,0,0.08)',
             }}
           >
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[rgba(209,213,219,0.85)] bg-[#1D4ED8] px-4 py-3 text-white">
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-t-[14px] border-b border-[rgba(209,213,219,0.85)] bg-[#1D4ED8] px-4 py-2 text-white">
               <div className="flex items-center gap-1">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 text-white hover:bg-white/10 hover:text-white"
+                  className="h-8 w-8 p-0 text-white hover:bg-white/10 hover:text-white"
                   onClick={() => setScheduleWeekOffset(o => o - 1)}
                   aria-label="Previous week"
                 >
@@ -512,7 +505,7 @@ export function VariantScheduleEditor({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 text-white hover:bg-white/10 hover:text-white"
+                  className="h-8 w-8 p-0 text-white hover:bg-white/10 hover:text-white"
                   onClick={() => setScheduleWeekOffset(o => o + 1)}
                   aria-label="Next week"
                 >
@@ -526,7 +519,7 @@ export function VariantScheduleEditor({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 text-white hover:bg-white/10 hover:text-white"
+                  className="h-8 w-8 p-0 text-white hover:bg-white/10 hover:text-white"
                   onClick={() => setScheduleWeekOffset(o => o - 4)}
                   aria-label="Previous month"
                 >
@@ -536,7 +529,7 @@ export function VariantScheduleEditor({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 text-white hover:bg-white/10 hover:text-white"
+                  className="h-8 w-8 p-0 text-white hover:bg-white/10 hover:text-white"
                   onClick={() => setScheduleWeekOffset(o => o + 4)}
                   aria-label="Next month"
                 >
@@ -570,7 +563,8 @@ export function VariantScheduleEditor({
                 ref={calendarScrollRef}
                 className="scrollbar-hide flex-1 overflow-y-auto"
               >
-                <div className="grid grid-cols-[150px_repeat(7,_1fr)]">
+                {availabilityData ? (
+                  <div className="grid grid-cols-[150px_repeat(7,_1fr)]">
                   {TIME_SLOT_OPTIONS.map(timeStr => {
                     const hour = parseInt(timeStr.slice(0, 2), 10)
                     const endHour = hour + 1
@@ -669,7 +663,12 @@ export function VariantScheduleEditor({
                       </div>
                     )
                   })}
-                </div>
+                  </div>
+                ) : (
+                  <div className="flex h-full min-h-[160px] items-center justify-center">
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                  </div>
+                )}
               </div>
 
             </div>
