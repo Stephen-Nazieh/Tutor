@@ -7,13 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
@@ -28,7 +21,6 @@ import {
   EyeOff,
   Loader2,
   X,
-  Check,
 } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
@@ -952,7 +944,7 @@ export default function TutorRegistrationPage() {
                         side="bottom"
                         sideOffset={4}
                       >
-                        <Command>
+                        <Command className="bg-transparent text-white">
                           <CommandInput
                             placeholder="Search country..."
                             value={nationalitySearch}
