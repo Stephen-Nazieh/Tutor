@@ -51,7 +51,12 @@ const navItems: NavItem[] = [
   { href: '/tutor/my-page', label: 'My Page', icon: Globe, iconColor: 'text-[#7C3AED]' },
   { href: '/tutor/insights', label: 'Course Builder', icon: Wrench, iconColor: 'text-[#EA580C]' },
   { href: '/tutor/classes', label: 'Live Sessions', icon: Video, iconColor: 'text-[#16A34A]' },
-  { href: '/tutor/communications', label: 'Communications', icon: MessageSquare, iconColor: 'text-[#EC4899]' },
+  {
+    href: '/tutor/communications',
+    label: 'Communications',
+    icon: MessageSquare,
+    iconColor: 'text-[#EC4899]',
+  },
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3, iconColor: 'text-[#F59E0B]' },
   { href: '/tutor/training', label: 'Training', icon: GraduationCap, iconColor: 'text-[#06B6D4]' },
   { href: '/tutor/support', label: 'Support', icon: HelpCircle, iconColor: 'text-[#8B5CF6]' },
@@ -78,12 +83,13 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       : ''
   }, [pathname])
 
-  // Compute isMyPage before useState so SSR/CSR initial state matches (prevents hydration mismatch)
+  // Compute isMyPage and isReportsPage before useState so SSR/CSR initial state matches (prevents hydration mismatch)
   const isMyPage =
     pathname === `${localePrefix}/tutor/my-page` ||
     pathname?.startsWith(`${localePrefix}/tutor/my-page/`) ||
     /\/tutor\/my-page(\/|$)/.test(pathname || '')
-  const [desktopNavOpen, setDesktopNavOpen] = useState(!isMyPage)
+  const isReportsPage = pathname === '/tutor/reports' || pathname?.startsWith('/tutor/reports/')
+  const [desktopNavOpen, setDesktopNavOpen] = useState(!isMyPage && !isReportsPage)
 
   // Scope scrollbar-gutter override to tutor pages (nested scroll containers, not html)
   useEffect(() => {
@@ -122,8 +128,6 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
   const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
 
-  const isReportsPage = pathname === '/tutor/reports' || pathname?.startsWith('/tutor/reports/')
-
   const isDashboard = pathname === `${localePrefix}/tutor/dashboard`
 
   // Ensure sidebar DOM always matches state (bypasses any hydration stalemates)
@@ -137,10 +141,10 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     }
   }, [desktopNavOpen])
 
-  // Auto-close on My Page, auto-open elsewhere
+  // Auto-close on My Page and Reports, auto-open elsewhere
   useEffect(() => {
-    setDesktopNavOpen(!isMyPage)
-  }, [isMyPage])
+    setDesktopNavOpen(!isMyPage && !isReportsPage)
+  }, [isMyPage, isReportsPage])
   // Periodic peek animation for sidebar toggle
   useEffect(() => {
     const interval = setInterval(() => {
@@ -150,7 +154,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     return () => clearInterval(interval)
   }, [])
 
-  if (isCourseBuilder || isCoursePublishPage || isInsightsPage || isAccountPage || isReportsPage) {
+  if (isCourseBuilder || isCoursePublishPage || isInsightsPage || isAccountPage) {
     return <>{children}</>
   }
 

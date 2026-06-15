@@ -15,26 +15,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  Download,
   BarChart3,
   Loader2,
   ChevronRight,
   Calendar,
-  FileText,
-  FileSpreadsheet,
-  FileIcon,
   Send,
   Bot,
   BookOpen,
   Users,
-  DollarSign,
   Video,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -44,7 +34,6 @@ import { RevenueDashboard } from '../dashboard/components/RevenueDashboard'
 import { StudentReportsTab } from '@/components/reports/student-reports-tab'
 
 import { cn } from '@/lib/utils'
-import { formatEarnings } from '@/lib/format-currency'
 import { SessionCalendarPanel } from '@/components/session-calendar-panel'
 
 interface ClassOption {
@@ -135,7 +124,6 @@ export default function TutorReports() {
   const [students, setStudents] = useState<Student[]>([])
   const [availableClasses, setAvailableClasses] = useState<ClassOption[]>([])
   const [selectedClassId, setSelectedClassId] = useState<string>('')
-  const [isExporting, setIsExporting] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCluster, setSelectedCluster] = useState<string>('all')
   const [globalAttentionStudents, setGlobalAttentionStudents] = useState<Student[]>([])
@@ -285,18 +273,6 @@ export default function TutorReports() {
     fetchReportData()
   }, [selectedClassId, students])
 
-  const handleExportReport = async (format: 'pdf' | 'excel' | 'csv') => {
-    setIsExporting(true)
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      toast.success(`Report exported as ${format.toUpperCase()}`)
-    } catch (error) {
-      toast.error('Failed to export report')
-    } finally {
-      setIsExporting(false)
-    }
-  }
-
   const filteredStudents = students.filter(student => {
     const matchesSearch =
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -351,9 +327,9 @@ export default function TutorReports() {
       value: analytics?.totalStudents ?? 0,
     },
     {
-      icon: DollarSign,
+      icon: null,
       label: 'Total Revenues',
-      value: formatEarnings(analytics?.totalRevenues ?? 0, analytics?.currency ?? 'SGD'),
+      value: analytics?.totalRevenues ?? 0,
     },
     {
       icon: Video,
@@ -389,43 +365,11 @@ export default function TutorReports() {
                       analyticsLoading && 'animate-pulse'
                     )}
                   >
-                    <pill.icon className="h-4 w-4 text-white/80" />
+                    {pill.icon && <pill.icon className="h-4 w-4 text-white/80" />}
                     <span className="text-xs font-medium text-white/80">{pill.label}</span>
                     <span className="text-sm font-bold text-white">{pill.value}</span>
                   </div>
                 ))}
-
-                {/* Export Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-                      disabled={isExporting || !selectedClassId}
-                    >
-                      {isExporting ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Download className="h-4 w-4" />
-                      )}
-                      Export Report
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleExportReport('pdf')} className="gap-2">
-                      <FileText className="h-4 w-4 text-red-500" />
-                      Export as PDF
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExportReport('excel')} className="gap-2">
-                      <FileSpreadsheet className="h-4 w-4 text-green-500" />
-                      Export as Excel
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleExportReport('csv')} className="gap-2">
-                      <FileIcon className="h-4 w-4 text-blue-500" />
-                      Export as CSV
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
             </div>
           </div>
