@@ -130,17 +130,6 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
   const isDashboard = pathname === `${localePrefix}/tutor/dashboard`
 
-  // Ensure sidebar DOM always matches state (bypasses any hydration stalemates)
-  const sidebarRef = useRef<HTMLDivElement>(null)
-  useLayoutEffect(() => {
-    if (sidebarRef.current) {
-      sidebarRef.current.style.transform = desktopNavOpen
-        ? 'translateX(0px)'
-        : 'translateX(calc(-100% - 1rem))'
-      sidebarRef.current.style.opacity = desktopNavOpen ? '1' : '0'
-    }
-  }, [desktopNavOpen])
-
   // Auto-close on My Page and Reports, auto-open elsewhere
   useEffect(() => {
     setDesktopNavOpen(!isMyPage && !isReportsPage)
@@ -160,8 +149,13 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="isolate flex h-screen overflow-hidden bg-gray-50">
-      {/* Layout spacer — reserves space for sidebar without animation */}
-      <div className={cn('hidden shrink-0 lg:block', desktopNavOpen ? 'w-64' : 'w-0')} />
+      {/* Layout spacer — animates width in sync with sidebar */}
+      <div
+        className={cn(
+          'hidden shrink-0 overflow-hidden transition-all duration-500 ease-in-out lg:block',
+          desktopNavOpen ? 'w-64' : 'w-0'
+        )}
+      />
 
       {/* Visual sidebar — fixed overlay, animates with transform only */}
       <aside
@@ -171,15 +165,12 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
         )}
       >
         <div
-          ref={sidebarRef}
           className={cn(
-            'm-4 flex h-[calc(100%-2rem)] w-60 flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-300',
-            desktopNavOpen ? 'pointer-events-auto' : 'pointer-events-none'
+            'm-4 flex h-[calc(100%-2rem)] w-60 flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-500 ease-in-out',
+            desktopNavOpen
+              ? 'pointer-events-auto translate-x-0 opacity-100'
+              : 'pointer-events-none -translate-x-[calc(100%+1rem)] opacity-0'
           )}
-          style={{
-            transform: desktopNavOpen ? 'translateX(0px)' : 'translateX(calc(-100% - 1rem))',
-            opacity: desktopNavOpen ? 1 : 0,
-          }}
         >
           <div className="flex h-full w-60 flex-col">
             <div className="flex min-w-[240px] shrink-0 items-center justify-between px-4 py-2">
@@ -263,7 +254,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       {/* Floating collapsed/expanded pill */}
       <div
         className={cn(
-          'fixed top-1/2 z-[400] hidden h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:w-10 lg:flex',
+          'fixed top-1/2 z-[400] hidden h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-500 ease-in-out hover:w-10 lg:flex',
           desktopNavOpen ? 'left-64' : 'left-0',
           desktopNavOpen
             ? 'border-[#E5E7EB] bg-white'

@@ -40,7 +40,12 @@ const navItems: NavItem[] = [
     icon: LayoutDashboard,
     iconColor: 'text-[#2563EB]',
   },
-  { href: '/student/tutors', label: 'Book a Tutor', icon: CalendarDays, iconColor: 'text-[#7C3AED]' },
+  {
+    href: '/student/tutors',
+    label: 'Book a Tutor',
+    icon: CalendarDays,
+    iconColor: 'text-[#7C3AED]',
+  },
   { href: '/student/courses', label: 'Courses', icon: GraduationCap, iconColor: 'text-[#06B6D4]' },
   { href: '/student/feedback', label: 'Classroom', icon: Video, iconColor: 'text-[#16A34A]' },
   {
@@ -100,10 +105,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="isolate flex h-screen overflow-hidden bg-gray-50">
-      {/* Layout spacer — reserves space for sidebar without animation */}
+      {/* Layout spacer — animates width in sync with sidebar */}
       <div
         className={cn(
-          'hidden shrink-0 lg:block',
+          'hidden shrink-0 overflow-hidden transition-all duration-500 ease-in-out lg:block',
           isFeedbackRoute ? 'w-0' : desktopNavOpen ? 'w-64' : 'w-0'
         )}
       />
@@ -118,8 +123,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
         >
           <div
             className={cn(
-              'm-4 flex h-[calc(100%-2rem)] w-60 flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-transform duration-300',
-              desktopNavOpen ? 'translate-x-0' : '-translate-x-[calc(100%+1rem)]'
+              'm-4 flex h-[calc(100%-2rem)] w-60 flex-col rounded-2xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5 transition-all duration-500 ease-in-out',
+              desktopNavOpen
+                ? 'pointer-events-auto translate-x-0 opacity-100'
+                : 'pointer-events-none -translate-x-[calc(100%+1rem)] opacity-0'
             )}
           >
             <div className="flex h-full w-60 flex-col">
@@ -236,7 +243,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       {!isFeedbackRoute && (
         <div
           className={cn(
-            'fixed top-1/2 z-[400] hidden h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-300 hover:w-10 lg:flex',
+            'fixed top-1/2 z-[400] hidden h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-500 ease-in-out hover:w-10 lg:flex',
             desktopNavOpen ? 'left-64' : 'left-0',
             desktopNavOpen
               ? 'border-[#E5E7EB] bg-white'
