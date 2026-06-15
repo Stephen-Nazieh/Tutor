@@ -8,8 +8,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import {
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
-  ChevronDown,
   Calendar as CalendarIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -36,7 +34,6 @@ interface VariantScheduleEditorProps {
   price?: number | null
   weeksToSchedule?: number
   onWeeksChange?: (weeks: number) => void
-  onWheelScroll?: (deltaY: number) => void
   allVariantsSchedules?: ScheduleItem[][]
   excludedSchedules?: ScheduleItem[][]
   siblingSchedules?: ScheduleItem[][]
@@ -103,7 +100,6 @@ export function VariantScheduleEditor({
   price,
   weeksToSchedule = 1,
   onWeeksChange,
-  onWheelScroll,
   allVariantsSchedules,
   excludedSchedules,
   siblingSchedules,
@@ -408,9 +404,9 @@ export function VariantScheduleEditor({
   }
 
   return (
-    <div className="space-y-6">
-      <Tabs value={modeTab} onValueChange={setModeTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 rounded-xl bg-[#1F2933] p-1.5">
+    <div className="flex h-full flex-col">
+      <Tabs value={modeTab} onValueChange={setModeTab} className="flex w-full flex-1 flex-col">
+        <TabsList className="grid w-full grid-cols-3 rounded-xl bg-[#1F2933] p-2 pb-3">
           <TabsTrigger
             value="schedule"
             className="rounded-lg py-1.5 text-white/80 hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-sm"
@@ -431,7 +427,7 @@ export function VariantScheduleEditor({
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="schedule" className="mt-4 space-y-6">
+        <TabsContent value="schedule" className="mt-6 flex flex-1 flex-col gap-6 overflow-hidden">
           {/* Cost vs Revenue - visible when price and schedule are set */}
           {priceNumber > 0 && Array.isArray(schedule) && schedule.filter(Boolean).length > 0 && (
             <div className="grid grid-cols-2 gap-3 rounded-[14px] border border-white/10 bg-white/10 p-4 text-sm text-white shadow-[0_12px_28px_rgba(15,23,42,0.18)]">
@@ -491,9 +487,8 @@ export function VariantScheduleEditor({
           </div>
           <div
             key={`week-${scheduleWeekStart.getTime()}`}
-            className="overflow-hidden rounded-[14px] bg-white"
+            className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[14px] bg-white"
             style={{
-              margin: '16px 0',
               boxShadow:
                 '0 18px 45px rgba(0,0,0,0.14), 0 6px 18px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
             }}
@@ -570,14 +565,10 @@ export function VariantScheduleEditor({
                 )
               })}
             </div>
-            <div className="relative">
+            <div className="relative flex min-h-0 flex-1 flex-col">
               <div
                 ref={calendarScrollRef}
-                className="scrollbar-hide h-[320px] overflow-y-auto"
-                onWheel={e => {
-                  e.preventDefault()
-                  onWheelScroll?.(e.deltaY)
-                }}
+                className="scrollbar-hide flex-1 overflow-y-auto"
               >
                 <div className="grid grid-cols-[150px_repeat(7,_1fr)]">
                   {TIME_SLOT_OPTIONS.map(timeStr => {
@@ -681,29 +672,6 @@ export function VariantScheduleEditor({
                 </div>
               </div>
 
-              {/* Floating vertical navigation arrows */}
-              <div className="pointer-events-none absolute right-2 top-1/2 z-10 flex -translate-y-1/2 flex-col gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    calendarScrollRef.current?.scrollBy({ top: -192, behavior: 'smooth' })
-                  }}
-                  className="pointer-events-auto flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/30 bg-white/[0.72] text-slate-700 shadow-[0_4px_16px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:bg-white/90 hover:shadow-[0_6px_20px_rgba(0,0,0,0.18)] active:scale-95"
-                  aria-label="Scroll calendar up"
-                >
-                  <ChevronUp className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    calendarScrollRef.current?.scrollBy({ top: 192, behavior: 'smooth' })
-                  }}
-                  className="pointer-events-auto flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/30 bg-white/[0.72] text-slate-700 shadow-[0_4px_16px_rgba(0,0,0,0.12)] backdrop-blur-sm transition-all duration-200 hover:scale-105 hover:bg-white/90 hover:shadow-[0_6px_20px_rgba(0,0,0,0.18)] active:scale-95"
-                  aria-label="Scroll calendar down"
-                >
-                  <ChevronDown className="h-5 w-5" />
-                </button>
-              </div>
             </div>
           </div>
         </TabsContent>

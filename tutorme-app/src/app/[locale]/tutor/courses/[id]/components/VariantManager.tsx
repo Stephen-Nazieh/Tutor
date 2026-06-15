@@ -5,7 +5,6 @@ import {
   useMemo,
   useState,
   useCallback,
-  useRef,
   forwardRef,
   useImperativeHandle,
 } from 'react'
@@ -151,7 +150,6 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
       schedule: ScheduleItem[]
       weeksToSchedule: number
     } | null>(null)
-    const modalContentRef = useRef<HTMLDivElement>(null)
     const [globalDefaultsOpen, setGlobalDefaultsOpen] = useState(true)
     const [generatedVariantsOpen, setGeneratedVariantsOpen] = useState(true)
 
@@ -867,8 +865,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
 
               {dialogVariant && dialogSchedule && (
                 <div
-                  ref={modalContentRef}
-                  className="scrollbar-hide mt-6 flex-1 overflow-y-auto pr-2"
+                  className="scrollbar-hide mt-6 flex flex-1 flex-col overflow-hidden pr-2"
                 >
                   <VariantScheduleEditor
                     key={scheduleEditorKey}
@@ -905,9 +902,6 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                         return { ...v, schedules: newSchedules }
                       })
                     }
-                    onWheelScroll={deltaY => {
-                      modalContentRef.current?.scrollBy({ top: deltaY, behavior: 'auto' })
-                    }}
                     siblingSchedules={
                       scheduleDialogVariantIndex != null && scheduleDialogScheduleIndex != null
                         ? variants[scheduleDialogVariantIndex].schedules

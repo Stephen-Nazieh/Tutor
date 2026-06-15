@@ -5,7 +5,7 @@
 
 'use client'
 
-import { Suspense, useCallback, useEffect, useState, useRef } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -167,7 +167,6 @@ function CourseBuilderInsightsRouteInner({
   const [rescheduleLanguage, setRescheduleLanguage] = useState('')
   const [rescheduleSchedule, setRescheduleSchedule] = useState<ScheduleItem[]>([])
   const [rescheduleSaving, setRescheduleSaving] = useState(false)
-  const rescheduleModalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (isClassroomMode) {
@@ -874,8 +873,7 @@ function CourseBuilderInsightsRouteInner({
             </DialogHeader>
 
             <div
-              ref={rescheduleModalRef}
-              className="scrollbar-hide mt-6 flex-1 overflow-y-auto pr-2"
+              className="scrollbar-hide mt-6 flex flex-1 flex-col overflow-hidden pr-2"
             >
               <div className="space-y-4">
                 <div>
@@ -953,7 +951,7 @@ function CourseBuilderInsightsRouteInner({
                 </div>
               </div>
 
-              <div className="mt-6">
+              <div className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden">
                 <p className="mb-2 text-sm font-medium text-white">Schedule</p>
                 <p className="mb-3 text-xs text-white/60">
                   Select a new schedule. Original course slots are greyed out and cannot be
@@ -965,9 +963,6 @@ function CourseBuilderInsightsRouteInner({
                   price={rescheduleIsFree ? 0 : parseFloat(reschedulePrice) || 0}
                   weeksToSchedule={8}
                   excludedSchedules={originalSchedule.length > 0 ? [originalSchedule] : undefined}
-                  onWheelScroll={deltaY => {
-                    rescheduleModalRef.current?.scrollBy({ top: deltaY, behavior: 'auto' })
-                  }}
                 />
               </div>
             </div>
