@@ -1874,7 +1874,7 @@ export default function PublicTutorPage() {
             }
           }}
           className={cn(
-            'cursor-pointer bg-[linear-gradient(135deg,#1E2832_0%,#2D3B4A_50%,#1A2530_100%)] transition-all duration-200 hover:brightness-110',
+            'panel-header-hover cursor-pointer bg-[linear-gradient(135deg,#1E2832_0%,#2D3B4A_50%,#1A2530_100%)] transition-all duration-200 hover:brightness-110',
             coursesExpanded ? 'p-4 sm:p-5' : 'p-6 sm:p-8'
           )}
         >

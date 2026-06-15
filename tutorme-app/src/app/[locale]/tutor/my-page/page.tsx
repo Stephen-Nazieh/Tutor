@@ -323,7 +323,7 @@ function MyCoursesSection({ onCreateCourse }: { onCreateCourse: () => void }) {
 
   return (
     <Card className="border border-[#E2E8F0] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
-      <div className={cn(charcoalHeaderClass, 'justify-between')}>
+      <div className={cn(charcoalHeaderClass, 'panel-header-hover justify-between')}>
         <div className="flex items-center gap-3">
           <BookOpen className="h-5 w-5" />
           <span className="text-base font-semibold">My Courses</span>
@@ -1801,7 +1801,7 @@ export default function TutorMyPage() {
 
         <Card className="border border-[#E2E8F0] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
           <div
-            className={cn(charcoalHeaderClass, 'cursor-pointer select-none justify-between')}
+            className={cn(charcoalHeaderClass, 'panel-header-hover cursor-pointer select-none justify-between')}
             onClick={() => setProfileSettingsOpen(prev => !prev)}
           >
             <div className="flex items-center gap-3">
