@@ -963,9 +963,9 @@ function HowItWorksArrow({
           direction === 'left'
             ? 'polygon(100% 0, 100% 100%, 0 50%)'
             : 'polygon(0 0, 0 100%, 100% 50%)',
-        background: 'linear-gradient(135deg, rgba(70,110,180,0.5) 0%, rgba(25,55,110,0.5) 100%)',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.55) 100%)',
         filter:
-          'drop-shadow(0 8px 16px rgba(0,0,0,0.35)) drop-shadow(0 0 2px rgba(25,55,110,0.5)) drop-shadow(0 0 4px rgba(25,55,110,0.3))',
+          'drop-shadow(0 8px 16px rgba(0,0,0,0.35)) drop-shadow(0 0 2px rgba(255,255,255,0.6)) drop-shadow(0 0 4px rgba(255,255,255,0.4))',
       }}
       aria-label={direction === 'left' ? 'Previous' : 'Next'}
     />
@@ -2193,7 +2193,7 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
 
       {/* Course Detail Dialog — opens when a course card is clicked on the landing page */}
       <Dialog open={!!selectedCourse} onOpenChange={open => !open && setSelectedCourse(null)}>
-        <DialogContent className="flex h-[80vh] w-[80vw] max-w-4xl flex-col overflow-hidden">
+        <DialogContent className="flex h-[80vh] w-[80vw] max-w-4xl flex-col overflow-hidden border-white/10 bg-[rgba(31,41,51,0.60)]">
           <DialogHeader>
             <DialogTitle className="text-lg">{selectedCourse?.name}</DialogTitle>
           </DialogHeader>
@@ -2290,8 +2290,8 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                 {/* Right column: bio */}
                 {selectedCourse?.tutor?.bio && (
                   <div className="hidden self-stretch md:block">
-                    <div className="h-full rounded-lg border border-white/20 bg-white/10 px-2 py-1">
-                      <p className="line-clamp-3 text-xs leading-snug text-white/80">
+                    <div className="h-full rounded-lg border border-slate-200 bg-white px-2 py-1">
+                      <p className="line-clamp-3 text-xs leading-snug text-[#1F2933]">
                         {selectedCourse.tutor.bio}
                       </p>
                     </div>
@@ -3617,16 +3617,16 @@ const CategorySearchModal = ({
         onWheel={e => e.stopPropagation()}
         onTouchMove={e => e.stopPropagation()}
       />
-      <div className="animate-in zoom-in-95 relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/35 shadow-2xl backdrop-blur-xl duration-200">
+      <div className="animate-in zoom-in-95 relative flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl duration-200">
         <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-slate-900/5 via-slate-900/10 to-slate-900/20" />
         <div className="relative z-10 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="relative shrink-0 px-6 pb-4 pt-4">
             <button
               onClick={onClose}
-              className="absolute right-4 top-4 rounded-full p-2 text-white/70 transition-all hover:bg-white/10 hover:text-white"
+              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-all duration-150 hover:bg-white/10 hover:text-white focus:outline-none disabled:pointer-events-none"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
             <h2 className="mb-1 text-2xl font-bold text-white">{t('browseCategories')}</h2>
             <p className="mb-3 text-sm text-white/70">{t('selectCategoryPrompt')}</p>
@@ -4448,7 +4448,7 @@ export default function LandingPage() {
               {/* Close button */}
               <button
                 onClick={() => setHowItWorksOpen(false)}
-                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-all duration-150 hover:bg-white/10 hover:text-white"
+                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-all duration-150 hover:bg-white/10 hover:text-white focus:outline-none disabled:pointer-events-none"
                 aria-label="Close"
               >
                 <X className="h-4 w-4" />

@@ -158,9 +158,9 @@ function HowItWorksArrow({
           direction === 'left'
             ? 'polygon(100% 0, 100% 100%, 0 50%)'
             : 'polygon(0 0, 0 100%, 100% 50%)',
-        background: 'linear-gradient(135deg, rgba(70,110,180,0.5) 0%, rgba(25,55,110,0.5) 100%)',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.55) 100%)',
         filter:
-          'drop-shadow(0 8px 16px rgba(0,0,0,0.35)) drop-shadow(0 0 2px rgba(25,55,110,0.5)) drop-shadow(0 0 4px rgba(25,55,110,0.3))',
+          'drop-shadow(0 8px 16px rgba(0,0,0,0.35)) drop-shadow(0 0 2px rgba(255,255,255,0.6)) drop-shadow(0 0 4px rgba(255,255,255,0.4))',
       }}
       aria-label={direction === 'left' ? 'Previous' : 'Next'}
     />
@@ -409,7 +409,7 @@ export default function App() {
                 {/* Close button */}
                 <button
                   onClick={() => setIsHowItWorksOpen(false)}
-                  className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+                  className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-all duration-150 hover:bg-white/10 hover:text-white focus:outline-none disabled:pointer-events-none"
                   aria-label="Close"
                 >
                   <X className="h-5 w-5" />
