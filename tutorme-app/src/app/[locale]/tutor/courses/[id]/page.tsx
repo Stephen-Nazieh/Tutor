@@ -35,8 +35,9 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  Globe,
   GraduationCap,
+  Globe,
+  Tags,
   Flag,
   MapPin,
   Search,
@@ -723,7 +724,7 @@ export default function TutorCoursePage() {
   }
 
   return (
-    <div className="h-full min-h-[calc(100vh-64px)] bg-white pb-12">
+    <div className="h-full min-h-screen bg-white pb-12">
       <div className="mx-auto w-full max-w-[1400px] px-4 pt-8 sm:px-6">
         <div className="space-y-6">
           <div className="panel-header panel-header-metallic course-top-header">
@@ -836,7 +837,7 @@ export default function TutorCoursePage() {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="panel-header-icon">
-                    <Globe className="h-5 w-5 text-slate-900" />
+                    <Tags className="h-5 w-5 text-slate-900" />
                   </div>
                   <div>
                     <div className="panel-header-title">Categories</div>

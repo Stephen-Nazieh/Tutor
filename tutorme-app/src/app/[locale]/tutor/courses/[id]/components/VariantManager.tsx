@@ -30,7 +30,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import {
   Loader2,
-  Globe,
+  SlidersHorizontal,
   DollarSign,
   Calendar,
   Languages,
@@ -442,7 +442,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="panel-header-icon">
-                  <Globe className="h-5 w-5 text-slate-900" />
+                  <SlidersHorizontal className="h-5 w-5 text-slate-900" />
                 </div>
                 <div>
                   <div className="panel-header-title">Defaults</div>

@@ -38,7 +38,7 @@ import {
   Share2,
   Link2,
   List,
-  PanelsTopLeft,
+  Tags,
   CalendarDays,
   Calendar,
   Clock,
@@ -1828,7 +1828,7 @@ export default function PublicTutorPage() {
 
             <div className={panelCardClass}>
               <div className="-mx-5 -mt-5 mb-4 flex h-14 items-center gap-3 rounded-t-[18px] bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)] px-5 text-white">
-                <PanelsTopLeft className="h-5 w-5" />
+                <Tags className="h-5 w-5" />
                 <span className="text-base font-semibold">Categories</span>
                 <span className="text-sm text-white">({tutor.specialties.length})</span>
               </div>
