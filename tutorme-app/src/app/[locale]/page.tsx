@@ -4436,16 +4436,16 @@ export default function LandingPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="relative flex max-h-[90vh] min-h-[60vh] w-full max-w-5xl flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/30 bg-white/35 px-4 py-4 shadow-lg backdrop-blur-xl md:min-h-[70vh] md:px-6 md:py-5"
+              className="relative flex max-h-[90vh] min-h-[60vh] w-full max-w-5xl flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[rgba(31,41,51,0.85)] px-4 py-4 shadow-lg backdrop-blur-xl md:min-h-[70vh] md:px-6 md:py-5"
               onClick={e => e.stopPropagation()}
             >
               {/* Close button */}
               <button
                 onClick={() => setHowItWorksOpen(false)}
-                className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-all duration-150 hover:bg-white/10 hover:text-white"
                 aria-label="Close"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
 
               <div className="flex w-full max-w-5xl flex-1 flex-col overflow-hidden">
