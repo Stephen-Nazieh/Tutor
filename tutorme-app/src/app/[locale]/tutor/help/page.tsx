@@ -1,22 +1,39 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   HelpCircle,
   Search,
-  BookOpen,
-  MessageCircle,
-  Video,
-  Mail,
-  ChevronRight,
-  FileText,
+  Rocket,
   PlayCircle,
+  FileText,
+  ShieldCheck,
+  LucideIcon,
 } from 'lucide-react'
-import Link from 'next/link'
 
-const faqs = [
+interface FaqItem {
+  question: string
+  answer: string
+}
+
+interface TopicItem {
+  title: string
+  description: string
+}
+
+interface Topic {
+  value: string
+  title: string
+  description: string
+  icon: LucideIcon
+  items: TopicItem[]
+}
+
+const sectionCardClass = 'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
+
+const faqs: FaqItem[] = [
   {
     question: 'How do I create a new session?',
     answer:
@@ -39,104 +56,198 @@ const faqs = [
   },
 ]
 
-const guides = [
-  { title: 'Getting Started Guide', icon: BookOpen, description: 'Learn the basics of Solocorn' },
-  { title: 'Video Tutorials', icon: PlayCircle, description: 'Watch step-by-step tutorials' },
+const topics: Topic[] = [
   {
-    title: 'Teaching Best Practices',
-    icon: FileText,
-    description: 'Tips for effective online teaching',
+    value: 'getting-started',
+    title: 'Getting Started Guide',
+    description: 'Learn the basics of Solocorn',
+    icon: Rocket,
+    items: [
+      { title: 'Welcome to Solocorn', description: 'An overview of the platform for new tutors.' },
+      { title: 'Setting up your profile', description: 'How to complete your tutor profile and add a photo.' },
+      { title: 'Creating your first course', description: 'Build a course using the Course Builder.' },
+      { title: 'Understanding the dashboard', description: 'Navigate your schedule, sessions, and students.' },
+    ],
   },
-  { title: 'Site Policies', icon: Video, description: 'Platform terms and guidelines' },
+  {
+    value: 'videos',
+    title: 'Video Tutorials',
+    description: 'Watch step-by-step tutorials',
+    icon: PlayCircle,
+    items: [
+      { title: 'Course Builder walkthrough', description: 'A video guide to building courses.' },
+      { title: 'Scheduling live sessions', description: 'How to set up and manage live classes.' },
+      { title: 'Managing students', description: 'Track progress, attendance, and feedback.' },
+      { title: 'Billing and payouts', description: 'Set up payment methods and withdraw earnings.' },
+    ],
+  },
+  {
+    value: 'best-practices',
+    title: 'Teaching Best Practices',
+    description: 'Tips for effective online teaching',
+    icon: FileText,
+    items: [
+      { title: 'Engaging students online', description: 'Techniques to keep students active and motivated.' },
+      { title: 'Structuring a lesson', description: 'A framework for clear and effective lessons.' },
+      { title: 'Using the whiteboard', description: 'Make the most of the live whiteboard tools.' },
+      { title: 'Providing feedback', description: 'How to give constructive feedback after sessions.' },
+    ],
+  },
+  {
+    value: 'policies',
+    title: 'Site Policies',
+    description: 'Platform terms and guidelines',
+    icon: ShieldCheck,
+    items: [
+      { title: 'Terms of Service', description: 'The rules and agreements for using Solocorn.' },
+      { title: 'Privacy Policy', description: 'How we collect, use, and protect your data.' },
+      { title: 'Content guidelines', description: 'Standards for courses, materials, and communication.' },
+      { title: 'Refund and cancellation', description: 'Policies for refunds, cancellations, and disputes.' },
+    ],
+  },
+  {
+    value: 'faq',
+    title: 'FAQ',
+    description: 'Quick answers to common questions',
+    icon: HelpCircle,
+    items: faqs.map(f => ({ title: f.question, description: f.answer })),
+  },
 ]
 
 export default function TutorHelpPage() {
-  const sectionCardClass = 'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
+  const [activeTopic, setActiveTopic] = useState('faq')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const activeTopicData = useMemo(
+    () => topics.find(t => t.value === activeTopic) || topics[topics.length - 1],
+    [activeTopic]
+  )
+
+  const filteredResults = useMemo(() => {
+    if (!searchQuery.trim()) return null
+    const q = searchQuery.toLowerCase()
+    return topics
+      .map(topic => ({
+        ...topic,
+        items: topic.items.filter(
+          item =>
+            item.title.toLowerCase().includes(q) || item.description.toLowerCase().includes(q)
+        ),
+      }))
+      .filter(topic => topic.items.length > 0)
+  }, [searchQuery])
 
   return (
-    <div className="min-h-screen w-full bg-white px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-6 min-h-[52px] shrink-0">
-        <div className="flex h-full w-full items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white p-1.5 px-4 shadow-[0_10px_30px_rgba(0,0,0,0.10)]">
-          <div className="flex items-center gap-2">
-            <HelpCircle className="h-5 w-5 text-[#2563EB]" />
-            <h1 className="text-sm font-semibold text-[#1F2933]">Support</h1>
+    <div className="flex h-full flex-col overflow-hidden bg-white">
+      <div className="flex h-full w-full flex-col px-3 lg:px-4">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-white/10 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+          {/* Header */}
+          <div className="bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5">
+            <div>
+              <h1 className="text-xl font-bold text-white">Support</h1>
+              <p className="mt-1 text-sm text-white/60">Find answers, tutorials, and get support</p>
+            </div>
           </div>
-          <p className="hidden text-xs text-[#667085] sm:block">
-            Find answers, tutorials, and get support
-          </p>
-        </div>
-      </div>
 
-      {/* Search */}
-      <Card className={`mb-8 ${sectionCardClass}`}>
-        <CardContent className="pt-6">
-          <div className="relative mx-auto max-w-2xl">
-            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-            <Input placeholder="Search" className="py-6 pl-10 text-lg" />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Guides Grid */}
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {guides.map(guide => {
-          const Icon = guide.icon
-          return (
-            <Card key={guide.title} className={sectionCardClass}>
-              <CardContent className="p-6">
-                <Icon className="mb-4 h-10 w-10 text-blue-500" />
-                <h3 className="font-semibold text-gray-900">{guide.title}</h3>
-                <p className="mt-1 text-sm text-gray-500">{guide.description}</p>
+          {/* Content */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white p-4 sm:p-6">
+            {/* Search */}
+            <Card className={`mb-4 shrink-0 ${sectionCardClass}`}>
+              <CardContent className="py-3">
+                <div className="relative mx-auto max-w-2xl">
+                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    placeholder="Search"
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="h-10 pl-10"
+                  />
+                </div>
               </CardContent>
             </Card>
-          )
-        })}
-      </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        {/* FAQs */}
-        <div className="lg:col-span-2">
-          <Card className={sectionCardClass}>
-            <CardHeader>
-              <CardTitle>Frequently Asked Questions</CardTitle>
-              <CardDescription>Quick answers to common questions</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {faqs.map((faq, index) => (
-                <div key={index} className="border-b pb-4 last:border-0 last:pb-0">
-                  <h4 className="mb-2 font-medium text-gray-900">{faq.question}</h4>
-                  <p className="text-sm text-gray-600">{faq.answer}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
+            {/* Topic cards */}
+            <div className="mb-4 grid shrink-0 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              {topics.map(topic => {
+                const Icon = topic.icon
+                const isActive = activeTopic === topic.value && !searchQuery.trim()
+                return (
+                  <Card
+                    key={topic.value}
+                    onClick={() => {
+                      setActiveTopic(topic.value)
+                      setSearchQuery('')
+                    }}
+                    className={`cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg ${sectionCardClass} ${
+                      isActive ? 'ring-2 ring-[#2563EB]' : ''
+                    }`}
+                  >
+                    <CardContent className="p-4">
+                      <Icon className="mb-2 h-8 w-8 text-blue-500" />
+                      <h3 className="text-sm font-semibold text-gray-900">{topic.title}</h3>
+                      <p className="mt-0.5 text-xs text-gray-500">{topic.description}</p>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
 
-        {/* Contact Support */}
-        <div>
-          <Card className={sectionCardClass}>
-            <CardHeader>
-              <CardTitle>Contact Support</CardTitle>
-              <CardDescription>Need more help?</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button variant="outline" className="w-full justify-start gap-3">
-                <MessageCircle className="h-5 w-5" />
-                Live Chat
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-3">
-                <Mail className="h-5 w-5" />
-                Email Support
-              </Button>
-              <div className="border-t pt-4">
-                <p className="text-sm text-gray-500">
-                  Available Monday-Friday
-                  <br />
-                  9:00 AM - 6:00 PM SGT
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Content panel */}
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <Card className={`flex h-full flex-col ${sectionCardClass}`}>
+                <CardHeader className="shrink-0">
+                  <CardTitle>
+                    {searchQuery.trim() ? 'Search Results' : activeTopicData.title}
+                  </CardTitle>
+                  <CardDescription>
+                    {searchQuery.trim()
+                      ? `Showing results for "${searchQuery}"`
+                      : activeTopicData.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="min-h-0 flex-1 overflow-y-auto">
+                  {searchQuery.trim() ? (
+                    <div className="space-y-6">
+                      {filteredResults?.length ? (
+                        filteredResults.map(topic => (
+                          <div key={topic.value}>
+                            <h4 className="mb-2 text-sm font-semibold text-slate-700">
+                              {topic.title}
+                            </h4>
+                            <div className="space-y-4">
+                              {topic.items.map((item, idx) => (
+                                <div
+                                  key={idx}
+                                  className="rounded-xl border border-slate-100 bg-slate-50/50 p-4"
+                                >
+                                  <h5 className="font-medium text-gray-900">{item.title}</h5>
+                                  <p className="mt-1 text-sm text-gray-600">{item.description}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">No results found.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {activeTopicData.items.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="rounded-xl border border-slate-100 bg-slate-50/50 p-4"
+                        >
+                          <h4 className="font-medium text-gray-900">{item.title}</h4>
+                          <p className="mt-1 text-sm text-gray-600">{item.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>
