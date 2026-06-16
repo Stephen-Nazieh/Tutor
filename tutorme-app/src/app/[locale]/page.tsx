@@ -2873,13 +2873,13 @@ const ComingSoonModal = ({
   )
 
   const SocialField = ({
-    icon: Icon,
+    icon,
     prefix,
     value,
     onChange,
     placeholder,
   }: {
-    icon: React.ComponentType<{ className?: string }>
+    icon: React.ReactNode
     prefix: string
     value: string
     onChange: (value: string) => void
@@ -2889,9 +2889,9 @@ const ComingSoonModal = ({
       prefix === '@' ? value.replace(/^@+/, '') : value.replace(/^https?:\/\//, '')
     return (
       <div className="flex items-center gap-3">
-        <Icon className="h-5 w-5 text-white/80" />
-        <div className="flex flex-1 items-center rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-          <span className="select-none text-sm text-zinc-400">{prefix}</span>
+        {icon}
+        <div className="flex flex-1 items-center overflow-hidden rounded-lg border border-gray-200 bg-white px-3 py-2">
+          <span className="select-none text-sm text-gray-500">{prefix}</span>
           <input
             type="text"
             value={cleanValue}
@@ -2903,7 +2903,7 @@ const ComingSoonModal = ({
               )
             }
             placeholder={placeholder || ''}
-            className="ml-2 flex-1 bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
+            className="ml-2 flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 outline-none"
           />
         </div>
       </div>
@@ -2922,7 +2922,7 @@ const ComingSoonModal = ({
         value={formData.name}
         onChange={e => setFormData({ ...formData, name: e.target.value })}
         required
-        className="w-full border-white/10 bg-white/5 text-white placeholder:text-zinc-500"
+        className="w-full border-gray-200 bg-white text-slate-900 placeholder:text-slate-400"
       />
       <Input
         type="email"
@@ -2930,7 +2930,7 @@ const ComingSoonModal = ({
         value={formData.email}
         onChange={e => setFormData({ ...formData, email: e.target.value })}
         required
-        className="w-full border-white/10 bg-white/5 text-white placeholder:text-zinc-500"
+        className="w-full border-gray-200 bg-white text-slate-900 placeholder:text-slate-400"
       />
       <div>
         <textarea
@@ -2939,7 +2939,7 @@ const ComingSoonModal = ({
           onChange={e => setFormData({ ...formData, about: e.target.value.slice(0, 400) })}
           required
           rows={4}
-          className="w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-zinc-500 outline-none"
+          className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 outline-none"
         />
         <div className="mt-1 text-right text-xs text-zinc-400">
           {formData.about.length}/400
@@ -2950,35 +2950,55 @@ const ComingSoonModal = ({
       </h3>
       <div className="space-y-3">
         <SocialField
-          icon={TikTokIcon}
+          icon={
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black">
+              <TikTokIcon className="h-5 w-5 text-white" />
+            </div>
+          }
           prefix="@"
           value={formData.tiktok}
           onChange={v => setFormData({ ...formData, tiktok: v })}
           placeholder="username"
         />
         <SocialField
-          icon={Youtube}
+          icon={
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-600">
+              <Youtube className="h-5 w-5 text-white" />
+            </div>
+          }
           prefix="@"
           value={formData.youtube}
           onChange={v => setFormData({ ...formData, youtube: v })}
           placeholder="username"
         />
         <SocialField
-          icon={Instagram}
+          icon={
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400">
+              <Instagram className="h-5 w-5 text-white" />
+            </div>
+          }
           prefix="@"
           value={formData.instagram}
           onChange={v => setFormData({ ...formData, instagram: v })}
           placeholder="username"
         />
         <SocialField
-          icon={Facebook}
+          icon={
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600">
+              <Facebook className="h-5 w-5 text-white" />
+            </div>
+          }
           prefix="https://"
           value={formData.facebook}
           onChange={v => setFormData({ ...formData, facebook: v })}
           placeholder="profile link"
         />
         <SocialField
-          icon={KakaoTalkBrandIcon}
+          icon={
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FEE500]">
+              <KakaoTalkBrandIcon className="h-6 w-6 text-white" />
+            </div>
+          }
           prefix="https://"
           value={formData.kakaoTalk}
           onChange={v => setFormData({ ...formData, kakaoTalk: v })}
@@ -2986,7 +3006,7 @@ const ComingSoonModal = ({
         />
       </div>
       <SocialField
-        icon={Globe}
+        icon={<Globe className="h-6 w-6 text-white/80" />}
         prefix="https://"
         value={formData.website}
         onChange={v => setFormData({ ...formData, website: v })}
@@ -2995,7 +3015,7 @@ const ComingSoonModal = ({
       {error && <p className="text-center text-sm text-red-400">{error}</p>}
       <Button
         type="submit"
-        className={`w-full rounded-xl py-3 font-semibold text-white ${themeColors[theme].primary}`}
+        className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white hover:text-emerald-500"
       >
         Send
       </Button>
@@ -3012,7 +3032,7 @@ const ComingSoonModal = ({
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
         >
           <div
-            className="absolute inset-0 bg-black/80"
+            className={`absolute inset-0 ${type === 'register' ? 'bg-transparent' : 'bg-black/80'}`}
             onClick={onClose}
             onWheel={e => e.stopPropagation()}
             onTouchMove={e => e.stopPropagation()}
@@ -3336,16 +3356,16 @@ const ContactModal = ({
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       >
-        <div className="absolute inset-0 bg-black/80" onClick={onClose} />
+        <div className="absolute inset-0 bg-transparent" onClick={onClose} />
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className={`relative w-full max-w-md rounded-2xl border p-8 shadow-2xl ${mode === 'dark' ? 'border-white/10 bg-zinc-900' : 'border-black/10 bg-white'}`}
+          className="relative w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[rgba(31,41,51,0.60)] p-6 shadow-lg backdrop-blur-xl md:p-8"
         >
           <button
             onClick={onClose}
-            className={`absolute right-4 top-4 p-2 transition-colors ${mode === 'dark' ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-black'}`}
+            className="absolute right-4 top-4 p-2 text-zinc-400 transition-colors hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
@@ -3353,102 +3373,67 @@ const ContactModal = ({
           {!submitted ? (
             <>
               <div className="mb-6 text-center">
-                <div
-                  className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full ${mode === 'dark' ? 'bg-emerald-500/20' : 'bg-emerald-100'}`}
-                >
-                  <Mail
-                    className={`h-6 w-6 ${mode === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}
-                  />
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20">
+                  <Mail className="h-6 w-6 text-emerald-400" />
                 </div>
-                <h3
-                  className={`mb-2 text-2xl font-bold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}
-                >
-                  Contact Us
-                </h3>
-                <p className={`text-sm ${mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                <h3 className="mb-2 text-2xl font-bold text-white">Contact Us</h3>
+                <p className="text-sm text-zinc-400">
                   Send us a message and we'll get back to you soon.
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label
-                    className={`mb-1 block text-sm font-medium ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}
-                  >
-                    Name
-                  </label>
+                  <label className="mb-1 block text-sm font-medium text-zinc-300">Name</label>
                   <Input
                     type="text"
-                    placeholder="Your name"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                     required
-                    className={`w-full border ${mode === 'dark' ? 'border-white/10 bg-white/5 text-white placeholder:text-zinc-500' : 'border-black/10 bg-black/5 text-zinc-900 placeholder:text-zinc-500'}`}
+                    className="w-full border-gray-200 bg-white text-slate-900"
                   />
                 </div>
                 <div>
-                  <label
-                    className={`mb-1 block text-sm font-medium ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}
-                  >
-                    Email
-                  </label>
+                  <label className="mb-1 block text-sm font-medium text-zinc-300">Email</label>
                   <Input
                     type="email"
-                    placeholder="your@email.com"
                     value={formData.email}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}
                     required
-                    className={`w-full border ${mode === 'dark' ? 'border-white/10 bg-white/5 text-white placeholder:text-zinc-500' : 'border-black/10 bg-black/5 text-zinc-900 placeholder:text-zinc-500'}`}
+                    className="w-full border-gray-200 bg-white text-slate-900"
                   />
                 </div>
                 <div>
-                  <label
-                    className={`mb-1 block text-sm font-medium ${mode === 'dark' ? 'text-zinc-300' : 'text-zinc-700'}`}
-                  >
-                    Message
-                  </label>
+                  <label className="mb-1 block text-sm font-medium text-zinc-300">Message</label>
                   <textarea
-                    placeholder="How can we help you?"
                     value={formData.message}
                     onChange={e => setFormData({ ...formData, message: e.target.value })}
                     required
                     rows={4}
-                    className={`w-full resize-none rounded-lg border px-3 py-2 ${mode === 'dark' ? 'border-white/10 bg-white/5 text-white placeholder:text-zinc-500' : 'border-black/10 bg-black/5 text-zinc-900 placeholder:text-zinc-500'}`}
+                    className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-slate-900"
                   />
                 </div>
-                {error && <p className="text-center text-sm text-red-500">{error}</p>}
+                {error && <p className="text-center text-sm text-red-400">{error}</p>}
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-white hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white hover:text-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {loading ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
 
-              <p
-                className={`mt-4 text-center text-xs ${mode === 'dark' ? 'text-zinc-500' : 'text-zinc-500'}`}
-              >
+              <p className="mt-4 text-center text-xs text-zinc-500">
                 You can also email us directly at support@solocorn.co
               </p>
             </>
           ) : (
             <div className="py-8 text-center">
-              <div
-                className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${mode === 'dark' ? 'bg-emerald-500/20' : 'bg-emerald-100'}`}
-              >
-                <CheckCircle
-                  className={`h-8 w-8 ${mode === 'dark' ? 'text-emerald-400' : 'text-emerald-600'}`}
-                />
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20">
+                <CheckCircle className="h-8 w-8 text-emerald-400" />
               </div>
-              <h3
-                className={`mb-2 text-xl font-bold ${mode === 'dark' ? 'text-white' : 'text-zinc-900'}`}
-              >
-                Message Sent!
-              </h3>
-              <p className={mode === 'dark' ? 'text-zinc-400' : 'text-zinc-600'}>
-                Thank you for reaching out. We'll be in touch soon.
-              </p>
+              <h3 className="mb-2 text-xl font-bold text-white">Message Sent!</h3>
+              <p className="text-zinc-400">Thank you for reaching out. We'll be in touch soon.</p>
             </div>
           )}
         </motion.div>
@@ -4827,7 +4812,8 @@ export default function LandingPage() {
             <div
               className={cn(
                 'mt-10 w-full transition-opacity duration-200',
-                (showCategories || howItWorksOpen) && 'pointer-events-none opacity-0'
+                (showCategories || howItWorksOpen || modalType !== null || contactModalOpen) &&
+                  'pointer-events-none opacity-0'
               )}
             >
               <form
@@ -4889,7 +4875,7 @@ export default function LandingPage() {
           {/* Bottom-right stats + countdown card */}
           <div className="absolute bottom-6 right-6 z-10">
             <AnimatePresence>
-              {!howItWorksOpen && !showCategories && (
+              {!howItWorksOpen && !showCategories && modalType === null && !contactModalOpen && (
                 <motion.div
                   key="launch-card"
                   initial={{ opacity: 0, y: 20 }}
