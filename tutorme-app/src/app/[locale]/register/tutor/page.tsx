@@ -943,12 +943,12 @@ export default function TutorRegistrationPage() {
                         side="bottom"
                         sideOffset={4}
                       >
-                        <Command className="bg-transparent text-white [&_[cmdk-input-wrapper]]:border-white/10">
+                        <Command className="bg-transparent text-white [&_[cmdk-input-wrapper]]:border-b [&_[cmdk-input-wrapper]]:border-b-white/10">
                           <CommandInput
                             placeholder="Search country..."
                             value={nationalitySearch}
                             onValueChange={setNationalitySearch}
-                            className="h-10 text-white placeholder:text-white/60"
+                            className="h-10 border-0 bg-transparent text-white placeholder:text-white/60 focus-visible:ring-0 focus-visible:ring-offset-0"
                           />
                           <CommandList className="max-h-[260px] overflow-y-auto">
                             <CommandEmpty className="py-3 text-center text-sm text-white">
@@ -964,7 +964,7 @@ export default function TutorRegistrationPage() {
                                     setNationalityOpen(false)
                                     setNationalitySearch('')
                                   }}
-                                  className="relative rounded-lg py-2 pl-10 pr-4 text-[13px] font-semibold text-white/[0.94] hover:bg-white/10 aria-selected:bg-white/10"
+                                  className="relative rounded-lg py-2 pl-10 pr-4 text-[13px] font-semibold text-white/[0.94] hover:bg-white/15 aria-selected:bg-white/20 aria-selected:text-white"
                                 >
                                   <span className="absolute left-3 flex h-3.5 w-3.5 items-center justify-center">
                                     <span
