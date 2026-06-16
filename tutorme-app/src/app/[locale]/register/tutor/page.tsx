@@ -15,22 +15,20 @@ import {
   GraduationCap,
   ShieldCheck,
   Globe,
+  MapPin,
   UserRound,
-  ChevronDown,
   Eye,
   EyeOff,
   Loader2,
   X,
 } from 'lucide-react'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Dialog,
   DialogContent,
@@ -64,7 +62,7 @@ import {
   IB_CATEGORIES,
   IGCSE_CATEGORIES,
   type ExamCategory,
-  ALL_COUNTRIES,
+  type CountryData,
 } from '@/lib/data/tutor-categories'
 
 const REGION_OPTIONS = [
@@ -335,8 +333,8 @@ export default function TutorRegistrationPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [showUsernameCheckModal, setShowUsernameCheckModal] = useState(false)
-  const [nationalityOpen, setNationalityOpen] = useState(false)
-  const [nationalitySearch, setNationalitySearch] = useState('')
+  const [region, setRegion] = useState('')
+  const [countryCode, setCountryCode] = useState('')
 
   const [formData, setFormData] = useState({
     email: '',
@@ -378,6 +376,20 @@ export default function TutorRegistrationPage() {
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [selectedCountries, setSelectedCountries] = useState<string[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+
+  const availableCountries = useMemo<CountryData[]>(() => {
+    if (!region) return []
+    return REGIONS.find(r => r.id === region)?.countries ?? []
+  }, [region])
+
+  const selectedCountryName = useMemo(() => {
+    if (!countryCode) return ''
+    return availableCountries.find(c => c.code === countryCode)?.name ?? ''
+  }, [countryCode, availableCountries])
+
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, nationality: selectedCountryName }))
+  }, [selectedCountryName])
 
   const passwordMismatch =
     formData.password.length > 0 &&
@@ -582,8 +594,12 @@ export default function TutorRegistrationPage() {
       toast.error('Passwords do not match')
       return false
     }
-    if (!formData.nationality) {
-      toast.error('Nationality is required')
+    if (!region) {
+      toast.error('Region is required')
+      return false
+    }
+    if (!countryCode) {
+      toast.error('Country is required')
       return false
     }
     return true
@@ -921,69 +937,79 @@ export default function TutorRegistrationPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-xs text-white/70">Nationality</Label>
-                    <Popover open={nationalityOpen} onOpenChange={setNationalityOpen}>
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          role="combobox"
-                          aria-expanded={nationalityOpen}
-                          className={cn(
-                            'flex h-8 w-full items-center justify-between rounded-md border border-white/10 bg-white px-3 py-2 text-sm text-[#1F2933] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40',
-                            !formData.nationality && 'text-gray-400'
-                          )}
+                    <Label className="text-xs text-white/70">Region and Country</Label>
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+                      {/* Region */}
+                      <div className="flex-1 space-y-3">
+                        <Label className="flex items-center gap-2 text-xs font-medium text-white/80">
+                          <Globe className="h-3.5 w-3.5 text-[#1D4ED8]" />
+                          Region
+                        </Label>
+                        <Select
+                          value={region}
+                          onValueChange={v => {
+                            setRegion(v)
+                            setCountryCode('')
+                          }}
                         >
-                          {formData.nationality || 'Select your nationality'}
-                          <ChevronDown className="h-4 w-4 opacity-50" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-[var(--radix-popper-anchor-width)] rounded-md border border-white/10 bg-[#1F2933] p-0 text-white shadow-lg"
-                        align="start"
-                        side="bottom"
-                        sideOffset={4}
-                      >
-                        <Command className="bg-transparent text-white [&_[cmdk-input-wrapper]]:border-b [&_[cmdk-input-wrapper]]:border-b-white/10">
-                          <CommandInput
-                            placeholder="Search country..."
-                            value={nationalitySearch}
-                            onValueChange={setNationalitySearch}
-                            className="h-10 border-0 bg-transparent text-white placeholder:text-white/60 focus-visible:ring-0 focus-visible:ring-offset-0"
-                          />
-                          <CommandList className="max-h-[260px] overflow-y-auto">
-                            <CommandEmpty className="py-3 text-center text-sm text-white">
-                              No country found.
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {ALL_COUNTRIES.map(country => (
-                                <CommandItem
+                          <SelectTrigger className="h-8 w-full rounded-md border border-white/10 bg-white px-3 py-2 text-sm text-[#1F2933] shadow-sm transition-all duration-200 hover:border-slate-400/50 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40">
+                            <SelectValue placeholder="Select Region..." />
+                          </SelectTrigger>
+                          <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-md border border-white/10 bg-[#1F2933] p-1.5 shadow-lg">
+                            {REGIONS.filter(r => r.id !== 'global').map(regionItem => (
+                              <SelectItem
+                                key={regionItem.id}
+                                value={regionItem.id}
+                                className="rounded-md text-[13px] text-white/[0.94] hover:bg-white/15 focus:bg-white/20 focus:text-white"
+                              >
+                                {regionItem.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Country */}
+                      <div className="flex-1 space-y-3">
+                        <Label className="flex items-center gap-2 text-xs font-medium text-white/80">
+                          <MapPin className="h-3.5 w-3.5 text-[#F17623]" />
+                          Country
+                        </Label>
+                        <Select
+                          value={countryCode}
+                          onValueChange={setCountryCode}
+                          disabled={!region}
+                        >
+                          <SelectTrigger
+                            className={cn(
+                              'h-8 w-full rounded-md border border-white/10 bg-white px-3 py-2 text-sm text-[#1F2933] shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40',
+                              !region && 'border-slate-400/20 bg-slate-100/50 text-slate-400'
+                            )}
+                          >
+                            <SelectValue
+                              placeholder={region ? 'Select Country...' : 'Select Region First'}
+                            />
+                          </SelectTrigger>
+                          <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-md border border-white/10 bg-[#1F2933] p-1.5 shadow-lg">
+                            {availableCountries.length === 0 ? (
+                              <div className="py-3 text-center text-[13px] text-white/70">
+                                No countries available
+                              </div>
+                            ) : (
+                              availableCountries.map(country => (
+                                <SelectItem
                                   key={country.code}
-                                  value={country.name}
-                                  onSelect={currentValue => {
-                                    setFormData(prev => ({ ...prev, nationality: currentValue }))
-                                    setNationalityOpen(false)
-                                    setNationalitySearch('')
-                                  }}
-                                  className="relative rounded-lg py-2 pl-10 pr-4 text-[13px] font-semibold text-white/[0.94] hover:bg-white/15 aria-selected:bg-white/20 aria-selected:text-white"
+                                  value={country.code}
+                                  className="rounded-md text-[13px] text-white/[0.94] hover:bg-white/15 focus:bg-white/20 focus:text-white"
                                 >
-                                  <span className="absolute left-3 flex h-3.5 w-3.5 items-center justify-center">
-                                    <span
-                                      className={cn(
-                                        'h-1.5 w-1.5 rounded-full bg-current',
-                                        formData.nationality === country.name
-                                          ? 'opacity-100'
-                                          : 'opacity-0'
-                                      )}
-                                    />
-                                  </span>
                                   {country.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="mt-4 flex gap-3">
