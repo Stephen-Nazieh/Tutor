@@ -58,6 +58,13 @@ const faqs: FaqItem[] = [
 
 const topics: Topic[] = [
   {
+    value: 'faq',
+    title: 'FAQ',
+    description: 'Quick answers to common questions',
+    icon: HelpCircle,
+    items: faqs.map(f => ({ title: f.question, description: f.answer })),
+  },
+  {
     value: 'getting-started',
     title: 'Getting Started Guide',
     description: 'Learn the basics of Solocorn',
@@ -105,13 +112,6 @@ const topics: Topic[] = [
       { title: 'Refund and cancellation', description: 'Policies for refunds, cancellations, and disputes.' },
     ],
   },
-  {
-    value: 'faq',
-    title: 'FAQ',
-    description: 'Quick answers to common questions',
-    icon: HelpCircle,
-    items: faqs.map(f => ({ title: f.question, description: f.answer })),
-  },
 ]
 
 export default function TutorHelpPage() {
@@ -143,7 +143,7 @@ export default function TutorHelpPage() {
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-white/10 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
           {/* Header */}
           <div className="bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5">
-            <div>
+            <div className="text-center">
               <h1 className="text-xl font-bold text-white">Support</h1>
               <p className="mt-1 text-sm text-white/60">Find answers, tutorials, and get support</p>
             </div>

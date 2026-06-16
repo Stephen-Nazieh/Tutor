@@ -90,7 +90,12 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     /\/tutor\/my-page(\/|$)/.test(pathname || '')
   const isReportsPage = pathname === '/tutor/reports' || pathname?.startsWith('/tutor/reports/')
   const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
-  const [desktopNavOpen, setDesktopNavOpen] = useState(!isMyPage && !isReportsPage && !isAccountPage)
+  const isSupportPage =
+    pathname === '/tutor/support' ||
+    pathname?.startsWith('/tutor/support/') ||
+    pathname === '/tutor/help' ||
+    pathname?.startsWith('/tutor/help/')
+  const [desktopNavOpen, setDesktopNavOpen] = useState(!isMyPage && !isReportsPage && !isAccountPage && !isSupportPage)
 
   // Scope scrollbar-gutter override to tutor pages (nested scroll containers, not html)
   useEffect(() => {
@@ -129,10 +134,10 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
 
   const isDashboard = pathname === `${localePrefix}/tutor/dashboard`
 
-  // Auto-close on My Page, Reports, and Account Settings; auto-open elsewhere
+  // Auto-close on My Page, Reports, Account Settings, and Support; auto-open elsewhere
   useEffect(() => {
-    setDesktopNavOpen(!isMyPage && !isReportsPage && !isAccountPage)
-  }, [isMyPage, isReportsPage, isAccountPage])
+    setDesktopNavOpen(!isMyPage && !isReportsPage && !isAccountPage && !isSupportPage)
+  }, [isMyPage, isReportsPage, isAccountPage, isSupportPage])
   // Periodic peek animation for sidebar toggle
   useEffect(() => {
     const interval = setInterval(() => {
