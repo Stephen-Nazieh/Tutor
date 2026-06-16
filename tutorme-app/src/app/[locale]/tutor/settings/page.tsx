@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import {
   Dialog,
   DialogContent,
@@ -47,6 +47,7 @@ import {
 import { REGIONS } from '@/lib/data/tutor-categories'
 import { BackButton } from '@/components/navigation'
 import { AvatarUploader } from '@/components/avatar-uploader'
+import { SessionCalendarPanel } from '@/components/session-calendar-panel'
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -580,7 +581,7 @@ export default function TutorSettings() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="flex h-full items-center justify-center bg-white">
         <div className="text-center">
           <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-blue-500" />
           <p className="text-gray-600">Loading account...</p>
@@ -590,69 +591,39 @@ export default function TutorSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-12">
-      <header className="sticky top-0 z-10 w-full bg-white px-4 pb-2 pt-4 sm:px-6">
-        <div className="w-full">
-          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <BackButton href="/tutor/dashboard" />
-              <div className="flex flex-col justify-center">
-                <h1 className="text-lg font-bold text-slate-800">Account Settings</h1>
+    <div className="flex h-full flex-col overflow-hidden bg-white">
+      <div className="flex h-full w-full flex-col px-3 lg:px-4">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-white/10 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+          <div className="bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5">
+            <div className="flex items-center gap-3">
+              <BackButton
+                href="/tutor/dashboard"
+                className="text-white hover:bg-white/10 hover:text-white"
+              />
+              <div>
+                <h1 className="text-xl font-bold text-white">Account Settings</h1>
+                <p className="mt-1 text-sm text-white/60">Manage your profile and preferences</p>
               </div>
             </div>
           </div>
-        </div>
-      </header>
 
-      <main className="w-full px-4 py-8 sm:px-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex h-auto w-full flex-wrap gap-2 bg-transparent p-0">
-            <TabsTrigger
-              value="profile"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
-            >
-              <User className="h-4 w-4" />
-              <span className="hidden md:inline">Profile</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="billing"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
-            >
-              <CreditCard className="h-4 w-4" />
-              <span className="hidden md:inline">Billing</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
-            >
-              <FileText className="h-4 w-4" />
-              <span className="hidden md:inline">History</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="notifications"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
-            >
-              <Bell className="h-4 w-4" />
-              <span className="hidden md:inline">Notifications</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="security"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
-            >
-              <Shield className="h-4 w-4" />
-              <span className="hidden md:inline">Security</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="controls"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
-            >
-              <Power className="h-4 w-4" />
-              <span className="hidden md:inline">Controls</span>
-            </TabsTrigger>
-          </TabsList>
-
+          <div className="flex min-h-0 flex-1 flex-col bg-white p-4 sm:p-6">
+        <SessionCalendarPanel
+          value={activeTab}
+          onValueChange={setActiveTab}
+          variant="charcoal"
+          tabs={[
+            { value: 'profile', label: 'Profile', icon: User },
+            { value: 'billing', label: 'Billing', icon: CreditCard },
+            { value: 'history', label: 'History', icon: FileText },
+            { value: 'notifications', label: 'Notifications', icon: Bell },
+            { value: 'security', label: 'Security', icon: Shield },
+            { value: 'controls', label: 'Controls', icon: Power },
+          ]}
+        >
           {/* Profile & Identity */}
-          <TabsContent value="profile" className="space-y-6">
+          <TabsContent value="profile" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="h-full space-y-6 overflow-y-auto pr-2">
             <Card className={SECTION_CARD_CLASS}>
               <CardHeader>
                 <CardTitle>Profile & Identity</CardTitle>
@@ -1030,10 +1001,11 @@ export default function TutorSettings() {
 
             {/* One-on-One Booking Settings */}
             <OneOnOneSettingsCard />
-          </TabsContent>
+          </div></TabsContent>
 
           {/* Billing & Payment */}
-          <TabsContent value="billing" className="space-y-6">
+          <TabsContent value="billing" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="h-full space-y-6 overflow-y-auto pr-2">
             <Card className={SECTION_CARD_CLASS}>
               <CardHeader>
                 <CardTitle>Payment Methods</CardTitle>
@@ -1183,10 +1155,11 @@ export default function TutorSettings() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div></TabsContent>
 
           {/* Billing History */}
-          <TabsContent value="history" className="space-y-6">
+          <TabsContent value="history" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="h-full space-y-6 overflow-y-auto pr-2">
             <Card className={SECTION_CARD_CLASS}>
               <CardHeader>
                 <CardTitle>Billing History</CardTitle>
@@ -1234,10 +1207,11 @@ export default function TutorSettings() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div></TabsContent>
 
           {/* Notifications */}
-          <TabsContent value="notifications" className="space-y-6">
+          <TabsContent value="notifications" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="h-full space-y-6 overflow-y-auto pr-2">
             <Card className={SECTION_CARD_CLASS}>
               <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
@@ -1338,10 +1312,11 @@ export default function TutorSettings() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div></TabsContent>
 
           {/* Privacy & Security */}
-          <TabsContent value="security" className="space-y-6">
+          <TabsContent value="security" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="h-full space-y-6 overflow-y-auto pr-2">
             <Card className={SECTION_CARD_CLASS}>
               <CardHeader>
                 <CardTitle>Privacy & Security</CardTitle>
@@ -1440,10 +1415,11 @@ export default function TutorSettings() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div></TabsContent>
 
           {/* Live Session Mirroring */}
-          <TabsContent value="controls" className="space-y-6">
+          <TabsContent value="controls" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="h-full space-y-6 overflow-y-auto pr-2">
             <Card className={SECTION_CARD_CLASS}>
               <CardHeader>
                 <CardTitle>Live Session Mirroring</CardTitle>
@@ -1652,9 +1628,11 @@ export default function TutorSettings() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
+          </div></TabsContent>
+        </SessionCalendarPanel>
+          </div>
+        </div>
+      </div>
 
       {/* Delete Account Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

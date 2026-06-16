@@ -50,6 +50,7 @@ function formatTimezoneLabel(tz: string) {
 interface SessionCalendarPanelTab {
   value: string
   label: string
+  icon?: React.ComponentType<{ className?: string }>
 }
 
 interface SessionCalendarPanelProps {
@@ -117,6 +118,7 @@ export function SessionCalendarPanel({
                   )}
                   style={{ color: tab.value === value ? activeTextColor : undefined }}
                 >
+                  {tab.icon && <tab.icon className="mr-1.5 h-4 w-4" />}
                   {tab.label}
                 </TabsTrigger>
               ))}
