@@ -53,6 +53,7 @@ import {
   Youtube,
   Instagram,
   Facebook,
+  ExternalLink,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -923,7 +924,7 @@ function HowItWorksVideoCard({
           </>
         )}
       </div>
-      <div className="p-1">
+      <div className="flex flex-1 flex-col p-1">
         <h3 className="text-[10px] font-semibold text-white">{video.title}</h3>
         {video.description && (
           <p className="mt-0.5 text-[9px] leading-snug text-white/70">{video.description}</p>
@@ -934,7 +935,7 @@ function HowItWorksVideoCard({
 
   if (isPlaceholder) {
     return (
-      <div className="block w-36 overflow-hidden rounded-lg border border-white/10 bg-white/5">
+      <div className="flex h-full w-36 flex-col overflow-hidden rounded-lg border border-white/10 bg-white/5">
         {cardContent}
       </div>
     )
@@ -945,7 +946,7 @@ function HowItWorksVideoCard({
       href={`https://www.youtube.com/watch?v=${video.id}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="group block w-36 overflow-hidden rounded-lg border border-white/10 bg-white/5 transition-colors hover:bg-white/10"
+      className="group flex h-full w-36 flex-col overflow-hidden rounded-lg border border-white/10 bg-white/5 transition-colors hover:bg-white/10"
     >
       {cardContent}
     </a>
@@ -1072,7 +1073,7 @@ function HowItWorksRow<T>({
           style={{ width: trackWidth }}
         >
           {visible.map((item, i) => (
-            <div key={i} className="shrink-0">
+            <div key={i} className="flex shrink-0">
               {renderItem(item)}
             </div>
           ))}
@@ -2274,23 +2275,26 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
             <DialogTitle className="text-lg">{selectedCourse?.name}</DialogTitle>
           </DialogHeader>
           <div className="flex-1 space-y-2 p-3 pt-0">
-            <DialogPanel variant="glass" className="p-3">
+            <DialogPanel
+              variant="default"
+              className="border-slate-200 bg-white p-3 text-[#1F2933]"
+            >
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
                 <div className="space-y-0.5">
-                  <div className="text-xs font-medium text-white/70">Category</div>
-                  <div className="text-sm font-semibold text-white">
+                  <div className="text-xs font-medium text-[#1F2933]/70">Category</div>
+                  <div className="text-sm font-semibold text-[#1F2933]">
                     {selectedCourse?.categories?.[0] || 'general'}
                   </div>
                 </div>
                 <div className="space-y-0.5">
-                  <div className="text-xs font-medium text-white/70">Sessions</div>
-                  <div className="text-sm font-semibold text-white">
+                  <div className="text-xs font-medium text-[#1F2933]/70">Sessions</div>
+                  <div className="text-sm font-semibold text-[#1F2933]">
                     {selectedCourse?.lessonCount ?? 0} sessions
                   </div>
                 </div>
                 <div className="space-y-0.5">
-                  <div className="text-xs font-medium text-white/70">Price</div>
-                  <div className="text-sm font-semibold text-white">
+                  <div className="text-xs font-medium text-[#1F2933]/70">Price</div>
+                  <div className="text-sm font-semibold text-[#1F2933]">
                     {selectedCourse?.isFree
                       ? 'Free'
                       : selectedCourse?.price != null
@@ -2299,8 +2303,8 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                   </div>
                 </div>
                 <div className="space-y-0.5">
-                  <div className="text-xs font-medium text-white/70">Cost per Session</div>
-                  <div className="text-sm font-semibold text-white">
+                  <div className="text-xs font-medium text-[#1F2933]/70">Cost per Session</div>
+                  <div className="text-sm font-semibold text-[#1F2933]">
                     {selectedCourse?.isFree
                       ? 'Free'
                       : selectedCourse?.price != null && selectedCourse?.lessonCount
@@ -2309,8 +2313,8 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                   </div>
                 </div>
                 <div className="space-y-0.5">
-                  <div className="text-xs font-medium text-white/70">Starts</div>
-                  <div className="text-sm font-semibold text-white">
+                  <div className="text-xs font-medium text-[#1F2933]/70">Starts</div>
+                  <div className="text-sm font-semibold text-[#1F2933]">
                     {selectedCourse?.startDate
                       ? new Date(selectedCourse.startDate).toLocaleDateString()
                       : 'TBA'}
@@ -2318,28 +2322,34 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                 </div>
               </div>
               <div className="flex items-center justify-center py-2">
-                <MoreHorizontal className="h-4 w-4 text-white/60" />
+                <MoreHorizontal className="h-4 w-4 text-[#1F2933]/60" />
               </div>
               <div className="space-y-0.5">
-                <div className="text-xs font-medium text-white/70">Schedule</div>
-                <div className="text-sm font-semibold text-white">
+                <div className="text-xs font-medium text-[#1F2933]/70">Schedule</div>
+                <div className="text-sm font-semibold text-[#1F2933]">
                   {selectedCourse?.scheduleSummary?.trim() || 'Schedule to be announced'}
                 </div>
               </div>
             </DialogPanel>
-            <DialogPanel variant="glass" className="p-3">
-              <h3 className="mb-2 text-sm font-semibold text-white">About this course</h3>
-              <p className="whitespace-pre-wrap text-sm leading-snug text-white/80">
+            <DialogPanel
+              variant="default"
+              className="border-slate-200 bg-white p-3 text-[#1F2933]"
+            >
+              <h3 className="mb-2 text-sm font-semibold text-[#1F2933]">About this course</h3>
+              <p className="whitespace-pre-wrap text-sm leading-snug text-[#1F2933]/80">
                 {selectedCourse?.description || 'More details will be available soon.'}
               </p>
             </DialogPanel>
-            <DialogPanel variant="glass" className="p-3">
+            <DialogPanel
+              variant="default"
+              className="border-slate-200 bg-white p-3 text-[#1F2933]"
+            >
               <div className="grid grid-cols-[auto_1fr] gap-3">
                 {/* Left column: heading + photo + name */}
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-sm font-semibold text-white">About the tutor</h3>
+                  <h3 className="text-sm font-semibold text-[#1F2933]">About the tutor</h3>
                   <div className="flex items-start gap-3">
-                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-white/20 bg-white/10">
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[#1F2933]/20 bg-slate-100">
                       {selectedCourse?.tutor?.avatarUrl ? (
                         <img
                           src={selectedCourse.tutor.avatarUrl}
@@ -2347,16 +2357,16 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-white/60">
+                        <div className="flex h-full w-full items-center justify-center text-[#1F2933]/60">
                           <User className="h-5 w-5" />
                         </div>
                       )}
                     </div>
                     <div className="min-w-[140px] shrink-0">
-                      <div className="text-sm font-semibold text-white">
+                      <div className="text-sm font-semibold text-[#1F2933]">
                         {selectedCourse?.tutor?.name || 'Anonymous Tutor'}
                       </div>
-                      <div className="text-xs text-white/70">
+                      <div className="text-xs text-[#1F2933]/70">
                         @{selectedCourse?.tutor?.username || 'tutor'}
                       </div>
                     </div>
@@ -2366,7 +2376,7 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                 {/* Right column: bio */}
                 {selectedCourse?.tutor?.bio && (
                   <div className="hidden self-stretch md:block">
-                    <div className="h-full rounded-lg border border-slate-200 bg-white px-2 py-1">
+                    <div className="h-full rounded-lg border border-[#1F2933] bg-white px-2 py-1">
                       <p className="line-clamp-3 text-xs leading-snug text-[#1F2933]">
                         {selectedCourse.tutor.bio}
                       </p>
@@ -2374,14 +2384,14 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                   </div>
                 )}
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-white/70">
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-[#1F2933]/70">
                 {selectedCourse?.tutor?.createdAt && (
                   <>
                     <div className="flex items-center gap-1">
-                      <CalendarDays className="h-3.5 w-3.5 text-white/60" />
+                      <CalendarDays className="h-3.5 w-3.5 text-[#1F2933]/60" />
                       <span>
                         Tutor Since{' '}
-                        <span className="font-semibold text-white">
+                        <span className="font-semibold text-[#1F2933]">
                           {new Date(selectedCourse.tutor.createdAt).toLocaleDateString('en-US', {
                             month: '2-digit',
                             day: '2-digit',
@@ -2390,40 +2400,40 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                         </span>
                       </span>
                     </div>
-                    <div className="h-3.5 w-px bg-white/20" />
+                    <div className="h-3.5 w-px bg-[#1F2933]/20" />
                   </>
                 )}
                 <div className="flex items-center gap-1">
-                  <BookOpen className="h-3.5 w-3.5 text-white/60" />
+                  <BookOpen className="h-3.5 w-3.5 text-[#1F2933]/60" />
                   <span>
                     Active Courses{' '}
-                    <span className="font-semibold text-white">
+                    <span className="font-semibold text-[#1F2933]">
                       {selectedCourse?.tutor?.activeCourses ?? 0}
                     </span>
                   </span>
                 </div>
-                <div className="h-3.5 w-px bg-white/20" />
+                <div className="h-3.5 w-px bg-[#1F2933]/20" />
                 <div className="flex items-center gap-1">
-                  <Globe className="h-3.5 w-3.5 text-white/60" />
+                  <Globe className="h-3.5 w-3.5 text-[#1F2933]/60" />
                   <span>
                     Country{' '}
-                    <span className="font-semibold text-white">
+                    <span className="font-semibold text-[#1F2933]">
                       {selectedCourse?.tutor?.country || '—'}
                     </span>
                   </span>
                 </div>
-                <div className="h-3.5 w-px bg-white/20" />
+                <div className="h-3.5 w-px bg-[#1F2933]/20" />
                 <div className="flex items-center gap-1">
-                  <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
-                  <span className="font-semibold text-emerald-400">Verified</span>
+                  <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                  <span className="font-semibold text-emerald-500">Verified</span>
                 </div>
               </div>
             </DialogPanel>
             <DialogPanel
-              variant="glass"
-              className="flex min-h-[120px] items-center justify-center p-3"
+              variant="default"
+              className="flex min-h-[120px] items-center justify-center border-slate-200 bg-white p-3 text-[#1F2933]"
             >
-              <span className="text-sm font-medium text-white/90">Course Videos and Documents</span>
+              <span className="text-sm font-medium text-[#1F2933]/90">Course Videos and Documents</span>
             </DialogPanel>
           </div>
           <DialogFooter className="gap-2">
@@ -2922,7 +2932,7 @@ const ComingSoonModal = ({
         value={formData.name}
         onChange={e => setFormData({ ...formData, name: e.target.value })}
         required
-        className="w-full border-gray-200 bg-white text-slate-900 placeholder:text-slate-400"
+        className="w-full border-gray-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:border-gray-200 focus-visible:ring-0 focus-visible:ring-offset-0"
       />
       <Input
         type="email"
@@ -2930,7 +2940,7 @@ const ComingSoonModal = ({
         value={formData.email}
         onChange={e => setFormData({ ...formData, email: e.target.value })}
         required
-        className="w-full border-gray-200 bg-white text-slate-900 placeholder:text-slate-400"
+        className="w-full border-gray-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:border-gray-200 focus-visible:ring-0 focus-visible:ring-offset-0"
       />
       <div>
         <textarea
@@ -3006,7 +3016,11 @@ const ComingSoonModal = ({
         />
       </div>
       <SocialField
-        icon={<Globe className="h-6 w-6 text-white/80" />}
+        icon={
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-700">
+            <ExternalLink className="h-5 w-5 text-white" />
+          </div>
+        }
         prefix="https://"
         value={formData.website}
         onChange={v => setFormData({ ...formData, website: v })}
@@ -3015,7 +3029,7 @@ const ComingSoonModal = ({
       {error && <p className="text-center text-sm text-red-400">{error}</p>}
       <Button
         type="submit"
-        className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white hover:text-emerald-500"
+        className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-white transition-all hover:bg-white hover:text-emerald-500"
       >
         Send
       </Button>
@@ -3049,15 +3063,15 @@ const ComingSoonModal = ({
           >
             <button
               onClick={onClose}
-              className={`absolute right-4 top-4 p-2 transition-colors ${
+              className={`absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-150 focus:outline-none disabled:pointer-events-none ${
                 type === 'register'
-                  ? 'text-zinc-400 hover:text-white'
+                  ? 'text-gray-400 hover:bg-white/10 hover:text-white'
                   : mode === 'dark'
                     ? 'text-zinc-400 hover:text-white'
                     : 'text-zinc-600 hover:text-black'
               }`}
             >
-              <X className="h-5 w-5" />
+              <X className={type === 'register' ? 'h-4 w-4' : 'h-5 w-5'} />
             </button>
             {!submitted ? (
               <>
@@ -3417,15 +3431,12 @@ const ContactModal = ({
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-white hover:text-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-white transition-all hover:bg-white hover:text-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {loading ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
 
-              <p className="mt-4 text-center text-xs text-zinc-500">
-                You can also email us directly at support@solocorn.co
-              </p>
             </>
           ) : (
             <div className="py-8 text-center">
@@ -4707,16 +4718,16 @@ export default function LandingPage() {
               <div className="flex w-full max-w-5xl flex-1 flex-col overflow-hidden">
                 {/* Gear animation header */}
                 <div className="flex flex-col items-center justify-center py-1">
-                  <div className="flex items-center justify-center gap-1">
+                  <div className="flex items-center justify-center gap-0.5">
                     <motion.span
-                      className="inline-flex h-6 w-6 text-white/90"
+                      className="inline-flex h-5 w-5"
                       animate={{ rotate: 360 }}
                       transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                     >
                       <Settings className="h-full w-full" />
                     </motion.span>
                     <motion.span
-                      className="-ml-0.5 -mt-1.5 inline-flex h-6 w-6 text-white/90"
+                      className="-ml-1 -mt-2 inline-flex h-3.5 w-3.5"
                       animate={{ rotate: -360 }}
                       transition={{ duration: 1.33, repeat: Infinity, ease: 'linear' }}
                     >
