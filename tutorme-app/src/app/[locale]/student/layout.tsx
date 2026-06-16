@@ -68,7 +68,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const isFeedbackRoute = pathname.includes('/student/feedback')
   const isSupportPage =
     pathname === '/student/help' || pathname?.startsWith('/student/help/')
-  const [desktopNavOpen, setDesktopNavOpen] = useState(!isSupportPage && !isFeedbackRoute)
+  const isAccountPage = pathname === '/student/account' || pathname?.startsWith('/student/account/')
+  const [desktopNavOpen, setDesktopNavOpen] = useState(
+    !isSupportPage && !isFeedbackRoute && !isAccountPage
+  )
   const [isPeeking, setIsPeeking] = useState(false)
 
   useEffect(() => {
@@ -83,10 +86,10 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     }
   }, [])
 
-  // Auto-close on Support and Live Classroom/Feedback; auto-open elsewhere
+  // Auto-close on Support, Account, and Live Classroom/Feedback; auto-open elsewhere
   useEffect(() => {
-    setDesktopNavOpen(!isSupportPage && !isFeedbackRoute)
-  }, [isSupportPage, isFeedbackRoute])
+    setDesktopNavOpen(!isSupportPage && !isFeedbackRoute && !isAccountPage)
+  }, [isSupportPage, isFeedbackRoute, isAccountPage])
   const liveSessionId = ''
   const liveClassNavItems: NavItem[] = [
     {

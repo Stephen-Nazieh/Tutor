@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { TabsContent } from '@/components/ui/tabs'
 import {
   Dialog,
   DialogContent,
@@ -35,9 +35,12 @@ import {
   Download,
   Check,
   AlertTriangle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
-import { BackButton } from '@/components/navigation'
+import { cn } from '@/lib/utils'
 import { AvatarUploader } from '@/components/avatar-uploader'
+import { SessionCalendarPanel } from '@/components/session-calendar-panel'
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -277,7 +280,42 @@ export default function StudentAccount() {
     toast.success('Payment method removed')
   }
 
-  const sectionCardClass = 'border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
+  const sectionCardClass =
+    'overflow-hidden rounded-[16px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
+
+  function CollapsibleCard({
+    title,
+    description,
+    defaultOpen = false,
+    children,
+  }: {
+    title: string
+    description?: string
+    defaultOpen?: boolean
+    children: React.ReactNode
+  }) {
+    const [open, setOpen] = useState(defaultOpen)
+    return (
+      <Card className={sectionCardClass}>
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          className="panel-header panel-header-metallic w-full text-left"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="panel-header-title">{title}</div>
+              {description && <div className="panel-header-subtext">{description}</div>}
+            </div>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
+              {open ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+            </div>
+          </div>
+        </button>
+        {open && children}
+      </Card>
+    )
+  }
 
   if (loading) {
     return (
@@ -291,74 +329,37 @@ export default function StudentAccount() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-12">
-      <header className="sticky top-0 z-10 w-full bg-white px-4 pb-2 pt-4 sm:px-6">
-        <div className="w-full">
-          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <BackButton href="/student/dashboard" />
-              <div className="flex flex-col justify-center">
-                <h1 className="text-lg font-bold text-slate-800">Account Settings</h1>
-              </div>
+    <div className="flex h-full flex-col overflow-hidden bg-white">
+      <div className="flex h-full w-full flex-col px-3 lg:px-4">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[18px] border border-white/10 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+          {/* Header */}
+          <div className="bg-gradient-to-br from-[#F97316] to-[#EA580C] p-5">
+            <div className="text-center">
+              <h1 className="text-xl font-bold text-white">Account Settings</h1>
+              <p className="mt-1 text-sm text-white/60">Manage your profile and preferences</p>
             </div>
           </div>
-        </div>
-      </header>
 
-      <main className="w-full px-4 py-8 sm:px-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="flex h-auto w-full flex-wrap gap-2 bg-transparent p-0">
-            <TabsTrigger
-              value="profile"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
+          {/* Content */}
+          <div className="flex min-h-0 flex-1 flex-col bg-white p-4 sm:p-6">
+            <SessionCalendarPanel
+              variant="charcoal"
+              value={activeTab}
+              onValueChange={setActiveTab}
+              tabs={[
+                { value: 'profile', label: 'Profile', icon: User },
+                { value: 'billing', label: 'Billing', icon: CreditCard },
+                { value: 'history', label: 'History', icon: FileText },
+                { value: 'notifications', label: 'Notifications', icon: Bell },
+                { value: 'security', label: 'Security', icon: Shield },
+                { value: 'controls', label: 'Controls', icon: Power },
+              ]}
             >
-              <User className="h-4 w-4" />
-              <span className="hidden md:inline">Profile</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="billing"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
-            >
-              <CreditCard className="h-4 w-4" />
-              <span className="hidden md:inline">Billing</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="history"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
-            >
-              <FileText className="h-4 w-4" />
-              <span className="hidden md:inline">History</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="notifications"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
-            >
-              <Bell className="h-4 w-4" />
-              <span className="hidden md:inline">Notifications</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="security"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
-            >
-              <Shield className="h-4 w-4" />
-              <span className="hidden md:inline">Security</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="controls"
-              className="flex-1 justify-center gap-2 rounded-full border-0 bg-[#F3F4F6] px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-[#E5E7EB] data-[state=active]:bg-gradient-to-r data-[state=active]:from-slate-700 data-[state=active]:to-slate-900 data-[state=active]:font-semibold data-[state=active]:text-white data-[state=active]:shadow-md md:flex-none"
-            >
-              <Power className="h-4 w-4" />
-              <span className="hidden md:inline">Controls</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Profile & Identity */}
-          <TabsContent value="profile" className="space-y-6">
-            <Card className={sectionCardClass}>
-              <CardHeader>
-                <CardTitle>Profile & Identity</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
+              {/* Profile & Identity */}
+              <TabsContent value="profile" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div className="h-full space-y-6 overflow-y-auto pr-2">
+                <CollapsibleCard title="Profile & Identity" defaultOpen>
+                  <CardContent className="space-y-6">
                 {/* Avatar */}
                 <div className="flex items-center gap-4">
                   <AvatarUploader
@@ -458,20 +459,20 @@ export default function StudentAccount() {
                     )}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  </CardContent>
+                </CollapsibleCard>
+              </div>
+            </TabsContent>
 
-          {/* Billing & Payment */}
-          <TabsContent value="billing" className="space-y-6">
-            <Card className={sectionCardClass}>
-              <CardHeader>
-                <CardTitle>Billing & Payment Methods</CardTitle>
-                <CardDescription>
-                  Manage your payment methods and billing preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            {/* Billing & Payment */}
+            <TabsContent value="billing" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="h-full space-y-6 overflow-y-auto pr-2">
+                <CollapsibleCard
+                  title="Billing & Payment Methods"
+                  description="Manage your payment methods and billing preferences"
+                  defaultOpen
+                >
+                  <CardContent className="space-y-6">
                 {paymentMethods.map(method => (
                   <div
                     key={method.id}
@@ -521,18 +522,20 @@ export default function StudentAccount() {
                   <CreditCard className="mr-2 h-4 w-4" />
                   Add Payment Method
                 </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  </CardContent>
+                </CollapsibleCard>
+              </div>
+            </TabsContent>
 
-          {/* Billing History */}
-          <TabsContent value="history" className="space-y-6">
-            <Card className={sectionCardClass}>
-              <CardHeader>
-                <CardTitle>Billing History</CardTitle>
-                <CardDescription>View and download your invoices and receipts</CardDescription>
-              </CardHeader>
-              <CardContent>
+            {/* Billing History */}
+            <TabsContent value="history" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="h-full space-y-6 overflow-y-auto pr-2">
+                <CollapsibleCard
+                  title="Billing History"
+                  description="View and download your invoices and receipts"
+                  defaultOpen
+                >
+                  <CardContent>
                 <div className="space-y-4">
                   {billingHistory.map(invoice => (
                     <div
@@ -572,18 +575,20 @@ export default function StudentAccount() {
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  </CardContent>
+                </CollapsibleCard>
+              </div>
+            </TabsContent>
 
-          {/* Notifications */}
-          <TabsContent value="notifications" className="space-y-6">
-            <Card className={sectionCardClass}>
-              <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>Control how and when we contact you</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            {/* Notifications */}
+            <TabsContent value="notifications" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="h-full space-y-6 overflow-y-auto pr-2">
+                <CollapsibleCard
+                  title="Notification Preferences"
+                  description="Control how and when we contact you"
+                  defaultOpen
+                >
+                  <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -676,18 +681,20 @@ export default function StudentAccount() {
                     )}
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  </CardContent>
+                </CollapsibleCard>
+              </div>
+            </TabsContent>
 
-          {/* Privacy & Security */}
-          <TabsContent value="security" className="space-y-6">
-            <Card className={sectionCardClass}>
-              <CardHeader>
-                <CardTitle>Privacy & Security</CardTitle>
-                <CardDescription>Manage your password and account security</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            {/* Privacy & Security */}
+            <TabsContent value="security" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="h-full space-y-6 overflow-y-auto pr-2">
+                <CollapsibleCard
+                  title="Privacy & Security"
+                  description="Manage your password and account security"
+                  defaultOpen
+                >
+                  <CardContent className="space-y-6">
                 {/* Password Change */}
                 <div className="space-y-4">
                   <h3 className="font-medium">Change Password</h3>
@@ -778,20 +785,20 @@ export default function StudentAccount() {
                     Logout from All Devices
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  </CardContent>
+                </CollapsibleCard>
+              </div>
+            </TabsContent>
 
-          {/* Account Controls */}
-          <TabsContent value="controls" className="space-y-6">
-            <Card className={sectionCardClass}>
-              <CardHeader>
-                <CardTitle>Account Controls</CardTitle>
-                <CardDescription>
-                  Temporarily deactivate or permanently delete your account
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+            {/* Account Controls */}
+            <TabsContent value="controls" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+              <div className="h-full space-y-6 overflow-y-auto pr-2">
+                <CollapsibleCard
+                  title="Account Controls"
+                  description="Temporarily deactivate or permanently delete your account"
+                  defaultOpen
+                >
+                  <CardContent className="space-y-6">
                 {/* Deactivate Account */}
                 <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
                   <div className="flex items-start gap-4">
@@ -834,10 +841,13 @@ export default function StudentAccount() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
+            </CollapsibleCard>
+          </div>
+        </TabsContent>
+      </SessionCalendarPanel>
+    </div>
+  </div>
+</div>
 
       {/* Delete Account Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
