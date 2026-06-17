@@ -254,14 +254,16 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           className={cn(
             'fixed top-1/2 z-[400] hidden h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-500 ease-in-out hover:w-10 lg:flex',
             desktopNavOpen ? 'left-64' : 'left-0',
-            'border-white/20 bg-gradient-to-br from-[#F97316] to-[#EA580C]',
+            desktopNavOpen
+              ? 'border-[#E5E7EB] bg-white'
+              : 'border-white/20 bg-gradient-to-br from-[#F97316] to-[#EA580C]',
             isPeeking ? 'w-10' : 'w-8'
           )}
           onClick={() => setDesktopNavOpen(!desktopNavOpen)}
           title={desktopNavOpen ? 'Hide navigation' : 'Show navigation'}
         >
           {desktopNavOpen ? (
-            <ChevronLeft className="h-5 w-5 text-white" />
+            <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
           ) : (
             <ChevronRight className="h-5 w-5 text-white" />
           )}
