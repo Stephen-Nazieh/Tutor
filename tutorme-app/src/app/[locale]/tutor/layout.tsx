@@ -26,7 +26,6 @@ import {
   FileText,
   ChevronRight,
   ChevronLeft,
-  Video,
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -50,7 +49,6 @@ const navItems: NavItem[] = [
   },
   { href: '/tutor/my-page', label: 'My Page', icon: Globe, iconColor: 'text-[#7C3AED]' },
   { href: '/tutor/insights', label: 'Course Builder', icon: Wrench, iconColor: 'text-[#EA580C]' },
-  { href: '/tutor/classes', label: 'Live Sessions', icon: Video, iconColor: 'text-[#16A34A]' },
   {
     href: '/tutor/communications',
     label: 'Communications',

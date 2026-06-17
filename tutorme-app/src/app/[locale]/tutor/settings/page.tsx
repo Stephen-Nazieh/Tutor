@@ -45,10 +45,12 @@ import {
   PenTool,
   ChevronDown,
   ChevronUp,
+  History,
 } from 'lucide-react'
 import { REGIONS } from '@/lib/data/tutor-categories'
 import { AvatarUploader } from '@/components/avatar-uploader'
 import { SessionCalendarPanel } from '@/components/session-calendar-panel'
+import SessionLog from '@/components/session-log'
 
 const LANGUAGES = [
   { code: 'en', name: 'English' },
@@ -618,6 +620,7 @@ export default function TutorSettings() {
             { value: 'notifications', label: 'Notifications', icon: Bell },
             { value: 'security', label: 'Security', icon: Shield },
             { value: 'controls', label: 'Controls', icon: Power },
+            { value: 'session-log', label: 'Session Log', icon: History },
           ]}
         >
           {/* Profile & Identity */}
@@ -1694,6 +1697,11 @@ export default function TutorSettings() {
               </CardContent>
             </Card>
           </div></TabsContent>
+
+          {/* Session Log */}
+          <TabsContent value="session-log" className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden">
+            <SessionLog />
+          </TabsContent>
         </SessionCalendarPanel>
           </div>
         </div>
