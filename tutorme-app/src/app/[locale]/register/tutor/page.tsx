@@ -11,17 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { HANDLE_REGEX, isReservedHandle } from '@/lib/mentions/handles'
-import {
-  GraduationCap,
-  ShieldCheck,
-  Globe,
-  MapPin,
-  UserRound,
-  Eye,
-  EyeOff,
-  Loader2,
-  X,
-} from 'lucide-react'
+import { GraduationCap, ShieldCheck, UserRound, Eye, EyeOff, Loader2, X } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -792,9 +782,7 @@ export default function TutorRegistrationPage() {
           </div>
         </div>
 
-        <div
-          className="overflow-hidden rounded-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] shadow-[0_20px_50px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)]"
-        >
+        <div className="overflow-hidden rounded-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] shadow-[0_20px_50px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)]">
           {step >= 3 && (
             <div className="border-b border-white/10 px-5 pb-3 pt-5">
               <h2 className="text-lg font-semibold text-white/90">
@@ -930,15 +918,11 @@ export default function TutorRegistrationPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Label className="text-xs text-white/70">Where do you live?</Label>
                     <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                       {/* Region */}
-                      <div className="flex-1 space-y-3">
-                        <Label className="flex items-center gap-2 text-xs font-medium text-white/80">
-                          <Globe className="h-3.5 w-3.5 text-[#1D4ED8]" />
-                          Where do you live?
-                        </Label>
+                      <div className="flex-1">
                         <Select
                           value={region}
                           onValueChange={v => {
@@ -964,11 +948,7 @@ export default function TutorRegistrationPage() {
                       </div>
 
                       {/* Country */}
-                      <div className="flex-1 space-y-3">
-                        <Label className="flex items-center gap-2 text-xs font-medium text-white/80">
-                          <MapPin className="h-3.5 w-3.5 text-[#F17623]" />
-                          Where do you live?
-                        </Label>
+                      <div className="flex-1">
                         <Select
                           value={countryCode}
                           onValueChange={setCountryCode}
@@ -980,9 +960,7 @@ export default function TutorRegistrationPage() {
                               !region && 'border-slate-400/20 bg-slate-100/50 text-slate-400'
                             )}
                           >
-                            <SelectValue
-                              placeholder={region ? 'Select Country...' : 'Select Region First'}
-                            />
+                            <SelectValue placeholder="Select Country" />
                           </SelectTrigger>
                           <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-md border border-white/10 bg-[#1F2933] p-1.5 shadow-lg">
                             {availableCountries.length === 0 ? (
@@ -1168,7 +1146,8 @@ export default function TutorRegistrationPage() {
                     </p>
                     {formData.nationality && (
                       <p className="text-sm text-[#1F2933]/80">
-                        <span className="text-[#1F2933]/50">Nationality:</span> {formData.nationality}
+                        <span className="text-[#1F2933]/50">Nationality:</span>{' '}
+                        {formData.nationality}
                       </p>
                     )}
                   </div>
