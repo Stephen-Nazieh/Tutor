@@ -75,15 +75,11 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const [isPeeking, setIsPeeking] = useState(false)
 
   useEffect(() => {
-    document.documentElement.classList.add('student-scroll-layout')
     const peekInterval = setInterval(() => {
       setIsPeeking(true)
       setTimeout(() => setIsPeeking(false), 600)
     }, 8000)
-    return () => {
-      document.documentElement.classList.remove('student-scroll-layout')
-      clearInterval(peekInterval)
-    }
+    return () => clearInterval(peekInterval)
   }, [])
 
   // Auto-close on Support, Account, and Live Classroom/Feedback; auto-open elsewhere

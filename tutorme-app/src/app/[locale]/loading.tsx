@@ -1,20 +1,6 @@
 export default function Loading() {
   return (
     <>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function () {
-              var path = window.location.pathname
-              if (path.indexOf('/tutor') === 0) {
-                document.documentElement.classList.add('tutor-scroll-layout')
-              } else if (path.indexOf('/student') === 0) {
-                document.documentElement.classList.add('student-scroll-layout')
-              }
-            })()
-          `,
-        }}
-      />
       <div className="flex min-h-screen items-center justify-center">
         <svg
           className="h-8 w-8 animate-spin text-blue-600"

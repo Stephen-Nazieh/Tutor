@@ -634,6 +634,7 @@
     scrollbar-gutter: stable;
     overflow-y: auto;
     scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+    background-color: hsl(var(--background));
   }
 
   html::-webkit-scrollbar {
@@ -655,11 +656,6 @@
     margin: 0 !important;
   }
 
-  /* Tutor/student pages use nested scroll containers — hide html gutter since it shows body bg color */
-  html.tutor-scroll-layout,
-  html.student-scroll-layout {
-    scrollbar-gutter: auto;
-  }
 
   body {
     @apply bg-background text-foreground antialiased;
