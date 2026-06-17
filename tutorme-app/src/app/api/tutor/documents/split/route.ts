@@ -64,10 +64,7 @@ export const POST = withCsrf(
       } catch (splitErr) {
         const code = (splitErr as { code?: string }).code
         if (code === 'INVALID_PDF' || code === 'EMPTY_PDF' || code === 'TOO_MANY_PAGES') {
-          return NextResponse.json(
-            { error: (splitErr as Error).message },
-            { status: 400 }
-          )
+          return NextResponse.json({ error: (splitErr as Error).message }, { status: 400 })
         }
         throw splitErr
       }

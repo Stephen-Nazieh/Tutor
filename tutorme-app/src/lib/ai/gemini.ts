@@ -87,7 +87,9 @@ function toGeminiContents(messages: Array<{ role: string; content: string }>): {
   }
   return {
     contents,
-    systemInstruction: systemTexts.length ? { parts: [{ text: systemTexts.join('\n\n') }] } : undefined,
+    systemInstruction: systemTexts.length
+      ? { parts: [{ text: systemTexts.join('\n\n') }] }
+      : undefined,
   }
 }
 
@@ -132,7 +134,10 @@ function generationConfig(o: GenOptions): Record<string, unknown> {
 }
 
 /** Single-prompt generation. */
-export async function generateWithGemini(prompt: string, options: GenOptions = {}): Promise<string> {
+export async function generateWithGemini(
+  prompt: string,
+  options: GenOptions = {}
+): Promise<string> {
   const body: Record<string, unknown> = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: generationConfig(options),
