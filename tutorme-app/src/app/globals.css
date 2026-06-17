@@ -631,21 +631,14 @@
     -webkit-text-size-adjust: 100%;
     overflow-x: hidden;
     scroll-behavior: smooth;
-    scrollbar-gutter: stable;
     overflow-y: auto;
-    scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+    scrollbar-gutter: auto;
+    scrollbar-width: none;
     background-color: hsl(var(--background));
   }
 
   html::-webkit-scrollbar {
-    width: 8px;
-  }
-  html::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  html::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.15);
-    border-radius: 4px;
+    display: none;
   }
 
   /* Prevent layout shift when scrollbar appears/disappears (Radix/shadcn dropdowns/modals) */
@@ -1335,4 +1328,12 @@
     padding-left: calc(1.5rem * var(--density-scale));
     padding-right: calc(1.5rem * var(--density-scale));
   }
+}
+
+/* Remove focus rings from input elements site-wide */
+input:focus,
+input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  --tw-ring-shadow: none !important;
 }
