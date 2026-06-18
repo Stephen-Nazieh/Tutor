@@ -784,12 +784,16 @@ function TutorInsightsPageInner() {
 
   const { socket } = useSocket(socketOptions)
 
-  const handleSyncToLiveSession = useCallback(() => {
-    if (sessionId && socket) {
-      socket.emit('course:sync', { roomId: sessionId, courseId })
-    }
-    toast.success('Course synced to live session')
-  }, [sessionId, socket, courseId])
+  const handleSyncToLiveSession = useCallback(
+    (silent = false) => {
+      if (sessionId && socket) {
+        socket.emit('course:sync', { roomId: sessionId, courseId })
+      }
+      // Background auto-sync passes silent=true; only manual syncs toast.
+      if (!silent) toast.success('Course synced to live session')
+    },
+    [sessionId, socket, courseId]
+  )
 
   // Track whether the current session has received the ending-soon alert
   const [endingAlertShown, setEndingAlertShown] = useState(false)
