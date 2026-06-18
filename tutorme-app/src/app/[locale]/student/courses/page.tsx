@@ -9,7 +9,7 @@ import { Suspense } from 'react'
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -587,7 +587,7 @@ function CoursePageInner() {
           { value: 'following', label: `Following (${followingTutors.length})` },
         ]}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {isLoading ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3].map(i => (
@@ -597,7 +597,7 @@ function CoursePageInner() {
               ))}
             </div>
           ) : (
-            <div className="space-y-12">
+            <div className="flex min-h-0 flex-1 flex-col gap-12">
               {activeTab === 'mine' && (
                 <CourseSection
                   title="Ongoing Courses"
@@ -647,14 +647,14 @@ function CoursePageInner() {
                 />
               )}
               {activeTab === 'following' && (
-                <section>
+                <section className="flex min-h-0 flex-1 flex-col">
                   <div className="mb-6 flex items-center justify-between">
                     <h2 className="text-xl font-bold text-gray-900">Following tutors</h2>
                     <Badge variant="outline">{followingTutors.length} tutors</Badge>
                   </div>
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {isFollowingLoading ? (
-                      [1, 2, 3].map(i => (
+                  {isFollowingLoading ? (
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                      {[1, 2, 3].map(i => (
                         <Card key={i} className="border-border bg-card animate-pulse">
                           <CardHeader className="space-y-3">
                             <div className="flex items-center gap-3">
@@ -670,24 +670,16 @@ function CoursePageInner() {
                             <div className="bg-muted h-4 rounded" />
                           </CardContent>
                         </Card>
-                      ))
-                    ) : followingTutors.length === 0 ? (
-                      <Card className="border-border bg-card col-span-full px-4 py-8 text-center">
-                        <div className="bg-muted mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
-                          <Heart className="text-muted-foreground h-6 w-6" />
-                        </div>
-                        <CardTitle className="mb-1 text-lg">No followed tutors</CardTitle>
-                        <CardDescription className="mb-4">
-                          Follow tutors from the directory to see them here.
-                        </CardDescription>
-                        <Link href="/student/tutors">
-                          <Button variant="outline" size="sm">
-                            Browse Tutors
-                          </Button>
-                        </Link>
-                      </Card>
-                    ) : (
-                      followingTutors.map(tutor => (
+                      ))}
+                    </div>
+                  ) : followingTutors.length === 0 ? (
+                    <div className="flex flex-1 flex-col items-center justify-center text-center">
+                      <Heart className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+                      <h3 className="text-lg font-medium text-gray-900">No followed tutors</h3>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                      {followingTutors.map(tutor => (
                         <div
                           key={tutor.id}
                           className={cn(
@@ -756,9 +748,9 @@ function CoursePageInner() {
                             </div>
                           </div>
                         </div>
-                      ))
-                    )}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </section>
               )}
 
@@ -766,19 +758,9 @@ function CoursePageInner() {
                 (activeTab === 'pending' && upcoming.length === 0) ||
                 (activeTab === 'completed' && completed.length === 0) ||
                 (activeTab === 'favorites' && favorites.length === 0)) && (
-                <div className="flex min-h-[50vh] flex-col items-center justify-center text-center">
+                <div className="flex flex-1 flex-col items-center justify-center text-center">
                   <BookOpen className="mx-auto mb-4 h-16 w-16 text-gray-300" />
-                  <h3 className="mb-2 text-lg font-medium text-gray-900">
-                    No courses in this section
-                  </h3>
-                  <p className="mb-6 text-gray-600">
-                    {activeTab === 'favorites'
-                      ? "You haven't added any favorites yet."
-                      : 'Enroll in courses from the catalog to start your journey.'}
-                  </p>
-                  <Link href="/student/subjects">
-                    <Button variant="default">Browse Available Subjects</Button>
-                  </Link>
+                  <h3 className="text-lg font-medium text-gray-900">No courses in this section</h3>
                 </div>
               )}
             </div>
