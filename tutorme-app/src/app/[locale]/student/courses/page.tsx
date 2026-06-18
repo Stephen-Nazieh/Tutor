@@ -477,7 +477,7 @@ function CoursePageInner() {
   )
 
   return (
-    <div className="text-foreground flex min-h-full flex-col px-3 lg:h-full lg:overflow-hidden lg:px-4">
+    <div className="text-foreground flex min-h-full flex-col bg-white px-3 lg:h-full lg:overflow-hidden lg:px-4">
       {/* Hero */}
       <div className="mb-4 flex-shrink-0">
         <StudentHeroSection title="My Courses" showGreeting={false} />
@@ -664,9 +664,9 @@ function CoursePageInner() {
                             'group relative flex flex-col overflow-hidden rounded-[20px] text-left transition-all duration-300',
                             'border border-[rgba(255,255,255,0.12)]',
                             'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
-                            'shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_12px_30px_rgba(0,0,0,0.35)]',
+                            'shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.14)]',
                             'hover:-translate-y-[2px] hover:brightness-105',
-                            'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
+                            'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_10px_28px_rgba(0,0,0,0.18)]'
                           )}
                           style={{
                             backgroundImage:
@@ -675,7 +675,7 @@ function CoursePageInner() {
                         >
                           <div className="flex h-full flex-col p-5">
                             <div className="flex items-start gap-4">
-                              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_6px_16px_rgba(0,0,0,0.35)]">
+                              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-[16px] border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.03)] shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
                                 {resolvePublicUrl(tutor.avatarUrl) ? (
                                   <img
                                     src={resolvePublicUrl(tutor.avatarUrl)}
@@ -959,9 +959,9 @@ function CourseCard({
         'group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-[20px] text-left transition-all duration-300',
         'border border-[rgba(255,255,255,0.08)]',
         'bg-[rgba(30,40,50,0.65)] backdrop-blur-[12px]',
-        'shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_10px_25px_rgba(0,0,0,0.30)]',
+        'shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_24px_rgba(0,0,0,0.14)]',
         'hover:-translate-y-[2px] hover:brightness-105',
-        'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_14px_30px_rgba(0,0,0,0.40)]'
+        'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_10px_28px_rgba(0,0,0,0.18)]'
       )}
       style={{
         backgroundImage:

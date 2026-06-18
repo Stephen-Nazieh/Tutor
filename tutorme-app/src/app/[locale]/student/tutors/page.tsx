@@ -175,9 +175,9 @@ export default function StudentTutorDirectoryPage() {
   const { desktopNavOpen } = useStudentNav()
 
   return (
-    <div className="text-foreground flex h-full flex-col px-6 pb-0 pt-2 lg:pt-0">
+    <div className="text-foreground flex h-full flex-col bg-white px-6 pb-0 pt-2 lg:pt-0">
       {/* Hero */}
-      <section className="relative mb-4 overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] p-5 shadow-[0_24px_72px_rgba(0,0,0,0.20)] ring-1 ring-white/20">
+      <section className="relative mb-4 overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] p-5 shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
         <div className="relative flex flex-wrap items-center justify-center gap-3">
           <div className="text-center">
             <h2 className="text-xl font-bold text-white">Solocorn Tutors</h2>
@@ -212,7 +212,7 @@ export default function StudentTutorDirectoryPage() {
       </section>
 
       {/* Bottom panel: filters + results */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)]">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-border/20 bg-white shadow-elevation-3">
         {/* Filters */}
         <div className="grid grid-cols-1 gap-3 p-4 pb-0 sm:p-6 sm:pb-0 md:grid-cols-4">
         <div className="relative">
@@ -231,7 +231,7 @@ export default function StudentTutorDirectoryPage() {
             setSelectedCountryCode('')
           }}
         >
-          <SelectTrigger className="h-9 w-full rounded-lg border border-slate-700/25 bg-white/30 text-sm text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-[0_6px_16px_rgba(0,0,0,0.20)] focus:outline-none focus-visible:!shadow-none focus-visible:outline-none disabled:border-slate-400/20 disabled:bg-slate-100/20 disabled:text-slate-400 disabled:backdrop-blur-none">
+          <SelectTrigger className="h-9 w-full rounded-lg border border-slate-700/25 bg-white/30 text-sm text-slate-700 shadow-sm backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-md focus:outline-none focus-visible:!shadow-none focus-visible:outline-none disabled:border-slate-400/20 disabled:bg-slate-100/20 disabled:text-slate-400 disabled:backdrop-blur-none">
             <SelectValue placeholder="Region" />
           </SelectTrigger>
           <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-lg border border-slate-700/25 bg-white/30 bg-none p-1.5 shadow-lg backdrop-blur-xl">
@@ -251,7 +251,7 @@ export default function StudentTutorDirectoryPage() {
           onValueChange={setSelectedCountryCode}
           disabled={!selectedRegion || selectedRegion === 'global'}
         >
-          <SelectTrigger className="h-9 w-full rounded-lg border border-slate-700/25 bg-white/30 text-sm text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-[0_6px_16px_rgba(0,0,0,0.20)] focus:outline-none focus-visible:!shadow-none focus-visible:outline-none disabled:border-slate-400/20 disabled:bg-slate-100/20 disabled:text-slate-400 disabled:backdrop-blur-none disabled:hover:translate-y-0 disabled:hover:border-slate-400/20 disabled:hover:bg-slate-100/20 disabled:hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+          <SelectTrigger className="h-9 w-full rounded-lg border border-slate-700/25 bg-white/30 text-sm text-slate-700 shadow-sm backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-md focus:outline-none focus-visible:!shadow-none focus-visible:outline-none disabled:border-slate-400/20 disabled:bg-slate-100/20 disabled:text-slate-400 disabled:backdrop-blur-none disabled:hover:translate-y-0 disabled:hover:border-slate-400/20 disabled:hover:bg-slate-100/20 disabled:hover:shadow-sm">
             <SelectValue placeholder="Country" />
           </SelectTrigger>
           <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-lg border border-slate-700/25 bg-white/30 bg-none p-1.5 shadow-lg backdrop-blur-xl">
@@ -267,7 +267,7 @@ export default function StudentTutorDirectoryPage() {
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={value => setSortBy(value as typeof sortBy)}>
-          <SelectTrigger className="h-9 w-full rounded-lg border border-slate-700/25 bg-white/30 text-sm text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-[0_6px_16px_rgba(0,0,0,0.20)] focus:outline-none focus-visible:!shadow-none focus-visible:outline-none">
+          <SelectTrigger className="h-9 w-full rounded-lg border border-slate-700/25 bg-white/30 text-sm text-slate-700 shadow-sm backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-md focus:outline-none focus-visible:!shadow-none focus-visible:outline-none">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-lg border border-slate-700/25 bg-white/30 bg-none p-1.5 shadow-lg backdrop-blur-xl">
