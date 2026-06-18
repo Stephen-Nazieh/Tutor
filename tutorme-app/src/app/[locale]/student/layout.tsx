@@ -72,6 +72,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const isBookTutorPage = pathname?.includes('/student/tutors')
   const isCommunicationsPage = pathname?.includes('/student/communications')
   const isCoursesPage = pathname?.includes('/student/courses')
+  const isDashboardPage =
+    pathname === '/student/dashboard' || pathname?.startsWith('/student/dashboard/')
   const isNavClosedPage =
     isSupportPage ||
     isFeedbackRoute ||
@@ -396,8 +398,11 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
       <main
         className={cn(
           'relative z-0 h-screen flex-1 overflow-hidden',
-          !isFeedbackRoute &&
-            'pt-16 lg:my-4 lg:mr-4 lg:h-[calc(100vh-2rem)] lg:rounded-2xl lg:pt-4 lg:shadow-[0_18px_60px_rgba(0,0,0,0.16)] lg:ring-1 lg:ring-black/5'
+          !isFeedbackRoute && [
+            'pt-16 lg:my-4 lg:mr-4 lg:h-[calc(100vh-2rem)]',
+            !isDashboardPage &&
+              'lg:rounded-2xl lg:bg-white lg:pt-4 lg:shadow-[0_18px_60px_rgba(0,0,0,0.16)] lg:ring-1 lg:ring-black/5',
+          ]
         )}
       >
         <div
