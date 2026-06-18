@@ -118,6 +118,8 @@ type CourseSession = {
   status: string
   roomUrl?: string | null
   isVirtual?: boolean
+  /** null/absent = a one-time session; set = materialized from the course schedule */
+  scheduleId?: string | null
   durationMinutes?: number
 }
 
@@ -149,6 +151,8 @@ function TutorDashboardContent() {
   const hasLocalePrefix = pathname.startsWith(`/${locale}/`)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [scheduleCourse, setScheduleCourse] = useState<{ id: string; name: string } | null>(null)
+  // Course context for creating a one-time (non-schedule) session from the sessions modal.
+  const [oneTimeCourse, setOneTimeCourse] = useState<{ id: string; name: string } | null>(null)
   const [scheduleDate, setScheduleDate] = useState<Date | null>(null)
   const [timezone, setTimezone] = useState(DEFAULT_TIMEZONE)
   const [calendarView, setCalendarView] = useState<CalendarView>('day')
@@ -831,6 +835,25 @@ function TutorDashboardContent() {
           initialDate={scheduleDate}
         />
 
+        {/* One-time (non-schedule) session for a specific course */}
+        <CreateClassDialog
+          open={!!oneTimeCourse}
+          onOpenChange={open => {
+            if (!open) setOneTimeCourse(null)
+          }}
+          courseId={oneTimeCourse?.id}
+          courseName={oneTimeCourse?.name}
+          redirectToClass={false}
+          onClassCreated={() => {
+            const course = oneTimeCourse
+            setOneTimeCourse(null)
+            if (course) {
+              toast.success('One-time session created')
+              handleOpenSessionsModal({ id: course.id, name: course.name } as EnrolledCourse)
+            }
+          }}
+        />
+
         {/* Course Sessions Modal */}
         <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
           <DialogContent className="max-w-2xl">
@@ -932,13 +955,24 @@ function TutorDashboardContent() {
                           className="border-border/30 bg-card/50 hover:border-border/50 hover:bg-card flex items-center justify-between rounded-lg border p-3 transition-all duration-200"
                         >
                           <div className="min-w-0 flex-1 space-y-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <p className="truncate font-medium">{session.title}</p>
                               <Badge
                                 variant="outline"
                                 className={cn('text-[10px] uppercase tracking-wide', badgeClass)}
                               >
                                 {displayStatus}
+                              </Badge>
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  'text-[10px] uppercase tracking-wide',
+                                  isVirtual || session.scheduleId
+                                    ? 'bg-info/10 text-info border-info/25'
+                                    : 'bg-warning/10 text-warning border-warning/25'
+                                )}
+                              >
+                                {isVirtual || session.scheduleId ? 'From schedule' : 'One-time'}
                               </Badge>
                             </div>
                             <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
@@ -1062,16 +1096,30 @@ function TutorDashboardContent() {
             <DialogFooter className="flex items-center justify-between sm:justify-between">
               <div className="text-muted-foreground flex items-center gap-2 text-xs">
                 <AlertCircle className="h-4 w-4" />
-                <span>Sessions come from the course schedule — add one in the scheduler</span>
+                <span>Add recurring sessions in the scheduler, or create a one-off session</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {selectedCourseForCancel && (
-                  <Button asChild variant="outline">
-                    <Link href={withLocalePath(`/tutor/courses/${selectedCourseForCancel.id}`)}>
-                      <CalendarClock className="mr-1 h-4 w-4" />
-                      Add a session
-                    </Link>
-                  </Button>
+                  <>
+                    <Button asChild variant="outline">
+                      <Link href={withLocalePath(`/tutor/courses/${selectedCourseForCancel.id}`)}>
+                        <CalendarClock className="mr-1 h-4 w-4" />
+                        Add to schedule
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setOneTimeCourse({
+                          id: selectedCourseForCancel.id,
+                          name: selectedCourseForCancel.name,
+                        })
+                      }
+                    >
+                      <Video className="mr-1 h-4 w-4" />
+                      Create one-time session
+                    </Button>
+                  </>
                 )}
                 <Button variant="modal-secondary-dark" onClick={() => setCancelModalOpen(false)}>
                   Close

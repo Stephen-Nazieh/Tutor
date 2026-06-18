@@ -75,6 +75,8 @@ export const GET = withAuth(
         status: s.status,
         roomUrl: s.roomUrl,
         isVirtual: false,
+        // null scheduleId = a one-time/ad-hoc session (not tied to the recurring schedule)
+        scheduleId: s.scheduleId ?? null,
         durationMinutes: s.durationMinutes ?? 120,
       }))
 
