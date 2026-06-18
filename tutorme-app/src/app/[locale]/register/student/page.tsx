@@ -224,8 +224,9 @@ export default function StudentRegistrationPage() {
         <Card className="overflow-hidden rounded-[20px] border border-white/20 bg-gradient-to-br from-[#F97316] to-[#EA580C] shadow-[0_20px_50px_rgba(0,0,0,0.18),0_8px_20px_rgba(0,0,0,0.12)]">
           <CardContent className="space-y-5 px-5 py-5">
             {step === 1 && (
-              <>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <form autoComplete="off" onSubmit={e => e.preventDefault()}>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <div className="space-y-1">
                     <Label htmlFor="firstName" className="text-xs text-white/70">
                       First Name
@@ -235,7 +236,6 @@ export default function StudentRegistrationPage() {
                       autoComplete="given-name"
                       value={formData.firstName}
                       onChange={e => setFormData({ ...formData, firstName: e.target.value })}
-                      placeholder="John"
                       className={inputClassName}
                     />
                   </div>
@@ -248,7 +248,6 @@ export default function StudentRegistrationPage() {
                       autoComplete="additional-name"
                       value={formData.middleName}
                       onChange={e => setFormData({ ...formData, middleName: e.target.value })}
-                      placeholder="Optional"
                       className={inputClassName}
                     />
                   </div>
@@ -261,7 +260,6 @@ export default function StudentRegistrationPage() {
                       autoComplete="family-name"
                       value={formData.lastName}
                       onChange={e => setFormData({ ...formData, lastName: e.target.value })}
-                      placeholder="Doe"
                       className={inputClassName}
                     />
                   </div>
@@ -277,7 +275,6 @@ export default function StudentRegistrationPage() {
                     autoComplete="email"
                     value={formData.email}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="student@example.com"
                     className={inputClassName}
                   />
                 </div>
@@ -412,8 +409,9 @@ export default function StudentRegistrationPage() {
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div className="mt-4 flex gap-3">
+              <div className="mt-4 flex gap-3">
                   <Button
                     className={primaryBtnClass}
                     onClick={handleNext}
@@ -422,7 +420,7 @@ export default function StudentRegistrationPage() {
                     Next
                   </Button>
                 </div>
-              </>
+              </form>
             )}
 
             {step === 2 && (

@@ -313,12 +313,6 @@ export default function TutorRegistrationPage() {
   }>({
     status: 'idle',
   })
-  const [emailStatus, setEmailStatus] = useState<{
-    status: 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
-    message?: string
-  }>({
-    status: 'idle',
-  })
   const [usernameTouched, setUsernameTouched] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -467,54 +461,12 @@ export default function TutorRegistrationPage() {
     }
   }
 
-  const checkEmailAvailability = async (value: string) => {
-    if (!value.trim()) {
-      setEmailStatus({ status: 'idle' })
-      return false
-    }
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailPattern.test(value)) {
-      setEmailStatus({ status: 'invalid', message: 'Enter a valid email address' })
-      return false
-    }
-    setEmailStatus({ status: 'checking' })
-    try {
-      const res = await fetch(`/api/public/email-availability?email=${encodeURIComponent(value)}`)
-      if (!res.ok) {
-        setEmailStatus({ status: 'idle', message: 'Unable to verify right now' })
-        return true
-      }
-      const data = await res.json()
-      if (data.available) {
-        setEmailStatus({ status: 'available', message: 'Email is available' })
-        return true
-      }
-      setEmailStatus({ status: 'taken', message: 'Email is already registered' })
-      return false
-    } catch {
-      setEmailStatus({ status: 'idle', message: 'Unable to verify right now' })
-      return true
-    }
-  }
-
   const applySuggestion = () => {
     if (!usernameStatus.suggestion) return
     setFormData(prev => ({ ...prev, username: usernameStatus.suggestion ?? prev.username }))
     setUsernameTouched(true)
     setUsernameStatus({ status: 'idle' })
   }
-
-  useEffect(() => {
-    const email = formData.email.trim()
-    if (!email) {
-      setEmailStatus({ status: 'idle' })
-      return
-    }
-    const handle = setTimeout(() => {
-      void checkEmailAvailability(email)
-    }, 500)
-    return () => clearTimeout(handle)
-  }, [formData.email])
 
   useEffect(() => {
     const normalized = normalizeUsernameInput(formData.username)
@@ -564,20 +516,6 @@ export default function TutorRegistrationPage() {
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailPattern.test(formData.email)) {
       toast.error('Enter a valid email address')
-      return false
-    }
-    if (emailStatus.status === 'invalid') {
-      toast.error('Enter a valid email address')
-      return false
-    }
-    if (emailStatus.status === 'taken') {
-      toast.error('Email already exists')
-      return false
-    }
-    // Always verify email before proceeding
-    const ok = await checkEmailAvailability(formData.email)
-    if (!ok) {
-      toast.error('Email already exists or is invalid')
       return false
     }
     if (passwordMismatch) {
@@ -845,21 +783,6 @@ export default function TutorRegistrationPage() {
                         value={formData.email}
                         onChange={e => setFormData({ ...formData, email: e.target.value })}
                       />
-                      <p
-                        className={cn(
-                          'min-h-[18px] text-xs',
-                          emailStatus.status === 'checking' && 'text-gray-500',
-                          emailStatus.status === 'available' && 'text-green-600',
-                          (emailStatus.status === 'taken' || emailStatus.status === 'invalid') &&
-                            'text-red-600'
-                        )}
-                      >
-                        {emailStatus.status === 'checking'
-                          ? 'Checking availability...'
-                          : emailStatus.status === 'idle'
-                            ? '\u00A0'
-                            : emailStatus.message}
-                      </p>
                     </div>
                   </div>
 
