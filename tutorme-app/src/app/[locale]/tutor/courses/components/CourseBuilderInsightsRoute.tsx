@@ -454,9 +454,9 @@ function CourseBuilderInsightsRouteInner({
       data-tutor-route="insights-builder"
       style={model.themeStyle}
     >
-      <div className="sticky top-0 z-10 w-full bg-[#fafafc] px-4 pb-4 pt-4 sm:px-6">
+      <div className="sticky top-0 z-10 w-full bg-[#fafafc] pb-4 pt-4">
         <div className="flex w-full flex-col gap-4">
-          <div className="flex w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 pb-3 pt-4 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-h-[72px] w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
               <BackButton href="/tutor/dashboard" />
 
@@ -541,7 +541,7 @@ function CourseBuilderInsightsRouteInner({
                       variant="ghost"
                       className={cn(
                         'h-8 w-8 p-0 text-slate-500 hover:text-slate-700',
-                        hasNoCourses && 'animate-pulse-soft'
+                        hasNoCourses && 'animate-attention-pulse'
                       )}
                       onClick={onCreateCourse}
                       title={hasNoCourses ? 'Create your first course' : 'New Course'}
@@ -608,8 +608,7 @@ function CourseBuilderInsightsRouteInner({
               </div>
             </div>
 
-            <div className="flex h-full flex-col items-end justify-between gap-4 pb-0">
-              <div className="mt-0 flex shrink-0 items-center gap-2">
+            <div className="flex items-center gap-2">
                 {(activeMainTab === 'builder' || activeMainTab === 'live') &&
                   onSaveModeChange &&
                   !modeLocked && (
@@ -701,7 +700,6 @@ function CourseBuilderInsightsRouteInner({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
-              </div>
             </div>
           </div>
 
