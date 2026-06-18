@@ -177,7 +177,7 @@ export default function StudentTutorDirectoryPage() {
   return (
     <div className="text-foreground flex h-full flex-col px-6 pb-0 pt-2 lg:pt-0">
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] p-5 shadow-[0_24px_72px_rgba(0,0,0,0.20)] ring-1 ring-white/20">
+      <section className="relative mb-4 overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] p-5 shadow-[0_24px_72px_rgba(0,0,0,0.20)] ring-1 ring-white/20">
         <div className="relative flex flex-wrap items-center justify-center gap-3">
           <div className="text-center">
             <h2 className="text-xl font-bold text-white">Solocorn Tutors</h2>

@@ -182,14 +182,14 @@ export function TutorCard({
       {/* Bio */}
       <div
         className={cn(
-          'flex flex-1 flex-col rounded-[14px] border border-white/15 bg-white/5',
+          'flex flex-1 flex-col overflow-hidden rounded-[14px] border border-white/15 bg-white/5',
           compact ? 'min-h-[56px] px-3 py-2' : 'min-h-[120px] px-4 py-3'
         )}
       >
         <p
           className={cn(
-            'text-white/80',
-            compact ? 'text-xs leading-snug' : 'text-sm leading-relaxed'
+            'line-clamp-3 text-white/80',
+            compact ? 'text-xs leading-tight' : 'text-sm leading-relaxed line-clamp-5'
           )}
         >
           {bioText}
