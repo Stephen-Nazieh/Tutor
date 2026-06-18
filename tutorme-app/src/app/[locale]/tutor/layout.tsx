@@ -20,7 +20,7 @@ import {
   Globe,
   PanelLeftClose,
   PanelLeftOpen,
-  GraduationCap,
+
   ClipboardCheck,
   LogOut,
   User,
@@ -63,7 +63,6 @@ const navItems: NavItem[] = [
     iconColor: 'text-[#16A34A]',
   },
   { href: '/tutor/reports', label: 'Analytics', icon: BarChart3, iconColor: 'text-[#F59E0B]' },
-  { href: '/tutor/training', label: 'Training', icon: GraduationCap, iconColor: 'text-[#06B6D4]' },
   { href: '/tutor/support', label: 'Support', icon: HelpCircle, iconColor: 'text-[#8B5CF6]' },
 
   // Whiteboard audit links
@@ -98,7 +97,9 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     pathname === '/tutor/dashboard' || pathname?.startsWith('/tutor/dashboard/')
   const isCommunicationsPage =
     pathname === '/tutor/communications' || pathname?.startsWith('/tutor/communications/')
-  const isFloatingPage = isDashboardPage || isReportsPage || isCommunicationsPage
+  const isSubmissionsPage =
+    pathname === '/tutor/submissions' || pathname?.startsWith('/tutor/submissions/')
+  const isFloatingPage = isDashboardPage || isReportsPage || isCommunicationsPage || isSubmissionsPage
   const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
   const isSupportPage =
     pathname === '/tutor/support' ||
