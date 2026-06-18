@@ -212,9 +212,7 @@ export default function StudentTutorDirectoryPage() {
       </section>
 
       {/* Filters */}
-      <div className="py-4 sm:py-6">
-        <div className="rounded-[18px] border border-slate-200 bg-white p-4 shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 py-4 sm:py-6 md:grid-cols-4">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
               <Input
@@ -298,11 +296,9 @@ export default function StudentTutorDirectoryPage() {
               </SelectContent>
             </Select>
           </div>
-        </div>
-      </div>
 
       {/* Tutor grid */}
-      <div className="h-[calc(100vh-380px)] min-h-[400px] flex-1 overflow-y-auto rounded-[18px] bg-slate-50/50 p-4">
+      <div className="h-[calc(100vh-380px)] min-h-[400px] flex-1 overflow-y-auto">
         <div
           className={cn(
             'grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4',
