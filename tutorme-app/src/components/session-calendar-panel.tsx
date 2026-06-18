@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { Globe } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSlidingPillMetrics } from '@/hooks/use-sliding-pill'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { type CalendarView } from '@/app/[locale]/tutor/dashboard/components/InteractiveCalendar'
 
 const COMMON_TIMEZONES = [
@@ -86,9 +86,9 @@ export function SessionCalendarPanel({
     variant === 'orange' ? '#EA580C' : variant === 'charcoal' ? '#1F2933' : '#2563EB'
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white !pb-4 shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+    <Card className="flex h-full flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
       <Tabs value={value} onValueChange={onValueChange} className="flex h-full w-full flex-col">
-        <CardHeader className="flex-shrink-0 px-6 pb-0 pt-2">
+        <div className="flex-shrink-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <TabsList
               ref={listRef}
@@ -171,10 +171,10 @@ export function SessionCalendarPanel({
               </div>
             )}
           </div>
-        </CardHeader>
-        <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 pb-2 pt-3">
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden pt-3">
           {children}
-        </CardContent>
+        </div>
       </Tabs>
     </Card>
   )

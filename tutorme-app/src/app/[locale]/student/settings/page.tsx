@@ -162,7 +162,7 @@ export default function StudentSettings() {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-12">
+    <div className="min-h-full bg-white pb-0">
       <header className="safe-top sticky top-0 z-10 border-b bg-white shadow-sm">
         <div className="mx-auto flex max-w-4xl items-center gap-4 px-4 py-4">
           <Link href="/student/dashboard">

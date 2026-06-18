@@ -68,7 +68,7 @@ const cardVariants = cva(
       padding: {
         none: '',
         sm: 'p-4',
-        default: 'p-6',
+        default: 'p-5',
         lg: 'p-8',
         xl: 'p-10',
       },
@@ -121,7 +121,7 @@ const CardHeader = React.forwardRef<
     className={cn(
       'flex flex-col space-y-1.5',
       spacing === 'sm' && 'p-4',
-      spacing === 'default' && 'p-6',
+      spacing === 'default' && 'p-5',
       spacing === 'lg' && 'p-8',
       bordered && 'border-border/50 border-b',
       className
@@ -200,7 +200,7 @@ const CardContent = React.forwardRef<
     className={cn(
       spacing === 'none' && '',
       spacing === 'sm' && 'p-4',
-      spacing === 'default' && 'p-6',
+      spacing === 'default' && 'p-5',
       spacing === 'lg' && 'p-8',
       className
     )}
@@ -235,7 +235,7 @@ const CardFooter = React.forwardRef<
         'flex items-center gap-2',
         alignClasses[align],
         spacing === 'sm' && 'p-4',
-        spacing === 'default' && 'p-6',
+        spacing === 'default' && 'p-5',
         spacing === 'lg' && 'p-8',
         bordered && 'border-border/50 border-t',
         className

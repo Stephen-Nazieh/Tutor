@@ -135,7 +135,7 @@ export default function StudentHelpPage() {
   }, [searchQuery])
 
   return (
-    <div className="min-h-full bg-white px-6 pb-6 pt-2">
+    <div className="min-h-full bg-white px-6 pb-0 pt-2">
       {/* Hero */}
       <section className="relative overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] p-5 shadow-[0_24px_72px_rgba(0,0,0,0.20)] ring-1 ring-white/20">
         <div className="text-center">

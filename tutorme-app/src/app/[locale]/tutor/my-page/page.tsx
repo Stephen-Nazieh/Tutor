@@ -499,7 +499,7 @@ function MyCoursesSection() {
           <ChevronDown className="h-5 w-5 text-white/70" />
         )}
       </div>
-      <CardContent spacing="none" className="space-y-4 px-6 pb-6">
+      <CardContent spacing="none" className="space-y-4 px-5 pb-5">
         {/* Tabs */}
         <div className="flex gap-2 border-b border-[#E2E8F0] bg-white">
           {(['active', 'pending', 'unpublished', 'catalogued'] as const).map(tab => (
@@ -558,7 +558,7 @@ function MyCoursesSection() {
           className="pointer-events-none absolute left-0 top-0 -z-10 opacity-0"
           aria-hidden="true"
         >
-          <div className="px-6 pb-6">
+          <div className="px-5 pb-5">
             {(['active', 'pending', 'unpublished', 'catalogued'] as const).map(tab => (
               <div key={tab} ref={measureRefs[tab]} className="space-y-3 pr-2">
                 {categorizeCourses[tab].slice(0, 10).map(course => renderCourseRow(course, tab))}

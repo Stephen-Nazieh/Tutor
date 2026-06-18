@@ -356,7 +356,7 @@ export default function RevenuePage() {
 
   if (loading || !data) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-full items-center justify-center bg-white pb-0">
         <div className="text-center">
           <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-blue-600" />
           <p className="text-gray-600">Loading revenue data...</p>
@@ -368,7 +368,7 @@ export default function RevenuePage() {
   const { summary, transactions, courses, timeSlots, monthlyTrend } = data
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-full bg-white pb-0">
       {/* Header */}
       <header className="safe-top z-sticky sticky top-0 border-b bg-white">
         <div className="w-full px-4 sm:px-6 lg:px-8">
