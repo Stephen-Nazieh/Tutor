@@ -52,6 +52,54 @@ function createErrorId(): string {
   return nanoid(12)
 }
 
+/**
+ * Pull the underlying cause out of an error for logging. Many libraries (e.g.
+ * Drizzle) set their own generic `.message` ("Failed query: ...") and stash the
+ * real driver error — Postgres code/detail/constraint — on `.cause`. Without
+ * this the actual failure reason never reaches the logs.
+ */
+function extractErrorDetails(error: unknown): Record<string, unknown> {
+  const details: Record<string, unknown> = {}
+  if (!(error instanceof Error)) return details
+
+  // Postgres driver errors expose these fields directly on the error object.
+  const e = error as Error & {
+    code?: unknown
+    detail?: unknown
+    constraint?: unknown
+    column?: unknown
+    table?: unknown
+  }
+  if (e.code != null) details.code = e.code
+  if (e.detail != null) details.detail = e.detail
+  if (e.constraint != null) details.constraint = e.constraint
+  if (e.column != null) details.column = e.column
+  if (e.table != null) details.table = e.table
+
+  const cause = (error as { cause?: unknown }).cause
+  if (cause instanceof Error) {
+    const c = cause as Error & {
+      code?: unknown
+      detail?: unknown
+      constraint?: unknown
+      column?: unknown
+      table?: unknown
+    }
+    details.cause = {
+      message: c.message,
+      code: c.code,
+      detail: c.detail,
+      constraint: c.constraint,
+      column: c.column,
+      table: c.table,
+    }
+  } else if (cause != null) {
+    details.cause = typeof cause === 'string' ? cause : String(cause)
+  }
+
+  return details
+}
+
 function logApiError(
   errorId: string,
   logLabel: string,
@@ -66,6 +114,7 @@ function logApiError(
       label: logLabel,
       message: err?.message ?? 'Unknown error',
       stack: err?.stack,
+      ...extractErrorDetails(error),
       ...meta,
     })
   )
