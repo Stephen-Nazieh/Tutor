@@ -1770,6 +1770,12 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
     }
   }, [showReset])
 
+  useEffect(() => {
+    if (q) {
+      document.getElementById('panel-2-search-results')?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [q])
+
   const availableCountries = (() => {
     const region = REGIONS.find(r => r.id === selectedRegion)
     return region ? region.countries : []
@@ -2165,7 +2171,7 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
   return (
     <section
       id="panel-2-search-results"
-      className="relative min-h-[600px] w-full overflow-hidden"
+      className="relative flex min-h-screen w-full flex-col justify-center overflow-hidden"
       style={{
         backgroundColor: '#D7DCE2',
         backgroundImage:
