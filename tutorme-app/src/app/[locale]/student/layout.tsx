@@ -74,6 +74,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
   const isCoursesPage = pathname?.includes('/student/courses')
   const isDashboardPage =
     pathname === '/student/dashboard' || pathname?.startsWith('/student/dashboard/')
+  const isFloatingPage = isDashboardPage || isBookTutorPage || isCoursesPage
   const isNavClosedPage =
     isSupportPage ||
     isFeedbackRoute ||
@@ -394,9 +395,8 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           !isFeedbackRoute && [
             'pt-16 lg:my-4 lg:h-[calc(100vh-2rem)] lg:w-[calc(100%-17rem)] transition-[margin] duration-500 ease-in-out',
             desktopNavOpen ? 'lg:ml-64 lg:mr-4' : 'lg:ml-[8.5rem] lg:mr-[8.5rem]',
-            (isDashboardPage || isBookTutorPage) && 'lg:pt-0',
-            !isDashboardPage &&
-              !isBookTutorPage &&
+            isFloatingPage && 'lg:pt-0',
+            !isFloatingPage &&
               'lg:rounded-2xl lg:bg-white lg:pt-4 lg:shadow-[0_18px_60px_rgba(0,0,0,0.16)] lg:ring-1 lg:ring-black/5',
           ]
         )}

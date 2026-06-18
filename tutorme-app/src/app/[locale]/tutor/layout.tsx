@@ -94,6 +94,9 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     pathname?.startsWith(`${localePrefix}/tutor/my-page/`) ||
     /\/tutor\/my-page(\/|$)/.test(pathname || '')
   const isReportsPage = pathname === '/tutor/reports' || pathname?.startsWith('/tutor/reports/')
+  const isDashboardPage =
+    pathname === '/tutor/dashboard' || pathname?.startsWith('/tutor/dashboard/')
+  const isFloatingPage = isDashboardPage || isReportsPage
   const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
   const isSupportPage =
     pathname === '/tutor/support' ||
@@ -323,8 +326,11 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       <main
         className={cn(
           'relative z-0 h-screen flex-1 overflow-hidden pt-16',
-          'lg:my-4 lg:h-[calc(100vh-2rem)] lg:w-[calc(100%-17rem)] lg:rounded-2xl lg:bg-white lg:pt-4 lg:shadow-[0_18px_60px_rgba(0,0,0,0.16)] lg:ring-1 lg:ring-black/5 transition-[margin] duration-500 ease-in-out',
-          desktopNavOpen ? 'lg:ml-64 lg:mr-4' : 'lg:ml-[8.5rem] lg:mr-[8.5rem]'
+          'lg:my-4 lg:h-[calc(100vh-2rem)] lg:w-[calc(100%-17rem)] transition-[margin] duration-500 ease-in-out',
+          desktopNavOpen ? 'lg:ml-64 lg:mr-4' : 'lg:ml-[8.5rem] lg:mr-[8.5rem]',
+          isFloatingPage && 'lg:pt-0',
+          !isFloatingPage &&
+            'lg:rounded-2xl lg:bg-white lg:pt-4 lg:shadow-[0_18px_60px_rgba(0,0,0,0.16)] lg:ring-1 lg:ring-black/5'
         )}
       >
         <div className="scrollbar-hide h-full overflow-y-auto [&>*:last-child]:mb-0 [&>*:last-child]:pb-0">

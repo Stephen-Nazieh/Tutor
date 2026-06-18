@@ -86,7 +86,7 @@ export function SessionCalendarPanel({
     variant === 'orange' ? '#EA580C' : variant === 'charcoal' ? '#1F2933' : '#2563EB'
 
   return (
-    <Card className="flex h-full flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+    <Card className="flex h-full flex-col overflow-hidden rounded-[18px] bg-white p-5 shadow-[0_18px_60px_rgba(0,0,0,0.16)]">
       <Tabs value={value} onValueChange={onValueChange} className="flex h-full w-full flex-col">
         <div className="flex-shrink-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
