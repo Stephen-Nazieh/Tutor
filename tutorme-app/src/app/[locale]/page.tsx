@@ -1762,7 +1762,7 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
   const router = useRouter()
 
   const hasFilters = q !== '' || selectedRegion !== '' || selectedCountryCode !== ''
-  const showReset = selectedCountryCode !== ''
+  const showReset = hasFilters
 
   useEffect(() => {
     if (showReset) {
@@ -2100,6 +2100,14 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
           : items.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE)
         const placeholders = Math.max(0, PAGE_SIZE - visible.length)
 
+        if (!isLoading && items.length === 0) {
+          return (
+            <div className="flex h-[240px] w-full items-center justify-center text-center text-sm font-medium text-slate-600">
+              Unfortunately, your search turned up no results.
+            </div>
+          )
+        }
+
         return (
           <div
             className="flex w-full items-center justify-center gap-[18px]"
@@ -2171,7 +2179,7 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
   return (
     <section
       id="panel-2-search-results"
-      className="relative flex min-h-screen w-full flex-col justify-center overflow-hidden"
+      className="relative flex min-h-screen w-full snap-start flex-col justify-center overflow-hidden"
       style={{
         backgroundColor: '#D7DCE2',
         backgroundImage:
@@ -2228,14 +2236,16 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
           <button
             type="button"
             onClick={() => {
+              setSelectedRegion('')
               setSelectedCountryCode('')
+              onClearAll()
             }}
             className={cn(
               'inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700/25 bg-white/30 text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-[0_6px_16px_rgba(0,0,0,0.20)] disabled:opacity-50',
               !showReset && 'pointer-events-none invisible opacity-0',
               showReset && 'visible opacity-100'
             )}
-            aria-label="Clear country filter"
+            aria-label="Clear search and filters"
           >
             <RefreshCw
               className="h-4 w-4 transition-transform duration-500 ease-out"
@@ -4784,7 +4794,7 @@ export default function LandingPage() {
       </div>
 
       <motion.main initial={motionFadeIn} animate={motionFadeIn} className="relative">
-        <section className="relative min-h-screen overflow-hidden">
+        <section className="relative min-h-screen snap-start overflow-hidden">
           <header className="relative z-10 flex items-center justify-between px-8 pt-8">
             <div className="flex items-center gap-3">
               <img src="/solocornlogo.png" alt="Solocorn" className="h-9 w-9" />
@@ -4954,6 +4964,10 @@ export default function LandingPage() {
       </motion.main>
 
       <style jsx global>{`
+        html {
+          scroll-behavior: smooth;
+          scroll-snap-type: y mandatory;
+        }
         @keyframes marquee {
           0% {
             transform: translateX(0);
