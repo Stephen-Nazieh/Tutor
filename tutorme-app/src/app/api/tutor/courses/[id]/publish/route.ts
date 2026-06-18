@@ -16,6 +16,7 @@ import {
 } from '@/lib/db/schema'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { createSession } from '@/lib/sessions/create-session'
+import { LIVE_SESSION_OPEN_STATUSES } from '@/lib/sessions/live-session-status'
 import { eq, and, inArray, gte, lte, lt, gt, sql, or, isNull } from 'drizzle-orm'
 import crypto from 'crypto'
 import { findAlternativeSlots as sharedFindAlternativeSlots } from '@/lib/schedule/conflicts'
@@ -535,13 +536,7 @@ export const POST = withCsrf(
                         .where(
                           and(
                             eq(liveSession.tutorId, userId),
-                            inArray(liveSession.status, [
-                              'scheduled',
-                              'active',
-                              'preparing',
-                              'live',
-                              'paused',
-                            ]),
+                            inArray(liveSession.status, LIVE_SESSION_OPEN_STATUSES),
                             gte(liveSession.scheduledAt, minScheduledAt),
                             lte(liveSession.scheduledAt, maxScheduledAt)
                           )
