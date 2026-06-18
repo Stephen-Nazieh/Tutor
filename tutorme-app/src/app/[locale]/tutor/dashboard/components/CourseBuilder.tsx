@@ -5772,7 +5772,7 @@ FEEDBACK: [your explanation]`
               className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
               style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
               onClick={() => setLeftPanelHidden(!leftPanelHidden)}
-              title={leftPanelHidden ? 'Show directory' : 'Hide directory'}
+              title={leftPanelHidden ? 'Show curriculum' : 'Hide curriculum'}
             >
               {leftPanelHidden ? (
                 <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
@@ -5794,7 +5794,7 @@ FEEDBACK: [your explanation]`
                       <div className="mb-2 flex min-h-[58px] items-center justify-between px-1 pt-1">
                         <div className="flex flex-col justify-center gap-1">
                           <div className="flex items-center gap-2">
-                            <div className="text-sm font-semibold text-[#1F2933]">Directory</div>
+                            <div className="text-sm font-semibold text-[#1F2933]">Curriculum</div>
                           </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -7641,16 +7641,16 @@ FEEDBACK: [your explanation]`
                             setLiveRightPanelTab(value as 'submissions' | 'insights')
                           }
                         >
-                          <TabsList className="flex w-full items-center gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
+                          <TabsList className="flex w-auto items-center gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
                             <TabsTrigger
                               value="submissions"
-                              className="h-8 flex-1 rounded-md px-3 text-xs font-medium text-gray-500 transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=active]:text-white"
+                              className="h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=inactive]:bg-white data-[state=inactive]:text-gray-700 data-[state=active]:bg-gray-800 data-[state=active]:text-white"
                             >
                               Submissions
                             </TabsTrigger>
                             <TabsTrigger
                               value="insights"
-                              className="h-8 flex-1 rounded-md px-3 text-xs font-medium text-gray-500 transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=active]:text-white"
+                              className="h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=inactive]:bg-white data-[state=inactive]:text-gray-700 data-[state=active]:bg-gray-800 data-[state=active]:text-white"
                             >
                               Insights
                             </TabsTrigger>
@@ -7664,7 +7664,7 @@ FEEDBACK: [your explanation]`
                         className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full border border-r-0 border-[#E5E7EB] bg-white shadow-[-2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
                         style={{ right: rightPanelHidden ? 0 : rightPanelWidth - 16 }}
                         onClick={() => setRightPanelHidden(!rightPanelHidden)}
-                        title={rightPanelHidden ? 'Show insights' : 'Hide insights'}
+                        title={rightPanelHidden ? 'Show desk' : 'Hide desk'}
                       >
                         {rightPanelHidden ? (
                           <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
@@ -7677,24 +7677,24 @@ FEEDBACK: [your explanation]`
                           className="absolute bottom-4 right-0 top-0 z-40 flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]"
                           style={{ width: rightPanelWidth }}
                         >
-                          <div className="flex items-center border-b border-slate-100 px-4 py-3">
+                          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                            <div className="text-sm font-semibold text-[#1F2933]">Desk</div>
                             <Tabs
                               value={liveRightPanelTab}
                               onValueChange={value =>
                                 setLiveRightPanelTab(value as 'submissions' | 'insights')
                               }
-                              className="w-full"
                             >
-                              <TabsList className="flex w-full items-center gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
+                              <TabsList className="flex w-auto items-center gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
                                 <TabsTrigger
                                   value="submissions"
-                                  className="h-8 flex-1 rounded-md px-3 text-xs font-medium text-gray-500 transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=active]:text-white"
+                                  className="h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=inactive]:bg-white data-[state=inactive]:text-gray-700 data-[state=active]:bg-gray-800 data-[state=active]:text-white"
                                 >
                                   Submissions
                                 </TabsTrigger>
                                 <TabsTrigger
                                   value="insights"
-                                  className="h-8 flex-1 rounded-md px-3 text-xs font-medium text-gray-500 transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=active]:text-white"
+                                  className="h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=inactive]:bg-white data-[state=inactive]:text-gray-700 data-[state=active]:bg-gray-800 data-[state=active]:text-white"
                                 >
                                   Insights
                                 </TabsTrigger>

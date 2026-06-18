@@ -229,12 +229,8 @@ export function SubmissionsPanel({
           style={{ width }}
         >
           <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <div className="flex min-w-0 items-center gap-3">
-              {!headerExtra && (
-                <div className="text-sm font-semibold text-[#1F2933]">Submissions</div>
-              )}
-              {headerExtra}
-            </div>
+            <div className="text-sm font-semibold text-[#1F2933]">Desk</div>
+            {headerExtra}
           </div>
 
           <ScrollArea className="min-h-0 flex-1 p-3">
