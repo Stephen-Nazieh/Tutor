@@ -175,7 +175,7 @@ export default function StudentTutorDirectoryPage() {
   const { desktopNavOpen } = useStudentNav()
 
   return (
-    <div className="text-foreground flex min-h-full flex-col bg-white px-6 pb-6 pt-2">
+    <div className="text-foreground flex min-h-full flex-col px-6 pb-6 pt-2 lg:pt-0">
       {/* Hero */}
       <section className="relative overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] p-5 shadow-[0_24px_72px_rgba(0,0,0,0.20)] ring-1 ring-white/20">
         <div className="relative flex flex-wrap items-center justify-center gap-3">
@@ -211,15 +211,17 @@ export default function StudentTutorDirectoryPage() {
         </div>
       </section>
 
-      {/* Filters */}
-      <div className="grid grid-cols-1 gap-3 py-4 sm:py-6 md:grid-cols-4">
+      {/* Bottom panel: filters + results */}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5">
+        {/* Filters */}
+        <div className="grid grid-cols-1 gap-3 p-4 pb-0 sm:p-6 sm:pb-0 md:grid-cols-4">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
             value={searchQuery}
             onChange={event => setSearchQuery(event.target.value)}
             placeholder="Search tutor, subject, specialty..."
-            className="border-slate-200 bg-white pl-9 text-slate-900 placeholder:text-slate-400"
+            className="h-9 border-slate-200 bg-white pl-9 text-sm text-slate-900 placeholder:text-slate-400"
           />
         </div>
         <Select
@@ -229,7 +231,7 @@ export default function StudentTutorDirectoryPage() {
             setSelectedCountryCode('')
           }}
         >
-          <SelectTrigger className="h-10 w-full rounded-lg border border-slate-700/25 bg-white/30 text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-[0_6px_16px_rgba(0,0,0,0.20)] focus:outline-none focus-visible:!shadow-none focus-visible:outline-none disabled:border-slate-400/20 disabled:bg-slate-100/20 disabled:text-slate-400 disabled:backdrop-blur-none">
+          <SelectTrigger className="h-9 w-full rounded-lg border border-slate-700/25 bg-white/30 text-sm text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-[0_6px_16px_rgba(0,0,0,0.20)] focus:outline-none focus-visible:!shadow-none focus-visible:outline-none disabled:border-slate-400/20 disabled:bg-slate-100/20 disabled:text-slate-400 disabled:backdrop-blur-none">
             <SelectValue placeholder="Region" />
           </SelectTrigger>
           <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-lg border border-slate-700/25 bg-white/30 bg-none p-1.5 shadow-lg backdrop-blur-xl">
@@ -249,7 +251,7 @@ export default function StudentTutorDirectoryPage() {
           onValueChange={setSelectedCountryCode}
           disabled={!selectedRegion || selectedRegion === 'global'}
         >
-          <SelectTrigger className="h-10 w-full rounded-lg border border-slate-700/25 bg-white/30 text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-[0_6px_16px_rgba(0,0,0,0.20)] focus:outline-none focus-visible:!shadow-none focus-visible:outline-none disabled:border-slate-400/20 disabled:bg-slate-100/20 disabled:text-slate-400 disabled:backdrop-blur-none disabled:hover:translate-y-0 disabled:hover:border-slate-400/20 disabled:hover:bg-slate-100/20 disabled:hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+          <SelectTrigger className="h-9 w-full rounded-lg border border-slate-700/25 bg-white/30 text-sm text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-[0_6px_16px_rgba(0,0,0,0.20)] focus:outline-none focus-visible:!shadow-none focus-visible:outline-none disabled:border-slate-400/20 disabled:bg-slate-100/20 disabled:text-slate-400 disabled:backdrop-blur-none disabled:hover:translate-y-0 disabled:hover:border-slate-400/20 disabled:hover:bg-slate-100/20 disabled:hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
             <SelectValue placeholder="Country" />
           </SelectTrigger>
           <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-lg border border-slate-700/25 bg-white/30 bg-none p-1.5 shadow-lg backdrop-blur-xl">
@@ -265,7 +267,7 @@ export default function StudentTutorDirectoryPage() {
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={value => setSortBy(value as typeof sortBy)}>
-          <SelectTrigger className="h-10 w-full rounded-lg border border-slate-700/25 bg-white/30 text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-[0_6px_16px_rgba(0,0,0,0.20)] focus:outline-none focus-visible:!shadow-none focus-visible:outline-none">
+          <SelectTrigger className="h-9 w-full rounded-lg border border-slate-700/25 bg-white/30 text-sm text-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-[1px] hover:border-slate-700/50 hover:bg-white/60 hover:shadow-[0_6px_16px_rgba(0,0,0,0.20)] focus:outline-none focus-visible:!shadow-none focus-visible:outline-none">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-lg border border-slate-700/25 bg-white/30 bg-none p-1.5 shadow-lg backdrop-blur-xl">
@@ -297,14 +299,14 @@ export default function StudentTutorDirectoryPage() {
         </Select>
       </div>
 
-      {/* Tutor grid */}
-      <div className="h-[calc(100vh-380px)] min-h-[400px] flex-1 overflow-y-auto">
-        <div
-          className={cn(
-            'grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4',
-            !desktopNavOpen && 'lg:gap-8'
-          )}
-        >
+        {/* Tutor grid */}
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 pt-3 sm:p-6 sm:pt-4">
+          <div
+            className={cn(
+              'grid items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-4',
+              !desktopNavOpen && 'lg:gap-4'
+            )}
+          >
           {loading ? (
             Array.from({ length: 6 }).map((_, index) => (
               <Card
@@ -362,6 +364,7 @@ export default function StudentTutorDirectoryPage() {
               />
             ))
           )}
+          </div>
         </div>
       </div>
     </div>

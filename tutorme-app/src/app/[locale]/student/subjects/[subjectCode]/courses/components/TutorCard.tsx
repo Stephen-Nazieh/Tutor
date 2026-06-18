@@ -67,7 +67,7 @@ export function TutorCard({
     <div
       className={cn(
         'relative flex w-full flex-col overflow-hidden rounded-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-white shadow-[0_12px_30px_rgba(0,0,0,0.25)]',
-        compact ? 'h-[320px] gap-3 p-4' : 'h-[420px] gap-4 p-5',
+        compact ? 'h-[280px] gap-3 p-4' : 'h-[420px] gap-4 p-5',
         onClick && 'cursor-pointer',
         className
       )}
@@ -183,7 +183,7 @@ export function TutorCard({
       <div
         className={cn(
           'flex flex-1 flex-col rounded-[14px] border border-white/15 bg-white/5',
-          compact ? 'min-h-[80px] px-3 py-2' : 'min-h-[120px] px-4 py-3'
+          compact ? 'min-h-[56px] px-3 py-2' : 'min-h-[120px] px-4 py-3'
         )}
       >
         <p

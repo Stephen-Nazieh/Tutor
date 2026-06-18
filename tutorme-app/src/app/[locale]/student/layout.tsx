@@ -401,6 +401,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           !isFeedbackRoute && [
             'pt-16 lg:my-4 lg:mr-4 lg:h-[calc(100vh-2rem)]',
             !isDashboardPage &&
+              !isBookTutorPage &&
               'lg:rounded-2xl lg:bg-white lg:pt-4 lg:shadow-[0_18px_60px_rgba(0,0,0,0.16)] lg:ring-1 lg:ring-black/5',
           ]
         )}
