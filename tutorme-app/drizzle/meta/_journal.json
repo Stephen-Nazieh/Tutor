@@ -393,6 +393,13 @@
       "when": 1781000000000,
       "tag": "0055_add_live_session_schedule_id",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1781100000000,
+      "tag": "0056_drop_courseenrollment_lessonscompleted",
+      "breakpoints": true
     }
   ]
 }
