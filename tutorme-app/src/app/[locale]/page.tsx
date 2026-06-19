@@ -2179,7 +2179,7 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
   return (
     <section
       id="panel-2-search-results"
-      className="relative flex min-h-screen w-full snap-start flex-col justify-start overflow-hidden"
+      className="relative flex h-screen w-full snap-start flex-col justify-start overflow-hidden"
       style={{
         backgroundColor: '#D7DCE2',
         backgroundImage:
@@ -2187,7 +2187,7 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
         backgroundSize: '36px 36px',
       }}
     >
-      <div className="mx-auto w-full max-w-[1536px] px-8 py-10">
+      <div className="mx-auto flex h-full w-full max-w-[1536px] flex-col px-8 py-10">
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Select
             value={selectedRegion}
@@ -2254,7 +2254,7 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
           </button>
         </div>
 
-        <div className="mt-8 space-y-10">
+        <div className="mt-8 min-h-0 flex-1 space-y-10 overflow-y-auto">
           <CarouselRow
             title="Courses"
             icon={<BookOpen className="h-4 w-4" />}
@@ -4794,7 +4794,7 @@ export default function LandingPage() {
       </div>
 
       <motion.main initial={motionFadeIn} animate={motionFadeIn} className="relative">
-        <section className="relative min-h-screen snap-start overflow-hidden">
+        <section className="relative h-screen snap-start overflow-hidden">
           <header className="relative z-10 flex items-center justify-between px-8 pt-8">
             <div className="flex items-center gap-3">
               <img src="/solocornlogo.png" alt="Solocorn" className="h-9 w-9" />
@@ -4966,7 +4966,10 @@ export default function LandingPage() {
       <style jsx global>{`
         html {
           scroll-behavior: auto !important;
-          scroll-snap-type: y mandatory;
+          scroll-snap-type: y proximity;
+        }
+        body {
+          scroll-snap-type: y proximity;
         }
         @keyframes marquee {
           0% {
