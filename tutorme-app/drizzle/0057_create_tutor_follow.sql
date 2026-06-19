@@ -1,14 +1,21 @@
--- Create the TutorFollow table. The original 0010_tutor_follow migration is an
--- empty placeholder (the real DDL was archived), and 0032 only ALTERs the table,
--- so on the active migration chain "TutorFollow" was never created — every
--- follow/unfollow INSERT 500s with relation "TutorFollow" does not exist.
--- Idempotent so it's safe on databases where the table somehow already exists.
+-- Ensure the TutorFollow table exists with the correct FKs/indexes.
+-- The original 0010_tutor_follow migration is an empty placeholder (real DDL was
+-- archived) and 0032 only ALTERs the table, so the active chain never reliably
+-- created/constrained it — follow/unfollow could 500. Idempotent and safe to run
+-- whether the table is missing or already present (possibly with legacy rows).
 CREATE TABLE IF NOT EXISTS "TutorFollow" (
   "followId" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
   "followerId" text NOT NULL,
   "tutorId" text NOT NULL,
   "createdAt" timestamptz DEFAULT now() NOT NULL
 );
+
+-- Remove orphaned rows (follows referencing a since-deleted user) so the FK
+-- constraints below can be added and validated. Without this, ADD CONSTRAINT
+-- fails on a pre-existing table that accumulated rows while no FK was enforced.
+DELETE FROM "TutorFollow"
+WHERE "followerId" NOT IN (SELECT "id" FROM "User")
+   OR "tutorId" NOT IN (SELECT "id" FROM "User");
 
 DO $$ BEGIN
   ALTER TABLE "TutorFollow"
