@@ -339,7 +339,7 @@ export default function StudentAccount() {
       </section>
 
       {/* Content */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-0.5">
         <SessionCalendarPanel
           variant="charcoal"
           value={activeTab}

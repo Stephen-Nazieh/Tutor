@@ -580,7 +580,8 @@ function CoursePageInner() {
       />
 
       {/* Tabs */}
-      <SessionCalendarPanel
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-0.5">
+        <SessionCalendarPanel
         value={activeTab}
         onValueChange={value => {
           setActiveTab(value as typeof activeTab)
@@ -779,6 +780,7 @@ function CoursePageInner() {
           )}
         </div>
       </SessionCalendarPanel>
+      </div>
 
       {selectedEnrollment && (
         <PreferenceEnrollmentDialog

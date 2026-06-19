@@ -152,7 +152,7 @@ export default function CommunicationsPage({ role }: CommunicationsPageProps) {
       <div className="h-[calc(60%-8px)] min-h-0 shrink-0">
         <MessagingPanel activeSection={activeSection} onSectionChange={setActiveSection} />
       </div>
-      <div className="h-[calc(40%-8px)] min-h-0 shrink-0">
+      <div className="h-[calc(40%-8px)] min-h-0 shrink-0 overflow-hidden pb-0.5">
         <NotificationsPanel
           role={role}
           notifications={notifications}
