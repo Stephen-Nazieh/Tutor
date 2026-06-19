@@ -37,6 +37,7 @@ import { fetchWithCsrf } from '@/lib/api/fetch-csrf'
 import { VariantScheduleEditor } from './VariantScheduleEditor'
 import type { ScheduleItem } from '../constants'
 import { REGIONS } from '@/lib/data/tutor-categories'
+import { CountryFlag } from '@/components/country-flag'
 
 interface CourseScheduleConfig {
   scheduleId?: string
@@ -620,7 +621,10 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                           variant="outline"
                           className="border-indigo-200 bg-indigo-50 text-indigo-700"
                         >
-                          {variant.category} · {variant.nationality}
+                          <span className="inline-flex items-center gap-1">
+                            {variant.category} ·{' '}
+                            <CountryFlag countryName={variant.nationality} size="xs" showLabel />
+                          </span>
                         </Badge>
                         {variant.isPublished ? (
                           <Badge className="border-0 bg-emerald-500 text-white hover:bg-emerald-600">
@@ -879,9 +883,19 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
             <div className="flex h-full flex-col p-5 sm:p-6">
               <DialogHeader className="p-0">
                 <DialogTitle>
-                  {dialogVariant && dialogSchedule
-                    ? `Configure ${dialogSchedule.name || `Schedule ${dialogSchedule.scheduleIndex}`} for ${dialogVariant.category} - ${dialogVariant.nationality}`
-                    : 'Configure schedule'}
+                  {dialogVariant && dialogSchedule ? (
+                    <span className="inline-flex items-center gap-1">
+                      {`Configure ${dialogSchedule.name || `Schedule ${dialogSchedule.scheduleIndex}`} for `}
+                      {dialogVariant.category} —{' '}
+                      <CountryFlag
+                        countryName={dialogVariant.nationality}
+                        size="xs"
+                        showLabel
+                      />
+                    </span>
+                  ) : (
+                    'Configure schedule'
+                  )}
                 </DialogTitle>
                 <DialogDescription>
                   Click a time slot to add or remove a 1-hour session.

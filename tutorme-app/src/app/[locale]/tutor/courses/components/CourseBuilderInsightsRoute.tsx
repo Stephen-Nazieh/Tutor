@@ -61,6 +61,7 @@ import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { useRouter } from 'next/navigation'
 import { fetchWithCsrf } from '@/lib/api/fetch-csrf'
+import { CountryFlag } from '@/components/country-flag'
 import { DollarSign, Languages } from 'lucide-react'
 
 type Props = UseCourseBuilderContentArgs & {
@@ -467,9 +468,18 @@ function CourseBuilderInsightsRouteInner({
                   {/* Course selector — locked to read-only when a session is active */}
                   {activeMainTab !== 'live' && insightsProps.sessionId && currentCourse && (
                     <div className="flex h-9 min-w-[160px] max-w-[320px] items-center px-2 text-sm font-semibold text-slate-700">
-                      {currentCourse.nationality && currentCourse.nationality !== 'Global'
-                        ? `${currentCourse.name} — ${currentCourse.variantCategory || ''} — ${currentCourse.nationality}`
-                        : currentCourse.name}
+                      {currentCourse.nationality && currentCourse.nationality !== 'Global' ? (
+                        <span className="inline-flex items-center gap-1">
+                          {currentCourse.name} — {currentCourse.variantCategory || ''} —{' '}
+                          <CountryFlag
+                            countryName={currentCourse.nationality}
+                            size="xs"
+                            showLabel
+                          />
+                        </span>
+                      ) : (
+                        currentCourse.name
+                      )}
                     </div>
                   )}
                   {activeMainTab !== 'live' && insightsProps.onCourseChange && (
@@ -491,9 +501,14 @@ function CourseBuilderInsightsRouteInner({
                             const c = currentCourse
                             if (!c)
                               return hasNoCourses ? 'Create your first course.' : 'Select course'
-                            return c.nationality && c.nationality !== 'Global'
-                              ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
-                              : c.name
+                            return c.nationality && c.nationality !== 'Global' ? (
+                              <span className="inline-flex items-center gap-1">
+                                {c.name} — {c.variantCategory || ''} —{' '}
+                                <CountryFlag countryName={c.nationality} size="xs" showLabel />
+                              </span>
+                            ) : (
+                              c.name
+                            )
                           })()}
                         </SelectValue>
                       </SelectTrigger>
@@ -509,11 +524,16 @@ function CourseBuilderInsightsRouteInner({
                         )}
                         {courses?.map(c => (
                           <SelectItem key={c.id} value={c.id}>
-                            {c.nationality && c.nationality !== 'Global'
-                              ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
-                              : c.isVariant
-                                ? `${c.name} — Global`
-                                : c.name}
+                            {c.nationality && c.nationality !== 'Global' ? (
+                              <span className="inline-flex items-center gap-1">
+                                {c.name} — {c.variantCategory || ''} —{' '}
+                                <CountryFlag countryName={c.nationality} size="xs" showLabel />
+                              </span>
+                            ) : c.isVariant ? (
+                              `${c.name} — Global`
+                            ) : (
+                              c.name
+                            )}
                           </SelectItem>
                         ))}
                         {draftCourses && draftCourses.length > 0 && (
@@ -527,11 +547,16 @@ function CourseBuilderInsightsRouteInner({
                         )}
                         {draftCourses?.map(c => (
                           <SelectItem key={c.id} value={c.id}>
-                            {c.nationality && c.nationality !== 'Global'
-                              ? `${c.name} — ${c.variantCategory || ''} — ${c.nationality}`
-                              : c.isVariant
-                                ? `${c.name} — Global`
-                                : c.name}
+                            {c.nationality && c.nationality !== 'Global' ? (
+                              <span className="inline-flex items-center gap-1">
+                                {c.name} — {c.variantCategory || ''} —{' '}
+                                <CountryFlag countryName={c.nationality} size="xs" showLabel />
+                              </span>
+                            ) : c.isVariant ? (
+                              `${c.name} — Global`
+                            ) : (
+                              c.name
+                            )}
                           </SelectItem>
                         ))}
                       </SelectContent>

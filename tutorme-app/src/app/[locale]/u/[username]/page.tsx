@@ -60,6 +60,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { CountryFlag } from '@/components/country-flag'
 import { format, parseISO, addDays, startOfWeek, isSameDay } from 'date-fns'
 
 interface PublicTutorResponse {
@@ -1158,7 +1159,12 @@ export default function PublicTutorPage() {
                               className="mt-2 w-fit border-0 bg-blue-600 text-[10px] font-semibold text-white transition-all hover:bg-blue-700 hover:brightness-105 sm:text-xs"
                             >
                               {course.country && course.country !== 'Global'
-                                ? `${course.variantCategory || course.categories[0] || 'general'} — ${course.country}`
+                                ? (
+                                    <>
+                                      {course.variantCategory || course.categories[0] || 'general'} —{' '}
+                                      <CountryFlag countryName={course.country} size="xs" showLabel />
+                                    </>
+                                  )
                                 : course.categories[0] || 'general'}
                             </Badge>
                           </div>
@@ -1197,7 +1203,12 @@ export default function PublicTutorPage() {
                                 )}
                               >
                                 {course.country && course.country !== 'Global'
-                                  ? `${course.variantCategory || course.categories[0] || 'general'} — ${course.country}`
+                                  ? (
+                                      <>
+                                        {course.variantCategory || course.categories[0] || 'general'} —{' '}
+                                        <CountryFlag countryName={course.country} size="xs" showLabel />
+                                      </>
+                                    )
                                   : course.categories[0] || 'general'}
                               </Badge>
                             </div>
@@ -1613,7 +1624,10 @@ export default function PublicTutorPage() {
                       <User className="h-4 w-4 text-white/70" />
                       <div className="flex items-baseline gap-2 whitespace-nowrap leading-none">
                         <span className="text-xs font-semibold text-white/70">Country</span>
-                        <span className="text-sm font-semibold">{tutor.country || '—'}</span>
+                        <span className="inline-flex items-center gap-1.5 text-sm font-semibold">
+                          <CountryFlag countryName={tutor.country} size="xs" />
+                          {tutor.country || '—'}
+                        </span>
                       </div>
                     </div>
                     <div className="hidden h-5 w-px bg-white/20 md:block" />

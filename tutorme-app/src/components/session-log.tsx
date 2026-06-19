@@ -42,6 +42,7 @@ import {
 import { toast } from 'sonner'
 import { formatClassTime } from '@/lib/format-class-time'
 import { cn } from '@/lib/utils'
+import { CountryFlag } from '@/components/country-flag'
 
 const SECTION_CARD_CLASS =
   'overflow-hidden rounded-[16px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
@@ -837,9 +838,22 @@ export default function SessionLog() {
                           href={`/tutor/classroom?sessionId=${event.id}`}
                           className="block truncate rounded bg-blue-100 p-1 text-xs hover:bg-blue-200"
                         >
-                          {event.courseName
-                            ? `${event.courseName}${event.nationality && event.nationality !== 'Global' ? ` — ${event.variantCategory || ''} — ${event.nationality}` : ''} — `
-                            : ''}
+                          {event.courseName && (
+                            <span className="inline-flex items-center gap-1">
+                              {event.courseName}
+                              {event.nationality && event.nationality !== 'Global' && (
+                                <>
+                                  {' — '}{event.variantCategory || ''}{' — '}
+                                  <CountryFlag
+                                    countryName={event.nationality}
+                                    size="xs"
+                                    showLabel
+                                  />
+                                </>
+                              )}
+                              {' — '}
+                            </span>
+                          )}
                           {event.title}
                         </Link>
                       ))}
@@ -870,9 +884,22 @@ export default function SessionLog() {
                 >
                   <div>
                     <p className="font-medium">
-                      {event.courseName
-                        ? `${event.courseName}${event.nationality && event.nationality !== 'Global' ? ` — ${event.variantCategory || ''} — ${event.nationality}` : ''} — `
-                        : ''}
+                      {event.courseName && (
+                        <span className="inline-flex items-center gap-1">
+                          {event.courseName}
+                          {event.nationality && event.nationality !== 'Global' && (
+                            <>
+                              {' — '}{event.variantCategory || ''}{' — '}
+                              <CountryFlag
+                                countryName={event.nationality}
+                                size="xs"
+                                showLabel
+                              />
+                            </>
+                          )}
+                          {' — '}
+                        </span>
+                      )}
                       {event.title}
                     </p>
                     <p className="text-sm text-gray-500">
@@ -1038,7 +1065,10 @@ export default function SessionLog() {
                 <SelectContent>
                   {courseVariants.map(v => (
                     <SelectItem key={v.variantId} value={v.variantId}>
-                      {v.category} - {v.nationality}
+                      <span className="inline-flex items-center gap-1">
+                        {v.category} —{' '}
+                        <CountryFlag countryName={v.nationality} size="xs" showLabel />
+                      </span>
                     </SelectItem>
                   ))}
                   {courseVariants.length === 0 && (

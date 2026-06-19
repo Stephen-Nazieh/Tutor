@@ -34,6 +34,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { CountryFlag } from '@/components/country-flag'
 
 // DnD Kit imports
 import {
@@ -247,9 +248,18 @@ function DraggableEvent({
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium text-white">
-            {event.courseName
-              ? `${event.courseName}${event.nationality && event.nationality !== 'Global' ? ` — ${event.variantCategory || ''} — ${event.nationality}` : ''} — `
-              : ''}
+            {event.courseName && (
+              <span className="inline-flex items-center gap-1">
+                {event.courseName}
+                {event.nationality && event.nationality !== 'Global' && (
+                  <>
+                    {' — '}{event.variantCategory || ''}{' — '}
+                    <CountryFlag countryName={event.nationality} size="xs" showLabel />
+                  </>
+                )}
+                {' — '}
+              </span>
+            )}
             {event.title}
           </p>
           <p className="text-white/80">
@@ -1106,9 +1116,24 @@ export function InteractiveCalendar({
                   <div className="flex items-start justify-between">
                     <div>
                       <DialogTitle className="text-xl">
-                        {selectedEvent.courseName
-                          ? `${selectedEvent.courseName}${selectedEvent.nationality && selectedEvent.nationality !== 'Global' ? ` — ${selectedEvent.variantCategory || ''} — ${selectedEvent.nationality}` : ''}`
-                          : selectedEvent.title}
+                        {selectedEvent.courseName ? (
+                          <span className="inline-flex items-center gap-1">
+                            {selectedEvent.courseName}
+                            {selectedEvent.nationality &&
+                              selectedEvent.nationality !== 'Global' && (
+                                <>
+                                  {' — '}{selectedEvent.variantCategory || ''}{' — '}
+                                  <CountryFlag
+                                    countryName={selectedEvent.nationality}
+                                    size="xs"
+                                    showLabel
+                                  />
+                                </>
+                              )}
+                          </span>
+                        ) : (
+                          selectedEvent.title
+                        )}
                       </DialogTitle>
                       <DialogDescription className="mt-1">
                         {selectedEvent.courseName ? `${selectedEvent.title} • ` : ''}
@@ -1191,9 +1216,16 @@ export function InteractiveCalendar({
                       <div>
                         <p className="font-medium">
                           {selectedEvent.courseName}
-                          {selectedEvent.nationality && selectedEvent.nationality !== 'Global'
-                            ? ` — ${selectedEvent.variantCategory || ''} — ${selectedEvent.nationality}`
-                            : ''}
+                          {selectedEvent.nationality && selectedEvent.nationality !== 'Global' && (
+                            <span className="inline-flex items-center gap-1">
+                              {' — '}{selectedEvent.variantCategory || ''}{' — '}
+                              <CountryFlag
+                                countryName={selectedEvent.nationality}
+                                size="xs"
+                                showLabel
+                              />
+                            </span>
+                          )}
                         </p>
                         <p className="text-sm text-gray-500">Course</p>
                       </div>
@@ -1281,9 +1313,22 @@ export function InteractiveCalendar({
                     <div className={cn('h-3 w-3 rounded-full', event.color || 'bg-blue-500')} />
                     <div className="flex-1">
                       <p className="font-medium">
-                        {event.courseName
-                          ? `${event.courseName}${event.nationality && event.nationality !== 'Global' ? ` — ${event.variantCategory || ''} — ${event.nationality}` : ''} — `
-                          : ''}
+                        {event.courseName && (
+                          <span className="inline-flex items-center gap-1">
+                            {event.courseName}
+                            {event.nationality && event.nationality !== 'Global' && (
+                              <>
+                                {' — '}{event.variantCategory || ''}{' — '}
+                                <CountryFlag
+                                  countryName={event.nationality}
+                                  size="xs"
+                                  showLabel
+                                />
+                              </>
+                            )}
+                            {' — '}
+                          </span>
+                        )}
                         {event.title}
                       </p>
                       <p className="text-sm text-gray-500">

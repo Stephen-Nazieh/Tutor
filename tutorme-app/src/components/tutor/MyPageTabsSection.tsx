@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { AIChat } from '@/components/ai/AIChat'
+import { CountryFlag } from '@/components/country-flag'
 import {
   BookOpen,
   Clock,
@@ -140,6 +141,22 @@ function MyPageTabsSectionInner() {
     if (!selectedCourseId) return null
     return allCourses.find(c => c.id === selectedCourseId) || null
   }, [selectedCourseId, allCourses])
+
+  const courseTitle = (course: {
+    name: string
+    nationality?: string
+    variantCategory?: string
+    categories?: string[] | null
+  }) => {
+    const category = course.variantCategory || (course.categories || [])[0] || 'General'
+    if (!course.nationality || course.nationality === 'Global') return course.name
+    return (
+      <span className="inline-flex items-center gap-1">
+        {course.name} — {category} —{' '}
+        <CountryFlag countryName={course.nationality} size="xs" showLabel />
+      </span>
+    )
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -359,11 +376,7 @@ function MyPageTabsSectionInner() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="truncate font-medium">
-                            {course.nationality && course.nationality !== 'Global'
-                              ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
-                              : course.name}
-                          </h3>
+                          <h3 className="truncate font-medium">{courseTitle(course)}</h3>
                           <Badge variant={course.isPublished ? 'default' : 'secondary'}>
                             {course.isPublished ? 'Published' : 'Draft'}
                           </Badge>
@@ -482,11 +495,7 @@ function MyPageTabsSectionInner() {
                       {course.isPublished ? 'Published' : 'Draft'}
                     </Badge>
                   </div>
-                  <CardTitle className="mt-3 text-lg">
-                    {course.nationality && course.nationality !== 'Global'
-                      ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
-                      : course.name}
-                  </CardTitle>
+                  <CardTitle className="mt-3 text-lg">{courseTitle(course)}</CardTitle>
                   <CardDescription className="line-clamp-2">
                     {course.description || 'No description'}
                   </CardDescription>
@@ -703,11 +712,7 @@ function MyPageTabsSectionInner() {
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <span className="truncate font-medium">
-                          {course.nationality && course.nationality !== 'Global'
-                            ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
-                            : course.name}
-                        </span>
+                        <span className="truncate font-medium">{courseTitle(course)}</span>
                         <Badge variant="secondary">
                           {(course.categories || [])[0] || 'Untitled'}
                         </Badge>

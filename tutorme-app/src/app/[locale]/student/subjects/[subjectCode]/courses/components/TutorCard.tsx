@@ -5,6 +5,7 @@ import { Star, UserPlus, CalendarDays } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { resolvePublicUrl } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { CountryFlag } from '@/components/country-flag'
 
 export interface Tutor {
   id: string
@@ -139,11 +140,11 @@ export function TutorCard({
                 <span
                   key={country}
                   className={cn(
-                    'rounded-full border border-white/25 bg-white/10 text-white/90 backdrop-blur-sm',
+                    'inline-flex items-center gap-1 rounded-full border border-white/25 bg-white/10 text-white/90 backdrop-blur-sm',
                     compact ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-0.5 text-[11px]'
                   )}
                 >
-                  {country}
+                  <CountryFlag countryName={country} size="xs" showLabel />
                 </span>
               ))}
             </div>
@@ -169,10 +170,11 @@ export function TutorCard({
             <span
               key={country}
               className={cn(
-                'rounded-full border border-white/25 bg-white/10 text-white/90',
+                'inline-flex items-center gap-1 rounded-full border border-white/25 bg-white/10 text-white/90',
                 compact ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-0.5 text-[11px]'
               )}
             >
+              <CountryFlag countryName={country} size="xs" />
               {country}
             </span>
           ))}
@@ -213,11 +215,17 @@ export function TutorCard({
         <span>
           Enrollments: <span className="font-semibold text-white">{tutor.totalStudents}</span>
         </span>
-        {countryLabel !== undefined && (
+        {countryLabel !== undefined && countryLabel !== '--' && (
           <>
             <span className="text-white/30">·</span>
-            <span>
-              Country: <span className="font-semibold text-white">{countryLabel}</span>
+            <span className="inline-flex items-center gap-1.5">
+              Country:{' '}
+              <CountryFlag
+                countryName={countryLabel}
+                size="xs"
+                showLabel
+                labelClassName="font-semibold text-white"
+              />
             </span>
           </>
         )}

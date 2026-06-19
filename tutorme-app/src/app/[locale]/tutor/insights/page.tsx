@@ -21,6 +21,7 @@ import { toast } from 'sonner'
 import { useSocket } from '@/hooks/use-socket'
 import { saveCourse } from '../courses/components/save-course'
 import { fetchWithCsrf } from '@/lib/api/fetch-csrf'
+import { CountryFlag } from '@/components/country-flag'
 import type { LiveTask } from '@/lib/socket'
 import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 import type { ScheduleItem } from '../courses/[id]/constants'
@@ -1195,9 +1196,9 @@ function TutorInsightsPageInner() {
                         <div>
                           <p className="text-sm font-semibold text-gray-900">{course.name}</p>
                           {course.nationality && course.nationality !== 'Global' && (
-                            <p className="text-xs font-medium text-blue-600">
-                              {course.variantCategory || (course.categories || [])[0] || 'General'}{' '}
-                              — {course.nationality}
+                            <p className="inline-flex items-center gap-1 text-xs font-medium text-blue-600">
+                              {course.variantCategory || (course.categories || [])[0] || 'General'} —{' '}
+                              <CountryFlag countryName={course.nationality} size="xs" showLabel />
                             </p>
                           )}
                           <p className="text-muted-foreground text-xs">

@@ -36,6 +36,7 @@ import { StudentReportsTab } from '@/components/reports/student-reports-tab'
 
 import { cn } from '@/lib/utils'
 import { SessionCalendarPanel } from '@/components/session-calendar-panel'
+import { CountryFlag } from '@/components/country-flag'
 
 interface ClassOption {
   id: string
@@ -731,6 +732,22 @@ function CoursesAndClassesTab() {
   const [expandedPanel, setExpandedPanel] = useState<'courses' | 'ai'>('courses')
 
   const selectedCourse = courses.find(c => c.id === selectedCourseId) || null
+
+  const courseTitle = (course: {
+    name: string
+    nationality?: string
+    variantCategory?: string
+    categories?: string[]
+  }) => {
+    const category = course.variantCategory || (course.categories || [])[0] || 'General'
+    if (!course.nationality || course.nationality === 'Global') return course.name
+    return (
+      <span className="inline-flex items-center gap-1">
+        {course.name} — {category} —{' '}
+        <CountryFlag countryName={course.nationality} size="xs" showLabel />
+      </span>
+    )
+  }
   const selectedSession = sessionsOverview.find(s => s.id === selectedSessionId) || null
 
   useEffect(() => {
@@ -916,9 +933,7 @@ function CoursesAndClassesTab() {
                       >
                         <div className="flex items-start justify-between">
                           <div className="text-sm font-semibold text-slate-800">
-                            {course.nationality && course.nationality !== 'Global'
-                              ? `${course.name} — ${course.variantCategory || course.categories[0] || 'General'} — ${course.nationality}`
-                              : course.name}
+                            {courseTitle(course)}
                           </div>
                           <Badge
                             variant="secondary"
@@ -942,11 +957,7 @@ function CoursesAndClassesTab() {
                     Sessions
                     {selectedCourse && (
                       <span className="ml-2 text-xs font-normal text-slate-500">
-                        ({displayedSessions.length} for{' '}
-                        {selectedCourse.nationality && selectedCourse.nationality !== 'Global'
-                          ? `${selectedCourse.name} — ${selectedCourse.variantCategory || selectedCourse.categories[0] || 'General'} — ${selectedCourse.nationality}`
-                          : selectedCourse.name}
-                        )
+                        ({displayedSessions.length} for {courseTitle(selectedCourse)})
                       </span>
                     )}
                   </h3>
@@ -959,9 +970,13 @@ function CoursesAndClassesTab() {
                     </div>
                   ) : displayedSessions.length === 0 ? (
                     <div className="flex h-full items-center justify-center py-10 text-center text-sm text-slate-500">
-                      {selectedCourse
-                        ? `No sessions found for ${selectedCourse.nationality && selectedCourse.nationality !== 'Global' ? `${selectedCourse.name} — ${selectedCourse.variantCategory || selectedCourse.categories[0] || 'General'} — ${selectedCourse.nationality}` : selectedCourse.name}.`
-                        : 'No sessions found.'}
+                      {selectedCourse ? (
+                        <>
+                          No sessions found for {courseTitle(selectedCourse)}.
+                        </>
+                      ) : (
+                        'No sessions found.'
+                      )}
                     </div>
                   ) : (
                     displayedSessions.map((sessionItem: SessionOverviewItem) => {
@@ -1022,11 +1037,7 @@ function CoursesAndClassesTab() {
               {/* Course summary */}
               <div className="flex shrink-0 items-center gap-2 border-r border-slate-100 pr-6 font-bold text-indigo-600">
                 <BarChart3 className="h-5 w-5" />
-                <span className="text-base">
-                  {selectedCourse.nationality && selectedCourse.nationality !== 'Global'
-                    ? `${selectedCourse.name} — ${selectedCourse.variantCategory || selectedCourse.categories[0] || 'General'} — ${selectedCourse.nationality}`
-                    : selectedCourse.name}
-                </span>
+                <span className="text-base">{courseTitle(selectedCourse)}</span>
               </div>
               <div className="flex items-center gap-8 text-sm">
                 <div className="flex flex-col">
@@ -1100,11 +1111,7 @@ function CoursesAndClassesTab() {
             <>
               <div className="flex shrink-0 items-center gap-2 border-r border-slate-100 pr-6 font-bold text-indigo-600">
                 <BarChart3 className="h-5 w-5" />
-                <span className="text-base">
-                  {selectedCourse.nationality && selectedCourse.nationality !== 'Global'
-                    ? `${selectedCourse.name} — ${selectedCourse.variantCategory || selectedCourse.categories[0] || 'General'} — ${selectedCourse.nationality}`
-                    : selectedCourse.name}
-                </span>
+                <span className="text-base">{courseTitle(selectedCourse)}</span>
               </div>
               <div className="flex items-center gap-8 text-sm">
                 <div className="flex flex-col">

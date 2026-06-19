@@ -48,6 +48,7 @@ import {
   History,
 } from 'lucide-react'
 import { REGIONS } from '@/lib/data/tutor-categories'
+import { CountryFlag } from '@/components/country-flag'
 import { AvatarUploader } from '@/components/avatar-uploader'
 import { SessionCalendarPanel } from '@/components/session-calendar-panel'
 import SessionLog from '@/components/session-log'
@@ -993,7 +994,10 @@ export default function TutorSettings() {
                     {/* Nationality & Country of Residence */}
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="space-y-2">
-                        <Label>Nationality</Label>
+                        <Label className="inline-flex items-center gap-1.5">
+                          <CountryFlag countryName={formData.nationality} size="xs" />
+                          Nationality
+                        </Label>
                         <Input
                           value={formData.nationality || 'Not specified'}
                           disabled
@@ -1004,7 +1008,10 @@ export default function TutorSettings() {
                         </p>
                       </div>
                       <div className="space-y-2">
-                        <Label>Country of Residence</Label>
+                        <Label className="inline-flex items-center gap-1.5">
+                          <CountryFlag countryName={formData.countryOfResidence} size="xs" />
+                          Country of Residence
+                        </Label>
                         <Input
                           value={formData.countryOfResidence || 'Not specified'}
                           disabled
@@ -1048,8 +1055,9 @@ export default function TutorSettings() {
                           formData.tutorNationalities.map((nationality, idx) => (
                             <span
                               key={idx}
-                              className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm text-green-700"
+                              className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm text-green-700"
                             >
+                              <CountryFlag countryName={nationality} size="xs" />
                               {nationality}
                             </span>
                           ))
@@ -1072,9 +1080,22 @@ export default function TutorSettings() {
                             {formData.categoryNationalityCombinations.map((combo, idx) => (
                               <span
                                 key={idx}
-                                className="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-700"
+                                className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-700"
                               >
-                                {combo}
+                                {(() => {
+                                  const parts = combo.split(' — ')
+                                  const countryPart = parts.length > 1 ? parts.pop() : null
+                                  const categoryPart = parts.join(' — ')
+                                  return (
+                                    <>
+                                      {countryPart && (
+                                        <CountryFlag countryName={countryPart} size="xs" />
+                                      )}
+                                      {categoryPart}
+                                      {countryPart && ` — ${countryPart}`}
+                                    </>
+                                  )
+                                })()}
                               </span>
                             ))}
                           </div>

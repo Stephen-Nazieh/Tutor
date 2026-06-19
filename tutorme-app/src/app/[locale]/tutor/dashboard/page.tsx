@@ -51,6 +51,7 @@ import {
 import { DEFAULT_TIMEZONE, type CalendarView } from './components/InteractiveCalendar'
 import { SessionCalendarPanel } from '@/components/session-calendar-panel'
 import { ModernHeroSection } from './components/ModernHeroSection'
+import { CountryFlag } from '@/components/country-flag'
 
 function DashboardSkeleton() {
   return (
@@ -689,9 +690,19 @@ function TutorDashboardContent() {
                           <div className="min-w-0 space-y-1">
                             <div className="flex items-center gap-2">
                               <p className="text-foreground truncate font-semibold">
-                                {course.nationality && course.nationality !== 'Global'
-                                  ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
-                                  : course.name}
+                                {course.nationality && course.nationality !== 'Global' ? (
+                                  <span className="inline-flex items-center gap-1">
+                                    {course.name} —{' '}
+                                    {course.variantCategory || (course.categories || [])[0] || 'General'} —{' '}
+                                    <CountryFlag
+                                      countryName={course.nationality}
+                                      size="xs"
+                                      showLabel
+                                    />
+                                  </span>
+                                ) : (
+                                  course.name
+                                )}
                               </p>
                             </div>
                             <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs">
@@ -947,9 +958,21 @@ function TutorDashboardContent() {
                     Manage sessions for{' '}
                     <strong>
                       {selectedCourseForCancel.nationality &&
-                      selectedCourseForCancel.nationality !== 'Global'
-                        ? `${selectedCourseForCancel.name} — ${selectedCourseForCancel.variantCategory || (selectedCourseForCancel.categories || [])[0] || 'General'} — ${selectedCourseForCancel.nationality}`
-                        : selectedCourseForCancel.name}
+                      selectedCourseForCancel.nationality !== 'Global' ? (
+                        <span className="inline-flex items-center gap-1">
+                          {selectedCourseForCancel.name} —{' '}
+                          {selectedCourseForCancel.variantCategory ||
+                            (selectedCourseForCancel.categories || [])[0] ||
+                            'General'} —{' '}
+                          <CountryFlag
+                            countryName={selectedCourseForCancel.nationality}
+                            size="xs"
+                            showLabel
+                          />
+                        </span>
+                      ) : (
+                        selectedCourseForCancel.name
+                      )}
                     </strong>
                   </>
                 )}
@@ -1046,7 +1069,24 @@ function TutorDashboardContent() {
                             <div className="flex flex-wrap items-center gap-2">
                               <p className="truncate font-medium">
                                 {sessionsCourseMeta?.name
-                                  ? `${sessionsCourseMeta.name}${sessionsCourseMeta.variantName ? ` — ${sessionsCourseMeta.variantName}` : ''}`
+                                  ? (() => {
+                                      const [cat, nat] = sessionsCourseMeta.variantName
+                                        ? sessionsCourseMeta.variantName.split(' — ')
+                                        : []
+                                      if (nat && nat !== 'Global') {
+                                        return (
+                                          <span className="inline-flex items-center gap-1">
+                                            {sessionsCourseMeta.name} — {cat} —{' '}
+                                            <CountryFlag
+                                              countryName={nat}
+                                              size="xs"
+                                              showLabel
+                                            />
+                                          </span>
+                                        )
+                                      }
+                                      return `${sessionsCourseMeta.name}${cat ? ` — ${cat}` : ''}`
+                                    })()
                                   : session.title}
                               </p>
                               <Badge

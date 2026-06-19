@@ -38,6 +38,7 @@ import type { CourseWithAssignments } from '@/types/course-assignment'
 import type { BatchItem } from './course-builder-types'
 import { useAssignmentPreview } from '@/hooks/use-course-assignments'
 import { getDifficultyMismatchWarning } from '@/lib/difficulty-resolver'
+import { CountryFlag } from '@/components/country-flag'
 
 interface AssignCourseModalProps {
   isOpen: boolean
@@ -139,10 +140,20 @@ export function AssignCourseModal({
                   {courses.map(course => (
                     <SelectItem key={course.id} value={course.id}>
                       <div className="flex items-center gap-2">
-                        <span>
-                          {course.nationality && course.nationality !== 'Global'
-                            ? `${course.name} — ${course.variantCategory || (course.categories || [])[0] || 'General'} — ${course.nationality}`
-                            : course.name}
+                        <span className="inline-flex items-center gap-1">
+                          {course.nationality && course.nationality !== 'Global' ? (
+                            <>
+                              {course.name} —{' '}
+                              {course.variantCategory || (course.categories || [])[0] || 'General'} —{' '}
+                              <CountryFlag
+                                countryName={course.nationality}
+                                size="xs"
+                                showLabel
+                              />
+                            </>
+                          ) : (
+                            course.name
+                          )}
                         </span>
                         <Badge variant="secondary" className="text-xs">
                           {course.stats.moduleCount} modules
@@ -233,9 +244,21 @@ export function AssignCourseModal({
                 <div className="flex items-center gap-4">
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      {selectedCourse?.nationality && selectedCourse.nationality !== 'Global'
-                        ? `${selectedCourse.name} — ${selectedCourse.variantCategory || (selectedCourse.categories || [])[0] || 'General'} — ${selectedCourse.nationality}`
-                        : selectedCourse?.name}
+                      {selectedCourse?.nationality && selectedCourse.nationality !== 'Global' ? (
+                        <span className="inline-flex items-center gap-1">
+                          {selectedCourse.name} —{' '}
+                          {selectedCourse.variantCategory ||
+                            (selectedCourse.categories || [])[0] ||
+                            'General'} —{' '}
+                          <CountryFlag
+                            countryName={selectedCourse.nationality}
+                            size="xs"
+                            showLabel
+                          />
+                        </span>
+                      ) : (
+                        selectedCourse?.name
+                      )}
                     </p>
                     <p className="text-xs text-gray-600">Course</p>
                   </div>

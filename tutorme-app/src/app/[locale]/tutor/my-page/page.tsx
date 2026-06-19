@@ -83,6 +83,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { BackButton } from '@/components/navigation'
+import { CountryFlag } from '@/components/country-flag'
 
 const SUBJECTS = [
   { value: 'math', label: 'Mathematics' },
@@ -399,9 +400,9 @@ function MyCoursesSection() {
                   )}
                 </div>
                 {showNationality && (
-                  <p className="mt-0.5 text-xs font-medium text-blue-400">
+                  <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-blue-400">
                     {course.variantCategory || (course.categories || [])[0] || 'General'} —{' '}
-                    {course.nationality}
+                    <CountryFlag countryName={course.nationality} size="xs" showLabel />
                   </p>
                 )}
                 <p className="mt-0.5 text-xs text-slate-300">
@@ -1462,7 +1463,13 @@ export default function TutorMyPage() {
                       <MapPin className="h-4 w-4 text-white/70" />
                       <div className="flex items-baseline gap-1 whitespace-nowrap leading-none">
                         <span className="text-xs font-semibold text-white/70">Country</span>
-                        <span className="text-sm font-semibold">{country || '—'}</span>
+                        <span className="inline-flex items-center gap-1 text-sm font-semibold">
+                          {country ? (
+                            <CountryFlag countryName={country} size="xs" showLabel />
+                          ) : (
+                            '—'
+                          )}
+                        </span>
                       </div>
                     </div>
                     <div className="hidden h-5 w-px bg-white/20 md:block" />
