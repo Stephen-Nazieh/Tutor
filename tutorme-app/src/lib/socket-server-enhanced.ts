@@ -1059,35 +1059,46 @@ export async function initEnhancedSocketServer(server: NetServer) {
           // Auto-create a BuilderTask row for this deployed task (if one doesn't
           // already exist) so student completions can be persisted to
           // TaskSubmission — whose taskId FK requires a builderTask. This makes
-          // EVERY deployed task gradable, even ad-hoc/unsaved ones. Idempotent
-          // on the PK so a real saved task is never overwritten. Needs a lesson
-          // of the course to satisfy builderTask.lessonId (FK); published
-          // courses always have lessons, so this is virtually always available.
+          // EVERY deployed task gradable (even ad-hoc/unsaved ones) and ensures
+          // submissions reach the Grading page. Idempotent on the PK so a real
+          // saved task is never overwritten.
           try {
             const tutorId = socket.data.userId
             if (tutorId) {
-              const [lesson] = await drizzleDb
+              // builderTask.lessonId is a NOT NULL FK. Most courses have a
+              // lesson, but one published with only a schedule (no built
+              // content) has none — create a placeholder so the deployed task
+              // can still be persisted and graded.
+              let [lesson] = await drizzleDb
                 .select({ lessonId: courseLesson.lessonId })
                 .from(courseLesson)
                 .where(eq(courseLesson.courseId, sessionRec.courseId))
                 .limit(1)
-              if (lesson?.lessonId) {
-                await drizzleDb
-                  .insert(builderTask)
-                  .values({
-                    taskId: normalizedTask.id,
-                    courseId: sessionRec.courseId,
-                    lessonId: lesson.lessonId,
-                    tutorId,
-                    title: normalizedTask.title || 'Untitled',
-                    content: normalizedTask.content || '',
-                    pci: '',
-                    type: normalizedTask.source,
-                    status: 'published',
-                    publishedAt: new Date(),
-                  })
-                  .onConflictDoNothing({ target: builderTask.taskId })
+              if (!lesson?.lessonId) {
+                const newLessonId = crypto.randomUUID()
+                await drizzleDb.insert(courseLesson).values({
+                  lessonId: newLessonId,
+                  courseId: sessionRec.courseId,
+                  title: 'Live Session',
+                  order: 0,
+                })
+                lesson = { lessonId: newLessonId }
               }
+              await drizzleDb
+                .insert(builderTask)
+                .values({
+                  taskId: normalizedTask.id,
+                  courseId: sessionRec.courseId,
+                  lessonId: lesson.lessonId,
+                  tutorId,
+                  title: normalizedTask.title || 'Untitled',
+                  content: normalizedTask.content || '',
+                  pci: '',
+                  type: normalizedTask.source,
+                  status: 'published',
+                  publishedAt: new Date(),
+                })
+                .onConflictDoNothing({ target: builderTask.taskId })
             }
           } catch (btErr) {
             console.warn('[task:deploy] BuilderTask auto-create failed (non-critical):', btErr)
