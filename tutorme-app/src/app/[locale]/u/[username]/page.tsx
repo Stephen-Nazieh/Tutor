@@ -203,6 +203,7 @@ function Book1on1Dialog({
   locale: string
 }) {
   const { data: session } = useSession()
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [availability, setAvailability] = useState<AvailabilityData | null>(null)
@@ -256,7 +257,12 @@ function Book1on1Dialog({
       if (res.ok) {
         const data = await res.json()
         setHasPendingRequest(data.hasActiveRequest)
-        setActiveRequest(data.request)
+        // The PK column is `requestId` (Drizzle property), not `id`.
+        setActiveRequest(
+          data.request
+            ? { id: data.request.requestId ?? data.request.id, status: data.request.status }
+            : null
+        )
       }
     } catch {
       // ignore
@@ -300,7 +306,10 @@ function Book1on1Dialog({
       if (res.ok) {
         toast.success('Booking request sent! The tutor will review and confirm.')
         setHasPendingRequest(true)
-        setActiveRequest({ id: data.request.id, status: data.request.status })
+        setActiveRequest({
+          id: data.request.requestId ?? data.request.id,
+          status: data.request.status,
+        })
         onOpenChange(false)
       } else if (res.status === 409) {
         toast.info('You already have a pending request with this tutor')
@@ -352,25 +361,40 @@ function Book1on1Dialog({
   }
 
   if (hasPendingRequest && activeRequest) {
+    const isAccepted = activeRequest.status === 'ACCEPTED'
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Booking Request Pending</DialogTitle>
+            <DialogTitle>
+              {isAccepted ? 'Booking Accepted — Payment Required' : 'Booking Request Pending'}
+            </DialogTitle>
             <DialogDescription>
-              You already have a pending booking request with {tutor.name}.
+              {isAccepted
+                ? `${tutor.name} accepted your booking. Complete payment to confirm your session.`
+                : `You already have a pending booking request with ${tutor.name}.`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 p-6 pt-0">
             <DialogPanel>
               <p className="font-medium text-gray-900">Status: {activeRequest.status}</p>
               <p className="mt-2 text-sm text-gray-600">
-                Please wait for the tutor to respond. You will receive a notification once they
-                accept or reject your request.
+                {isAccepted
+                  ? 'Your session is reserved pending payment. Complete payment now to secure it.'
+                  : 'Please wait for the tutor to respond. You will receive a notification once they accept or reject your request.'}
               </p>
             </DialogPanel>
           </div>
           <DialogFooter className="gap-3">
+            {isAccepted && activeRequest.id && (
+              <Button
+                variant="modal-primary-dark"
+                className="h-10"
+                onClick={() => router.push(`/${locale}/payment?requestId=${activeRequest.id}`)}
+              >
+                Complete Payment
+              </Button>
+            )}
             <Button
               variant="modal-secondary-dark"
               onClick={() => onOpenChange(false)}
