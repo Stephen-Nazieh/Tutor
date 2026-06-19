@@ -2179,7 +2179,7 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
   return (
     <section
       id="panel-2-search-results"
-      className="relative flex h-screen w-full snap-start flex-col justify-start overflow-hidden"
+      className="snap-panel relative flex h-screen w-full snap-start flex-col justify-start overflow-hidden"
       style={{
         backgroundColor: '#D7DCE2',
         backgroundImage:
@@ -4794,7 +4794,7 @@ export default function LandingPage() {
       </div>
 
       <motion.main initial={motionFadeIn} animate={motionFadeIn} className="relative">
-        <section className="relative h-screen snap-start overflow-hidden">
+        <section className="snap-panel relative h-screen snap-start overflow-hidden">
           <header className="relative z-10 flex items-center justify-between px-8 pt-8">
             <div className="flex items-center gap-3">
               <img src="/solocornlogo.png" alt="Solocorn" className="h-9 w-9" />
@@ -4968,8 +4968,8 @@ export default function LandingPage() {
           scroll-behavior: auto !important;
           scroll-snap-type: y proximity;
         }
-        body {
-          scroll-snap-type: y proximity;
+        .snap-panel {
+          scroll-snap-stop: always;
         }
         @keyframes marquee {
           0% {
