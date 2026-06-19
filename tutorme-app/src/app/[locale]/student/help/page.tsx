@@ -135,9 +135,9 @@ export default function StudentHelpPage() {
   }, [searchQuery])
 
   return (
-    <div className="min-h-full bg-white px-6 pb-0 pt-2">
+    <div className="flex h-full min-h-full flex-col bg-white px-6 pb-0 pt-2 lg:pt-0">
       {/* Hero */}
-      <section className="relative overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] p-5 shadow-[0_24px_72px_rgba(0,0,0,0.20)] ring-1 ring-white/20">
+      <section className="relative mb-4 flex-shrink-0 overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] p-5 shadow-[0_24px_72px_rgba(0,0,0,0.20)] ring-1 ring-white/20">
         <div className="text-center">
           <h1 className="text-xl font-bold text-white">Support</h1>
           <p className="mt-1 text-sm text-white/70">Find answers and get support</p>
@@ -145,9 +145,9 @@ export default function StudentHelpPage() {
       </section>
 
       {/* Content */}
-      <div className="space-y-4 py-4 sm:py-6">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
         {/* Search */}
-        <Card className={sectionCardClass}>
+        <Card className={`flex-shrink-0 ${sectionCardClass}`}>
           <CardContent className="py-3">
             <div className="relative mx-auto max-w-2xl">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
@@ -162,7 +162,7 @@ export default function StudentHelpPage() {
         </Card>
 
         {/* Topic cards */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid flex-shrink-0 grid-cols-2 gap-3 sm:grid-cols-4">
           {topics.map(topic => {
             const Icon = topic.icon
             const isActive = activeTopic === topic.value && !searchQuery.trim()
@@ -188,8 +188,8 @@ export default function StudentHelpPage() {
         </div>
 
         {/* Content panel */}
-        <Card className={`flex flex-col ${sectionCardClass}`}>
-          <CardHeader>
+        <Card className={`flex h-full min-h-0 flex-1 flex-col overflow-hidden ${sectionCardClass}`}>
+          <CardHeader className="flex-shrink-0">
             <CardTitle>{searchQuery.trim() ? 'Search Results' : activeTopicData.title}</CardTitle>
             <CardDescription>
               {searchQuery.trim()
@@ -197,7 +197,7 @@ export default function StudentHelpPage() {
                 : activeTopicData.description}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="min-h-0 flex-1 overflow-y-auto space-y-4">
             {searchQuery.trim() ? (
               <div className="space-y-6">
                 {filteredResults?.length ? (

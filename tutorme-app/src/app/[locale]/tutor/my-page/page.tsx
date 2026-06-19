@@ -1368,11 +1368,8 @@ export default function TutorMyPage() {
   }
 
   return (
-    <div
-      className="min-h-screen bg-white text-[#1F2933]"
-      style={{ '--density-scale': '0.9' } as React.CSSProperties}
-    >
-      <div className="w-full space-y-[calc(2rem*var(--density-scale,1))] px-6 pt-2">
+    <div className="min-h-full bg-white text-[#1F2933]">
+      <div className="w-full space-y-4 px-6 pt-2 lg:pt-0">
         <section className={headerCardClass}>
           <div className={headerInnerClass}>
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
