@@ -75,7 +75,6 @@ import {
 } from '@/components/ui/dialog'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import './page.module.css'
 import {
   REGIONS,
   GLOBAL_EXAMS_CATEGORIES,
@@ -4985,6 +4984,32 @@ export default function LandingPage() {
         </footer>
       </motion.main>
 
+      <style jsx global>{`
+        html {
+          scroll-behavior: auto !important;
+          scroll-snap-type: y proximity;
+        }
+        /* The global body overflow-x:hidden makes Chrome treat the body as the
+           scroller and disables root scroll-snap. Reset it on this page so the
+           viewport scroller stays the html element. */
+        body {
+          overflow-x: visible !important;
+        }
+        .snap-panel {
+          scroll-snap-stop: always;
+        }
+        @keyframes marquee {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+        .animate-marquee {
+          animation: marquee 30s linear infinite;
+        }
+      `}</style>
     </div>
   )
 }
