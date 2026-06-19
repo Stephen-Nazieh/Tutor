@@ -42,7 +42,7 @@ export default function MessagingPanel({ activeSection, onSectionChange }: Messa
   const ListIcon = list.icon
 
   return (
-    <div className="border-border/20 shadow-elevation-3 flex h-full w-full overflow-hidden rounded-[20px] border bg-white">
+    <div className="flex h-full w-full overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)]">
       {/* Left menu rail */}
       <div className="flex w-20 flex-col items-center gap-2 border-r border-gray-200 py-4">
         {topItems.map(item => {
@@ -80,7 +80,7 @@ export default function MessagingPanel({ activeSection, onSectionChange }: Messa
       </div>
 
       {/* List column */}
-      <div className="flex w-full flex-col border-r border-gray-200 sm:w-72 lg:w-80">
+      <div className="flex w-full flex-col overflow-hidden border-r border-gray-200 sm:w-72 lg:w-80">
         <div className="border-b border-gray-200 p-4">
           <h2 className="text-lg font-bold capitalize text-slate-800">{activeSection}</h2>
           <div className="relative mt-3">
@@ -92,7 +92,7 @@ export default function MessagingPanel({ activeSection, onSectionChange }: Messa
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center p-6 text-center">
+        <div className="scrollbar-hide flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto p-6 text-center">
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
             <ListIcon className="h-7 w-7 text-slate-400" />
           </div>
@@ -102,7 +102,7 @@ export default function MessagingPanel({ activeSection, onSectionChange }: Messa
       </div>
 
       {/* Detail / chat area */}
-      <div className="flex flex-1 flex-col items-center justify-center bg-slate-50/30 p-6 text-center">
+      <div className="scrollbar-hide flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto bg-slate-50/30 p-6 text-center">
         <Inbox className="mb-3 h-16 w-16 text-slate-300" />
         <p className="text-lg font-bold text-slate-700">
           Select a {activeSection === 'settings' ? 'setting' : activeSection.slice(0, -1)}
