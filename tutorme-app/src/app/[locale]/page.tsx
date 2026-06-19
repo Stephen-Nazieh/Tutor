@@ -75,6 +75,7 @@ import {
 } from '@/components/ui/dialog'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import './page.css'
 import {
   REGIONS,
   GLOBAL_EXAMS_CATEGORIES,

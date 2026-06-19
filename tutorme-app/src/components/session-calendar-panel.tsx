@@ -64,6 +64,7 @@ interface SessionCalendarPanelProps {
   timezone?: string
   onTimezoneChange?: (tz: string) => void
   variant?: 'blue' | 'orange' | 'charcoal'
+  className?: string
 }
 
 export function SessionCalendarPanel({
@@ -77,6 +78,7 @@ export function SessionCalendarPanel({
   timezone,
   onTimezoneChange,
   variant = 'blue',
+  className,
 }: SessionCalendarPanelProps) {
   const listRef = useRef<HTMLDivElement>(null)
   const triggerRefs = useRef<(HTMLButtonElement | null)[]>([])
@@ -86,7 +88,12 @@ export function SessionCalendarPanel({
     variant === 'orange' ? '#EA580C' : variant === 'charcoal' ? '#1F2933' : '#2563EB'
 
   return (
-    <Card className="border-border/20 shadow-elevation-3 flex h-full flex-col overflow-hidden rounded-[18px] border bg-white p-5">
+    <Card
+      className={cn(
+        'flex h-full flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-[0_8px_20px_rgba(0,0,0,0.08)]',
+        className
+      )}
+    >
       <Tabs value={value} onValueChange={onValueChange} className="flex h-full w-full flex-col">
         <div className="flex-shrink-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
