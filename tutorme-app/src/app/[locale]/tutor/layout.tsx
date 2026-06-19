@@ -91,21 +91,13 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     pathname === `${localePrefix}/tutor/my-page` ||
     pathname?.startsWith(`${localePrefix}/tutor/my-page/`) ||
     /\/tutor\/my-page(\/|$)/.test(pathname || '')
-  const isReportsPage = pathname === '/tutor/reports' || pathname?.startsWith('/tutor/reports/')
-  const isDashboardPage =
-    pathname === '/tutor/dashboard' || pathname?.startsWith('/tutor/dashboard/')
-  const isCommunicationsPage =
-    pathname === '/tutor/communications' || pathname?.startsWith('/tutor/communications/')
-  const isSubmissionsPage =
-    pathname === '/tutor/submissions' || pathname?.startsWith('/tutor/submissions/')
-  const isFloatingPage =
-    isDashboardPage || isReportsPage || isCommunicationsPage || isSubmissionsPage
-  const isAccountPage = pathname === '/tutor/settings' || pathname?.startsWith('/tutor/settings/')
-  const isSupportPage =
-    pathname === '/tutor/support' ||
-    pathname?.startsWith('/tutor/support/') ||
-    pathname === '/tutor/help' ||
-    pathname?.startsWith('/tutor/help/')
+  const isReportsPage = pathname?.includes('/tutor/reports')
+  const isDashboardPage = pathname?.includes('/tutor/dashboard')
+  const isCommunicationsPage = pathname?.includes('/tutor/communications')
+  const isSubmissionsPage = pathname?.includes('/tutor/submissions')
+  const isFloatingPage = isDashboardPage || isReportsPage || isCommunicationsPage || isSubmissionsPage
+  const isAccountPage = pathname?.includes('/tutor/settings')
+  const isSupportPage = pathname?.includes('/tutor/support') || pathname?.includes('/tutor/help')
   const [desktopNavOpen, setDesktopNavOpen] = useState(
     !isMyPage && !isReportsPage && !isAccountPage && !isSupportPage && !isCommunicationsPage
   )
@@ -330,7 +322,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
       <main
         className={cn(
           'relative z-0 h-screen flex-1 overflow-hidden pt-16',
-          'transition-[margin] duration-500 ease-in-out lg:my-4 lg:h-[calc(100vh-2rem)] lg:w-[calc(100%-17rem)]',
+          'lg:mt-4 lg:mb-0 lg:h-[calc(100vh-1rem)] lg:w-[calc(100%-17rem)] transition-[margin] duration-500 ease-in-out',
           desktopNavOpen ? 'lg:ml-64 lg:mr-4' : 'lg:ml-[8.5rem] lg:mr-[8.5rem]',
           isFloatingPage && 'lg:pt-0',
           !isFloatingPage &&
