@@ -5603,6 +5603,11 @@ FEEDBACK: [your explanation]`
         <Tabs
           value={mainTab}
           onValueChange={v => {
+            // Switching to Live shows liveNodes, a snapshot separate from the
+            // builderNodes the Build tab edits. Sync the latest builder content
+            // into it first so edits made in Build don't vanish on the Live tab.
+            // This is a local view sync only — it does not deploy to students.
+            if (v === 'live') handleSyncToLive()
             setMainTab(v as 'live' | 'builder' | 'test-pci')
             // Add callback to notify parent route
             if (onMainTabChange) {
