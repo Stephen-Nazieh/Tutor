@@ -416,6 +416,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       onSaveModeChange,
       isStudentView = false,
       onSyncToLiveSession,
+      onUnsyncedChangesChange,
     },
     ref
   ) {
@@ -1786,6 +1787,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       prevNodesRef.current = nodes
       setHasUnsyncedChanges(true)
     }, [nodes, isSessionActive, onSyncToLiveSession])
+
+    // Notify parent route of unsynced-changes state for the floating Controls panel.
+    useEffect(() => {
+      onUnsyncedChangesChange?.(hasUnsyncedChanges)
+    }, [hasUnsyncedChanges, onUnsyncedChangesChange])
 
     // Auto-sync effect: watches for content changes and syncs based on mode
     useEffect(() => {

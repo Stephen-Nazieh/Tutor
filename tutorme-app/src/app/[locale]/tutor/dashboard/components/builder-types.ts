@@ -360,6 +360,7 @@ export interface CourseBuilderProps {
   onSaveModeChange?: (mode: 'live' | 'draft') => void
   isStudentView?: boolean
   onSyncToLiveSession?: (silent?: boolean) => void
+  onUnsyncedChangesChange?: (hasUnsynced: boolean) => void
 }
 
 export interface CourseBuilderRef {

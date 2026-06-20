@@ -398,6 +398,7 @@ function CourseBuilderInsightsRouteInner({
   const [controlsMode, setControlsMode] = useState<ControlsMode>(
     initialMainTab === 'live' ? 'classroom' : initialMainTab === 'test-pci' ? 'test' : 'build'
   )
+  const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false)
   const router = useRouter()
 
   // Reschedule dialog state
@@ -1078,6 +1079,7 @@ function CourseBuilderInsightsRouteInner({
             saveMode={saveMode}
             onSaveModeChange={onSaveModeChange}
             onSyncToLiveSession={onSyncToLiveSession}
+            onUnsyncedChangesChange={setHasUnsyncedChanges}
           />
         )}
 
@@ -1117,6 +1119,7 @@ function CourseBuilderInsightsRouteInner({
               !insightsProps.sessionId
             )}
             hasSession={!!insightsProps.sessionId}
+            hasUnsyncedChanges={hasUnsyncedChanges}
           />
         )}
       </div>
