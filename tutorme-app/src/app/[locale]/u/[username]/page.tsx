@@ -211,6 +211,10 @@ function Book1on1Dialog({
   const [availability, setAvailability] = useState<AvailabilityData | null>(null)
   const [availabilityError, setAvailabilityError] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
+  // Custom (student-proposed) time — the tutor accepts/declines any proposed
+  // time, so booking shouldn't require the tutor to have preset availability.
+  const [customDate, setCustomDate] = useState('')
+  const [customStartTime, setCustomStartTime] = useState('')
   const [hasPendingRequest, setHasPendingRequest] = useState(false)
   const [activeRequest, setActiveRequest] = useState<{ id: string; status: string } | null>(null)
 
@@ -269,6 +273,26 @@ function Book1on1Dialog({
     } catch {
       // ignore
     }
+  }
+
+  // Turn a custom date + start time into a 1-hour selectedSlot.
+  const applyCustomSlot = (date: string, time: string) => {
+    setCustomDate(date)
+    setCustomStartTime(time)
+    if (!date || !time) {
+      setSelectedSlot(null)
+      return
+    }
+    const [h, m] = time.split(':').map(Number)
+    const end = new Date(2000, 0, 1, h, m + 60)
+    const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`
+    setSelectedSlot({
+      date,
+      startTime: time,
+      endTime,
+      dayOfWeek: parseISO(date).getDay(),
+      timezone: availability?.timezone ?? 'UTC',
+    })
   }
 
   const handleSubmit = async () => {
@@ -494,7 +518,11 @@ function Book1on1Dialog({
                                       : 'outline'
                                   }
                                   size="sm"
-                                  onClick={() => setSelectedSlot(slot)}
+                                  onClick={() => {
+                                    setCustomDate('')
+                                    setCustomStartTime('')
+                                    setSelectedSlot(slot)
+                                  }}
                                 >
                                   {slot.startTime} - {slot.endTime}
                                 </Button>
@@ -506,6 +534,30 @@ function Book1on1Dialog({
                     )}
                   </div>
                 </ScrollArea>
+              </DialogPanel>
+
+              {/* Propose a custom time — the tutor reviews and confirms any
+                  proposed time, so this works even with no preset slots. */}
+              <DialogPanel className="space-y-2">
+                <p className="text-sm font-medium text-gray-900">
+                  {dates.length === 0 ? 'Propose a time' : 'Or propose your own time'}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="date"
+                    value={customDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={e => applyCustomSlot(e.target.value, customStartTime)}
+                    className="rounded-md border border-gray-200 px-3 py-2 text-sm"
+                  />
+                  <input
+                    type="time"
+                    value={customStartTime}
+                    onChange={e => applyCustomSlot(customDate, e.target.value)}
+                    className="rounded-md border border-gray-200 px-3 py-2 text-sm"
+                  />
+                  <span className="text-xs text-gray-500">(1-hour session)</span>
+                </div>
               </DialogPanel>
 
               {selectedSlot && (
