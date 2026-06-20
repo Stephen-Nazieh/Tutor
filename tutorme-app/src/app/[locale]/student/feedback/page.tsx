@@ -1845,7 +1845,8 @@ function StudentFeedbackContent() {
                                   // wrong folder/task/assessment mid-class.
                                   const courseLocked =
                                     isSessionLive &&
-                                    (courseData as { courseId?: string }).courseId !== activeCourseId
+                                    (courseData as { courseId?: string }).courseId !==
+                                      activeCourseId
 
                                   return (
                                     <div key={courseName}>
