@@ -845,7 +845,7 @@ export default function TutorCoursePage() {
                           setSelectedCountryCode('')
                         }}
                       >
-                        <SelectTrigger className="h-10 w-full rounded-lg border border-slate-700/25 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-400/50 hover:bg-slate-50 hover:shadow-md focus:outline-none focus-visible:!shadow-none focus-visible:outline-none">
+                        <SelectTrigger className="h-10 w-full rounded-lg border border-input bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-input/60 hover:bg-slate-50 hover:shadow-md focus:outline-none focus-visible:!shadow-none focus-visible:outline-none">
                           <SelectValue placeholder="Select Regions..." />
                         </SelectTrigger>
                         <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-lg border border-white/20 bg-[#1E2832]/50 p-1.5 shadow-lg">
@@ -873,7 +873,7 @@ export default function TutorCoursePage() {
                         onValueChange={setSelectedCountryCode}
                         disabled={!selectedRegion}
                       >
-                        <SelectTrigger className="h-10 w-full rounded-lg border border-slate-700/25 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-slate-400/50 hover:bg-slate-50 hover:shadow-md focus:outline-none focus-visible:!shadow-none focus-visible:outline-none disabled:border-slate-400/20 disabled:bg-slate-100/50 disabled:text-slate-400 disabled:hover:border-slate-400/20 disabled:hover:bg-slate-100/50 disabled:hover:shadow-none">
+                        <SelectTrigger className="h-10 w-full rounded-lg border border-input bg-white text-slate-700 shadow-sm transition-all duration-200 hover:border-input/60 hover:bg-slate-50 hover:shadow-md focus:outline-none focus-visible:!shadow-none focus-visible:outline-none disabled:border-slate-400/20 disabled:bg-slate-100/50 disabled:text-slate-400 disabled:hover:border-slate-400/20 disabled:hover:bg-slate-100/50 disabled:hover:shadow-none">
                           <SelectValue
                             placeholder={
                               selectedRegion ? 'Select Countries...' : 'Select Region First'
@@ -910,7 +910,7 @@ export default function TutorCoursePage() {
                         placeholder="Search categories..."
                         value={categorySearch}
                         onChange={e => setCategorySearch(e.target.value)}
-                        className="h-10 border-slate-700 bg-white pl-10"
+                        className="h-10 bg-white pl-10"
                       />
                     </div>
 
@@ -1030,7 +1030,7 @@ export default function TutorCoursePage() {
                                           name="category"
                                           checked={selectedCategories[0] === exam}
                                           onChange={() => selectCategory(exam)}
-                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                          className="rounded border-input text-indigo-600 focus:ring-indigo-500"
                                         />
                                         <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
@@ -1073,7 +1073,7 @@ export default function TutorCoursePage() {
                                           name="category"
                                           checked={selectedCategories[0] === exam}
                                           onChange={() => selectCategory(exam)}
-                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                          className="rounded border-input text-indigo-600 focus:ring-indigo-500"
                                         />
                                         <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
@@ -1116,7 +1116,7 @@ export default function TutorCoursePage() {
                                           name="category"
                                           checked={selectedCategories[0] === exam}
                                           onChange={() => selectCategory(exam)}
-                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                          className="rounded border-input text-indigo-600 focus:ring-indigo-500"
                                         />
                                         <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
@@ -1159,7 +1159,7 @@ export default function TutorCoursePage() {
                                           name="category"
                                           checked={selectedCategories[0] === exam}
                                           onChange={() => selectCategory(exam)}
-                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                          className="rounded border-input text-indigo-600 focus:ring-indigo-500"
                                         />
                                         <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
@@ -1202,7 +1202,7 @@ export default function TutorCoursePage() {
                                           name="category"
                                           checked={selectedCategories[0] === exam}
                                           onChange={() => selectCategory(exam)}
-                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                          className="rounded border-input text-indigo-600 focus:ring-indigo-500"
                                         />
                                         <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
@@ -1257,7 +1257,7 @@ export default function TutorCoursePage() {
                                               type="checkbox"
                                               checked={selectedCategories.includes(exam)}
                                               onChange={() => selectCategory(exam)}
-                                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                              className="rounded border-input text-indigo-600 focus:ring-indigo-500"
                                             />
                                             <span className="text-sm text-slate-700">{exam}</span>
                                           </label>
@@ -1311,7 +1311,7 @@ export default function TutorCoursePage() {
                                               name="category"
                                               checked={selectedCategories[0] === exam}
                                               onChange={() => selectCategory(exam)}
-                                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                              className="rounded border-input text-indigo-600 focus:ring-indigo-500"
                                             />
                                             <span className="text-sm text-slate-700">{exam}</span>
                                           </label>
@@ -1355,7 +1355,7 @@ export default function TutorCoursePage() {
                                           name="category"
                                           checked={selectedCategories[0] === exam}
                                           onChange={() => selectCategory(exam)}
-                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                          className="rounded border-input text-indigo-600 focus:ring-indigo-500"
                                         />
                                         <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
@@ -1398,7 +1398,7 @@ export default function TutorCoursePage() {
                                           name="category"
                                           checked={selectedCategories[0] === exam}
                                           onChange={() => selectCategory(exam)}
-                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                          className="rounded border-input text-indigo-600 focus:ring-indigo-500"
                                         />
                                         <span className="text-sm text-slate-700">{exam}</span>
                                       </label>
@@ -1425,7 +1425,7 @@ export default function TutorCoursePage() {
                                       addCustomCategory()
                                     }
                                   }}
-                                  className="h-10 border-slate-200 bg-white"
+                                  className="h-10 bg-white"
                                   maxLength={100}
                                 />
                               </div>
@@ -1473,7 +1473,7 @@ export default function TutorCoursePage() {
                                           name="category"
                                           checked={selectedCategories[0] === exam}
                                           onChange={() => selectCategory(exam)}
-                                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                          className="rounded border-input text-indigo-600 focus:ring-indigo-500"
                                         />
                                         <span className="flex-1 text-sm text-slate-700">
                                           {exam}

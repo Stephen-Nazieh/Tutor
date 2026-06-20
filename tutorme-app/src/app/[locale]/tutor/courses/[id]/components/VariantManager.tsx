@@ -534,7 +534,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
               <div className="grid gap-6 sm:grid-cols-5">
                 <div className="form-group space-y-2 sm:col-span-2">
                   <Label className="form-label font-semibold text-slate-700">Free course</Label>
-                  <div className="flex h-10 items-center justify-between rounded-xl border border-slate-200 bg-white px-4">
+                  <div className="flex h-10 items-center justify-between rounded-xl border border-input bg-white px-4">
                     <span className="text-sm font-medium text-slate-600">
                       {globalIsFree ? 'Enabled' : 'Disabled'}
                     </span>
@@ -552,14 +552,14 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                       onChange={e => setGlobalPrice(e.target.value)}
                       placeholder="0.00"
                       disabled={globalIsFree}
-                      className="border-slate-200 bg-white"
+                      className="bg-white"
                     />
                   </div>
                 </div>
                 <div className="form-group space-y-2">
                   <Label className="form-label font-semibold text-slate-700">Currency</Label>
                   <Select value={globalCurrency} onValueChange={setGlobalCurrency}>
-                    <SelectTrigger className="border-slate-200 bg-white">
+                    <SelectTrigger className="bg-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -579,7 +579,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                       value={globalLanguage}
                       onChange={e => setGlobalLanguage(e.target.value)}
                       placeholder="e.g. English"
-                      className="border-slate-200 bg-white"
+                      className="bg-white"
                     />
                   </div>
                 </div>
@@ -697,7 +697,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                       <div className="grid gap-6 sm:grid-cols-4">
                         <div className="form-group space-y-2">
                           <Label className="form-label font-semibold text-slate-700">Free</Label>
-                          <div className="flex h-10 items-center justify-between rounded-xl border border-slate-200 bg-white px-4">
+                          <div className="flex h-10 items-center justify-between rounded-xl border border-input bg-white px-4">
                             <span className="text-sm font-medium text-slate-600">
                               {variant.isFree ? 'Yes' : 'No'}
                             </span>
@@ -730,7 +730,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                               }}
                               placeholder="0.00"
                               disabled={variant.isFree}
-                              className="border-slate-200 bg-white"
+                              className="bg-white"
                             />
                           </div>
                         </div>
@@ -744,7 +744,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                               updateVariant(index, v => ({ ...v, currency: val }))
                             }
                           >
-                            <SelectTrigger className="border-slate-200 bg-white">
+                            <SelectTrigger className="bg-white">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -773,7 +773,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                                 }))
                               }
                               placeholder="e.g. English"
-                              className="border-slate-200 bg-white"
+                              className="bg-white"
                             />
                           </div>
                         </div>
