@@ -28,6 +28,7 @@ interface CourseScheduleOption {
   scheduleId: string
   name: string
   slots: Array<{ dayOfWeek: string; startTime: string; durationMinutes: number }>
+  weeksToSchedule?: number
   spotsLeft: number | null
   isFull: boolean
 }
@@ -51,6 +52,32 @@ function CourseEnrollPageInner() {
 
   const coursesUrl = `/student/subjects/${encodeURIComponent(subjectCode)}/courses`
   const isFree = course != null && (course.price == null || course.price === 0)
+
+  // Course stats derived from the actual schedule (the displayed estimate was a
+  // hardcoded 0). Uses the selected schedule, else the first, else course data.
+  const refSchedule = schedules.find(s => s.scheduleId === selectedScheduleId) ?? schedules[0]
+  const scheduleStats = (() => {
+    if (!refSchedule || refSchedule.slots.length === 0) {
+      return { sessions: course?.lessonsCount ?? 0, hours: course?.estimatedHours ?? 0 }
+    }
+    const weeks = refSchedule.weeksToSchedule ?? 8
+    const sessions = refSchedule.slots.length * weeks
+    const weeklyMinutes = refSchedule.slots.reduce((sum, s) => sum + (s.durationMinutes || 0), 0)
+    const hours = Math.round((weeklyMinutes * weeks) / 60)
+    return { sessions, hours }
+  })()
+
+  // Concise one-line summary of a schedule's weekly pattern (avoids repeating
+  // every slot). e.g. "Mon, Wed · 09:00 · 60 min".
+  const summarizeSchedule = (slots: CourseScheduleOption['slots']): string => {
+    if (slots.length === 0) return 'Times arranged with the tutor'
+    const abbr = (d: string) => d.slice(0, 3)
+    const days = Array.from(new Set(slots.map(s => abbr(s.dayOfWeek)))).join(', ')
+    const times = Array.from(new Set(slots.map(s => s.startTime)))
+    const timePart = times.length === 1 ? times[0] : `${times.length} times/wk`
+    const dur = slots[0]?.durationMinutes
+    return [days, timePart, dur ? `${dur} min` : null].filter(Boolean).join(' · ')
+  }
 
   useEffect(() => {
     if (!courseId) return
@@ -240,9 +267,9 @@ function CourseEnrollPageInner() {
               <p className="text-muted-foreground text-sm">{course.description}</p>
             )}
             <ul className="text-muted-foreground space-y-1 text-sm">
-              <li>{course.estimatedHours}h estimated</li>
               <li>
-                {course.modulesCount} modules · {course.lessonsCount} lessons
+                {scheduleStats.sessions} session{scheduleStats.sessions === 1 ? '' : 's'}
+                {scheduleStats.hours > 0 ? ` · ~${scheduleStats.hours}h total` : ''}
               </li>
               <li className="text-foreground font-medium">
                 Price: {formatPrice(course.price, course.currency)}
@@ -324,11 +351,7 @@ function CourseEnrollPageInner() {
                                 ) : null}
                               </div>
                               <p className="text-muted-foreground mt-0.5 text-xs">
-                                {s.slots.length > 0
-                                  ? s.slots
-                                      .map(slot => `${slot.dayOfWeek} ${slot.startTime}`)
-                                      .join(' · ')
-                                  : 'Times arranged with the tutor'}
+                                {summarizeSchedule(s.slots)}
                               </p>
                             </div>
                           </label>
