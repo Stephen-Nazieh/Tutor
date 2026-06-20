@@ -396,14 +396,16 @@ export default function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[100] flex items-center justify-center bg-transparent px-6"
+              style={{ willChange: 'opacity' }}
               onClick={() => setIsHowItWorksOpen(false)}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
                 className="relative flex max-h-[90vh] min-h-[60vh] w-full max-w-5xl flex-col items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-[rgba(31,41,51,0.60)] p-4 shadow-lg backdrop-blur-xl md:min-h-[70vh] md:p-6"
+                style={{ willChange: 'transform, opacity' }}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Close button */}
@@ -420,16 +422,18 @@ export default function App() {
                   <div className="flex flex-col items-center justify-center py-1">
                     <div className="flex items-center justify-center gap-1">
                       <motion.span
-                        className="inline-flex h-6 w-6 text-white/90"
+                        className="inline-flex h-6 w-6 text-white"
                         animate={{ rotate: 360 }}
                         transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        style={{ willChange: 'transform' }}
                       >
                         <Settings className="h-full w-full" />
                       </motion.span>
                       <motion.span
-                        className="-mt-1.5 -ml-0.5 inline-flex h-6 w-6 text-white/90"
+                        className="-mt-1.5 -ml-0.5 inline-flex h-6 w-6 text-white"
                         animate={{ rotate: -360 }}
                         transition={{ duration: 1.33, repeat: Infinity, ease: 'linear' }}
+                        style={{ willChange: 'transform' }}
                       >
                         <Settings className="h-full w-full" />
                       </motion.span>
