@@ -6,8 +6,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, user, profile, courseVariant } from '@/lib/db/schema'
-import { eq, and, or, inArray, sql, desc, ilike } from 'drizzle-orm'
+import { eq, and, or, inArray, isNull, sql, desc, ilike } from 'drizzle-orm'
 import { ALL_COUNTRIES } from '@/lib/data/tutor-categories'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -49,7 +51,13 @@ export async function GET(request: NextRequest) {
             categories: course.categories,
           })
           .from(course)
-          .where(and(eq(course.isPublished, true), inArray(course.creatorId, requestedIds))),
+          .where(
+            and(
+              eq(course.isPublished, true),
+              isNull(course.deletedAt),
+              inArray(course.creatorId, requestedIds)
+            )
+          ),
       ])
 
       const coursesByTutor = new Map<string, { courseId: string; categories: string[] | null }[]>()
@@ -154,6 +162,7 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(course.isPublished, true),
+          isNull(course.deletedAt),
           eq(user.role, 'TUTOR'),
           searchPattern
             ? or(
@@ -238,7 +247,13 @@ export async function GET(request: NextRequest) {
           categories: course.categories,
         })
         .from(course)
-        .where(and(eq(course.isPublished, true), inArray(course.creatorId, paginatedIds))),
+        .where(
+          and(
+            eq(course.isPublished, true),
+            isNull(course.deletedAt),
+            inArray(course.creatorId, paginatedIds)
+          )
+        ),
       drizzleDb
         .select({
           publishedCourseId: courseVariant.publishedCourseId,
@@ -252,7 +267,13 @@ export async function GET(request: NextRequest) {
             drizzleDb
               .select({ courseId: course.courseId })
               .from(course)
-              .where(and(eq(course.isPublished, true), inArray(course.creatorId, paginatedIds)))
+              .where(
+                and(
+                  eq(course.isPublished, true),
+                  isNull(course.deletedAt),
+                  inArray(course.creatorId, paginatedIds)
+                )
+              )
           )
         ),
     ])
@@ -325,7 +346,7 @@ export async function GET(request: NextRequest) {
       drizzleDb
         .select({ categories: course.categories })
         .from(course)
-        .where(eq(course.isPublished, true)),
+        .where(and(eq(course.isPublished, true), isNull(course.deletedAt))),
       drizzleDb
         .select({ category: courseVariant.category, nationality: courseVariant.nationality })
         .from(courseVariant),

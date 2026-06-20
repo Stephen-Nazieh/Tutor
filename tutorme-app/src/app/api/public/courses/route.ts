@@ -6,8 +6,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { course, courseVariant, profile } from '@/lib/db/schema'
-import { and, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
+import { and, desc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm'
 import { ALL_COUNTRIES } from '@/lib/data/tutor-categories'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,6 +40,7 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(course.isPublished, true),
+          isNull(course.deletedAt),
           searchPattern
             ? or(
                 ilike(course.name, searchPattern),
@@ -151,7 +154,13 @@ export async function GET(request: NextRequest) {
         ? await drizzleDb
             .select({ creatorId: course.creatorId, count: sql<number>`count(*)::int` })
             .from(course)
-            .where(and(eq(course.isPublished, true), inArray(course.creatorId, creatorIds)))
+            .where(
+              and(
+                eq(course.isPublished, true),
+                isNull(course.deletedAt),
+                inArray(course.creatorId, creatorIds)
+              )
+            )
             .groupBy(course.creatorId)
         : []
     const activeCourseCountMap = activeCourseCounts.reduce(
