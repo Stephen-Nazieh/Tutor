@@ -332,6 +332,8 @@ export default function StudentAccount() {
                       avatarUrl={formData.avatarUrl}
                       uploadUrl="/api/user/avatar"
                       deleteUrl="/api/user/avatar"
+                      presetListUrl="/api/avatars"
+                      presetSelectUrl="/api/user/avatar/preset"
                       size={80}
                       fallbackText={formData.name.charAt(0).toUpperCase() || '?'}
                       onUploadSuccess={url => {
@@ -346,7 +348,9 @@ export default function StudentAccount() {
                     />
                     <div className="flex-1">
                       <Label>Profile Photo</Label>
-                      <p className="mt-1 text-xs text-gray-500">Upload a profile photo</p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Upload your own or choose from the gallery
+                      </p>
                     </div>
                   </div>
 
