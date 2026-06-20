@@ -184,9 +184,10 @@ export function SubmissionsPanel({
   }, [sessions, lessons])
 
   // Color-code sessions by lifecycle/chronology so the tutor can see status at a
-  // glance: green = active now, yellow = the session immediately after the active
-  // one, red = ended, black = the rest (upcoming/scheduled). "Next after active"
-  // is computed on the global chronological order, not per-lesson.
+  // glance: green = active now, yellow = the next-upcoming session (the one right
+  // after the active session, or — when nothing is active — the soonest session
+  // that hasn't ended), red = ended, black = the rest. Chronology is the global
+  // scheduledAt order, not per-lesson.
   const sessionColorById = useMemo(() => {
     const ACTIVE = new Set(['active', 'live', 'paused', 'preparing'])
     const sorted = [...sessions].sort((a, b) => {
@@ -195,14 +196,18 @@ export function SubmissionsPanel({
       return ta - tb
     })
     const activeIdx = sorted.findIndex(s => ACTIVE.has((s.status || '').toLowerCase()))
-    const nextAfterActiveId =
-      activeIdx >= 0 && activeIdx + 1 < sorted.length ? sorted[activeIdx + 1].id : null
+    const highlightId =
+      activeIdx >= 0
+        ? // there's an active session — highlight the one right after it
+          (sorted[activeIdx + 1]?.id ?? null)
+        : // nothing active — highlight the soonest session that hasn't ended
+          (sorted.find(s => (s.status || '').toLowerCase() !== 'ended')?.id ?? null)
     const map: Record<string, string> = {}
     for (const s of sorted) {
       const st = (s.status || '').toLowerCase()
       if (ACTIVE.has(st)) map[s.id] = 'text-green-600'
       else if (st === 'ended') map[s.id] = 'text-red-600'
-      else if (s.id === nextAfterActiveId) map[s.id] = 'text-yellow-600'
+      else if (s.id === highlightId) map[s.id] = 'text-yellow-600'
       else map[s.id] = 'text-slate-900'
     }
     return map
