@@ -320,12 +320,12 @@ function TutorControlsPanel({
                       type="button"
                       disabled={panelDisabled || mode !== 'build' || !hasSession}
                       onClick={onSync}
-                      className={cn(
-                        'flex h-9 w-full items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50'
-                      )}
+                      className="group flex h-9 w-full items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed"
                     >
-                      <RefreshCw className="h-4 w-4" />
-                      Sync
+                      <span className="flex items-center gap-2 transition-opacity group-disabled:opacity-50">
+                        <RefreshCw className="h-4 w-4" />
+                        Sync
+                      </span>
                       {hasUnsyncedChanges && (
                         <span className="ml-auto h-2 w-2 rounded-full bg-amber-400" />
                       )}
