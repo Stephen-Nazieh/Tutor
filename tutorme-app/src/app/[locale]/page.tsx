@@ -4592,22 +4592,13 @@ function scrollToElementById(id: string) {
 
   const html = document.documentElement
   const originalSnap = html.style.scrollSnapType
-  const originalBehavior = html.style.getPropertyPriority('scroll-behavior')
-    ? html.style.scrollBehavior
-    : ''
 
   html.style.scrollSnapType = 'none'
-  html.style.setProperty('scroll-behavior', 'smooth', 'important')
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  el.scrollIntoView({ behavior: 'auto', block: 'start' })
 
   window.setTimeout(() => {
     html.style.scrollSnapType = originalSnap
-    if (originalBehavior) {
-      html.style.setProperty('scroll-behavior', originalBehavior, 'important')
-    } else {
-      html.style.removeProperty('scroll-behavior')
-    }
-  }, 800)
+  }, 0)
 }
 
 export default function LandingPage() {
@@ -5036,7 +5027,7 @@ export default function LandingPage() {
       <style jsx global>{`
         html {
           scroll-behavior: auto !important;
-          scroll-snap-type: y proximity;
+          scroll-snap-type: y mandatory;
         }
         /* The global body overflow-x:hidden makes Chrome treat the body as the
            scroller and disables root scroll-snap. Reset it on this page so the
