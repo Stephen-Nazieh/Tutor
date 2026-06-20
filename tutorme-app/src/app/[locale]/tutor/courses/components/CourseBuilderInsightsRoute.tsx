@@ -155,7 +155,10 @@ function TutorControlsPanel({
   const dragControls = useDragControls()
 
   const modeButtonBase =
-    'flex h-9 w-full items-center justify-center gap-2 rounded-lg px-3 text-xs font-semibold transition-colors'
+    'flex h-7 w-full items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold transition-colors'
+
+  const actionButtonBase =
+    'flex h-9 w-full items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-semibold text-white transition-colors hover:bg-white/20 active:bg-white/25 focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50'
 
   const panelDisabled = disabled || false
 
@@ -219,8 +222,8 @@ function TutorControlsPanel({
                       value="build"
                       className={cn(
                         modeButtonBase,
-                        'data-[state=active]:bg-gray-800 data-[state=active]:text-white data-[state=active]:shadow-sm',
-                        'text-white/70 hover:text-white'
+                        'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                        'text-white/70 hover:bg-white/5 hover:text-white'
                       )}
                     >
                       <PencilRuler className="h-3.5 w-3.5" />
@@ -230,8 +233,8 @@ function TutorControlsPanel({
                       value="test"
                       className={cn(
                         modeButtonBase,
-                        'data-[state=active]:bg-gray-800 data-[state=active]:text-white data-[state=active]:shadow-sm',
-                        'text-white/70 hover:text-white'
+                        'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                        'text-white/70 hover:bg-white/5 hover:text-white'
                       )}
                     >
                       <TestTube2 className="h-3.5 w-3.5" />
@@ -241,8 +244,8 @@ function TutorControlsPanel({
                       value="classroom"
                       className={cn(
                         modeButtonBase,
-                        'data-[state=active]:bg-gray-800 data-[state=active]:text-white data-[state=active]:shadow-sm',
-                        'text-white/70 hover:text-white'
+                        'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                        'text-white/70 hover:bg-white/5 hover:text-white'
                       )}
                     >
                       <MonitorPlay className="h-3.5 w-3.5" />
@@ -258,9 +261,7 @@ function TutorControlsPanel({
                       type="button"
                       disabled={panelDisabled}
                       onClick={onSave}
-                      className={cn(
-                        'flex h-9 w-full items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50'
-                      )}
+                      className={cn(actionButtonBase)}
                     >
                       <Save className="h-4 w-4" />
                       Save
@@ -270,9 +271,7 @@ function TutorControlsPanel({
                       type="button"
                       disabled={panelDisabled || mode !== 'build' || !canSchedule}
                       onClick={onSchedule}
-                      className={cn(
-                        'flex h-9 w-full items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50'
-                      )}
+                      className={cn(actionButtonBase)}
                     >
                       <Calendar className="h-4 w-4" />
                       Schedule
@@ -282,9 +281,7 @@ function TutorControlsPanel({
                       type="button"
                       disabled={panelDisabled || mode !== 'build' || !canDelete}
                       onClick={onDelete}
-                      className={cn(
-                        'flex h-9 w-full items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50'
-                      )}
+                      className={cn(actionButtonBase)}
                     >
                       <Trash2 className="h-4 w-4" />
                       Delete
@@ -296,9 +293,7 @@ function TutorControlsPanel({
                       type="button"
                       disabled={panelDisabled || mode !== 'build' || !canGoLive}
                       onClick={onGoLive}
-                      className={cn(
-                        'flex h-9 w-full items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50'
-                      )}
+                      className={cn(actionButtonBase)}
                     >
                       <VideoIcon className="h-4 w-4" />
                       Go Live
@@ -308,9 +303,7 @@ function TutorControlsPanel({
                       type="button"
                       disabled={panelDisabled || mode !== 'build' || !hasSession}
                       onClick={onVideo}
-                      className={cn(
-                        'flex h-9 w-full items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50'
-                      )}
+                      className={cn(actionButtonBase)}
                     >
                       <VideoIcon className="h-4 w-4" />
                       Video
@@ -320,7 +313,10 @@ function TutorControlsPanel({
                       type="button"
                       disabled={panelDisabled || mode !== 'build' || !hasSession}
                       onClick={onSync}
-                      className="group flex h-9 w-full items-center gap-2 rounded-lg bg-white/10 px-3 text-xs font-semibold text-white transition-colors hover:bg-white/20 disabled:cursor-not-allowed"
+                      className={cn(
+                        actionButtonBase,
+                        'group disabled:opacity-100'
+                      )}
                     >
                       <span className="flex items-center gap-2 transition-opacity group-disabled:opacity-50">
                         <RefreshCw className="h-4 w-4" />
