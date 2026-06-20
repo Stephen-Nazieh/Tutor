@@ -57,6 +57,10 @@ interface VariantConfig {
   currency: string
   languageOfInstruction: string
   schedules: CourseScheduleConfig[]
+  /** Loaded from the DB (an existing published/draft variant) — never churned
+   *  out by the desired-keys sync, so a tutor editing a live course keeps and
+   *  schedules the REAL variant instead of a regenerated Global stand-in. */
+  persisted?: boolean
 }
 
 interface VariantManagerProps {
@@ -75,6 +79,8 @@ interface VariantManagerProps {
 
 export type VariantManagerHandle = {
   publish: () => Promise<void>
+  /** Persist schedule edits to already-published variants without publishing. */
+  saveSchedules: () => Promise<void>
   setPanelsOpen: (open: boolean) => void
 }
 
@@ -190,6 +196,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
               languageOfInstruction:
                 typeof v.languageOfInstruction === 'string' ? v.languageOfInstruction : '',
               schedules,
+              persisted: true,
             }
           })
           setVariants(loaded)
@@ -250,6 +257,14 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
           const existing = map.get(key)
           if (!existing) {
             const [category, nationality] = key.split('|')
+            // Don't conjure a stand-in (e.g. "<cat>|Global") when the course
+            // already has a persisted variant for this category — on load the
+            // pickers don't reproduce the stored country, and adding a duplicate
+            // would make the tutor schedule the wrong (unsaved) variant.
+            const hasPersistedSameCategory = Array.from(map.values()).some(
+              v => v.persisted && v.category === category
+            )
+            if (hasPersistedSameCategory) continue
             map.set(key, {
               category,
               nationality,
@@ -276,6 +291,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
         // scheduler, leaving only the "Add another schedule" button.
         for (const [key, variant] of map.entries()) {
           if (desiredKeys.has(key)) continue
+          if (variant.persisted) continue // keep real DB variants (the live course)
           if (variantHasSchedules(variant)) continue
           map.delete(key)
           changed = true
@@ -407,6 +423,31 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
       }
     }, [variants, templateCourseId, onSaved])
 
+    // Persist schedule edits to already-published variants WITHOUT publishing
+    // anything new (schedulesOnly). Used by the page's Save button so a tutor can
+    // save schedule changes on a live course without putting more of it live.
+    const handleSaveSchedules = useCallback(async () => {
+      if (variants.length === 0) return
+      try {
+        const payload = variants.map(v => ({
+          ...v,
+          price: v.isFree ? 0 : typeof v.price === 'number' ? v.price : null,
+        }))
+        const res = await fetchWithCsrf(`/api/tutor/courses/${templateCourseId}/publish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ variants: payload, schedulesOnly: true }),
+        })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          toast.error(data?.error || 'Failed to save schedules')
+        }
+      } catch (err) {
+        console.error(err)
+        toast.error('Failed to save schedules')
+      }
+    }, [variants, templateCourseId])
+
     const publishedCount = variants.filter(v => v.isPublished).length
 
     useEffect(() => {
@@ -424,9 +465,10 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
         publish: async () => {
           await handleSave()
         },
+        saveSchedules: handleSaveSchedules,
         setPanelsOpen,
       }),
-      [handleSave, setPanelsOpen]
+      [handleSave, handleSaveSchedules, setPanelsOpen]
     )
 
     if (loading) {

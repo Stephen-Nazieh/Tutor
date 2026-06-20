@@ -1525,13 +1525,13 @@ export default function TutorCoursePage() {
               size="lg"
               variant="default"
               onClick={async () => {
+                // Save persists course details, and schedule edits for variants
+                // that are ALREADY published — without publishing anything new
+                // (saveSchedules runs in schedulesOnly mode, a no-op for an
+                // unpublished course). Save never puts a course live.
                 const saved = await handleSaveAll()
-                // For an already-published course, persist schedule/variant edits
-                // (e.g. a newly added Schedule 3) on Save too — these live in
-                // CourseSchedule rows that only the publish path writes, so
-                // without this Save would silently drop the schedule change.
-                if (saved && variantStats.published > 0) {
-                  await variantManagerRef.current?.publish()
+                if (saved) {
+                  await variantManagerRef.current?.saveSchedules()
                 }
               }}
               disabled={saving}
