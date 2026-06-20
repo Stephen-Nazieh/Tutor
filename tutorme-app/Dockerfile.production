@@ -10,7 +10,11 @@ COPY package.json package-lock.json* ./
 # so npm ci can run it before the rest of the source tree is available.
 COPY scripts/copy-pdf-worker.js ./scripts/
 # Allocate more memory to Node to prevent SIGXCPU/OOM (Exit code 152) during heavy dependency resolution
-RUN NODE_OPTIONS="--max-old-space-size=4096" npm ci --legacy-peer-deps
+# Also increase npm fetch retries/timeouts to survive transient registry/network issues.
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    NODE_OPTIONS="--max-old-space-size=6144" npm ci --legacy-peer-deps
 
 # Build
 FROM base AS builder
