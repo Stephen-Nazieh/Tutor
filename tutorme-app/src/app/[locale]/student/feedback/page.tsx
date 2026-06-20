@@ -46,6 +46,7 @@ import {
   Presentation,
   Pencil,
   Lock,
+  Flag,
 } from 'lucide-react'
 import {
   Dialog,
@@ -183,7 +184,7 @@ function ClassroomControlsPanel({
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className={cn(
-            'pointer-events-auto relative w-60 cursor-default select-none overflow-hidden shadow-xl',
+            'pointer-events-auto relative w-96 cursor-default select-none overflow-hidden shadow-xl',
             open ? 'rounded-2xl border border-slate-200 bg-white p-3' : 'rounded-2xl bg-gray-800'
           )}
         >
@@ -223,57 +224,78 @@ function ClassroomControlsPanel({
                 transition={{ duration: 0.25, ease: 'easeInOut' }}
                 className="overflow-hidden"
               >
-                <div className="mt-2 flex flex-col gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFollowTutor(!followTutor)}
-                    className={cn(
-                      'flex h-9 w-full items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-colors',
-                      followTutor
-                        ? 'bg-emerald-500 text-white hover:bg-emerald-600'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    )}
-                  >
-                    <div
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFollowTutor(!followTutor)}
                       className={cn(
-                        'h-2 w-2 rounded-full',
-                        followTutor ? 'animate-pulse bg-white' : 'bg-slate-400'
+                        'flex h-9 w-full items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-colors',
+                        followTutor
+                          ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       )}
-                    />
-                    {followTutor ? 'Following Tutor' : 'Follow Tutor'}
-                  </button>
+                    >
+                      <div
+                        className={cn(
+                          'h-2 w-2 rounded-full',
+                          followTutor ? 'animate-pulse bg-white' : 'bg-slate-400'
+                        )}
+                      />
+                      {followTutor ? 'Following Tutor' : 'Follow Tutor'}
+                    </button>
 
-                  <div className="flex h-9 items-center gap-2 rounded-lg bg-slate-100 px-3 text-xs font-semibold text-slate-700">
-                    <div
-                      className={cn(
-                        'h-2 w-2 rounded-full',
-                        isConnected ? 'bg-emerald-500' : error ? 'bg-red-500' : 'bg-amber-400'
-                      )}
-                    />
-                    {isConnected ? 'Connected' : error ? 'Disconnected' : 'Connecting'}
+                    <div className="flex h-9 items-center gap-2 rounded-lg bg-slate-100 px-3 text-xs font-semibold text-slate-700">
+                      <div
+                        className={cn(
+                          'h-2 w-2 rounded-full',
+                          isConnected ? 'bg-emerald-500' : error ? 'bg-red-500' : 'bg-amber-400'
+                        )}
+                      />
+                      {isConnected ? 'Connected' : error ? 'Disconnected' : 'Connecting'}
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={!roomUrl}
+                      onClick={() => {
+                        if (!roomUrl) return
+                        openVideoOverlay({ roomUrl, token, autoRecord: false })
+                      }}
+                      className="flex h-9 w-full items-center gap-2 rounded-lg bg-slate-100 px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Video className="h-4 w-4" />
+                      Video
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowDirectoryPanel(true)}
+                      className="flex h-9 w-full items-center gap-2 rounded-lg bg-slate-100 px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                    >
+                      <Folder className="h-4 w-4" />
+                      Directory
+                    </button>
                   </div>
 
-                  <button
-                    type="button"
-                    disabled={!roomUrl}
-                    onClick={() => {
-                      if (!roomUrl) return
-                      openVideoOverlay({ roomUrl, token, autoRecord: false })
-                    }}
-                    className="flex h-9 w-full items-center gap-2 rounded-lg bg-slate-100 px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <Video className="h-4 w-4" />
-                    Video
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => router.push('/student/dashboard')}
+                      className="flex h-9 w-full items-center gap-2 rounded-lg bg-slate-100 px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Leave session
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setShowDirectoryPanel(true)}
-                    className="flex h-9 w-full items-center gap-2 rounded-lg bg-slate-100 px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200"
-                  >
-                    <Folder className="h-4 w-4" />
-                    Directory
-                  </button>
+                    <button
+                      type="button"
+                      className="flex h-9 w-full items-center gap-2 rounded-lg bg-red-100 px-3 text-xs font-semibold text-red-700 transition-colors hover:bg-red-200"
+                    >
+                      <Flag className="h-4 w-4" />
+                      Flag
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -1194,15 +1216,6 @@ function StudentFeedbackContent() {
 
             <div className="flex flex-1 items-center justify-end gap-3">
               <WifiSignal connected={isConnected} error={!!error} />
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                onClick={() => router.push('/student/dashboard')}
-              >
-                <LogOut className="h-4 w-4" />
-                Leave session
-              </Button>
             </div>
           </div>
 
