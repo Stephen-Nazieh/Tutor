@@ -1638,7 +1638,7 @@ function StudentFeedbackContent() {
             {/* Resize handle */}
             {!isExpanded && (
               <div
-                className="absolute bottom-0 left-0 top-0 z-[100] flex w-3 cursor-col-resize items-center justify-center bg-slate-100/50 hover:bg-blue-500/30 active:bg-blue-500/50"
+                className="absolute bottom-0 left-0 top-0 z-10 flex w-3 cursor-col-resize items-center justify-center bg-slate-100/50 hover:bg-blue-500/30 active:bg-blue-500/50"
                 onMouseDown={e => {
                   setRightPanelResizing(true)
                   rightResizeStartX.current = e.clientX

@@ -1776,7 +1776,7 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
 
   useEffect(() => {
     if (q) {
-      document.getElementById('panel-2-search-results')?.scrollIntoView({ behavior: 'smooth' })
+      scrollToElementById('panel-2-search-results')
     }
   }, [q])
 
@@ -4560,6 +4560,36 @@ const CategorySearchModal = ({
 
 // --- Main Page Component ---
 
+/**
+ * Scroll to an element by id, temporarily disabling scroll-snap and forcing
+ * smooth behavior so the landing-page CSS (`scroll-behavior: auto !important`)
+ * does not block the jump.
+ */
+function scrollToElementById(id: string) {
+  if (typeof document === 'undefined') return
+  const el = document.getElementById(id)
+  if (!el) return
+
+  const html = document.documentElement
+  const originalSnap = html.style.scrollSnapType
+  const originalBehavior = html.style.getPropertyPriority('scroll-behavior')
+    ? html.style.scrollBehavior
+    : ''
+
+  html.style.scrollSnapType = 'none'
+  html.style.setProperty('scroll-behavior', 'smooth', 'important')
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+  window.setTimeout(() => {
+    html.style.scrollSnapType = originalSnap
+    if (originalBehavior) {
+      html.style.setProperty('scroll-behavior', originalBehavior, 'important')
+    } else {
+      html.style.removeProperty('scroll-behavior')
+    }
+  }, 800)
+}
+
 export default function LandingPage() {
   const [modalType, setModalType] = useState<ModalType>(null)
   const [showCategories, setShowCategories] = useState(false)
@@ -4672,9 +4702,7 @@ export default function LandingPage() {
 
   const scrollToSearchResults = () => {
     setTimeout(() => {
-      document
-        .getElementById('panel-2-search-results')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      scrollToElementById('panel-2-search-results')
     }, 0)
   }
 
