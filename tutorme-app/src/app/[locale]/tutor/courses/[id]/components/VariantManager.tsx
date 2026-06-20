@@ -534,7 +534,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
               <div className="grid gap-6 sm:grid-cols-5">
                 <div className="form-group space-y-2 sm:col-span-2">
                   <Label className="form-label font-semibold text-slate-700">Free course</Label>
-                  <div className="flex h-10 items-center justify-between rounded-xl border border-input bg-white px-4">
+                  <div className="border-input flex h-10 items-center justify-between rounded-xl border bg-white px-4">
                     <span className="text-sm font-medium text-slate-600">
                       {globalIsFree ? 'Enabled' : 'Disabled'}
                     </span>
@@ -697,7 +697,7 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
                       <div className="grid gap-6 sm:grid-cols-4">
                         <div className="form-group space-y-2">
                           <Label className="form-label font-semibold text-slate-700">Free</Label>
-                          <div className="flex h-10 items-center justify-between rounded-xl border border-input bg-white px-4">
+                          <div className="border-input flex h-10 items-center justify-between rounded-xl border bg-white px-4">
                             <span className="text-sm font-medium text-slate-600">
                               {variant.isFree ? 'Yes' : 'No'}
                             </span>

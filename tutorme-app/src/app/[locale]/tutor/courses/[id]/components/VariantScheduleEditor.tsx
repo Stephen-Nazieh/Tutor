@@ -466,7 +466,7 @@ export function VariantScheduleEditor({
                   const v = Math.max(1, Math.min(52, Number.isNaN(val) ? 1 : val))
                   setNumberOfWeeks(v)
                 }}
-                className="h-9 w-12 rounded-lg border border-input bg-white px-1 text-center text-sm text-[#1F2933] [appearance:textfield] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                className="border-input h-9 w-12 rounded-lg border bg-white px-1 text-center text-sm text-[#1F2933] [appearance:textfield] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
               <span className="text-sm font-semibold">weeks.</span>
             </div>
