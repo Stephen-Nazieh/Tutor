@@ -2590,6 +2590,12 @@ const KakaoTalkBrandIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 )
 
+const XBrandIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+)
+
 const ComingSoonModal = ({
   isOpen,
   onClose,
@@ -2615,6 +2621,7 @@ const ComingSoonModal = ({
     message: '',
     youtube: '',
     instagram: '',
+    x: '',
     tiktok: '',
     facebook: '',
     kakaoTalk: '',
@@ -2635,6 +2642,7 @@ const ComingSoonModal = ({
       message: '',
       youtube: '',
       instagram: '',
+      x: '',
       tiktok: '',
       facebook: '',
       kakaoTalk: '',
@@ -2692,6 +2700,7 @@ const ComingSoonModal = ({
       formData.tiktok.trim() && `TikTok: @${formData.tiktok.trim()}`,
       formData.youtube.trim() && `YouTube: @${formData.youtube.trim()}`,
       formData.instagram.trim() && `Instagram: @${formData.instagram.trim()}`,
+      formData.x.trim() && `X: @${formData.x.trim()}`,
       formData.facebook.trim() && `Facebook: https://${formData.facebook.trim()}`,
       formData.kakaoTalk.trim() && `KakaoTalk: https://${formData.kakaoTalk.trim()}`,
       formData.website.trim() && `Web: https://${formData.website.trim()}`,
@@ -2918,10 +2927,10 @@ const ComingSoonModal = ({
   }) => {
     const cleanValue = prefix === '@' ? value.replace(/^@+/, '') : value.replace(/^https?:\/\//, '')
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {icon}
-        <div className="flex flex-1 items-center overflow-hidden rounded-lg border border-gray-200 bg-white px-3 py-2">
-          <span className="select-none text-sm text-gray-500">{prefix}</span>
+        <div className="flex flex-1 items-center overflow-hidden rounded-lg border border-gray-200 bg-white px-2.5 py-1.5">
+          <span className="select-none text-xs text-gray-500">{prefix}</span>
           <input
             type="text"
             value={cleanValue}
@@ -2933,7 +2942,7 @@ const ComingSoonModal = ({
               )
             }
             placeholder={placeholder || ''}
-            className="ml-2 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            className="ml-1.5 flex-1 bg-transparent text-xs text-slate-900 outline-none placeholder:text-slate-400"
           />
         </div>
       </div>
@@ -2943,7 +2952,7 @@ const ComingSoonModal = ({
   // Default form (used by the Join / register modal)
   const renderDefaultForm = () => (
     <>
-      <h2 className="text-center text-2xl font-bold text-white">
+      <h2 className="text-center text-xl font-bold text-white">
         Tell us about your tutoring service
       </h2>
       <Input
@@ -2952,7 +2961,7 @@ const ComingSoonModal = ({
         value={formData.name}
         onChange={e => setFormData({ ...formData, name: e.target.value })}
         required
-        className="w-full border-gray-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:border-gray-200 focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="h-8 w-full border-gray-200 bg-white px-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:border-gray-200 focus-visible:ring-0 focus-visible:ring-offset-0"
       />
       <Input
         type="email"
@@ -2960,7 +2969,7 @@ const ComingSoonModal = ({
         value={formData.email}
         onChange={e => setFormData({ ...formData, email: e.target.value })}
         required
-        className="w-full border-gray-200 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:border-gray-200 focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="h-8 w-full border-gray-200 bg-white px-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus-visible:border-gray-200 focus-visible:ring-0 focus-visible:ring-offset-0"
       />
       <div>
         <textarea
@@ -2968,19 +2977,19 @@ const ComingSoonModal = ({
           value={formData.about}
           onChange={e => setFormData({ ...formData, about: e.target.value.slice(0, 400) })}
           required
-          rows={4}
-          className="w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400"
+          rows={3}
+          className="w-full resize-none rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 outline-none placeholder:text-slate-400"
         />
-        <div className="mt-1 text-right text-xs text-zinc-400">{formData.about.length}/400</div>
+        <div className="mt-1 text-right text-[10px] text-zinc-400">{formData.about.length}/400</div>
       </div>
-      <h3 className="text-lg font-semibold text-white">
+      <h3 className="text-base font-semibold text-white">
         Do you use social media for your tutoring or instructional content?
       </h3>
-      <div className="space-y-3">
+      <div className="space-y-2">
         <SocialField
           icon={
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black">
-              <TikTokIcon className="h-5 w-5 text-white" />
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-black">
+              <TikTokIcon className="h-4 w-4 text-white" />
             </div>
           }
           prefix="@"
@@ -2990,8 +2999,8 @@ const ComingSoonModal = ({
         />
         <SocialField
           icon={
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-600">
-              <Youtube className="h-5 w-5 text-white" />
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-red-600">
+              <Youtube className="h-4 w-4 text-white" />
             </div>
           }
           prefix="@"
@@ -3001,8 +3010,8 @@ const ComingSoonModal = ({
         />
         <SocialField
           icon={
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400">
-              <Instagram className="h-5 w-5 text-white" />
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400">
+              <Instagram className="h-4 w-4 text-white" />
             </div>
           }
           prefix="@"
@@ -3012,8 +3021,19 @@ const ComingSoonModal = ({
         />
         <SocialField
           icon={
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600">
-              <Facebook className="h-5 w-5 text-white" />
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-black">
+              <XBrandIcon className="h-4 w-4 text-white" />
+            </div>
+          }
+          prefix="@"
+          value={formData.x}
+          onChange={v => setFormData({ ...formData, x: v })}
+          placeholder="username"
+        />
+        <SocialField
+          icon={
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600">
+              <Facebook className="h-4 w-4 text-white" />
             </div>
           }
           prefix="https://"
@@ -3023,8 +3043,8 @@ const ComingSoonModal = ({
         />
         <SocialField
           icon={
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FEE500]">
-              <KakaoTalkBrandIcon className="h-6 w-6 text-white" />
+            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#FEE500]">
+              <KakaoTalkBrandIcon className="h-4 w-4 text-white" />
             </div>
           }
           prefix="https://"
@@ -3035,8 +3055,8 @@ const ComingSoonModal = ({
       </div>
       <SocialField
         icon={
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-700">
-            <ExternalLink className="h-5 w-5 text-white" />
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-slate-700">
+            <ExternalLink className="h-4 w-4 text-white" />
           </div>
         }
         prefix="https://"
@@ -3047,7 +3067,7 @@ const ComingSoonModal = ({
       {error && <p className="text-center text-sm text-red-400">{error}</p>}
       <Button
         type="submit"
-        className="w-full rounded-xl bg-emerald-500 py-3 font-semibold text-white transition-all hover:bg-white hover:text-emerald-500"
+        className="w-full rounded-lg bg-emerald-500 py-2 text-sm font-semibold text-white transition-all hover:bg-white hover:text-emerald-500"
       >
         Send
       </Button>
@@ -3075,7 +3095,7 @@ const ComingSoonModal = ({
             exit={{ scale: 0.95, opacity: 0 }}
             className={`relative w-full rounded-2xl border shadow-2xl ${
               type === 'register'
-                ? 'max-h-[90vh] max-w-2xl overflow-y-auto border-white/10 bg-[rgba(31,41,51,0.60)] p-6 shadow-lg backdrop-blur-xl md:p-8'
+                ? 'max-h-[90vh] max-w-xl overflow-y-auto border-white/10 bg-[rgba(31,41,51,0.60)] p-5 shadow-lg backdrop-blur-xl md:p-6'
                 : `max-w-md p-8 ${mode === 'dark' ? 'border-white/10 bg-zinc-900' : 'border-black/10 bg-white'}`
             }`}
           >
@@ -3089,7 +3109,7 @@ const ComingSoonModal = ({
                     : 'text-zinc-600 hover:text-black'
               }`}
             >
-              <X className={type === 'register' ? 'h-4 w-4' : 'h-5 w-5'} />
+              <X className={type === 'register' ? 'h-3 w-3' : 'h-5 w-5'} />
             </button>
             {!submitted ? (
               <>
@@ -3105,7 +3125,7 @@ const ComingSoonModal = ({
                 )}
                 <form
                   onSubmit={type === 'register' ? handleRegisterSubmit : handleSubmit}
-                  className="space-y-4"
+                  className="space-y-3"
                 >
                   {type === 'tutor' && renderTutorForm()}
                   {type === 'academy' && renderAcademyForm()}
