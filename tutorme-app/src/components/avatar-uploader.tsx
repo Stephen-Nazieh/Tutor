@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog'
 import { Slider } from '@/components/ui/slider'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { RotateCcw, Pencil, Trash2 } from 'lucide-react'
+import { RotateCcw, Pencil, Trash2, Image as ImageIcon, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface AvatarUploaderProps {
@@ -25,6 +25,11 @@ interface AvatarUploaderProps {
   uploadUrl: string
   /** API endpoint to DELETE the avatar */
   deleteUrl: string
+  /** GET endpoint returning preset avatars `{ avatars: {name,url}[] }`. When set
+   *  with `presetSelectUrl`, a "Choose from gallery" option is shown. */
+  presetListUrl?: string
+  /** POST endpoint that sets the avatar to a chosen preset (body `{ url }`). */
+  presetSelectUrl?: string
   /** Size of the avatar preview circle */
   size?: number
   /** Whether to show the delete button */
@@ -58,6 +63,8 @@ export function AvatarUploader({
   onDeleteSuccess,
   uploadUrl,
   deleteUrl,
+  presetListUrl,
+  presetSelectUrl,
   size = 80,
   allowDelete = true,
   fallbackText = '?',
@@ -65,6 +72,68 @@ export function AvatarUploader({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+
+  // Preset gallery state
+  const presetsEnabled = !!presetListUrl && !!presetSelectUrl
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [galleryLoading, setGalleryLoading] = useState(false)
+  const [galleryAvatars, setGalleryAvatars] = useState<{ name: string; url: string }[]>([])
+  const [selectingUrl, setSelectingUrl] = useState<string | null>(null)
+
+  const openGallery = useCallback(async () => {
+    if (!presetListUrl) return
+    setGalleryOpen(true)
+    setGalleryLoading(true)
+    try {
+      const res = await fetch(presetListUrl, { credentials: 'include' })
+      const data = await res.json().catch(() => ({}))
+      setGalleryAvatars(Array.isArray(data?.avatars) ? data.avatars : [])
+    } catch {
+      setGalleryAvatars([])
+      toast.error('Could not load avatars')
+    } finally {
+      setGalleryLoading(false)
+    }
+  }, [presetListUrl])
+
+  const selectPreset = useCallback(
+    async (url: string) => {
+      if (!presetSelectUrl) return
+      setSelectingUrl(url)
+      try {
+        const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+        const csrfData = await csrfRes.json().catch(() => ({}))
+        const csrfToken = csrfData?.token ?? null
+        const res = await fetch(presetSelectUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
+          },
+          credentials: 'include',
+          body: JSON.stringify({ url }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) {
+          toast.error(data?.error || 'Failed to set avatar')
+          return
+        }
+        const newUrl: string = data?.avatarUrl ?? url
+        const fullUrl =
+          newUrl.startsWith('/') && typeof window !== 'undefined'
+            ? `${window.location.origin}${newUrl}`
+            : newUrl
+        onUploadSuccess(fullUrl)
+        toast.success('Avatar updated')
+        setGalleryOpen(false)
+      } catch {
+        toast.error('Failed to set avatar')
+      } finally {
+        setSelectingUrl(null)
+      }
+    },
+    [presetSelectUrl, onUploadSuccess]
+  )
 
   // Crop dialog state
   const [cropDialogOpen, setCropDialogOpen] = useState(false)
@@ -500,6 +569,19 @@ export function AvatarUploader({
               <Pencil className="h-4 w-4" />
               Change photo
             </button>
+            {presetsEnabled && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false)
+                  void openGallery()
+                }}
+                className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm transition-colors hover:bg-white/10"
+              >
+                <ImageIcon className="h-4 w-4" />
+                Choose from gallery
+              </button>
+            )}
             {allowDelete && avatarUrl && (
               <button
                 type="button"
@@ -526,6 +608,45 @@ export function AvatarUploader({
           className="hidden"
         />
       </div>
+
+      {/* Preset gallery dialog */}
+      <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-white">Choose an avatar</DialogTitle>
+          </DialogHeader>
+          {galleryLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-6 w-6 animate-spin text-white/70" />
+            </div>
+          ) : galleryAvatars.length === 0 ? (
+            <p className="py-8 text-center text-sm text-white/70">No avatars available yet.</p>
+          ) : (
+            <div className="grid max-h-[60vh] grid-cols-4 gap-3 overflow-y-auto p-1 sm:grid-cols-5">
+              {galleryAvatars.map(a => {
+                const isSelecting = selectingUrl === a.url
+                return (
+                  <button
+                    key={a.url}
+                    type="button"
+                    disabled={selectingUrl !== null}
+                    onClick={() => void selectPreset(a.url)}
+                    className="group relative aspect-square overflow-hidden rounded-full border-2 border-white/15 bg-white/5 transition-all hover:border-[#1D4ED8] focus:border-[#1D4ED8] focus:outline-none disabled:opacity-60"
+                    aria-label={`Select ${a.name}`}
+                  >
+                    <img src={a.url} alt={a.name} className="h-full w-full object-cover" />
+                    {isSelecting && (
+                      <span className="absolute inset-0 flex items-center justify-center bg-black/40">
+                        <Loader2 className="h-5 w-5 animate-spin text-white" />
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Crop Dialog */}
       <Dialog
