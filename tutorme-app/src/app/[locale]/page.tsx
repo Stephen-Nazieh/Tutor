@@ -1696,30 +1696,38 @@ const LanguageSelector = ({
 }
 
 const CountdownTimer = () => {
-  const [timeLeft, setTimeLeft] = useState({ days: 14, hours: 5, minutes: 40, seconds: 1 })
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        let { days, hours, minutes, seconds } = prev
-        seconds -= 1
-        if (seconds < 0) {
-          seconds = 59
-          minutes -= 1
-        }
-        if (minutes < 0) {
-          minutes = 59
-          hours -= 1
-        }
-        if (hours < 0) {
-          hours = 23
-          days -= 1
-        }
-        if (days < 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
-        return { days, hours, minutes, seconds }
-      })
-    }, 1000)
+    if (typeof window === 'undefined') return
+
+    const STORAGE_KEY = 'solocorn-launch-target'
+    let targetRaw = window.localStorage.getItem(STORAGE_KEY)
+    if (!targetRaw) {
+      const target = Date.now() + 45 * 24 * 60 * 60 * 1000
+      window.localStorage.setItem(STORAGE_KEY, target.toString())
+      targetRaw = target.toString()
+    }
+    const targetDate = parseInt(targetRaw, 10)
+
+    const calculate = () => {
+      const diff = targetDate - Date.now()
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+        return
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+      setTimeLeft({ days, hours, minutes, seconds })
+    }
+
+    calculate()
+    const timer = setInterval(calculate, 1000)
     return () => clearInterval(timer)
   }, [])
+
   const units = [
     { value: timeLeft.days, label: 'DAYS' },
     { value: timeLeft.hours, label: 'HOURS' },
@@ -2389,8 +2397,8 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                 {/* Right column: bio */}
                 {selectedCourse?.tutor?.bio && (
                   <div className="hidden self-stretch md:block">
-                    <div className="h-full rounded-lg border border-[#1F2933] bg-white px-2 py-1">
-                      <p className="line-clamp-3 text-xs leading-snug text-[#1F2933]">
+                    <div className="h-full rounded-lg border border-slate-300 bg-white px-2 py-1">
+                      <p className="line-clamp-5 text-xs leading-snug text-[#1F2933]">
                         {selectedCourse.tutor.bio}
                       </p>
                     </div>
@@ -4879,7 +4887,13 @@ export default function LandingPage() {
           </header>
 
           <div className="relative z-10 flex min-h-[calc(100vh-160px)] flex-col items-center justify-center px-6 text-center">
-            <h1 className="text-balance text-[32px] font-medium leading-tight text-white md:text-[36px]">
+            <h1
+              className={cn(
+                'text-balance text-[32px] font-medium leading-tight text-white transition-opacity duration-200 md:text-[36px]',
+                (showCategories || howItWorksOpen || modalType !== null || contactModalOpen) &&
+                  'opacity-0'
+              )}
+            >
               Live AI-Augmented Tutoring Platform
             </h1>
 

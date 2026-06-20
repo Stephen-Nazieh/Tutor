@@ -30,31 +30,33 @@ const CELEBRITY_TUTORS = [
 // --- Components ---
 
 export const CountdownTimer = () => {
-  const [timeLeft, setTimeLeft] = useState({ days: 14, hours: 5, minutes: 40, seconds: 1 });
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        let { days, hours, minutes, seconds } = prev;
-        seconds -= 1;
-        if (seconds < 0) {
-          seconds = 59;
-          minutes -= 1;
-        }
-        if (minutes < 0) {
-          minutes = 59;
-          hours -= 1;
-        }
-        if (hours < 0) {
-          hours = 23;
-          days -= 1;
-        }
-        if (days < 0) {
-          return { days: 0, hours: 0, minutes: 0, seconds: 0 };
-        }
-        return { days, hours, minutes, seconds };
-      });
-    }, 1000);
+    const STORAGE_KEY = 'solocorn-launch-target';
+    let targetRaw = window.localStorage.getItem(STORAGE_KEY);
+    if (!targetRaw) {
+      const target = Date.now() + 45 * 24 * 60 * 60 * 1000;
+      window.localStorage.setItem(STORAGE_KEY, target.toString());
+      targetRaw = target.toString();
+    }
+    const targetDate = parseInt(targetRaw, 10);
+
+    const calculate = () => {
+      const diff = targetDate - Date.now();
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft({ days, hours, minutes, seconds });
+    };
+
+    calculate();
+    const timer = setInterval(calculate, 1000);
     return () => clearInterval(timer);
   }, []);
 
