@@ -219,7 +219,7 @@ function TutorControlsPanel({
                       value="build"
                       className={cn(
                         modeButtonBase,
-                        'data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=active]:shadow-sm',
+                        'data-[state=active]:bg-gray-800 data-[state=active]:text-white data-[state=active]:shadow-sm',
                         'text-white/70 hover:text-white'
                       )}
                     >
@@ -230,7 +230,7 @@ function TutorControlsPanel({
                       value="test"
                       className={cn(
                         modeButtonBase,
-                        'data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=active]:shadow-sm',
+                        'data-[state=active]:bg-gray-800 data-[state=active]:text-white data-[state=active]:shadow-sm',
                         'text-white/70 hover:text-white'
                       )}
                     >
@@ -241,7 +241,7 @@ function TutorControlsPanel({
                       value="classroom"
                       className={cn(
                         modeButtonBase,
-                        'data-[state=active]:bg-white/20 data-[state=active]:text-white data-[state=active]:shadow-sm',
+                        'data-[state=active]:bg-gray-800 data-[state=active]:text-white data-[state=active]:shadow-sm',
                         'text-white/70 hover:text-white'
                       )}
                     >
@@ -252,7 +252,7 @@ function TutorControlsPanel({
                 </Tabs>
 
                 {/* Action buttons */}
-                <div className="mt-2 grid grid-cols-2 gap-2">
+                <div className="mt-3 grid grid-cols-2 gap-2">
                   <div className="flex flex-col gap-2">
                     <button
                       type="button"
