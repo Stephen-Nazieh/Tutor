@@ -425,20 +425,15 @@ function CourseBuilderInsightsRouteInner({
     }
   }, [insightsProps.sessionId, tabFromUrl, isClassroomMode])
 
-  // Prevent tab switching away from live in classroom mode
-  const handleMainTabChange = useCallback(
-    (tab: 'live' | 'builder' | 'test-pci') => {
-      if (isClassroomMode) {
-        setActiveMainTab('live')
-        return
-      }
-      setActiveMainTab(tab)
-      if (tab === 'builder') setControlsMode('build')
-      if (tab === 'test-pci') setControlsMode('test')
-      if (tab === 'live') setControlsMode('classroom')
-    },
-    [isClassroomMode]
-  )
+  // Allow switching between Live / Build / Test even during a live session so
+  // tutors can edit and test the course mid-class. Classroom mode only sets the
+  // INITIAL tab to 'live' (see the effect above) — it no longer locks it.
+  const handleMainTabChange = useCallback((tab: 'live' | 'builder' | 'test-pci') => {
+    setActiveMainTab(tab)
+    if (tab === 'builder') setControlsMode('build')
+    if (tab === 'test-pci') setControlsMode('test')
+    if (tab === 'live') setControlsMode('classroom')
+  }, [])
 
   const handleControlsModeChange = useCallback(
     (mode: ControlsMode) => {
