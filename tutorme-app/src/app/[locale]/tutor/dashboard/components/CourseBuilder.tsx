@@ -5780,11 +5780,10 @@ FEEDBACK: [your explanation]`
               >
                 <div className="flex h-full min-h-0 flex-col pr-1">
                   <Card className="flex h-full min-h-0 flex-1 flex-col rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]">
-                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-1">
-                      {/* Header */}
-                      <div className="-mx-1 -mt-1 mb-2 flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white sticky top-0 z-10">
-                        Curriculum
-                      </div>
+                    <div className="flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white sticky top-0 z-10">
+                      Curriculum
+                    </div>
+                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-1 pt-0">
 
                       {mainTab !== 'live' && mainTab !== 'test-pci' && canEdit && (
                         <Button
@@ -7654,16 +7653,16 @@ FEEDBACK: [your explanation]`
                             setLiveRightPanelTab(value as 'submissions' | 'insights')
                           }
                         >
-                          <TabsList className="flex w-auto items-center gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
+                          <TabsList className="grid w-full grid-cols-2 gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
                             <TabsTrigger
                               value="submissions"
-                              className="h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
+                              className="h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
                             >
                               Submissions
                             </TabsTrigger>
                             <TabsTrigger
                               value="insights"
-                              className="h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
+                              className="h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
                             >
                               Insights
                             </TabsTrigger>

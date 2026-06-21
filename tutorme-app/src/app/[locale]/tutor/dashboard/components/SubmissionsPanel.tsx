@@ -301,12 +301,12 @@ export function SubmissionsPanel({
           className="absolute bottom-4 right-0 top-0 z-40 flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]"
           style={{ width }}
         >
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <div className="text-sm font-semibold text-[#1F2933]">Desk</div>
-            {headerExtra}
+          <div className="flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white sticky top-0 z-10">
+            Desk
           </div>
+          {headerExtra && <div className="px-2 pt-2">{headerExtra}</div>}
 
-          <ScrollArea className="min-h-0 flex-1 p-3">
+          <ScrollArea className={cn('min-h-0 flex-1', headerExtra ? 'p-3 pt-0' : 'p-3')}>
             {loading ? (
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Loader2 className="h-4 w-4 animate-spin" />
