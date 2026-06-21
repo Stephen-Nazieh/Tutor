@@ -43,7 +43,7 @@ export function SupportPage({ subtitle, heroGradient, topics }: SupportPageProps
       {/* Hero */}
       <section
         className={cn(
-          'relative mb-4 flex-shrink-0 overflow-hidden rounded-[20px] border border-white/10 p-5 shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5',
+          'relative mb-4 flex-shrink-0 overflow-hidden rounded-[20px] border border-white/10 p-5 shadow-[0_12px_40px_rgba(0,0,0,0.14)]',
           heroGradient
         )}
       >
@@ -55,7 +55,7 @@ export function SupportPage({ subtitle, heroGradient, topics }: SupportPageProps
 
       {/* Lower panel */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-0.5">
-        <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_18px_60px_rgba(0,0,0,0.16)] ring-1 ring-black/5">
+        <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.14)]">
           {/* Mode selector cards */}
           <div className="grid flex-shrink-0 grid-cols-2 gap-3 p-5 pb-3 sm:grid-cols-4">
             {topics.map(topic => {
