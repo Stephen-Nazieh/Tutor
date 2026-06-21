@@ -5790,7 +5790,7 @@ FEEDBACK: [your explanation]`
                     <div className="sticky top-0 z-10 flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white">
                       Curriculum
                     </div>
-                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
+                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 pt-3 pb-0">
                       {mainTab !== 'live' && mainTab !== 'test-pci' && canEdit && (
                         <Button
                           size="sm"
