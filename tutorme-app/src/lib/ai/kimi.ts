@@ -126,6 +126,7 @@ export async function chatWithKimi(
     maxTokens?: number
     timeoutMs?: number
     retries?: number
+    usageContext?: UsageContext
   } = {}
 ): Promise<string> {
   if (isGeminiActive()) {
@@ -166,6 +167,14 @@ export async function chatWithKimi(
     }
 
     const data: KimiResponse = await response.json()
+    void recordLlmUsage({
+      provider: 'kimi',
+      model: options.model || DEFAULT_MODEL,
+      promptTokens: data.usage?.prompt_tokens,
+      completionTokens: data.usage?.completion_tokens,
+      totalTokens: data.usage?.total_tokens,
+      context: options.usageContext,
+    })
     return data.choices[0]?.message?.content || ''
   } catch (error) {
     console.error('Kimi chat error:', error)
