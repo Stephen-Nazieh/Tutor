@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect, useRef } from 'react'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { LucideIcon } from 'lucide-react'
+import { SupportAiAssistant } from './support-ai-assistant'
 
 export interface TopicItem {
   title: string
@@ -26,6 +27,7 @@ interface SupportPageProps {
 
 export function SupportPage({ subtitle, heroGradient, topics }: SupportPageProps) {
   const [activeTopic, setActiveTopic] = useState(topics[0]?.value ?? '')
+  const showAssistant = ['faq', 'getting-started', 'policies'].includes(activeTopic)
   const activeTopicData = useMemo(
     () => topics.find(t => t.value === activeTopic) || topics[0],
     [activeTopic, topics]
@@ -80,23 +82,33 @@ export function SupportPage({ subtitle, heroGradient, topics }: SupportPageProps
             })}
           </div>
 
-          {/* Content panel */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-5">
-            <div className="flex-shrink-0 pb-2">
-              <h2 className="text-lg font-semibold text-slate-900">{activeTopicData.title}</h2>
-              <p className="text-sm text-slate-500">{activeTopicData.description}</p>
+          {/* Content + Assistant */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden sm:flex-row">
+            {/* Content panel */}
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-5">
+              <div className="flex-shrink-0 pb-2">
+                <h2 className="text-lg font-semibold text-slate-900">{activeTopicData.title}</h2>
+                <p className="text-sm text-slate-500">{activeTopicData.description}</p>
+              </div>
+              <div
+                ref={contentRef}
+                className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto"
+              >
+                {activeTopicData.items.map((item, idx) => (
+                  <div key={idx} className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+                    <h4 className="font-medium text-gray-900">{item.title}</h4>
+                    <p className="mt-1 text-sm text-gray-600">{item.description}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div
-              ref={contentRef}
-              className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto"
-            >
-              {activeTopicData.items.map((item, idx) => (
-                <div key={idx} className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-                  <h4 className="font-medium text-gray-900">{item.title}</h4>
-                  <p className="mt-1 text-sm text-gray-600">{item.description}</p>
-                </div>
-              ))}
-            </div>
+
+            {/* AI Assistant sidebar */}
+            {showAssistant && (
+              <div className="flex h-80 min-h-0 w-full flex-col border-t border-[#E5E7EB] sm:h-auto sm:w-80 sm:border-l sm:border-t-0">
+                <SupportAiAssistant />
+              </div>
+            )}
           </div>
         </div>
       </div>
