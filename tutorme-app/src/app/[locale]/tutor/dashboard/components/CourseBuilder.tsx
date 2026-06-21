@@ -5778,12 +5778,12 @@ FEEDBACK: [your explanation]`
                 ref={leftPanelRef}
                 style={{ width: leftPanelWidth }}
               >
-                <div className="flex h-full min-h-0 flex-col pr-1">
-                  <Card className="flex h-full min-h-0 flex-1 flex-col rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]">
+                <div className="flex h-full min-h-0 flex-col">
+                  <Card className="-ml-3 flex h-full min-h-0 flex-1 flex-col rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)] sm:-ml-4">
                     <div className="flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white sticky top-0 z-10">
                       Curriculum
                     </div>
-                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-1 pt-0">
+                    <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-0.5 pt-0">
 
                       {mainTab !== 'live' && mainTab !== 'test-pci' && canEdit && (
                         <Button
