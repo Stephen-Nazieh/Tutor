@@ -447,6 +447,7 @@ function CoursePageInner() {
   const [scheduleCourse, setScheduleCourse] = useState<Course | null>(null)
   const [enteringClass, setEnteringClass] = useState<string | null>(null)
   const [unregisteringId, setUnregisteringId] = useState<string | null>(null)
+  const [statsRefreshKey, setStatsRefreshKey] = useState(0)
   const router = useRouter()
 
   const handleUnregister = useCallback(
@@ -478,6 +479,7 @@ function CoursePageInner() {
           toast.success('Unregistered from the course')
         }
         await loadCourses()
+        setStatsRefreshKey(k => k + 1)
       } catch {
         toast.error('Failed to unregister from the course')
       } finally {
@@ -526,7 +528,11 @@ function CoursePageInner() {
     <div className="text-foreground flex min-h-full flex-col bg-white px-3 lg:h-full lg:overflow-hidden lg:px-4">
       {/* Hero */}
       <div className="mb-4 flex-shrink-0">
-        <StudentHeroSection title="My Courses" showGreeting={false} />
+        <StudentHeroSection
+          title="My Courses"
+          showGreeting={false}
+          refreshSignal={statsRefreshKey}
+        />
       </div>
 
       {/* Course Details Modal */}
@@ -1040,9 +1046,10 @@ function CourseCard({
 }) {
   const SubjectIcon = SUBJECT_ICONS[course.subject] || SUBJECT_ICONS.default
   const progress = course.progress
-  const progressPercent = progress
-    ? Math.round((progress.lessonsCompleted / progress.totalLessons) * 100)
-    : 0
+  const progressPercent =
+    progress && progress.totalLessons > 0
+      ? Math.round((progress.lessonsCompleted / progress.totalLessons) * 100)
+      : 0
   const isPending =
     course.enrollment?.startDate && new Date(course.enrollment.startDate) > new Date()
   const isOngoing = !isPending && (!progress || !progress.isCompleted)
