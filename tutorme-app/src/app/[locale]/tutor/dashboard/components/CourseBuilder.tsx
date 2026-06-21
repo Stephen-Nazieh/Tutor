@@ -5781,26 +5781,21 @@ FEEDBACK: [your explanation]`
                 <div className="flex h-full min-h-0 flex-col pr-1">
                   <Card className="flex h-full min-h-0 flex-1 flex-col rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]">
                     <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden p-1">
-                      {/* Header with Hide, Import, and +Lesson buttons */}
-                      <div className="mb-2 flex min-h-[58px] items-center justify-between px-1 pt-1">
-                        <div className="flex flex-col justify-center gap-1">
-                          <div className="flex items-center gap-2">
-                            <div className="text-sm font-semibold text-[#1F2933]">Curriculum</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {mainTab !== 'live' && mainTab !== 'test-pci' && canEdit && (
-                            <Button
-                              size="sm"
-                              onClick={addCourseBuilderNode}
-                              className="h-7 gap-1 px-2 text-xs"
-                            >
-                              <Plus className="h-3 w-3" />
-                              Lesson
-                            </Button>
-                          )}
-                        </div>
+                      {/* Header */}
+                      <div className="-mx-1 -mt-1 mb-2 flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white sticky top-0 z-10">
+                        Curriculum
                       </div>
+
+                      {mainTab !== 'live' && mainTab !== 'test-pci' && canEdit && (
+                        <Button
+                          size="sm"
+                          onClick={addCourseBuilderNode}
+                          className="mb-2 h-8 w-full gap-1 text-xs"
+                        >
+                          <Plus className="h-3 w-3" />
+                          Lesson
+                        </Button>
+                      )}
 
                       {!hideDirectorySearch && (
                         <div className="relative mb-2">
@@ -7695,31 +7690,33 @@ FEEDBACK: [your explanation]`
                           className="absolute bottom-4 right-0 top-0 z-40 flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]"
                           style={{ width: rightPanelWidth }}
                         >
-                          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                            <div className="text-sm font-semibold text-[#1F2933]">Desk</div>
+                          <div className="flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white sticky top-0 z-10">
+                            Desk
+                          </div>
+                          <div className="px-2 pt-2">
                             <Tabs
                               value={liveRightPanelTab}
                               onValueChange={value =>
                                 setLiveRightPanelTab(value as 'submissions' | 'insights')
                               }
                             >
-                              <TabsList className="flex w-auto items-center gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
+                              <TabsList className="grid w-full grid-cols-2 gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
                                 <TabsTrigger
                                   value="submissions"
-                                  className="h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
+                                  className="h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
                                 >
                                   Submissions
                                 </TabsTrigger>
                                 <TabsTrigger
                                   value="insights"
-                                  className="h-8 flex-1 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
+                                  className="h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
                                 >
                                   Insights
                                 </TabsTrigger>
                               </TabsList>
                             </Tabs>
                           </div>
-                          <div className="min-h-0 flex-1 overflow-hidden p-2">
+                          <div className="min-h-0 flex-1 overflow-hidden p-2 pt-0">
                             {insightsProps ? (
                               <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-blue-200/70 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-1 shadow-[0_10px_40px_-20px_rgba(29,78,216,0.45)] ring-1 ring-blue-200/60">
                                 <Tabs
