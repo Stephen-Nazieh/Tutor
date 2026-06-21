@@ -21,7 +21,6 @@ import {
   Loader2,
   BookOpen,
   Edit3,
-  MoreVertical,
   Plus,
   Timer,
   LayoutTemplate,
@@ -42,12 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu'
+
 import { useSearchParams, usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
@@ -930,65 +924,7 @@ function CourseBuilderInsightsRouteInner({
                   Editing
                 </div>
               )}
-              {activeMainTab === 'builder' && onSaveCourse && (
-                <Button
-                  variant="outline"
-                  className="gap-2 font-medium text-slate-700 hover:text-slate-900"
-                  onClick={async () => {
-                    const cb = (model.courseBuilderRef.current as any)?.saveAll
-                    if (typeof cb === 'function') {
-                      await cb()
-                    } else {
-                      toast.error('Builder not ready to save')
-                    }
-                  }}
-                >
-                  <Save className="h-4 w-4" />
-                  Save
-                </Button>
-              )}
-              {activeMainTab === 'builder' &&
-                courseId &&
-                courseId !== 'insights-draft' &&
-                (saveMode === 'draft' || (saveMode === 'live' && isCourseVariant)) && (
-                  <Button
-                    variant="default"
-                    className="gap-2 bg-blue-600 font-medium text-white hover:bg-blue-700"
-                    onClick={saveMode === 'draft' ? handlePublishDraft : openRescheduleDialog}
-                  >
-                    <Calendar className="h-4 w-4" />
-                    {saveMode === 'draft' ? 'Schedule' : 'Reschedule'}
-                  </Button>
-                )}
-              {/* Kebab menu — visible for all real courses on the builder tab */}
-              {activeMainTab === 'builder' && courseId && courseId !== 'insights-draft' && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="shrink-0">
-                      <MoreVertical className="h-5 w-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {/* Go Live only when in draft mode and no active session */}
-                    {saveMode === 'draft' && !insightsProps.sessionId && (
-                      <DropdownMenuItem onClick={handleStartSessionClick}>
-                        <VideoIcon className="mr-2 h-4 w-4 text-green-600" />
-                        Go Live
-                      </DropdownMenuItem>
-                    )}
-                    {onDeleteCourse && (
-                      <DropdownMenuItem
-                        onClick={onDeleteCourse}
-                        disabled={!!insightsProps.sessionId}
-                        className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete Course
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+
             </div>
           </div>
 
