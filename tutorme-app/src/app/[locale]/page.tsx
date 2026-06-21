@@ -4605,7 +4605,7 @@ function scrollToElementById(id: string) {
   if (!el) return
 
   const html = document.documentElement
-  const originalSnap = html.style.scrollSnapType
+  const originalSnap = getComputedStyle(html).scrollSnapType
 
   html.style.scrollSnapType = 'none'
   el.scrollIntoView({ behavior: 'auto', block: 'start' })
@@ -5047,16 +5047,16 @@ export default function LandingPage() {
       <style jsx global>{`
         html {
           scroll-behavior: auto !important;
-          scroll-snap-type: y proximity;
+          overflow-x: visible !important;
+          overflow-y: auto !important;
+          scroll-snap-type: y proximity !important;
         }
-        /* The global body overflow-x:hidden makes Chrome treat the body as the
-           scroller and disables root scroll-snap. Reset it on this page so the
+        /* The global html/body overflow-x:hidden can make Chrome treat the body
+           as the scroller and disable root scroll-snap. Reset both here so the
            viewport scroller stays the html element. */
         body {
           overflow-x: visible !important;
-        }
-        .snap-panel {
-          scroll-snap-stop: always;
+          overflow-y: visible !important;
         }
         .snap-align-none {
           scroll-snap-align: none;

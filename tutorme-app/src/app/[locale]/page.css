@@ -1,19 +1,18 @@
 html {
   scroll-behavior: auto !important;
-  scroll-snap-type: y proximity;
+  overflow-x: visible !important;
+  overflow-y: auto !important;
+  scroll-snap-type: y proximity !important;
 }
 
 /*
-  globals.css sets body { overflow-x: hidden }. On the landing page that makes
-  Chrome treat the body as the viewport scroller and disables root scroll-snap.
-  Reset it here so the viewport scroller stays the html element.
+  globals.css sets html/body { overflow-x: hidden }, which can make Chrome treat
+  the body as the viewport scroller and disable root scroll-snap. Reset both
+  here so the viewport scroller stays the html element.
 */
 body {
   overflow-x: visible !important;
-}
-
-.snap-panel {
-  scroll-snap-stop: always;
+  overflow-y: visible !important;
 }
 
 .snap-align-none {
