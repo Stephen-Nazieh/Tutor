@@ -124,7 +124,7 @@ export const POST = withCsrf(
           message: refundInfo
             ? `A student unregistered from "${courseRow.name}". A partial refund of ${refundInfo.currency} ${refundInfo.amount.toFixed(2)} is pending your review.`
             : `A student unregistered from "${courseRow.name}".`,
-          actionUrl: `/tutor/courses/${courseId}/enrollments`,
+          actionUrl: refundInfo ? `/tutor/refunds` : `/tutor/courses/${courseId}/enrollments`,
         }).catch(err => console.warn('[unenroll] tutor notify failed (non-critical):', err))
       }
 
