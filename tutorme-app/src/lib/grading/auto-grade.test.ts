@@ -32,7 +32,25 @@ describe('autoGradeDmi', () => {
   it('marks wrong/blank answers incorrect (conservative)', () => {
     const r = autoGradeDmi(items, { q1: 'London', q2: '', q3: 'respiration' })
     expect(r.score).toBe(0)
-    expect(r.questionResults?.q1.correct).toBe(false)
+    const q1 = r.questionResults?.find(x => x.questionId === 'q1')
+    expect(q1?.correct).toBe(false)
+  })
+
+  it('returns the canonical QuestionResultItem array shape without the answer key', () => {
+    const r = autoGradeDmi(items, { q1: 'Paris', q2: '7', q3: 'photosynthesis' })
+    expect(Array.isArray(r.questionResults)).toBe(true)
+    expect(r.questionResults).toHaveLength(3)
+    const q1 = r.questionResults?.find(x => x.questionId === 'q1')
+    expect(q1).toMatchObject({
+      questionId: 'q1',
+      correct: true,
+      pointsEarned: 100,
+      pointsMax: 100,
+      selectedAnswer: 'Paris',
+    })
+    // The expected answer key must never be embedded (questionResults is
+    // student-readable).
+    expect(JSON.stringify(r.questionResults)).not.toContain('Photosynthesis')
   })
 
   it('does not over-credit a single word against a long expected answer', () => {

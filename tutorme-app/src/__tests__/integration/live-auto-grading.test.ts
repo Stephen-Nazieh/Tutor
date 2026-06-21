@@ -80,7 +80,7 @@ import { GET as getComprehension } from '@/app/api/tutor/live-sessions/[sessionI
 async function gradeAndPersistCompletion(answers: Record<string, string>) {
   const now = new Date()
   let autoScore: number | null = null
-  let autoResults: Record<string, unknown> | null = null
+  let autoResults: ReturnType<typeof autoGradeDmi>['questionResults'] = null
   const [dmi] = await drizzleDb
     .select({ items: builderTaskDmi.items })
     .from(builderTaskDmi)
@@ -192,10 +192,13 @@ describe('Live auto-grading end-to-end', () => {
     expect(row?.score).toBe(EXPECTED_SCORE)
     // Per-item correctness recorded; stays 'submitted' so the tutor can override.
     expect(row?.status).toBe('submitted')
-    const qr = row?.questionResults as Record<string, { correct: boolean }> | null
-    expect(qr?.q1.correct).toBe(true)
-    expect(qr?.q2.correct).toBe(false)
-    expect(qr?.q3.correct).toBe(true)
+    const qr = row?.questionResults as { questionId: string; correct: boolean }[] | null
+    expect(Array.isArray(qr)).toBe(true)
+    expect(qr?.find(x => x.questionId === 'q1')?.correct).toBe(true)
+    expect(qr?.find(x => x.questionId === 'q2')?.correct).toBe(false)
+    expect(qr?.find(x => x.questionId === 'q3')?.correct).toBe(true)
+    // The answer key must never be persisted in the student-readable results.
+    expect(JSON.stringify(qr)).not.toContain('Photosynthesis')
   })
 
   it('surfaces the score as live Understanding via the real comprehension route', async () => {
