@@ -16,6 +16,7 @@ import { Bell, Calendar, Clock, Loader2, PlayCircle, Video } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ensurePushSubscription, isPushSupported } from '@/lib/push/client'
+import { categorizeLobbySessions } from '@/lib/classroom/lobby-sessions'
 
 interface LobbySession {
   id: string
@@ -26,6 +27,7 @@ interface LobbySession {
   status: string
   isVirtual?: boolean
   durationMinutes?: number
+  recordingUrl?: string | null
 }
 
 const ALERT_THRESHOLDS = [20, 10, 5, 1] // minutes before start
@@ -95,18 +97,10 @@ export function ClassroomLobby({
     })
   }, [])
 
-  const { nextSession, pastSessions } = useMemo(() => {
-    const active = sessions.find(s => s.status === 'active' || s.status === 'live')
-    const upcoming = sessions
-      .filter(s => s.status === 'scheduled' && s.scheduledAt)
-      .sort((a, b) => new Date(a.scheduledAt!).getTime() - new Date(b.scheduledAt!).getTime())
-    const past = sessions
-      .filter(s => s.status === 'ended' || (s.endedAt != null && !s.isVirtual))
-      .sort(
-        (a, b) => new Date(b.scheduledAt || 0).getTime() - new Date(a.scheduledAt || 0).getTime()
-      )
-    return { nextSession: active || upcoming[0] || null, pastSessions: past }
-  }, [sessions])
+  const { nextSession, pastSessions } = useMemo(
+    () => categorizeLobbySessions(sessions),
+    [sessions]
+  )
 
   const msUntilStart =
     nextSession?.scheduledAt != null ? new Date(nextSession.scheduledAt).getTime() - now : null
@@ -308,20 +302,30 @@ export function ClassroomLobby({
         ) : (
           <div className="mt-3 space-y-2">
             {pastSessions.map(s => (
-              <button
+              <div
                 key={s.id}
-                onClick={() => goToSession(s.id)}
-                className={cn(
-                  'flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2 text-left transition-colors',
-                  'hover:border-indigo-200 hover:bg-indigo-50/40'
-                )}
+                className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2 transition-colors hover:border-indigo-200 hover:bg-indigo-50/40"
               >
-                <div className="min-w-0">
+                <button
+                  onClick={() => goToSession(s.id)}
+                  className="min-w-0 flex-1 text-left"
+                >
                   <p className="truncate text-sm font-medium text-slate-800">{s.title}</p>
                   <p className="text-xs text-slate-500">{fmt(s.scheduledAt)}</p>
-                </div>
-                <PlayCircle className="h-4 w-4 shrink-0 text-indigo-500" />
-              </button>
+                </button>
+                {s.recordingUrl ? (
+                  <a
+                    href={s.recordingUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-md bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-100"
+                  >
+                    <PlayCircle className="h-3.5 w-3.5" /> Recording
+                  </a>
+                ) : (
+                  <PlayCircle className="h-4 w-4 shrink-0 text-slate-300" />
+                )}
+              </div>
             ))}
           </div>
         )}

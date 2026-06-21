@@ -537,8 +537,24 @@ export async function initEnhancedSocketServer(server: NetServer) {
     }
   }
 
-  // Track which sessions have already received the 5-min warning
-  const sessionAlertSent = new Set<string>()
+  // Cross-instance dedup for one-shot session alerts (end warning + start
+  // reminders): with >1 app instance each runs these sweeps, so guard each key
+  // with a Redis NX claim — only one instance sends. Falls back to a per-process
+  // Set when Redis is unavailable.
+  const alertClaimFallback = new Set<string>()
+  const claimAlertOnce = async (key: string): Promise<boolean> => {
+    if (redisClient && redisClient.status === 'ready') {
+      try {
+        const res = await redisClient.set(`notif:alert:${key}`, '1', 'EX', 3600, 'NX')
+        return res === 'OK'
+      } catch {
+        // fall through to local dedup
+      }
+    }
+    if (alertClaimFallback.has(key)) return false
+    alertClaimFallback.add(key)
+    return true
+  }
 
   // Session end alert: warn tutors when 5 minutes remain
   intervalHandles.push(
@@ -567,10 +583,10 @@ export async function initEnhancedSocketServer(server: NetServer) {
           const endTime = startTime + durationMs
           const remaining = endTime - now
 
-          // Alert when between 5 min and 4 min 30 sec remaining (to avoid duplicate alerts)
+          // Alert when between 5 min and 4 min 30 sec remaining (deduped across
+          // instances so only one sends the warning).
           if (remaining <= 5 * 60 * 1000 && remaining > 4.5 * 60 * 1000) {
-            if (!sessionAlertSent.has(s.sessionId)) {
-              sessionAlertSent.add(s.sessionId)
+            if (await claimAlertOnce(`ending:${s.sessionId}`)) {
               io.to(s.sessionId).emit('session:ending-soon', {
                 sessionId: s.sessionId,
                 minutesRemaining: 5,
@@ -585,15 +601,6 @@ export async function initEnhancedSocketServer(server: NetServer) {
               .set({ status: 'ended', endedAt: new Date() })
               .where(eq(liveSession.sessionId, s.sessionId))
             io.to(s.sessionId).emit('session:ended', { sessionId: s.sessionId, reason: 'timeout' })
-            sessionAlertSent.delete(s.sessionId)
-          }
-        }
-
-        // Clean up alerts for sessions that are no longer active
-        const activeSessionIds = new Set(activeSessions.map(s => s.sessionId))
-        for (const id of Array.from(sessionAlertSent)) {
-          if (!activeSessionIds.has(id)) {
-            sessionAlertSent.delete(id)
           }
         }
       } catch (err) {
@@ -603,27 +610,9 @@ export async function initEnhancedSocketServer(server: NetServer) {
   )
 
   // Session START reminders: notify the tutor + enrolled students at 20/10/5/1
-  // minutes before scheduledAt (in-app + web-push via notify(); also a socket
-  // 'session:starting-soon' for anyone already in the lobby/room). Fires once per
-  // (session, threshold). Auto-start is NOT done here — a class only goes live
-  // when the tutor takes it live (their presence). This just reminds everyone.
-  // Cross-instance dedup: with >1 app instance each runs this sweep, so guard
-  // each (session, threshold) with a Redis NX claim — only one instance sends.
-  // Falls back to a per-process Set when Redis is unavailable.
-  const startAlertSent = new Set<string>()
-  const claimStartAlert = async (key: string): Promise<boolean> => {
-    if (redisClient && redisClient.status === 'ready') {
-      try {
-        const res = await redisClient.set(`notif:startalert:${key}`, '1', 'EX', 3600, 'NX')
-        return res === 'OK'
-      } catch {
-        // fall through to local dedup
-      }
-    }
-    if (startAlertSent.has(key)) return false
-    startAlertSent.add(key)
-    return true
-  }
+  // minutes before scheduledAt (in-app + web-push via notify()). Fires once per
+  // (session, threshold), deduped across instances via claimAlertOnce. Auto-start
+  // is NOT done here — a class only goes live when the tutor takes it live.
   const START_THRESHOLDS = [20, 10, 5, 1] // minutes
   intervalHandles.push(
     setInterval(async () => {
@@ -650,13 +639,9 @@ export async function initEnhancedSocketServer(server: NetServer) {
             // 30s window aligned to the interval; one send per (session, threshold)
             // across all instances via the Redis-backed claim.
             if (remaining <= t * 60_000 && remaining > t * 60_000 - 30_000) {
-              if (!(await claimStartAlert(key))) continue
+              if (!(await claimAlertOnce(`start:${key}`))) continue
 
               const minLabel = t === 1 ? '1 minute' : `${t} minutes`
-              io.to(s.sessionId).emit('session:starting-soon', {
-                sessionId: s.sessionId,
-                minutesRemaining: t,
-              })
 
               // Tutor reminder → tutor lobby.
               void notifyMany({
@@ -690,13 +675,6 @@ export async function initEnhancedSocketServer(server: NetServer) {
               }
             }
           }
-        }
-
-        // Prune dedup keys for sessions no longer scheduled/upcoming.
-        const upcomingIds = new Set(upcoming.map(s => s.sessionId))
-        for (const key of Array.from(startAlertSent)) {
-          const sid = key.split(':')[0]
-          if (!upcomingIds.has(sid)) startAlertSent.delete(key)
         }
       } catch (err) {
         console.error('[Session Start Alert] Error:', err)
