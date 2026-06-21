@@ -421,6 +421,13 @@
       "when": 1781400000000,
       "tag": "0059_restore_column_defaults",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1781500000000,
+      "tag": "0060_student_availability",
+      "breakpoints": true
     }
   ]
 }
