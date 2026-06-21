@@ -83,16 +83,16 @@ export function SupportPage({ subtitle, heroGradient, topics }: SupportPageProps
           </div>
 
           {/* Content + Assistant */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden sm:flex-row">
-            {/* Content panel */}
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-5">
-              <div className="flex-shrink-0 pb-2">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 sm:flex-row">
+            {/* FAQ / Content panel */}
+            <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
+              <div className="flex-shrink-0 border-b border-[#E5E7EB] p-4">
                 <h2 className="text-lg font-semibold text-slate-900">{activeTopicData.title}</h2>
                 <p className="text-sm text-slate-500">{activeTopicData.description}</p>
               </div>
               <div
                 ref={contentRef}
-                className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto"
+                className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4"
               >
                 {activeTopicData.items.map((item, idx) => (
                   <div key={idx} className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
@@ -101,11 +101,11 @@ export function SupportPage({ subtitle, heroGradient, topics }: SupportPageProps
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
 
-            {/* AI Assistant sidebar */}
+            {/* AI Assistant panel */}
             {showAssistant && (
-              <div className="flex h-80 min-h-0 w-full flex-col border-t border-[#E5E7EB] sm:h-auto sm:w-80 sm:border-l sm:border-t-0">
+              <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
                 <SupportAiAssistant />
               </div>
             )}
