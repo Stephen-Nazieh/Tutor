@@ -1493,7 +1493,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
             // students). Conservative + best-effort — leaves score null when
             // there's no answer key. This feeds the tutor's live Understanding.
             let autoScore: number | null = null
-            let autoResults: Record<string, unknown> | null = null
+            let autoResults: ReturnType<typeof autoGradeDmi>['questionResults'] = null
             try {
               const [dmi] = await drizzleDb
                 .select({ items: builderTaskDmi.items })
