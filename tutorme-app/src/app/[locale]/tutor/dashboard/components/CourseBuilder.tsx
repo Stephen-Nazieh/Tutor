@@ -4498,7 +4498,7 @@ FEEDBACK: [your explanation]`
     }, [courseAssets, assetViewFolder, assetViewSearch])
 
     const renderAssetsFolder = () => (
-      <div className="mt-3 rounded-xl border bg-white shadow-sm">
+      <div className="mt-3 mb-3 rounded-xl border bg-white shadow-sm">
         {/* Header row matching image 1 */}
         <div className="flex items-center justify-between px-3 py-2">
           <span className="text-sm font-semibold text-slate-700">Assets</span>
