@@ -948,6 +948,24 @@ export async function initEnhancedSocketServer(server: NetServer) {
           if (typeof data?.engagement === 'number') student.engagement = data.engagement
           if (typeof data?.understanding === 'number') student.understanding = data.understanding
           if (data?.activity) student.currentActivity = data.activity
+          // Recompute a coarse status from the (now live) engagement signal so the
+          // tutor's Monitor shows a real badge: engaged → on track, waning → needs
+          // a nudge, disengaged/away → idle.
+          const eng = student.engagement
+          student.status = eng >= 60 ? 'on_track' : eng >= 30 ? 'needs_help' : 'idle'
+          // Broadcast to tutors so the Monitor reflects the change immediately
+          // (room_state is only sent on join). use-socket maps this to the roster.
+          io.to(roomId).emit('student_state_update', {
+            userId: socket.data.userId,
+            state: {
+              engagement: student.engagement,
+              understanding: student.understanding,
+              frustration: student.frustration,
+              status: student.status,
+              currentActivity: student.currentActivity,
+              lastActivity: student.lastActivity,
+            },
+          })
         }
       }
     )
