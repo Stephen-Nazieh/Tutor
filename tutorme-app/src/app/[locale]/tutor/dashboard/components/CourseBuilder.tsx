@@ -6686,6 +6686,11 @@ FEEDBACK: [your explanation]`
                                                                                     parentId:
                                                                                       task.id,
                                                                                     isExtension: true,
+                                                                                    // Carry the extension's OWN document so the
+                                                                                    // live session shows its content, not the
+                                                                                    // parent task's.
+                                                                                    sourceDocument:
+                                                                                      ext.sourceDocument,
                                                                                     deployedAt:
                                                                                       Date.now(),
                                                                                     polls: [],
@@ -8569,10 +8574,23 @@ FEEDBACK: [your explanation]`
                                                 ? findAssessmentById(loadedAssessmentId || '')
                                                 : null
 
+                                            // In the Classroom, honor the selected extension just
+                                            // like the Build tab: an extension shows its OWN
+                                            // document, not the parent task's. Falls back to the
+                                            // task document when no extension is active.
+                                            const liveTaskExtension =
+                                              liveTask && taskBuilder.activeExtensionId
+                                                ? liveTask.extensions?.find(
+                                                    e => e.id === taskBuilder.activeExtensionId
+                                                  ) || null
+                                                : null
+
                                             const doc =
                                               mainTab === 'live'
                                                 ? testPciSource === 'task'
-                                                  ? liveTask?.sourceDocument
+                                                  ? liveTaskExtension
+                                                    ? liveTaskExtension.sourceDocument
+                                                    : liveTask?.sourceDocument
                                                   : liveAssessment?.sourceDocument
                                                 : testPciSource === 'task'
                                                   ? currentTaskDocument
