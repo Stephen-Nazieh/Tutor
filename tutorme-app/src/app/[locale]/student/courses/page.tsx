@@ -289,7 +289,9 @@ function CourseCard({
         <div className="mt-2 flex items-center gap-2 text-xs text-slate-300">
           <div className="flex items-center gap-1 font-medium text-slate-200">
             <BookOpen className="h-3.5 w-3.5 text-slate-400" />
-            <span>{course.sessionCount ?? 0} session{course.sessionCount === 1 ? '' : 's'}</span>
+            <span>
+              {course.sessionCount ?? 0} session{course.sessionCount === 1 ? '' : 's'}
+            </span>
           </div>
           <div className="h-3 w-px bg-white/15" />
           <button
@@ -569,7 +571,9 @@ export default function StudentCoursesPage() {
   }
 
   const ongoingCourses = courses.filter(
-    c => !c.progress?.isCompleted && (!c.enrollment?.startDate || new Date(c.enrollment.startDate) <= new Date())
+    c =>
+      !c.progress?.isCompleted &&
+      (!c.enrollment?.startDate || new Date(c.enrollment.startDate) <= new Date())
   )
   const completedCourses = courses.filter(c => c.progress?.isCompleted)
 
@@ -667,7 +671,10 @@ export default function StudentCoursesPage() {
   )
 }
 
-function formatCourseVariantName(variantCategory?: string | null, variantNationality?: string | null) {
+function formatCourseVariantName(
+  variantCategory?: string | null,
+  variantNationality?: string | null
+) {
   if (!variantCategory && !variantNationality) return undefined
   const parts = []
   if (variantCategory) parts.push(variantCategory)
