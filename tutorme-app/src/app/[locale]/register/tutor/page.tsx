@@ -689,9 +689,9 @@ export default function TutorRegistrationPage() {
   ]
 
   const primaryBtnClass =
-    'flex-1 bg-white text-sm font-semibold text-[#1F2933] shadow-[0_4px_14px_rgba(0,0,0,0.15)] transition-all duration-200 hover:bg-[#F97316] hover:text-white hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 active:scale-[0.98]'
+    'flex-1 bg-white text-sm font-semibold text-[#1F2933] shadow-[0_4px_14px_rgba(0,0,0,0.15)] transition-all duration-200 hover:bg-[#F97316] hover:text-white hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] hover:!translate-y-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 active:scale-[0.98]'
   const secondaryBtnClass =
-    'flex-1 bg-white text-sm font-semibold text-[#1F2933] shadow-[0_4px_14px_rgba(0,0,0,0.15)] transition-all duration-200 hover:bg-[#1F2933] hover:text-white hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 active:scale-[0.98]'
+    'flex-1 bg-white text-sm font-semibold text-[#1F2933] shadow-[0_4px_14px_rgba(0,0,0,0.15)] transition-all duration-200 hover:bg-[#1F2933] hover:text-white hover:shadow-[0_6px_20px_rgba(0,0,0,0.2)] hover:!translate-y-0 focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 active:scale-[0.98]'
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-white px-4 pt-[120px] sm:pt-[180px]">
@@ -742,7 +742,8 @@ export default function TutorRegistrationPage() {
             {step === 1 && (
               <>
                 <form autoComplete="off" onSubmit={e => e.preventDefault()}>
-                  <div className="space-y-6">
+                  <div className="space-y-5">
+                    {/* Name row */}
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                       <div className="space-y-1">
                         <Label className="text-xs text-white/70">First Name</Label>
@@ -773,6 +774,7 @@ export default function TutorRegistrationPage() {
                       </div>
                     </div>
 
+                    {/* Email row */}
                     <div className="space-y-1">
                       <Label className="text-xs text-white/70">Email</Label>
                       <Input
@@ -784,143 +786,146 @@ export default function TutorRegistrationPage() {
                         onChange={e => setFormData({ ...formData, email: e.target.value })}
                       />
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-white/70">Password</Label>
-                      <div className="relative">
-                        <Input
-                          className="h-8 border-white/10 bg-white pr-9 text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#2563EB]/40"
-                          type={showPassword ? 'text' : 'password'}
-                          name="tutor_registration_password"
-                          autoComplete="new-password"
-                          value={formData.password}
-                          onChange={e => setFormData({ ...formData, password: e.target.value })}
-                          placeholder="Create a password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(prev => !prev)}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                          aria-label={showPassword ? 'Hide password' : 'Show password'}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-3.5 w-3.5" />
-                          ) : (
-                            <Eye className="h-3.5 w-3.5" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-white/70">Confirm Password</Label>
-                      <div className="relative">
-                        <Input
-                          className="h-8 border-white/10 bg-white pr-9 text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#2563EB]/40"
-                          type={showConfirmPassword ? 'text' : 'password'}
-                          name="tutor_registration_confirm_password"
-                          autoComplete="new-password"
-                          value={formData.confirmPassword}
-                          onChange={e =>
-                            setFormData({ ...formData, confirmPassword: e.target.value })
-                          }
-                          placeholder="Confirm your password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(prev => !prev)}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                          aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                        >
-                          {showConfirmPassword ? (
-                            <EyeOff className="h-3.5 w-3.5" />
-                          ) : (
-                            <Eye className="h-3.5 w-3.5" />
-                          )}
-                        </button>
-                      </div>
-                      <p className="min-h-[18px] text-xs text-red-400">
-                        {passwordMismatch ? 'Passwords do not match.' : '\u00A0'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <Label className="text-xs text-white/70">Where do you live?</Label>
+                    {/* Password row */}
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                      {/* Region */}
-                      <div>
-                        <Select
-                          value={region}
-                          onValueChange={v => {
-                            setRegion(v)
-                            setCountryCode('')
-                          }}
-                        >
-                          <SelectTrigger className="h-8 w-full rounded-md border border-white/10 bg-white px-3 py-2 text-sm text-[#1F2933] shadow-sm transition-all duration-200 hover:border-slate-400/50 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40">
-                            <SelectValue placeholder="Select Region..." />
-                          </SelectTrigger>
-                          <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-md border border-white/10 bg-[#1F2933] p-1.5 shadow-lg">
-                            {REGIONS.filter(r => r.id !== 'global').map(regionItem => (
-                              <SelectItem
-                                key={regionItem.id}
-                                value={regionItem.id}
-                                className="rounded-md text-[13px] text-white/[0.94] hover:bg-white/15 focus:bg-white/20 focus:text-white"
-                              >
-                                {regionItem.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Country */}
-                      <div>
-                        <Select
-                          value={countryCode}
-                          onValueChange={setCountryCode}
-                          disabled={!region}
-                        >
-                          <SelectTrigger
-                            className={cn(
-                              'h-8 w-full rounded-md border border-white/10 bg-white px-3 py-2 text-sm text-[#1F2933] shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40 disabled:text-white disabled:opacity-100',
-                              !region && 'border-slate-400/20 bg-slate-100/50'
-                            )}
+                      <div className="space-y-1">
+                        <Label className="text-xs text-white/70">Password</Label>
+                        <div className="relative">
+                          <Input
+                            className="h-8 border-white/10 bg-white pr-9 text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#2563EB]/40"
+                            type={showPassword ? 'text' : 'password'}
+                            name="tutor_registration_password"
+                            autoComplete="new-password"
+                            value={formData.password}
+                            onChange={e => setFormData({ ...formData, password: e.target.value })}
+                            placeholder="Create a password"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(prev => !prev)}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
                           >
-                            <SelectValue placeholder="Select Country" />
-                          </SelectTrigger>
-                          <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-md border border-white/10 bg-[#1F2933] p-1.5 shadow-lg">
-                            {availableCountries.length === 0 ? (
-                              <div className="py-3 text-center text-[13px] text-white/70">
-                                No countries available
-                              </div>
+                            {showPassword ? (
+                              <EyeOff className="h-3.5 w-3.5" />
                             ) : (
-                              availableCountries.map(country => (
+                              <Eye className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs text-white/70">Confirm Password</Label>
+                        <div className="relative">
+                          <Input
+                            className="h-8 border-white/10 bg-white pr-9 text-sm text-[#1F2933] placeholder:text-gray-400 focus-visible:ring-[#2563EB]/40"
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            name="tutor_registration_confirm_password"
+                            autoComplete="new-password"
+                            value={formData.confirmPassword}
+                            onChange={e =>
+                              setFormData({ ...formData, confirmPassword: e.target.value })
+                            }
+                            placeholder="Confirm your password"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(prev => !prev)}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                          >
+                            {showConfirmPassword ? (
+                              <EyeOff className="h-3.5 w-3.5" />
+                            ) : (
+                              <Eye className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        </div>
+                        <p className="min-h-[18px] text-xs text-red-400">
+                          {passwordMismatch ? 'Passwords do not match.' : '\u00A0'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Region/Country row */}
+                    <div className="space-y-1">
+                      <Label className="text-xs text-white/70">Where do you live?</Label>
+                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                        {/* Region */}
+                        <div>
+                          <Select
+                            value={region}
+                            onValueChange={v => {
+                              setRegion(v)
+                              setCountryCode('')
+                            }}
+                          >
+                            <SelectTrigger className="h-8 w-full rounded-md border border-white/10 bg-white px-3 py-2 text-sm text-[#1F2933] shadow-sm transition-all duration-200 hover:border-slate-400/50 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40">
+                              <SelectValue placeholder="Select Region..." />
+                            </SelectTrigger>
+                            <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-md border border-white/10 bg-[#1F2933] p-1.5 shadow-lg">
+                              {REGIONS.filter(r => r.id !== 'global').map(regionItem => (
                                 <SelectItem
-                                  key={country.code}
-                                  value={country.code}
+                                  key={regionItem.id}
+                                  value={regionItem.id}
                                   className="rounded-md text-[13px] text-white/[0.94] hover:bg-white/15 focus:bg-white/20 focus:text-white"
                                 >
-                                  {country.name}
+                                  {regionItem.name}
                                 </SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Country */}
+                        <div>
+                          <Select
+                            value={countryCode}
+                            onValueChange={setCountryCode}
+                            disabled={!region}
+                          >
+                            <SelectTrigger
+                              className={cn(
+                                'h-8 w-full rounded-md border border-white/10 bg-white px-3 py-2 text-sm text-[#1F2933] shadow-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40 disabled:text-white disabled:opacity-100',
+                                !region && 'border-slate-400/20 bg-slate-100/50'
+                              )}
+                            >
+                              <SelectValue placeholder="Select Country" />
+                            </SelectTrigger>
+                            <SelectContent className="w-[var(--radix-select-trigger-width)] rounded-md border border-white/10 bg-[#1F2933] p-1.5 shadow-lg">
+                              {availableCountries.length === 0 ? (
+                                <div className="py-3 text-center text-[13px] text-white/70">
+                                  No countries available
+                                </div>
+                              ) : (
+                                availableCountries.map(country => (
+                                  <SelectItem
+                                    key={country.code}
+                                    value={country.code}
+                                    className="rounded-md text-[13px] text-white/[0.94] hover:bg-white/15 focus:bg-white/20 focus:text-white"
+                                  >
+                                    {country.name}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="mt-4 flex gap-3">
-                    <Button
-                      className={primaryBtnClass}
-                      onClick={async () => {
-                        if (await validateStepOne()) setStep(2)
-                      }}
-                    >
-                      Next
-                    </Button>
+                    {/* Next button */}
+                    <div className="flex gap-3">
+                      <Button
+                        className={primaryBtnClass}
+                        onClick={async () => {
+                          if (await validateStepOne()) setStep(2)
+                        }}
+                      >
+                        Next
+                      </Button>
+                    </div>
                   </div>
                 </form>
               </>
