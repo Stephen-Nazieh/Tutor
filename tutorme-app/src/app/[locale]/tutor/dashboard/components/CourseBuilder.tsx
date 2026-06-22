@@ -7977,9 +7977,9 @@ FEEDBACK: [your explanation]`
 
             {/* CENTER PANEL - New Three-Section Design */}
             <div
-              className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-center pl-4"
+              className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-center"
               style={{
-                paddingRight: !isStudentView && !rightPanelHidden ? rightPanelWidth + 16 : 16,
+                paddingRight: !isStudentView && !rightPanelHidden ? rightPanelWidth : 0,
               }}
             >
               <div className="flex h-full min-h-0 w-full max-w-6xl flex-1 grow flex-col items-stretch gap-3">
