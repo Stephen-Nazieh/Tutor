@@ -1045,6 +1045,7 @@ function CourseCard({
   unregisteringId?: string | null
 }) {
   const progress = course.progress
+  const category = course.subject
   const progressPercent =
     progress && progress.totalLessons > 0
       ? Math.round((progress.lessonsCompleted / progress.totalLessons) * 100)
