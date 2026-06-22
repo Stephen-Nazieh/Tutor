@@ -7986,9 +7986,20 @@ FEEDBACK: [your explanation]`
                 {mainTab !== 'builder' && (
                   <div className="h-full w-full flex-1">
                     <Card className="flex h-full w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]">
-                      <div className={cn('flex h-9 shrink-0 items-center justify-center px-4 text-sm font-semibold text-white', mainTab === 'live' ? 'bg-gradient-to-br from-orange-500 to-orange-600' : 'bg-gradient-to-br from-violet-500 to-purple-600')}>
+                      <div
+                        className={cn(
+                          'flex h-9 shrink-0 items-center justify-center px-4 text-sm font-semibold text-white',
+                          mainTab === 'live'
+                            ? 'bg-gradient-to-br from-orange-500 to-orange-600'
+                            : 'bg-gradient-to-br from-violet-500 to-purple-600'
+                        )}
+                      >
                         <div className="flex items-center gap-2">
-                          {mainTab === 'live' ? <MonitorPlay className="h-4 w-4" /> : <TestTube2 className="h-4 w-4" />} 
+                          {mainTab === 'live' ? (
+                            <MonitorPlay className="h-4 w-4" />
+                          ) : (
+                            <TestTube2 className="h-4 w-4" />
+                          )}
                           {mainTab === 'live' ? 'Classroom' : 'Test'}
                         </div>
                       </div>
