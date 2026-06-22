@@ -68,6 +68,13 @@ jobs:
     name: Production (deploy + 100% traffic)
     runs-on: ubuntu-latest
     needs: [ci]
+    # Serialize production deploys so concurrent merges don't race the single
+    # Cloud Run service (which aborts with "version X specified but current is
+    # Y"). New deploys queue behind the running one instead of cancelling it —
+    # we never interrupt an in-flight deploy/migration.
+    concurrency:
+      group: prod-cloudrun-deploy
+      cancel-in-progress: false
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
     steps:
