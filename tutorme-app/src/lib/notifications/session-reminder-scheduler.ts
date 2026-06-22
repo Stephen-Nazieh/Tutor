@@ -2,9 +2,10 @@
  * Session reminder scheduler.
  *
  * Periodically finds upcoming live sessions entering a short lead window and
- * sends the tutor a `reminder` notification via the central notify() service —
- * which writes it to the notification table (so it shows in the bell), pushes it
- * over SSE, and optionally emails / web-pushes.
+ * sends the tutor AND the course's enrolled students a `reminder` notification
+ * via the central notify() service — which writes it to the notification table
+ * (so it shows in the bell), pushes it over SSE, and optionally emails /
+ * web-pushes.
  *
  * Runs in the long-running custom server (server.ts). It is:
  *  - Idempotent / race-safe: each session is "claimed" with an atomic
@@ -17,8 +18,8 @@
 
 import { and, eq, gte, lte, inArray, isNull } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { liveSession } from '@/lib/db/schema'
-import { notify } from './notify'
+import { liveSession, courseEnrollment } from '@/lib/db/schema'
+import { notify, notifyMany } from './notify'
 
 /** How far ahead of a session's start to send the reminder. */
 const REMINDER_LEAD_MINUTES = 60
@@ -43,6 +44,7 @@ export async function runSessionReminderScan(): Promise<void> {
     .select({
       sessionId: liveSession.sessionId,
       tutorId: liveSession.tutorId,
+      courseId: liveSession.courseId,
       title: liveSession.title,
       scheduledAt: liveSession.scheduledAt,
     })
@@ -70,21 +72,51 @@ export async function runSessionReminderScan(): Promise<void> {
     if (claimed.length === 0) continue
 
     const minutes = Math.max(1, Math.round((s.scheduledAt.getTime() - Date.now()) / 60000))
+    const message = `"${s.title}" starts in about ${minutes} minute${minutes === 1 ? '' : 's'}.`
+    const data = {
+      sessionId: s.sessionId,
+      scheduledAt: s.scheduledAt.toISOString(),
+      kind: 'session-reminder',
+    }
+
+    // Tutor reminder.
     try {
       await notify({
         userId: s.tutorId,
         type: 'reminder',
         title: 'Upcoming session',
-        message: `"${s.title}" starts in about ${minutes} minute${minutes === 1 ? '' : 's'}.`,
+        message,
         actionUrl: `/tutor/insights?sessionId=${encodeURIComponent(s.sessionId)}&view=classroom`,
-        data: {
-          sessionId: s.sessionId,
-          scheduledAt: s.scheduledAt.toISOString(),
-          kind: 'session-reminder',
-        },
+        data,
       })
     } catch (err) {
-      console.error('[session-reminders] notify failed for session', s.sessionId, err)
+      console.error('[session-reminders] tutor notify failed for session', s.sessionId, err)
+    }
+
+    // Enrolled-student reminders (course sessions only). Excludes the tutor in
+    // case they're also enrolled, so they don't get two reminders.
+    if (s.courseId) {
+      try {
+        const enrolled = await drizzleDb
+          .select({ studentId: courseEnrollment.studentId })
+          .from(courseEnrollment)
+          .where(eq(courseEnrollment.courseId, s.courseId))
+        const studentIds = Array.from(
+          new Set(enrolled.map(e => e.studentId).filter(id => id && id !== s.tutorId))
+        )
+        if (studentIds.length > 0) {
+          await notifyMany({
+            userIds: studentIds,
+            type: 'reminder',
+            title: 'Upcoming session',
+            message,
+            actionUrl: `/student/live/${encodeURIComponent(s.sessionId)}`,
+            data,
+          })
+        }
+      } catch (err) {
+        console.error('[session-reminders] student notify failed for session', s.sessionId, err)
+      }
     }
   }
 }
