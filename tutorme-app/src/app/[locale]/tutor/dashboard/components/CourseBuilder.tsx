@@ -8001,7 +8001,7 @@ FEEDBACK: [your explanation]`
                 paddingRight: !isStudentView && !rightPanelHidden ? rightPanelWidth : 0,
               }}
             >
-              <div className="flex h-full min-h-0 w-full max-w-6xl flex-1 grow flex-col items-stretch">
+              <div className="flex h-full min-h-0 w-full flex-1 grow flex-col items-stretch">
                 {mainTab !== 'builder' && (
                   <div className="h-full w-full flex-1">
                     <Card className="flex h-full w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]">
