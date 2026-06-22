@@ -303,7 +303,6 @@ import {
 import { ChevronLeft as ChevronLeftIcon } from 'lucide-react'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import { useCourseBuilderState } from './hooks/useCourseBuilderState'
-import { useBuilderEditors } from './hooks/useBuilderEditors'
 import {
   InsightsReportView,
   type PollResultOption,
