@@ -4,13 +4,16 @@
  */
 
 import { SOLOCORN_SYSTEM_PROMPT } from './system-prompt'
-import { isGeminiActive } from '@/lib/ai/provider'
-import { streamGemini } from '@/lib/ai/gemini'
 
 // Configuration
 const KIMI_API_KEY = process.env.KIMI_API_KEY
-const KIMI_BASE_URL = 'https://api.moonshot.cn/v1'
-const KIMI_MODEL = 'kimi-k2.5'
+// Endpoint + model are env-configurable so a global (api.moonshot.ai) key works
+// without a code change; defaults preserve the original China endpoint.
+const KIMI_BASE_URL = (process.env.KIMI_BASE_URL || 'https://api.moonshot.cn/v1').replace(
+  /\/+$/,
+  ''
+)
+const KIMI_MODEL = process.env.KIMI_MODEL || 'kimi-k2.5'
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant'
@@ -29,14 +32,6 @@ export async function* streamKimiResponse(
   messages: ChatMessage[],
   abortSignal?: AbortSignal
 ): AsyncGenerator<StreamResponse> {
-  if (isGeminiActive()) {
-    for await (const chunk of streamGemini(messages)) {
-      yield { content: chunk, done: false }
-    }
-    yield { content: '', done: true }
-    return
-  }
-
   if (!KIMI_API_KEY) {
     throw new Error('KIMI_API_KEY not configured')
   }
@@ -114,8 +109,8 @@ export async function* streamAIResponse(
   messages: ChatMessage[],
   abortSignal?: AbortSignal
 ): AsyncGenerator<StreamResponse> {
-  if (!isGeminiActive() && !KIMI_API_KEY) {
-    throw new Error('No AI provider configured (set GEMINI_API_KEY or KIMI_API_KEY)')
+  if (!KIMI_API_KEY) {
+    throw new Error('No AI provider configured (set KIMI_API_KEY)')
   }
   yield* streamKimiResponse(messages, abortSignal)
 }

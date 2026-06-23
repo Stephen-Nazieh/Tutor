@@ -5,14 +5,7 @@
  */
 
 import { fetchWithTimeoutAndRetry } from '@/lib/ai/fetch-utils'
-import { isGeminiActive } from '@/lib/ai/provider'
 import { recordLlmUsage, type UsageContext } from '@/lib/ai/usage'
-import {
-  generateWithGemini,
-  chatWithGemini,
-  streamGemini,
-  generateWithGeminiVision,
-} from '@/lib/ai/gemini'
 
 interface KimiMessage {
   role: 'system' | 'user' | 'assistant'
@@ -39,8 +32,16 @@ interface KimiResponse {
   }
 }
 
-const KIMI_BASE_URL = 'https://api.moonshot.cn/v1'
-const DEFAULT_MODEL = 'kimi-k2.5'
+// Moonshot has separate platforms with separate keys/endpoints:
+//   China:  https://api.moonshot.cn/v1   (platform.moonshot.cn)
+//   Global: https://api.moonshot.ai/v1   (platform.moonshot.ai)
+// A key from one platform 401s against the other, so the endpoint (and model)
+// are env-configurable. Defaults preserve the original China endpoint.
+const KIMI_BASE_URL = (process.env.KIMI_BASE_URL || 'https://api.moonshot.cn/v1').replace(
+  /\/+$/,
+  ''
+)
+const DEFAULT_MODEL = process.env.KIMI_MODEL || 'kimi-k2.5'
 
 /**
  * Generate text using Kimi K2.5
@@ -57,10 +58,6 @@ export async function generateWithKimi(
     usageContext?: UsageContext
   } = {}
 ): Promise<string> {
-  if (isGeminiActive()) {
-    return generateWithGemini(prompt, options)
-  }
-
   const apiKey = process.env.KIMI_API_KEY
 
   if (!apiKey) {
@@ -129,10 +126,6 @@ export async function chatWithKimi(
     usageContext?: UsageContext
   } = {}
 ): Promise<string> {
-  if (isGeminiActive()) {
-    return chatWithGemini(messages, options)
-  }
-
   const apiKey = process.env.KIMI_API_KEY
 
   if (!apiKey) {
@@ -195,11 +188,6 @@ export async function* streamKimi(
     timeoutMs?: number
   } = {}
 ): AsyncGenerator<string, void, unknown> {
-  if (isGeminiActive()) {
-    yield* streamGemini(messages, options)
-    return
-  }
-
   const apiKey = process.env.KIMI_API_KEY
 
   if (!apiKey) {
@@ -292,10 +280,6 @@ export async function generateWithKimiVision(
     usageContext?: UsageContext
   } = {}
 ): Promise<string> {
-  if (isGeminiActive()) {
-    return generateWithGeminiVision(promptItems, options)
-  }
-
   const apiKey = process.env.KIMI_API_KEY
 
   if (!apiKey) {
