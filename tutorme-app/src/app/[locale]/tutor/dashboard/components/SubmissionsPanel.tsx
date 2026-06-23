@@ -283,24 +283,10 @@ export function SubmissionsPanel({
   }
 
   return (
-    <>
-      <div
-        className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full border border-r-0 border-[#E5E7EB] bg-white shadow-[-2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
-        style={{ right: hidden ? 0 : width - 16 }}
-        onClick={() => onToggleHidden(!hidden)}
-        title={hidden ? 'Show submissions' : 'Hide submissions'}
-      >
-        {hidden ? (
-          <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
-        ) : (
-          <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
-        )}
-      </div>
-
-      {!hidden && (
+    <div className="relative z-40 flex min-h-0 shrink-0 flex-col" style={{ width }}>
+      <div className="flex h-full min-h-0 flex-col">
         <div
-          className="absolute bottom-4 right-0 top-0 z-40 flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]"
-          style={{ width }}
+          className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]"
         >
           <div className="sticky top-0 z-10 flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white">
             Desk
@@ -411,7 +397,7 @@ export function SubmissionsPanel({
             )}
           </ScrollArea>
         </div>
-      )}
+      </div>
 
       <Dialog open={!!selected} onOpenChange={o => !o && setSelected(null)}>
         <DialogContent className="h-[90vh] w-[90vw] max-w-none overflow-hidden p-6">
@@ -518,7 +504,7 @@ export function SubmissionsPanel({
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   )
 }
 

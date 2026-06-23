@@ -5815,7 +5815,7 @@ FEEDBACK: [your explanation]`
 
             {!leftPanelHidden && (
               <div
-                className="relative z-40 flex h-full min-h-0 shrink-0 flex-col"
+                className="relative z-40 flex min-h-0 shrink-0 flex-col"
                 ref={leftPanelRef}
                 style={{ width: leftPanelWidth }}
               >
@@ -7734,39 +7734,45 @@ FEEDBACK: [your explanation]`
                       </div>
                       {!rightPanelHidden && (
                         <div
-                          className="absolute bottom-4 right-0 top-0 z-40 flex flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]"
+                          className="relative z-40 flex min-h-0 shrink-0 flex-col"
                           style={{ width: rightPanelWidth }}
                         >
-                          <div className="sticky top-0 z-10 flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white">
-                            Desk
-                          </div>
-                          <div className="px-2 pt-4">
-                            <Tabs
-                              value={liveRightPanelTab}
-                              onValueChange={value =>
-                                setLiveRightPanelTab(value as 'submissions' | 'insights')
-                              }
+                          <div className="flex h-full min-h-0 flex-col">
+                            <Card
+                              padding="none"
+                              className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-[20px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]"
                             >
-                              <TabsList className="grid w-full grid-cols-2 gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
-                                <TabsTrigger
-                                  value="submissions"
-                                  className="h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
-                                >
-                                  Submissions
-                                </TabsTrigger>
-                                <TabsTrigger
-                                  value="insights"
-                                  className="h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
-                                >
-                                  Insights
-                                </TabsTrigger>
-                              </TabsList>
-                            </Tabs>
-                          </div>
-                          <div className="min-h-0 flex-1 overflow-hidden p-3 pt-2">
-                            {insightsProps ? (
-                              <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-blue-200/70 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-1 shadow-[0_10px_40px_-20px_rgba(29,78,216,0.45)] ring-1 ring-blue-200/60">
-                                <Tabs
+                              <div className="sticky top-0 z-10 flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white">
+                                Desk
+                              </div>
+                              <div className="min-h-0 flex-1 overflow-hidden">
+                                <div className="px-2 pt-4">
+                                  <Tabs
+                                    value={liveRightPanelTab}
+                                    onValueChange={value =>
+                                      setLiveRightPanelTab(value as 'submissions' | 'insights')
+                                    }
+                                  >
+                                    <TabsList className="grid w-full grid-cols-2 gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
+                                      <TabsTrigger
+                                        value="submissions"
+                                        className="h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
+                                      >
+                                        Submissions
+                                      </TabsTrigger>
+                                      <TabsTrigger
+                                        value="insights"
+                                        className="h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
+                                      >
+                                        Insights
+                                      </TabsTrigger>
+                                    </TabsList>
+                                  </Tabs>
+                                </div>
+                                <div className="min-h-0 flex-1 overflow-hidden p-3 pt-2">
+                                  {insightsProps ? (
+                                    <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-blue-200/70 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-1 shadow-[0_10px_40px_-20px_rgba(29,78,216,0.45)] ring-1 ring-blue-200/60">
+                                      <Tabs
                                   value={insightsTab}
                                   onValueChange={value =>
                                     setInsightsTab(value as 'analytics' | 'poll' | 'question')
@@ -7956,11 +7962,14 @@ FEEDBACK: [your explanation]`
                             )}
                           </div>
                         </div>
-                      )}
-                    </>
-                  )
-                ) : (
-                  <SubmissionsPanel
+                      </Card>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )
+            ) : (
+              <SubmissionsPanel
                     courseId={courseId || ''}
                     width={rightPanelWidth}
                     hidden={rightPanelHidden}
@@ -7995,12 +8004,7 @@ FEEDBACK: [your explanation]`
             )}
 
             {/* CENTER PANEL - New Three-Section Design */}
-            <div
-              className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-center"
-              style={{
-                paddingRight: !isStudentView && !rightPanelHidden ? rightPanelWidth : 0,
-              }}
-            >
+            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-center">
               <div className="flex h-full min-h-0 w-full flex-1 grow flex-col items-stretch">
                 {mainTab !== 'builder' && (
                   <div className="flex h-full w-full flex-1 justify-center">
