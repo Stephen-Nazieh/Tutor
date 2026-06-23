@@ -18,6 +18,7 @@ import {
   courseSchedule,
   liveSession,
   user,
+  profile,
 } from '@/lib/db/schema'
 import { and, eq, inArray, desc } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
@@ -72,12 +73,14 @@ export const GET = withAuth(
         courseSchedule: course.schedule,
         tutorHandle: user.handle,
         tutorImage: user.image,
+        tutorAvatar: profile.avatarUrl,
         variantCategory: courseVariant.category,
         variantNationality: courseVariant.nationality,
       })
       .from(courseEnrollment)
       .innerJoin(course, eq(courseEnrollment.courseId, course.courseId))
       .leftJoin(user, eq(course.creatorId, user.userId))
+      .leftJoin(profile, eq(profile.userId, course.creatorId))
       .leftJoin(courseVariant, eq(courseVariant.publishedCourseId, course.courseId))
       .where(eq(courseEnrollment.studentId, session.user.id))
       .orderBy(desc(courseEnrollment.enrolledAt))
@@ -212,6 +215,7 @@ export const GET = withAuth(
           schedule: row.courseSchedule,
           tutorHandle: row.tutorHandle,
           tutorImage: row.tutorImage,
+          tutorAvatar: row.tutorAvatar,
           variantCategory: row.variantCategory,
           variantNationality: row.variantNationality,
           sessionCount,
