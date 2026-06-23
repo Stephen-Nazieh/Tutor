@@ -185,7 +185,8 @@ function MyCoursesSection() {
     'active'
   )
   const [isExpanded, setIsExpanded] = useState(true)
-  const coursesPanelRef = useAutoScrollOnExpand(isExpanded, { delay: 350 })
+  const coursesPanelRef = useRef<HTMLDivElement>(null)
+  const coursesScrollRef = useAutoScrollOnExpand(isExpanded, { delay: 350, block: 'nearest' })
   const [measuredMaxHeight, setMeasuredMaxHeight] = useState(400)
   const measureRefs = {
     active: useRef<HTMLDivElement>(null),
@@ -494,11 +495,12 @@ function MyCoursesSection() {
   }
 
   return (
-    <Card className="relative border border-[#E2E8F0] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
-      <div
-        onClick={() => setIsExpanded(prev => !prev)}
-        className={cn(charcoalHeaderClass, 'panel-header-hover cursor-pointer justify-between')}
-      >
+    <div ref={coursesScrollRef}>
+      <Card className="relative border border-[#E2E8F0] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+        <div
+          onClick={() => setIsExpanded(prev => !prev)}
+          className={cn(charcoalHeaderClass, 'panel-header-hover cursor-pointer justify-between')}
+        >
         <div className="flex items-center gap-3">
           <BookOpen className="h-5 w-5" />
           <span className="text-base font-semibold">My Courses</span>
@@ -583,7 +585,8 @@ function MyCoursesSection() {
         courseName={scheduleCourse?.name}
         onClose={() => setScheduleCourse(null)}
       />
-    </Card>
+      </Card>
+    </div>
   )
 }
 
@@ -649,6 +652,7 @@ export default function TutorMyPage() {
     kakaoTalk: '',
   })
   const [profileSettingsOpen, setProfileSettingsOpen] = useState(true)
+  const profileScrollRef = useAutoScrollOnExpand(profileSettingsOpen, { delay: 350, block: 'nearest' })
 
   // Category selection state (3-level: Region → Country → Category)
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
@@ -1831,14 +1835,15 @@ export default function TutorMyPage() {
           </DialogContent>
         </Dialog>
 
-        <Card className="border border-[#E2E8F0] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
-          <div
-            className={cn(
-              charcoalHeaderClass,
-              'panel-header-hover cursor-pointer select-none justify-between'
-            )}
-            onClick={() => setProfileSettingsOpen(prev => !prev)}
-          >
+        <div ref={profileScrollRef}>
+          <Card className="border border-[#E2E8F0] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
+            <div
+              className={cn(
+                charcoalHeaderClass,
+                'panel-header-hover cursor-pointer select-none justify-between'
+              )}
+              onClick={() => setProfileSettingsOpen(prev => !prev)}
+            >
             <div className="flex items-center gap-3">
               <Settings className="h-5 w-5" />
               <span className="text-base font-semibold">Profile Settings</span>
@@ -2002,7 +2007,8 @@ export default function TutorMyPage() {
               </div>
             </CardContent>
           )}
-        </Card>
+          </Card>
+        </div>
 
         {/* My Courses Section */}
         <MyCoursesSection />
