@@ -525,7 +525,7 @@ export function AvatarUploader({
     <>
       <div className="relative inline-block">
         <div
-          className="flex items-center justify-center overflow-hidden rounded-full border-2 border-white bg-slate-100 shadow-sm"
+          className="flex items-center justify-center overflow-hidden rounded-xl border-2 border-white bg-slate-100 shadow-sm"
           style={{ width: size, height: size }}
         >
           {avatarUrl ? (
