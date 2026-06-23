@@ -34,6 +34,7 @@ import {
   Bell,
   Shield,
   User,
+  UserCircle,
   Trash2,
   Power,
   Smartphone,
@@ -67,8 +68,7 @@ const LANGUAGES = [
   { code: 'ja', name: '日本語 (Japanese)' },
 ]
 
-const SECTION_CARD_CLASS =
-  'overflow-hidden rounded-[16px] border border-slate-200 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
+const SECTION_CARD_CLASS = 'overflow-hidden bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]'
 
 interface PaymentMethod {
   id: string
@@ -654,7 +654,7 @@ export default function TutorSettings() {
             { value: 'refunds', label: 'Refunds', icon: DollarSign },
             { value: 'notifications', label: 'Notifications', icon: Bell },
             { value: 'security', label: 'Security', icon: Shield },
-            { value: 'controls', label: 'Account', icon: User },
+            { value: 'controls', label: 'Account', icon: UserCircle },
             { value: 'session-log', label: 'Session Log', icon: History },
           ]}
         >
@@ -664,12 +664,7 @@ export default function TutorSettings() {
             className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
           >
             <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
-              <CollapsibleCard
-                flush
-                className={SECTION_CARD_CLASS}
-                title="Profile & Identity"
-                defaultOpen
-              >
+              <CollapsibleCard flush className={SECTION_CARD_CLASS} title="Profile" defaultOpen>
                 <div className="space-y-6 p-6">
                   {/* Avatar */}
                   <div className="flex items-center gap-4">
@@ -791,10 +786,10 @@ export default function TutorSettings() {
                       <img
                         src={formData.avatarUrl}
                         alt="Profile"
-                        className="h-16 w-16 rounded-full object-cover"
+                        className="h-16 w-16 rounded-xl object-cover"
                       />
                     ) : (
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-lg font-semibold text-slate-500">
+                      <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-lg font-semibold text-slate-500">
                         {formData.name.charAt(0).toUpperCase() || '?'}
                       </div>
                     )}
