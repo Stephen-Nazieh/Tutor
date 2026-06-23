@@ -5815,7 +5815,7 @@ FEEDBACK: [your explanation]`
 
             {!leftPanelHidden && (
               <div
-                className="relative z-40 flex h-full min-h-0 shrink-0 flex-col"
+                className="relative z-40 flex min-h-0 shrink-0 flex-col"
                 ref={leftPanelRef}
                 style={{ width: leftPanelWidth }}
               >
@@ -7734,7 +7734,7 @@ FEEDBACK: [your explanation]`
                       </div>
                       {!rightPanelHidden && (
                         <div
-                          className="relative z-40 flex h-full min-h-0 shrink-0 flex-col"
+                          className="relative z-40 flex min-h-0 shrink-0 flex-col"
                           style={{ width: rightPanelWidth }}
                         >
                           <div className="flex h-full min-h-0 flex-col">
@@ -7961,7 +7961,8 @@ FEEDBACK: [your explanation]`
                               </div>
                             )}
                           </div>
-                        </Card>
+                        </div>
+                      </Card>
                       </div>
                     </div>
                   )}
@@ -8003,7 +8004,7 @@ FEEDBACK: [your explanation]`
             )}
 
             {/* CENTER PANEL - New Three-Section Design */}
-            <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-center">
+            <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col items-center">
               <div className="flex h-full min-h-0 w-full flex-1 grow flex-col items-stretch">
                 {mainTab !== 'builder' && (
                   <div className="flex h-full w-full flex-1 justify-center">
