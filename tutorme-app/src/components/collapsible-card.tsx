@@ -26,40 +26,40 @@ export function CollapsibleCard({
   children,
 }: CollapsibleCardProps) {
   const [open, setOpen] = useState(defaultOpen)
-  const contentRef = useAutoScrollOnExpand(open, { delay: 350, margin: 16, block: 'nearest' })
+  const cardRef = useAutoScrollOnExpand(open, { delay: 350, margin: 16, block: 'nearest' })
 
   return (
-    <Card className={cn('overflow-hidden', className)}>
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className={cn(
-          'panel-header w-full text-left',
-          flush ? 'panel-header-metallic-flush' : 'panel-header-metallic'
-        )}
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="panel-header-title">{title}</div>
-            {description && <div className="panel-header-subtext">{description}</div>}
+    <div ref={cardRef}>
+      <Card className={cn('overflow-hidden', className)}>
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          className={cn(
+            'panel-header w-full text-left',
+            flush ? 'panel-header-metallic-flush' : 'panel-header-metallic'
+          )}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="panel-header-title">{title}</div>
+              {description && <div className="panel-header-subtext">{description}</div>}
+            </div>
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
+              {open ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+            </div>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
-            {open ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+        </button>
+        <div
+          className={cn(
+            'grid transition-all duration-300 ease-in-out',
+            open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+          )}
+        >
+          <div className="overflow-hidden">
+            <div className={contentClassName}>{children}</div>
           </div>
         </div>
-      </button>
-      <div
-        className={cn(
-          'grid transition-all duration-300 ease-in-out',
-          open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-        )}
-      >
-        <div className="overflow-hidden">
-          <div ref={contentRef} className={contentClassName}>
-            {children}
-          </div>
-        </div>
-      </div>
-    </Card>
+      </Card>
+    </div>
   )
 }
