@@ -996,14 +996,11 @@ function CourseSection({
 }) {
   return (
     <section>
-      <div className="mb-6 flex items-start justify-between gap-4">
+      <div className="mb-6">
         <div className="min-w-0">
           <h2 className="text-xl font-bold text-gray-900">{title}</h2>
           {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
         </div>
-        <Badge variant="outline" className="shrink-0">
-          {courses.length} courses
-        </Badge>
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {courses.map(course => (
@@ -1086,46 +1083,71 @@ function CourseCard({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            {/* Session count */}
-            <div className="flex items-center gap-1.5 text-xs text-slate-300">
-              <Calendar className="h-3.5 w-3.5 text-slate-400" />
-              <span className="font-medium text-slate-200">
-                {course.sessionCount ?? 0} session{course.sessionCount === 1 ? '' : 's'}
-              </span>
+          <div className="flex items-center justify-between gap-3">
+            {/* Left: Course name + handle + subject */}
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-base font-semibold leading-tight text-slate-100">
+                {course.name}
+              </h3>
+              {course.tutorHandle && (
+                <p className="mt-1 text-xs font-medium text-slate-300">@{course.tutorHandle}</p>
+              )}
+              {course.subject && course.subject !== 'general' && (
+                <span className="mt-2 inline-block rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                  {course.subject}
+                </span>
+              )}
             </div>
 
-            {/* Avatar */}
-            {course.tutorImage ? (
-              <img
-                src={resolvePublicUrl(course.tutorImage) || undefined}
-                alt={course.tutorHandle || 'Tutor'}
-                className="h-8 w-8 rounded-full border border-[rgba(255,255,255,0.15)] object-cover"
-                onError={e => {
-                  ;(e.target as HTMLImageElement).style.display = 'none'
-                }}
-              />
-            ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.1)]">
-                <User className="h-4 w-4 text-slate-300" />
+            {/* Center: Session count */}
+            <div className="flex items-center justify-center">
+              <div className="flex items-center gap-1.5 text-xs text-slate-300">
+                <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                <span className="font-medium text-slate-200">
+                  {course.sessionCount ?? 0} session{course.sessionCount === 1 ? '' : 's'}
+                </span>
               </div>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={e => {
-                e.stopPropagation()
-                onFavorite()
-              }}
-              className="-mr-1 -mt-1 h-7 w-7 text-rose-400 hover:bg-white/10 hover:text-rose-500"
-            >
-              <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
-            </Button>
+            </div>
+
+            {/* Right: Avatar + Heart */}
+            <div className="flex items-center gap-2">
+              {/* Avatar */}
+              {(() => {
+                const tutorImageUrl = course.tutorImage ? resolvePublicUrl(course.tutorImage) : null
+                return tutorImageUrl ? (
+                  <img
+                    src={tutorImageUrl}
+                    alt={course.tutorHandle || 'Tutor'}
+                    className="h-8 w-8 rounded-xl border border-[rgba(255,255,255,0.15)] object-cover"
+                    onError={e => {
+                      const img = e.target as HTMLImageElement
+                      img.style.display = 'none'
+                      img.nextElementSibling?.classList.remove('hidden')
+                    }}
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.1)]">
+                    <User className="h-4 w-4 text-slate-300" />
+                  </div>
+                )
+              })()}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={e => {
+                  e.stopPropagation()
+                  onFavorite()
+                }}
+                className="-mr-1 -mt-1 h-7 w-7 text-rose-400 hover:bg-white/10 hover:text-rose-500"
+              >
+                <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Description — white container, clamped to 1 row */}
-        <div className="mt-2 rounded-xl border border-slate-200/10 bg-white px-3 py-2 shadow-sm">
+        <div className="mt-3 rounded-xl border border-slate-200/10 bg-white px-3 py-2 shadow-sm">
           <p className="line-clamp-1 text-xs leading-relaxed text-slate-700">
             {course.description || 'No description available'}
           </p>
@@ -1181,7 +1203,7 @@ function CourseCard({
       <div className="flex gap-2 border-t border-[rgba(255,255,255,0.1)] p-4">
         {(isOngoing || isPending) && (
           <Button
-            className="h-8 flex-1 border-0 bg-emerald-600 text-xs text-white hover:bg-white hover:text-emerald-600"
+            className="h-8 flex-1 border-0 bg-emerald-600 text-xs text-white transition-colors hover:bg-white hover:text-emerald-600"
             disabled={enteringClass === course.id}
             onClick={e => {
               e.stopPropagation()
@@ -1197,7 +1219,7 @@ function CourseCard({
         )}
         {progress?.isCompleted && (
           <Link href={`/student/feedback`} className="flex-1" onClick={e => e.stopPropagation()}>
-            <Button className="h-8 w-full border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] text-xs text-slate-100 hover:bg-[rgba(255,255,255,0.15)]">
+            <Button className="h-8 w-full border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] text-xs text-slate-100 transition-colors hover:bg-[rgba(255,255,255,0.15)]">
               <Trophy className="mr-2 h-4 w-4 text-yellow-400" />
               View Results
             </Button>
@@ -1205,7 +1227,7 @@ function CourseCard({
         )}
         <Button
           variant="outline"
-          className="h-8 flex-1 border border-white/60 bg-transparent text-xs text-white hover:bg-white hover:text-black"
+          className="h-8 flex-1 border border-white/60 bg-transparent text-xs text-white transition-colors hover:bg-white hover:text-black"
           onClick={e => {
             e.stopPropagation()
             onDetails()
@@ -1216,7 +1238,7 @@ function CourseCard({
         {onUnregister && course.enrollment && (
           <Button
             variant="destructive"
-            className="h-8 flex-1 text-xs hover:bg-white hover:text-red-600"
+            className="h-8 flex-1 text-xs transition-colors hover:bg-white hover:text-red-600"
             disabled={unregisteringId === course.id}
             onClick={e => {
               e.stopPropagation()
