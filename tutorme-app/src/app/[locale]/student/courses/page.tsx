@@ -60,6 +60,7 @@ interface Course {
   difficulty: string
   estimatedHours: number
   tutorHandle?: string | null
+  tutorImage?: string | null
   hasOutline?: boolean
   _count: {
     modules: number
@@ -384,6 +385,7 @@ function CoursePageInner() {
             description: e.course?.description || null,
             subject: e.course?.categories?.[0] || 'general',
             tutorHandle: e.course?.tutorHandle || null,
+            tutorImage: e.course?.tutorImage || null,
             difficulty: 'All Levels',
             estimatedHours: 0,
             _count: {
@@ -1071,7 +1073,7 @@ function CourseCard({
       onClick={onDetails}
     >
       <div className="flex flex-1 flex-col p-4">
-        {/* Header: Name + Handle + Category Badge | Heart */}
+        {/* Header: Name + Handle + Category Badge | Avatar | Heart */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <h3 className="truncate text-base font-semibold text-slate-100">{course.name}</h3>
@@ -1084,17 +1086,29 @@ function CourseCard({
               </span>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={e => {
-              e.stopPropagation()
-              onFavorite()
-            }}
-            className="-mr-1 -mt-1 h-7 w-7 text-rose-400 hover:bg-white/10 hover:text-rose-500"
-          >
-            <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
-          </Button>
+          <div className="flex items-center gap-2">
+            {course.tutorImage && (
+              <img
+                src={resolvePublicUrl(course.tutorImage) || undefined}
+                alt={course.tutorHandle || 'Tutor'}
+                className="h-8 w-8 rounded-full border border-[rgba(255,255,255,0.15)] object-cover"
+                onError={e => {
+                  ;(e.target as HTMLImageElement).style.display = 'none'
+                }}
+              />
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={e => {
+                e.stopPropagation()
+                onFavorite()
+              }}
+              className="-mr-1 -mt-1 h-7 w-7 text-rose-400 hover:bg-white/10 hover:text-rose-500"
+            >
+              <Heart className={cn('h-4 w-4', isFavorite && 'fill-current')} />
+            </Button>
+          </div>
         </div>
 
         {/* Description — white container, clamped to 1 row */}
@@ -1129,10 +1143,10 @@ function CourseCard({
         )}
 
         {/* Combined: Commenced date + Schedule selector */}
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 flex gap-2">
           {course.enrollment?.startDate && (
-            <div className="flex items-center justify-between rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] p-2 text-xs text-slate-300">
-              <span>
+            <div className="flex flex-1 items-center rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] p-2 text-xs text-slate-300">
+              <span className="truncate">
                 Commenced:{' '}
                 <span className="font-medium text-slate-100">
                   {new Date(course.enrollment.startDate).toLocaleDateString()}
@@ -1148,15 +1162,15 @@ function CourseCard({
                 e.stopPropagation()
                 onSchedule()
               }}
-              className="flex w-full items-center justify-between rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] p-2 text-xs text-slate-300 transition-colors hover:bg-[rgba(255,255,255,0.1)]"
+              className="flex flex-1 items-center justify-between rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] p-2 text-xs text-slate-300 transition-colors hover:bg-[rgba(255,255,255,0.1)]"
             >
-              <span className="font-medium text-slate-100">
+              <span className="truncate font-medium text-slate-100">
                 {course.chosenSchedule.name || `Schedule ${course.chosenSchedule.scheduleIndex}`}
               </span>
-              <span className="font-medium text-blue-300">Change</span>
+              <span className="ml-1 shrink-0 font-medium text-blue-300">Change</span>
             </button>
           ) : (
-            <p className="text-xs font-medium text-slate-400">No schedule selected</p>
+            <p className="flex-1 text-xs font-medium text-slate-400">No schedule selected</p>
           )}
         </div>
       </div>
@@ -1164,7 +1178,7 @@ function CourseCard({
       <div className="flex gap-2 border-t border-[rgba(255,255,255,0.1)] p-4">
         {(isOngoing || isPending) && (
           <Button
-            className="h-9 w-full flex-1 border-0 bg-emerald-600 text-white hover:bg-emerald-500"
+            className="h-9 flex-1 border-0 bg-emerald-600 text-white hover:bg-emerald-500"
             disabled={enteringClass === course.id}
             onClick={e => {
               e.stopPropagation()
@@ -1188,8 +1202,7 @@ function CourseCard({
         )}
         <Button
           variant="outline"
-          size="sm"
-          className="h-9 border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] px-3 text-slate-100 hover:bg-[rgba(255,255,255,0.15)]"
+          className="h-9 flex-1 border-[rgba(255,255,255,0.2)] bg-transparent text-slate-100 hover:bg-[rgba(255,255,255,0.1)]"
           onClick={e => {
             e.stopPropagation()
             onDetails()
@@ -1199,9 +1212,8 @@ function CourseCard({
         </Button>
         {onUnregister && course.enrollment && (
           <Button
-            variant="outline"
-            size="sm"
-            className="h-9 border-rose-500/30 bg-rose-500/10 px-3 text-rose-300 hover:bg-rose-500/20 hover:text-rose-200"
+            variant="destructive"
+            className="h-9 flex-1"
             disabled={unregisteringId === course.id}
             onClick={e => {
               e.stopPropagation()
