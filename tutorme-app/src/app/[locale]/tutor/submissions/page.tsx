@@ -8,9 +8,20 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ClipboardCheck, Loader2, ChevronDown, ChevronRight, FileQuestion } from 'lucide-react'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
+import {
+  ClipboardCheck,
+  Loader2,
+  ChevronDown,
+  ChevronRight,
+  FileQuestion,
+  Users,
+  CheckCircle2,
+  Inbox,
+} from 'lucide-react'
 import { toast } from 'sonner'
+import { SessionCalendarPanel } from '@/components/session-calendar-panel'
+import { cn } from '@/lib/utils'
 
 interface Submission {
   submissionId: string
@@ -56,64 +67,138 @@ export default function TutorSubmissionsPage() {
     load(tab)
   }, [load, tab])
 
+  const newCount = submissions.filter(s => s.status === 'submitted').length
+  const totalCount = submissions.length
+
+  const statusLabel = tab === 'submitted' ? 'Grade' : tab === 'graded' ? 'Graded' : 'All'
+
   return (
-    <div className="mx-auto max-w-5xl bg-white px-4 pb-0 pt-6 sm:px-6 lg:px-8">
-      <div className="mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
-          <ClipboardCheck className="h-6 w-6" />
-          Grading
-        </h1>
-        <p className="mt-1 text-gray-600">Review and grade student submissions</p>
-      </div>
+    <div className="flex h-full min-h-full flex-col bg-white px-6 pb-0 pt-2 lg:pt-4">
+      {/* Hero — Analytics-style header */}
+      <section className="relative mb-4 flex-shrink-0 rounded-[20px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5 shadow-[0_12px_40px_-4px_rgba(0,0,0,0.22)] ring-1 ring-white/20">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-bold text-white">Grading</h1>
+            <p className="mt-1 text-sm text-white/60">Review and grade student submissions</p>
+          </div>
 
-      <Tabs value={tab} onValueChange={v => setTab(v as StatusFilter)}>
-        <TabsList className="mb-4 grid w-full grid-cols-3 gap-1 border-0 bg-transparent shadow-none">
-          <TabsTrigger
-            value="submitted"
-            className="w-full rounded-lg border-transparent bg-transparent px-1 text-xs text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border-blue-200/70 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900 data-[state=active]:shadow-sm"
-          >
-            Needs grading
-          </TabsTrigger>
-          <TabsTrigger
-            value="graded"
-            className="w-full rounded-lg border-transparent bg-transparent px-1 text-xs text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border-blue-200/70 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900 data-[state=active]:shadow-sm"
-          >
-            Graded
-          </TabsTrigger>
-          <TabsTrigger
-            value="all"
-            className="w-full rounded-lg border-transparent bg-transparent px-1 text-xs text-[#667085] transition-all hover:bg-white hover:text-[#344054] hover:shadow-sm data-[state=active]:border-blue-200/70 data-[state=active]:bg-blue-100 data-[state=active]:text-blue-900 data-[state=active]:shadow-sm"
-          >
-            All
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <div
+              className={cn(
+                'flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm',
+                loading && 'animate-pulse'
+              )}
+            >
+              <Inbox className="h-4 w-4 text-white/80" />
+              <span className="text-xs font-medium text-white/80">New</span>
+              <span className="text-sm font-bold text-white">{newCount}</span>
+            </div>
+            <div
+              className={cn(
+                'flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm',
+                loading && 'animate-pulse'
+              )}
+            >
+              <Users className="h-4 w-4 text-white/80" />
+              <span className="text-xs font-medium text-white/80">Total</span>
+              <span className="text-sm font-bold text-white">{totalCount}</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-        </div>
-      ) : submissions.length === 0 ? (
-        <div className="py-16 text-center">
-          <FileQuestion className="mx-auto mb-4 h-12 w-12 text-gray-300" />
-          <h3 className="text-lg font-medium text-gray-700">No submissions</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {tab === 'submitted' ? 'Nothing is waiting to be graded.' : 'No submissions found.'}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {submissions.map(sub => (
-            <SubmissionRow
-              key={sub.submissionId}
-              submission={sub}
-              expanded={expanded === sub.submissionId}
-              onToggle={() => setExpanded(expanded === sub.submissionId ? null : sub.submissionId)}
+      {/* Mode selector + tab content */}
+      <div className="flex min-h-0 flex-1 flex-col pb-0.5 pt-2">
+        <SessionCalendarPanel
+          value={tab}
+          onValueChange={v => setTab(v as StatusFilter)}
+          variant="charcoal"
+          tabs={[
+            { value: 'submitted', label: 'Grade', icon: ClipboardCheck },
+            { value: 'graded', label: 'Graded', icon: CheckCircle2 },
+            { value: 'all', label: 'All', icon: Users },
+          ]}
+        >
+          <TabsContent value="submitted" className="h-full overflow-hidden bg-white">
+            <SubmissionList
+              submissions={submissions}
+              loading={loading}
+              emptyMessage="Nothing is waiting to be graded."
+              expanded={expanded}
+              onToggle={setExpanded}
               onGraded={() => load(tab)}
             />
-          ))}
-        </div>
-      )}
+          </TabsContent>
+          <TabsContent value="graded" className="h-full overflow-hidden bg-white">
+            <SubmissionList
+              submissions={submissions}
+              loading={loading}
+              emptyMessage="No graded submissions found."
+              expanded={expanded}
+              onToggle={setExpanded}
+              onGraded={() => load(tab)}
+            />
+          </TabsContent>
+          <TabsContent value="all" className="h-full overflow-hidden bg-white">
+            <SubmissionList
+              submissions={submissions}
+              loading={loading}
+              emptyMessage="No submissions found."
+              expanded={expanded}
+              onToggle={setExpanded}
+              onGraded={() => load(tab)}
+            />
+          </TabsContent>
+        </SessionCalendarPanel>
+      </div>
+    </div>
+  )
+}
+
+function SubmissionList({
+  submissions,
+  loading,
+  emptyMessage,
+  expanded,
+  onToggle,
+  onGraded,
+}: {
+  submissions: Submission[]
+  loading: boolean
+  emptyMessage: string
+  expanded: string | null
+  onToggle: (id: string | null) => void
+  onGraded: () => void
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+      </div>
+    )
+  }
+
+  if (submissions.length === 0) {
+    return (
+      <div className="py-16 text-center">
+        <FileQuestion className="mx-auto mb-4 h-12 w-12 text-gray-300" />
+        <h3 className="text-lg font-medium text-gray-700">No submissions</h3>
+        <p className="mt-1 text-sm text-gray-500">{emptyMessage}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="h-full space-y-3 overflow-y-auto pb-4 pr-2">
+      {submissions.map(sub => (
+        <SubmissionRow
+          key={sub.submissionId}
+          submission={sub}
+          expanded={expanded === sub.submissionId}
+          onToggle={() => onToggle(expanded === sub.submissionId ? null : sub.submissionId)}
+          onGraded={onGraded}
+        />
+      ))}
     </div>
   )
 }
@@ -174,7 +259,7 @@ function SubmissionRow({
   const answerEntries = Object.entries(answers)
 
   return (
-    <Card>
+    <Card className="overflow-hidden bg-white shadow-[0_14px_45px_rgba(0,0,0,0.12)]">
       <CardHeader
         className="cursor-pointer select-none"
         onClick={onToggle}
