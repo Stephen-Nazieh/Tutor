@@ -90,45 +90,6 @@ export function AnalyticsPanel({
 
   return (
     <div className="flex h-full flex-col gap-4 px-1 pb-0">
-      {/* Student presence */}
-      <div className="flex min-h-0 flex-1 flex-col rounded-xl border bg-white/80 p-3 shadow-sm">
-        <p className="mb-2 text-xs font-semibold uppercase text-gray-500">Student Presence</p>
-        <div className="flex min-h-0 flex-1 flex-col">
-          {studentStatusData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={studentStatusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={60}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {studentStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex flex-1 items-center justify-center text-xs text-gray-400">
-              No students have joined yet
-            </div>
-          )}
-        </div>
-        <div className="mt-1 flex flex-wrap gap-2">
-          {studentStatusData.map(d => (
-            <div key={d.name} className="flex items-center gap-1 text-[10px] text-gray-600">
-              <span className="h-2 w-2 rounded-full" style={{ background: d.color }} />
-              {d.name}: {d.value}
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Task Activity */}
       {liveTasks && liveTasks.length > 0 && (
         <div className="rounded-xl border bg-white/80 p-3 shadow-sm">
