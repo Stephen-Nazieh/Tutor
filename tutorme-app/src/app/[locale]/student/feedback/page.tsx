@@ -39,6 +39,7 @@ import {
   FileText,
   ChevronRight,
   ChevronDown,
+  ChevronUp,
   Folder,
   Video,
   Plus,
@@ -406,7 +407,65 @@ function DmiAnswerField({
     )
   }
 
-  // Long answer + interactive types pending dedicated renderers → free-text.
+  // Ordering / ranking — reorder the provided items with up/down controls.
+  // The answer is stored as a JSON array of the items in the chosen order.
+  if (type === 'ordering' && options.length > 0) {
+    let saved: string[] = []
+    try {
+      const parsed = value ? JSON.parse(value) : []
+      if (Array.isArray(parsed)) saved = parsed.filter((v): v is string => typeof v === 'string')
+    } catch {
+      saved = []
+    }
+    // Start from any saved order, then append any options not yet placed so the
+    // list always shows every item exactly once even if options changed.
+    const current = saved.filter(o => options.includes(o))
+    for (const o of options) if (!current.includes(o)) current.push(o)
+    const move = (i: number, dir: -1 | 1) => {
+      const j = i + dir
+      if (j < 0 || j >= current.length) return
+      onInteract()
+      const next = [...current]
+      ;[next[i], next[j]] = [next[j], next[i]]
+      onValueChange(JSON.stringify(next))
+    }
+    return (
+      <ol className="space-y-1.5">
+        {current.map((opt, i) => (
+          <li
+            key={opt}
+            className="flex items-center gap-2 rounded-md border border-gray-200 p-2 text-sm text-gray-800"
+          >
+            <span className="w-5 shrink-0 text-center text-xs font-semibold text-gray-400">
+              {i + 1}
+            </span>
+            <span className="flex-1">{opt}</span>
+            <button
+              type="button"
+              aria-label="Move up"
+              onClick={() => move(i, -1)}
+              disabled={i === 0}
+              className="rounded p-1 text-gray-500 hover:bg-gray-100 disabled:opacity-30"
+            >
+              <ChevronUp className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              aria-label="Move down"
+              onClick={() => move(i, 1)}
+              disabled={i === current.length - 1}
+              className="rounded p-1 text-gray-500 hover:bg-gray-100 disabled:opacity-30"
+            >
+              <ChevronDown className="h-4 w-4" />
+            </button>
+          </li>
+        ))}
+      </ol>
+    )
+  }
+
+  // Long answer + the remaining interactive types (matching / hotspot /
+  // drag_drop) that still need richer data + dedicated renderers → free-text.
   return (
     <textarea
       value={value}

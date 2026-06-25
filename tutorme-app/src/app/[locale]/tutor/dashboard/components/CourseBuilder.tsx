@@ -2808,6 +2808,36 @@ FEEDBACK: [your explanation]`
           setTestPciViewMode(`dmi_${newVersion.id}`)
         }
 
+        // Study material: the students must see the GENERATED questions in the
+        // Classroom tab, not the original notes. Replace the deployed content with
+        // the numbered questions and drop the source document so only the
+        // questions (Classroom) + the DMI input fields (Assessment) go out.
+        const isStudyMaterial =
+          data.documentKind === 'study_material' || (questionSpec?.length ?? 0) > 0
+        if (isStudyMaterial) {
+          const generatedClassroomContent = items
+            .map(q => `${q.questionNumber}. ${q.questionText}`)
+            .join('\n\n')
+          if (isTask) {
+            setTaskBuilder(prev => ({
+              ...prev,
+              taskContent: generatedClassroomContent,
+              sourceDocument: undefined,
+            }))
+            setTaskSourceDocument(undefined)
+          } else {
+            setAssessmentBuilder(prev => ({
+              ...prev,
+              taskContent: generatedClassroomContent,
+              sourceDocument: undefined,
+            }))
+            setAssessmentSourceDocument(undefined)
+          }
+          toast.info(
+            'Generated questions set as the Classroom content; the original material will not be deployed.'
+          )
+        }
+
         toast.success(`DMI form v${nextVersionNumber} created with ${items.length} questions`)
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to generate DMI'
