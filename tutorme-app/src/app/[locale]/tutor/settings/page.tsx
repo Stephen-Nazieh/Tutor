@@ -335,7 +335,7 @@ export default function TutorSettings() {
             nationality: data.profile.nationality || '',
             countryOfResidence: data.profile.countryOfResidence || '',
             specialties: data.profile.specialties || [],
-            tutoringNationalities: data.profile.tutorNationalities || [],
+            tutorNationalities: data.profile.tutorNationalities || [],
             categoryNationalityCombinations: data.profile.categoryNationalityCombinations || [],
             bio: data.profile.bio || '',
             socialLinks:
@@ -663,7 +663,7 @@ export default function TutorSettings() {
             className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
           >
             <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
-              <CollapsibleCard className={SECTION_CARD_CLASS} title="Profile" defaultOpen>
+              <CollapsibleCard className={SECTION_CARD_CLASS} title="Your Profile" defaultOpen>
                 <div className="space-y-6 p-6">
                   {/* Avatar */}
                   <div className="flex items-center gap-4">
@@ -758,25 +758,12 @@ export default function TutorSettings() {
 
                   {/* Bio Preview */}
                   <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      {formData.avatarUrl ? (
-                        <img
-                          src={formData.avatarUrl}
-                          alt="Profile"
-                          className="h-16 w-16 rounded-xl object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-slate-100 text-lg font-semibold text-slate-500">
-                          {formData.name.charAt(0).toUpperCase() || '?'}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-slate-900">{formData.name || 'Your Name'}</p>
-                        <p className="mt-1 line-clamp-3 text-sm text-slate-500">
-                          {formData.bio ||
-                            'No bio added yet. Your bio helps students learn more about you.'}
-                        </p>
-                      </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-slate-900">{formData.name || 'Your Name'}</p>
+                      <p className="mt-1 line-clamp-3 text-sm text-slate-500">
+                        {formData.bio ||
+                          'No bio added yet. Your bio helps students learn more about you.'}
+                      </p>
                     </div>
 
                     {Object.entries(formData.socialLinks).filter(([, v]) => v).length > 0 && (

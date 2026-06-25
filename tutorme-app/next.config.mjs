@@ -74,25 +74,6 @@ const nextConfig = {
     return {
       beforeFiles: [
         {
-        source: '/tutor/notifications',
-        destination: '/tutor/communications',
-        permanent: true,
-      },
-      {
-        source: '/:locale/tutor/notifications',
-        destination: '/:locale/tutor/communications',
-        permanent: true,
-      },
-      {
-        source: '/student/notifications',
-        destination: '/student/communications',
-        permanent: true,
-      },
-      {
-        source: '/:locale/student/notifications',
-        destination: '/:locale/student/communications',
-        permanent: true,
-      },
           source: '/tutor/classroom',
           destination: '/tutor/insights?view=classroom',
         },
@@ -115,6 +96,26 @@ const nextConfig = {
       {
         source: '/:locale/tutor/refunds',
         destination: '/:locale/tutor/settings?tab=refunds',
+        permanent: true,
+      },
+      {
+        source: '/tutor/notifications',
+        destination: '/tutor/communications',
+        permanent: true,
+      },
+      {
+        source: '/:locale/tutor/notifications',
+        destination: '/:locale/tutor/communications',
+        permanent: true,
+      },
+      {
+        source: '/student/notifications',
+        destination: '/student/communications',
+        permanent: true,
+      },
+      {
+        source: '/:locale/student/notifications',
+        destination: '/:locale/student/communications',
         permanent: true,
       },
     ]
