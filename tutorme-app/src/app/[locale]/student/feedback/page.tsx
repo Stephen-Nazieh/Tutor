@@ -61,7 +61,14 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/componen
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import { motion, AnimatePresence, useDragControls } from 'framer-motion'
 import { useVideoOverlayStore } from '@/stores/video-overlay-store'
-import type { LiveTask, LiveTaskPoll, LiveTaskQuestion, ChatMessage } from '@/lib/socket'
+import type {
+  LiveTask,
+  LiveTaskPoll,
+  LiveTaskQuestion,
+  LiveTaskDmiItem,
+  ChatMessage,
+} from '@/lib/socket'
+import { normalizeDmiQuestionType, DMI_QUESTION_TYPE_LABELS } from '@/lib/assessment/question-types'
 
 type WhiteboardPages = NonNullable<ComponentProps<typeof EnhancedWhiteboard>['pages']>
 type WhiteboardPage = WhiteboardPages[number]
@@ -297,6 +304,120 @@ function ClassroomControlsPanel({
         </motion.div>
       </div>
     </div>
+  )
+}
+
+/**
+ * Renders the answer input for a single DMI item according to its questionType.
+ * Answers are stored as plain strings in `taskAnswers` (multiple_response stores
+ * a JSON array string). Interactive types without a dedicated renderer yet
+ * (matching/ordering/hotspot/drag_drop) fall back to a free-text field.
+ */
+function DmiAnswerField({
+  item,
+  value,
+  onValueChange,
+  onInteract,
+}: {
+  item: LiveTaskDmiItem
+  value: string
+  onValueChange: (next: string) => void
+  onInteract: () => void
+}) {
+  const type = normalizeDmiQuestionType(item.questionType)
+  const options =
+    item.options && item.options.length > 0
+      ? item.options
+      : type === 'true_false'
+        ? ['True', 'False']
+        : []
+  const baseField =
+    'w-full rounded-md border border-gray-200 p-2 text-sm focus:border-[#F17623] focus:outline-none'
+
+  // Single-select choice (mcq / true_false) — render radios when we have options.
+  if ((type === 'mcq' || type === 'true_false') && options.length > 0) {
+    return (
+      <div className="space-y-1.5">
+        {options.map(opt => (
+          <label key={opt} className="flex items-center gap-2 text-sm text-gray-800">
+            <input
+              type="radio"
+              name={`dmi-${item.id}`}
+              checked={value === opt}
+              onChange={() => {
+                onInteract()
+                onValueChange(opt)
+              }}
+              className="h-4 w-4 accent-[#F17623]"
+            />
+            <span>{opt}</span>
+          </label>
+        ))}
+      </div>
+    )
+  }
+
+  // Multi-select choice — checkboxes; answer stored as a JSON array string.
+  if (type === 'multiple_response' && options.length > 0) {
+    let selected: string[] = []
+    try {
+      const parsed = value ? JSON.parse(value) : []
+      if (Array.isArray(parsed)) selected = parsed.filter((v): v is string => typeof v === 'string')
+    } catch {
+      selected = []
+    }
+    const toggle = (opt: string) => {
+      onInteract()
+      const next = selected.includes(opt) ? selected.filter(o => o !== opt) : [...selected, opt]
+      onValueChange(JSON.stringify(next))
+    }
+    return (
+      <div className="space-y-1.5">
+        {options.map(opt => (
+          <label key={opt} className="flex items-center gap-2 text-sm text-gray-800">
+            <input
+              type="checkbox"
+              checked={selected.includes(opt)}
+              onChange={() => toggle(opt)}
+              className="h-4 w-4 accent-[#F17623]"
+            />
+            <span>{opt}</span>
+          </label>
+        ))}
+      </div>
+    )
+  }
+
+  // Short answer & fill-in-the-blank — single-line input. Choice types with no
+  // options provided fall back here so the student is never stuck.
+  if (type === 'short' || type === 'fill_blank' || type === 'mcq' || type === 'multiple_response') {
+    return (
+      <input
+        type="text"
+        value={value}
+        onFocus={onInteract}
+        onChange={e => {
+          onInteract()
+          onValueChange(e.target.value)
+        }}
+        placeholder={type === 'fill_blank' ? 'Fill in the blank…' : 'Type your answer…'}
+        className={baseField}
+      />
+    )
+  }
+
+  // Long answer + interactive types pending dedicated renderers → free-text.
+  return (
+    <textarea
+      value={value}
+      onFocus={onInteract}
+      onChange={e => {
+        onInteract()
+        onValueChange(e.target.value)
+      }}
+      placeholder="Type your answer…"
+      className={`min-h-[64px] resize-y ${baseField}`}
+    />
   )
 }
 
@@ -1722,33 +1843,38 @@ function StudentFeedbackContent() {
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                         Questions
                       </p>
-                      {activeTask.dmiItems.map(item => (
-                        <div
-                          key={item.id}
-                          className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                        >
-                          <p className="mb-2 text-sm font-medium text-gray-800">
-                            {item.questionNumber ? `${item.questionNumber}. ` : ''}
-                            {item.questionText}
-                          </p>
-                          <textarea
-                            value={taskAnswers[item.id] ?? ''}
-                            // Once the student starts working on a task/assessment,
-                            // stop auto-following the tutor so their navigation can't
-                            // yank the student away from what they're answering.
-                            onFocus={() => setFollowTutor(false)}
-                            onChange={e => {
-                              setFollowTutor(false)
-                              setTaskAnswers(prev => ({
-                                ...prev,
-                                [item.id]: e.target.value,
-                              }))
-                            }}
-                            placeholder="Type your answer…"
-                            className="min-h-[64px] w-full resize-y rounded-md border border-gray-200 p-2 text-sm focus:border-[#F17623] focus:outline-none"
-                          />
-                        </div>
-                      ))}
+                      {activeTask.dmiItems.map(item => {
+                        const qType = normalizeDmiQuestionType(item.questionType)
+                        return (
+                          <div
+                            key={item.id}
+                            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+                          >
+                            <div className="mb-2 flex items-start justify-between gap-2">
+                              <p className="text-sm font-medium text-gray-800">
+                                {item.questionNumber ? `${item.questionNumber}. ` : ''}
+                                {item.questionText}
+                              </p>
+                              {qType !== 'long' && (
+                                <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">
+                                  {DMI_QUESTION_TYPE_LABELS[qType]}
+                                </span>
+                              )}
+                            </div>
+                            <DmiAnswerField
+                              item={item}
+                              value={taskAnswers[item.id] ?? ''}
+                              // Once the student starts working, stop auto-following
+                              // the tutor so their navigation can't yank the student
+                              // away from what they're answering.
+                              onInteract={() => setFollowTutor(false)}
+                              onValueChange={next =>
+                                setTaskAnswers(prev => ({ ...prev, [item.id]: next }))
+                              }
+                            />
+                          </div>
+                        )
+                      })}
                     </div>
                   ) : (
                     <p className="text-sm text-gray-500">

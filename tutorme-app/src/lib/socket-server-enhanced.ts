@@ -112,6 +112,10 @@ export interface LiveTaskDmiItem {
   id: string
   questionNumber: number
   questionText: string
+  /** Which answer-input control the student sees (defaults to long answer). */
+  questionType?: import('./assessment/question-types').DmiQuestionType
+  /** Options for choice types (mcq / true_false / multiple_response). */
+  options?: string[]
 }
 
 export interface LiveTaskSourceDocument {

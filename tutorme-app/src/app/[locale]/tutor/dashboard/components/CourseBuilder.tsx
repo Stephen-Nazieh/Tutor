@@ -2224,6 +2224,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                 id: i.id,
                 questionNumber: i.questionNumber,
                 questionText: i.questionText,
+                questionType: i.questionType,
+                options: i.options,
               })) || [],
             deployedAt: Date.now(),
             polls: [],
@@ -2748,6 +2750,10 @@ FEEDBACK: [your explanation]`
           questionNumber: q.questionNumber || 1,
           questionText: q.questionText || 'Question',
           answer: q.answer || '',
+          // Carry the answer-input type + choice options through to the deployed
+          // DMI so the student sees the right control (short/mcq/etc.).
+          questionType: q.questionType,
+          options: Array.isArray(q.options) ? q.options : undefined,
         }))
 
         // Calculate version number
