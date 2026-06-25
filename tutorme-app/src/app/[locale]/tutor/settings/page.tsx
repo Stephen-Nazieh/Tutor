@@ -849,7 +849,6 @@ export default function TutorSettings() {
                 </div>
               </CollapsibleCard>
 
-
               {/* Tax Information */}
               <CollapsibleCard
                 flush
@@ -958,8 +957,6 @@ export default function TutorSettings() {
                   </div>
                 </div>
               </CollapsibleCard>
-
-
             </div>
           </TabsContent>
 
