@@ -1686,6 +1686,15 @@ function StudentFeedbackContent() {
                       key={task.id}
                       type="button"
                       onClick={() => handleSelectTask(task.id)}
+                      onDoubleClick={() => {
+                        handleSelectTask(task.id)
+                        // Double-clicking an assessment (or any task that carries
+                        // DMI questions) jumps straight to its answer inputs in
+                        // the Assessment tab.
+                        if (task.source === 'assessment' || (task.dmiItems?.length ?? 0) > 0) {
+                          setRightPanelTab('dmi')
+                        }
+                      }}
                       className={`flex w-full flex-col gap-1 rounded-lg border px-3 py-2 text-left transition-colors ${
                         activeTaskId === task.id
                           ? 'border-blue-200 bg-blue-50'
