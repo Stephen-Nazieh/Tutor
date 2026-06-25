@@ -8595,9 +8595,9 @@ FEEDBACK: [your explanation]`
                                     <div
                                       className={cn(
                                         'flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-white/90 p-0 backdrop-blur-md',
-                                        mainTab === 'live' && 'rounded-md border border-orange-300',
+                                        mainTab === 'live' && 'rounded-md border border-gray-200',
                                         mainTab === 'test-pci' &&
-                                          'rounded-md border border-purple-300'
+                                          'rounded-md border border-gray-200'
                                       )}
                                     >
                                       <PanelErrorBoundary
@@ -8964,8 +8964,8 @@ FEEDBACK: [your explanation]`
                                   className={cn(
                                     'mt-1 w-full rounded-2xl bg-white/90 backdrop-blur-md transition-all duration-300',
                                     mainTab === 'live'
-                                      ? 'border border-orange-300'
-                                      : 'border border-purple-300'
+                                      ? 'border border-gray-200'
+                                      : 'border border-gray-200'
                                   )}
                                 >
                                   <div className="relative flex w-full flex-col p-px">
