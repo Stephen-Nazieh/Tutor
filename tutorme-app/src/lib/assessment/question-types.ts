@@ -36,6 +36,20 @@ export interface DmiMatchPair {
   right: string
 }
 
+/**
+ * A correct clickable region for a `hotspot` item. Coordinates are fractions of
+ * the image (0–1) so they're resolution-independent: x/y is the top-left corner,
+ * w/h the size. The student's click is correct if it lands inside any region.
+ * Regions are the answer key — never shown to the student.
+ */
+export interface DmiHotspotRegion {
+  x: number
+  y: number
+  w: number
+  h: number
+  label?: string
+}
+
 /** The default when an item has no explicit type (back-compat with old DMIs). */
 export const DEFAULT_DMI_QUESTION_TYPE: DmiQuestionType = 'long'
 
@@ -61,11 +75,10 @@ export const CHOICE_DMI_TYPES: ReadonlySet<DmiQuestionType> = new Set([
 ])
 
 /**
- * Interactive types that don't yet have a dedicated student renderer; they fall
- * back to a labelled free-text input. (Only hotspot remains — it needs an image
- * + clickable regions; the rest are implemented.)
+ * Types that still degrade to a free-text input in some cases. All ten now have
+ * dedicated renderers; `hotspot` only falls back when its item has no image.
  */
-export const FALLBACK_DMI_TYPES: ReadonlySet<DmiQuestionType> = new Set(['hotspot'])
+export const FALLBACK_DMI_TYPES: ReadonlySet<DmiQuestionType> = new Set([])
 
 export function isDmiQuestionType(value: unknown): value is DmiQuestionType {
   return typeof value === 'string' && (DMI_QUESTION_TYPES as readonly string[]).includes(value)

@@ -69,6 +69,10 @@ export interface DMIQuestion {
   options?: string[]
   /** Correct left↔right pairs for `matching` (the right values form the bank). */
   pairs?: import('@/lib/assessment/question-types').DmiMatchPair[]
+  /** Image the student clicks for a `hotspot` item. */
+  hotspotImageUrl?: string
+  /** Correct clickable regions for `hotspot` (answer key, not shown to student). */
+  regions?: import('@/lib/assessment/question-types').DmiHotspotRegion[]
 }
 
 export interface DMIVersion {
