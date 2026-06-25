@@ -27,7 +27,7 @@ import { AutoTextarea } from '@/components/ui/auto-textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useSocket } from '@/hooks/use-socket'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, resolvePublicUrl } from '@/lib/utils'
 import {
   MessageSquare,
   Send,
@@ -310,9 +310,9 @@ function ClassroomControlsPanel({
 
 /**
  * Renders the answer input for a single DMI item according to its questionType.
- * Answers are stored as plain strings in `taskAnswers` (multiple_response stores
- * a JSON array string). Interactive types without a dedicated renderer yet
- * (matching/ordering/hotspot/drag_drop) fall back to a free-text field.
+ * Answers are stored as plain strings in `taskAnswers` (choice/matching/ordering/
+ * drag_drop/hotspot store JSON). hotspot falls back to free-text when its item
+ * has no image; long answer is always free-text.
  */
 function DmiAnswerField({
   item,
@@ -407,6 +407,51 @@ function DmiAnswerField({
         className={baseField}
       />
     )
+  }
+
+  // Hotspot — the student clicks a point on an image. The answer is stored as a
+  // JSON point { x, y } in 0–1 image fractions; the correct regions are the
+  // tutor-facing answer key and are never drawn here. Falls back to free-text
+  // when no image is available.
+  if (type === 'hotspot') {
+    const imageUrl = resolvePublicUrl(item.hotspotImageUrl)
+    if (imageUrl) {
+      let point: { x: number; y: number } | null = null
+      try {
+        const parsed = value ? JSON.parse(value) : null
+        if (parsed && typeof parsed.x === 'number' && typeof parsed.y === 'number') point = parsed
+      } catch {
+        point = null
+      }
+      const onPick = (e: React.MouseEvent<HTMLImageElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect()
+        if (!rect.width || !rect.height) return
+        const x = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width))
+        const y = Math.min(1, Math.max(0, (e.clientY - rect.top) / rect.height))
+        onInteract()
+        onValueChange(JSON.stringify({ x, y }))
+      }
+      return (
+        <div className="space-y-1">
+          <p className="text-xs text-gray-500">Click the correct spot on the image.</p>
+          <div className="relative inline-block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={imageUrl}
+              alt="Hotspot"
+              onClick={onPick}
+              className="max-h-[320px] max-w-full cursor-crosshair rounded-md border border-gray-200"
+            />
+            {point && (
+              <span
+                className="pointer-events-none absolute z-10 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[#F17623] shadow"
+                style={{ left: `${point.x * 100}%`, top: `${point.y * 100}%` }}
+              />
+            )}
+          </div>
+        </div>
+      )
+    }
   }
 
   // Drag and drop — draggable item chips placed into target bins. Reuses pairs

@@ -2238,6 +2238,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                 questionType: i.questionType,
                 options: i.options,
                 pairs: i.pairs,
+                hotspotImageUrl: i.hotspotImageUrl,
+                regions: i.regions,
               })) || [],
             deployedAt: Date.now(),
             polls: [],
@@ -2782,6 +2784,8 @@ FEEDBACK: [your explanation]`
           questionType: q.questionType,
           options: Array.isArray(q.options) ? q.options : undefined,
           pairs: Array.isArray(q.pairs) ? q.pairs : undefined,
+          hotspotImageUrl: q.hotspotImageUrl,
+          regions: Array.isArray(q.regions) ? q.regions : undefined,
         }))
 
         // Calculate version number
