@@ -1731,9 +1731,9 @@ function StudentFeedbackContent() {
                 className="flex h-full min-h-0 flex-1 flex-col outline-none"
               >
                 {/* Classroom viewer */}
-                <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border-2 border-[rgba(241,118,35,0.5)] bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all duration-200 hover:shadow-[0_12px_32px_rgba(31,41,51,0.14)]">
+                <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border-2 border-gray-200 bg-white shadow-[0_8px_20px_rgba(0,0,0,0.08)] transition-all duration-200 hover:shadow-[0_12px_32px_rgba(31,41,51,0.14)]">
                   <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-center">
-                    <span className="rounded-b-md bg-[rgba(241,118,35,0.5)] px-3 py-0.5 text-[11px] font-medium text-white">
+                    <span className="rounded-b-md bg-gray-200 px-3 py-0.5 text-[11px] font-medium text-gray-700">
                       Classroom
                     </span>
                   </div>
@@ -2161,85 +2161,28 @@ function StudentFeedbackContent() {
                   />
                 </div>
               ) : (
-                <div className="space-y-6">
-                  <div className="mb-2 border-b border-gray-100 pb-2">
-                    <h2 className="text-base font-bold text-gray-900">{interactionsTitle}</h2>
+                <div className="flex h-full flex-col">
+                  {/* AI Assistant chat display */}
+                  <div className="flex-1 overflow-y-auto p-4">
+                    <p className="text-sm text-gray-500">AI Assistant coming soon.</p>
                   </div>
-                  {!activeTask && (
-                    <p className="text-sm text-gray-500">Select a task to see feedback prompts.</p>
-                  )}
-                  {activeTask && (
-                    <div className="space-y-6">
-                      {feedbackPolls.length > 0 && (
-                        <div className="space-y-3">
-                          {feedbackPolls.map(poll => {
-                            const selectedValue = poll.responses.find(
-                              response => response.studentId === session?.user?.id
-                            )?.value
-                            return (
-                              <div key={poll.id} className="rounded-lg border bg-white p-4">
-                                <p className="text-sm font-medium text-gray-900">{poll.question}</p>
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                  {poll.options.map(option => (
-                                    <Button
-                                      key={`${poll.id}-${option}`}
-                                      variant={selectedValue === option ? 'default' : 'outline'}
-                                      size="sm"
-                                      disabled={poll.status === 'closed'}
-                                      onClick={() => handlePollVote(poll, option)}
-                                    >
-                                      {option}
-                                    </Button>
-                                  ))}
-                                </div>
-                                {poll.status === 'closed' && (
-                                  <p className="mt-2 text-xs text-gray-500">Poll closed</p>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )}
-
-                      {feedbackQuestions.length > 0 && (
-                        <div className="space-y-3">
-                          {feedbackQuestions.map(question => (
-                            <div key={question.id} className="rounded-lg border bg-white p-4">
-                              <p className="text-sm font-medium text-gray-900">{question.prompt}</p>
-                              <div className="mt-3">
-                                <AutoTextarea
-                                  placeholder="Type your answer..."
-                                  className="min-h-[72px]"
-                                  value={questionDrafts[question.id] || ''}
-                                  onChange={event =>
-                                    setQuestionDrafts(prev => ({
-                                      ...prev,
-                                      [question.id]: event.target.value,
-                                    }))
-                                  }
-                                />
-                                <div className="mt-2 flex justify-end">
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleQuestionSend(question)}
-                                    disabled={!questionDrafts[question.id]?.trim()}
-                                  >
-                                    Send
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {feedbackPolls.length === 0 && feedbackQuestions.length === 0 && (
-                        <p className="text-sm text-gray-500">
-                          Waiting for tutor insights to appear here.
-                        </p>
-                      )}
+                  {/* AI Assistant input */}
+                  <div className="shrink-0 border-t border-gray-200 p-3">
+                    <div className="relative">
+                      <AutoTextarea
+                        placeholder="Ask the AI Assistant..."
+                        className="min-h-[60px] pr-10"
+                        value=""
+                        onChange={() => {}}
+                      />
+                      <Button
+                        size="icon"
+                        className="absolute bottom-2 right-2 h-8 w-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
             </div>
