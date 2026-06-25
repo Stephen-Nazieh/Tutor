@@ -800,7 +800,7 @@ function CourseBuilderInsightsRouteInner({
                           })()}
                         </SelectValue>
                       </SelectTrigger>
-                      <SelectContent className="bg-[rgba(31,41,51,0.60)] border-white/10 backdrop-blur-xl shadow-2xl">
+                      <SelectContent className="border-white/10 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl">
                         {courses && courses.length > 0 && (
                           <SelectItem
                             value="__live-header__"
