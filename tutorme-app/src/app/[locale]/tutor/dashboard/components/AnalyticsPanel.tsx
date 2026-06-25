@@ -1,9 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { Badge } from '@/components/ui/badge'
-import { Users, MessageSquare, CheckCircle2, Smile, ListChecks } from 'lucide-react'
+import { MessageSquare, CheckCircle2, Smile, ListChecks } from 'lucide-react'
 import type { LiveTask } from '@/lib/socket/socket-types'
 import type { LiveStudent, EngagementMetrics } from '@/types/live-session'
 
@@ -35,20 +34,6 @@ export function AnalyticsPanel({
   sessionId,
 }: AnalyticsPanelProps) {
   const totalStudents = students?.length ?? 0
-  const activeStudents = useMemo(
-    () => (students || []).filter(s => s.status !== 'offline').length,
-    [students]
-  )
-
-  const studentStatusData = useMemo(() => {
-    if (!students) return []
-    const online = students.filter(s => s.status !== 'offline').length
-    const offline = students.filter(s => s.status === 'offline').length
-    return [
-      { name: 'Online', value: online, color: '#10b981' },
-      { name: 'Offline', value: offline, color: '#9ca3af' },
-    ].filter(d => d.value > 0)
-  }, [students])
 
   const formattedDuration = useMemo(() => {
     if (!classDuration) return '00:00'
