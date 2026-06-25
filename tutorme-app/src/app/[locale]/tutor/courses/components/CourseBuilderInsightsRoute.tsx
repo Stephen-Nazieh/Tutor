@@ -214,7 +214,10 @@ function TutorControlsPanel({
                   onValueChange={v => onModeChange(v as ControlsMode)}
                   className="mt-2 w-full"
                 >
-                  <TabsList className="grid h-9 w-full grid-cols-3 gap-1 rounded-lg bg-white/10 p-1">
+                  <TabsList
+                    data-testid="builder-mode-tabs"
+                    className="grid h-9 w-full grid-cols-3 gap-1 rounded-lg bg-white/10 p-1"
+                  >
                     <TabsTrigger
                       value="build"
                       className={cn(
@@ -800,7 +803,7 @@ function CourseBuilderInsightsRouteInner({
                           })()}
                         </SelectValue>
                       </SelectTrigger>
-                      <SelectContent className="bg-[rgba(31,41,51,0.60)] border-white/10 backdrop-blur-xl shadow-2xl">
+                      <SelectContent className="border-white/10 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl">
                         {courses && courses.length > 0 && (
                           <SelectItem
                             value="__live-header__"
