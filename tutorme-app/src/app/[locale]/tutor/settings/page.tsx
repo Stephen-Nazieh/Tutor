@@ -69,7 +69,8 @@ const LANGUAGES = [
   { code: 'ja', name: '日本語 (Japanese)' },
 ]
 
-const SECTION_CARD_CLASS = 'overflow-hidden bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)]'
+const SECTION_CARD_CLASS =
+  'overflow-hidden bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)] border-[rgba(0,0,0,0.05)]'
 
 interface PaymentMethod {
   id: string
@@ -168,7 +169,7 @@ function OneOnOneSettingsCard() {
     >
       <div className="space-y-6 p-6">
         {/* Enable/Disable Toggle */}
-        <div className="flex items-center justify-between rounded-lg border p-4">
+        <div className="flex items-center justify-between rounded-[12px] border p-4 transition-all hover:bg-slate-50 hover:shadow-sm">
           <div>
             <p className="font-medium">Enable 1-on-1 Booking</p>
             <p className="text-sm text-gray-500">
@@ -968,7 +969,7 @@ export default function TutorSettings() {
                   {paymentMethods.map(method => (
                     <div
                       key={method.id}
-                      className="flex items-center justify-between rounded-lg border p-4"
+                      className="flex items-center justify-between rounded-[12px] border p-4 transition-all hover:bg-slate-50 hover:shadow-sm"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50">
@@ -1122,7 +1123,7 @@ export default function TutorSettings() {
                   {billingHistory.map(invoice => (
                     <div
                       key={invoice.id}
-                      className="flex items-center justify-between rounded-lg border p-4"
+                      className="flex items-center justify-between rounded-[12px] border p-4 transition-all hover:bg-slate-50 hover:shadow-sm"
                     >
                       <div>
                         <p className="font-medium">{invoice.description}</p>
@@ -1368,7 +1369,7 @@ export default function TutorSettings() {
                       {connectedDevices.map(device => (
                         <div
                           key={device.id}
-                          className="flex items-center justify-between rounded-lg border p-3"
+                          className="flex items-center justify-between rounded-[12px] border p-3 transition-all hover:bg-slate-50 hover:shadow-sm"
                         >
                           <div className="flex items-center gap-3">
                             <Smartphone className="h-5 w-5 text-gray-400" />
