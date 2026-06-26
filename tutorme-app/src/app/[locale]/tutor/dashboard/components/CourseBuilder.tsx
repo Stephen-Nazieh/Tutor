@@ -8581,9 +8581,9 @@ FEEDBACK: [your explanation]`
                                     <div
                                       className={cn(
                                         'flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden bg-white/90 p-0 backdrop-blur-md',
-                                        mainTab === 'live' && 'rounded-md border border-gray-200',
+                                        mainTab === 'live' && 'rounded-md border border-orange-500',
                                         mainTab === 'test-pci' &&
-                                          'rounded-md border border-gray-200'
+                                          'rounded-md border border-orange-500'
                                       )}
                                     >
                                       <PanelErrorBoundary
@@ -8811,7 +8811,7 @@ FEEDBACK: [your explanation]`
 
                                           if (!hasDoc && !hasDmi) {
                                             return (
-                                              <div className="h-full w-full rounded-md border border-purple-200 bg-white p-4">
+                                              <div className="h-full w-full rounded-md border border-orange-500 bg-white p-4">
                                                 <p className="text-muted-foreground whitespace-pre-wrap text-sm">
                                                   {testPciContent[tab.id] || ''}
                                                 </p>
