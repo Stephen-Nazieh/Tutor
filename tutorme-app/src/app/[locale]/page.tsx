@@ -2351,9 +2351,11 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
                 {selectedCourse?.id ? (
                   <button
                     type="button"
-                    onClick={() =>
+                    onClick={() => {
+                      prevSelectedCourseRef.current = selectedCourse
+                      setSelectedCourse(null)
                       setScheduleCourse({ id: selectedCourse.id, name: selectedCourse.name })
-                    }
+                    }}
                     className="text-sm font-semibold text-blue-600 hover:underline"
                   >
                     View schedules
@@ -2489,7 +2491,13 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
       <ScheduleViewModal
         courseId={scheduleCourse?.id ?? null}
         courseName={scheduleCourse?.name}
-        onClose={() => setScheduleCourse(null)}
+        onClose={() => {
+          setScheduleCourse(null)
+          if (prevSelectedCourseRef.current) {
+            setSelectedCourse(prevSelectedCourseRef.current)
+            prevSelectedCourseRef.current = null
+          }
+        }}
       />
     </section>
   )
