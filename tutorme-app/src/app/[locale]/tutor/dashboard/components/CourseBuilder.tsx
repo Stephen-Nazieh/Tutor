@@ -6048,7 +6048,7 @@ FEEDBACK: [your explanation]`
                         <Button
                           size="sm"
                           onClick={addCourseBuilderNode}
-                          className="mb-4 h-8 w-full gap-1 text-xs"
+                          className="mb-4 h-8 w-full gap-1 border border-blue-600 bg-white text-xs text-blue-600 transition-colors hover:bg-blue-600 hover:text-white"
                         >
                           <Plus className="h-3 w-3" />
                           Lesson
@@ -8023,7 +8023,7 @@ FEEDBACK: [your explanation]`
                                         </TabsList>
                                         <TabsContent
                                           value="analytics"
-                                          className="flex flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                          className="flex h-full flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                         >
                                           <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-blue-100 bg-white p-3 shadow-sm">
                                             <AiAssistantPanel sessionId={insightsProps.sessionId} />
@@ -8371,7 +8371,7 @@ FEEDBACK: [your explanation]`
 
                                           <TabsContent
                                             value="analytics"
-                                            className="flex flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
+                                            className="flex h-full flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                           >
                                             <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-blue-100 bg-white p-3 shadow-sm">
                                               <AiAssistantPanel
