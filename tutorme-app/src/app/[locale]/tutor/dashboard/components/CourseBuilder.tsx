@@ -8831,7 +8831,7 @@ FEEDBACK: [your explanation]`
 
                                           if (!hasDoc && !hasDmi) {
                                             return (
-                                              <div className="h-full w-full p-4">
+                                              <div className="h-full min-h-0 w-full overflow-y-auto p-4">
                                                 <p className="text-muted-foreground whitespace-pre-wrap text-sm">
                                                   {testPciContent[tab.id] || ''}
                                                 </p>
@@ -8851,7 +8851,7 @@ FEEDBACK: [your explanation]`
                                                     className="absolute inset-0 h-full w-full"
                                                   />
                                                 ) : (
-                                                  <p className="text-muted-foreground whitespace-pre-wrap p-2 text-sm">
+                                                  <p className="text-muted-foreground absolute inset-0 h-full w-full overflow-y-auto whitespace-pre-wrap p-2 text-sm">
                                                     {mainTab === 'live'
                                                       ? testPciSource === 'task'
                                                         ? liveTask?.description
@@ -8882,7 +8882,7 @@ FEEDBACK: [your explanation]`
                                                       className="absolute inset-0 h-full w-full"
                                                     />
                                                   ) : (
-                                                    <p className="text-muted-foreground whitespace-pre-wrap p-2 text-sm">
+                                                    <p className="text-muted-foreground absolute inset-0 h-full w-full overflow-y-auto whitespace-pre-wrap p-2 text-sm">
                                                       {mainTab === 'live'
                                                         ? testPciSource === 'task'
                                                           ? liveTask?.description
@@ -10866,7 +10866,20 @@ FEEDBACK: [your explanation]`
             modal anytime from the Classroom (live) view while showing an assessment. */}
         {mainTab === 'live' &&
           (() => {
-            const liveDmiItems = assessmentDmiItems.length > 0 ? assessmentDmiItems : taskDmiItems
+            // Prefer the DMI loaded into the builder; otherwise fall back to the
+            // DMI carried by whatever task/assessment is currently loaded in the
+            // live Classroom (a real live session may set loadedTaskId/
+            // loadedAssessmentId without populating the builder DMI state).
+            const loadedDmi =
+              testPciSource === 'assessment'
+                ? findAssessmentById(loadedAssessmentId || '')?.dmiItems
+                : findTaskById(loadedTaskId || '')?.dmiItems
+            const liveDmiItems =
+              assessmentDmiItems.length > 0
+                ? assessmentDmiItems
+                : taskDmiItems.length > 0
+                  ? taskDmiItems
+                  : loadedDmi || []
             if (liveDmiItems.length === 0) return null
             return (
               <>
@@ -10902,11 +10915,21 @@ FEEDBACK: [your explanation]`
                             )}
                           </div>
                           {Array.isArray(item.options) && item.options.length > 0 && (
-                            <ul className="mt-1.5 list-disc pl-5 text-xs text-slate-600">
+                            <ul className="mt-1.5 space-y-0.5 pl-1 text-xs text-slate-600">
                               {item.options.map((o, i) => (
-                                <li key={i}>{o}</li>
+                                <li key={i}>
+                                  <span className="mr-1 font-semibold text-slate-500">
+                                    {String.fromCharCode(97 + i)})
+                                  </span>
+                                  {o}
+                                </li>
                               ))}
                             </ul>
+                          )}
+                          {item.answer && (
+                            <p className="mt-2 rounded bg-emerald-50 px-2 py-1 text-xs text-emerald-800">
+                              <span className="font-semibold">Answer:</span> {item.answer}
+                            </p>
                           )}
                         </div>
                       ))}
