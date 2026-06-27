@@ -1997,7 +1997,7 @@ function StudentFeedbackContent() {
             )}
 
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-              <div className="flex w-full items-center gap-2 rounded-lg bg-gray-100 p-1">
+              <div className="grid w-full grid-cols-4 items-center gap-2 rounded-lg bg-gray-100 p-1">
                 <Button
                   variant="ghost"
                   size="sm"
