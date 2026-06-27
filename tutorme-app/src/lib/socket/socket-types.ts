@@ -80,6 +80,15 @@ export interface LiveTaskSourceDocument {
   mimeType: string
 }
 
+/**
+ * When students may see the correct answers for a deployed task/assessment:
+ * - 'instant'      — graded live as they answer (answers sent to the browser).
+ * - 'after_submit' — correct answers revealed only on the results screen.
+ * - 'hidden'       — never reveal answers; show the score only.
+ * Chosen by the tutor at deploy time.
+ */
+export type AnswerReveal = 'instant' | 'after_submit' | 'hidden'
+
 export interface LiveTask {
   id: string
   title: string
@@ -91,6 +100,8 @@ export interface LiveTask {
   /** Per-question answer key + marks. Sent tutor→server on deploy ONLY for
    *  server-side auto-grading; NEVER broadcast to students. */
   answerKey?: Array<{ id: string; answer?: string; marks?: number }>
+  /** Tutor's answer-reveal policy for this deploy (default 'instant'). */
+  answerReveal?: AnswerReveal
   deployedAt: number
   polls: LiveTaskPoll[]
   questions: LiveTaskQuestion[]

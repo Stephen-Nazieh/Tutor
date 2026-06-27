@@ -43,6 +43,7 @@ interface TaskQuestion {
   type: string
   question: string
   options?: string[]
+  correctAnswer?: string
   points: number
   rubric?: string[]
   hints?: string[]
@@ -65,6 +66,7 @@ export default function StudentAssignmentsPage() {
     id: string
     title: string
     questions: TaskQuestion[]
+    answerReveal?: 'instant' | 'after_submit' | 'hidden'
   } | null>(null)
   const [takingQuiz, setTakingQuiz] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -125,6 +127,7 @@ export default function StudentAssignmentsPage() {
         id: taskId,
         title: data.task.title,
         questions: data.task.questions,
+        answerReveal: data.task.answerReveal,
       })
       setStartTime(Date.now())
       setTakingQuiz(true)
@@ -156,11 +159,10 @@ export default function StudentAssignmentsPage() {
           ...(csrf && { 'X-CSRF-Token': csrf }),
         },
         credentials: 'include',
+        // Score is computed server-side; only the answers/time are sent.
         body: JSON.stringify({
           answers: results.answers,
           timeSpent: timeSpentSec,
-          score: results.score,
-          questionResults: results.questionResults,
         }),
       })
 
@@ -172,6 +174,14 @@ export default function StudentAssignmentsPage() {
             ? `Submitted! Score: ${Math.round(submittedScore)}%`
             : 'Submitted! Awaiting grading.'
         )
+        loadAssignments() // refresh list (modal closes via its Continue button)
+        // Hand the authoritative server grade back so the results screen can
+        // show the real score + (when allowed) the correct answers.
+        return {
+          score: data?.submission?.score ?? null,
+          questionResults: data?.questionResults,
+          correctAnswers: data?.correctAnswers,
+        }
       } else if (submitRes.status === 409) {
         toast.info('Already submitted')
       } else {
@@ -181,9 +191,6 @@ export default function StudentAssignmentsPage() {
       toast.error('Failed to submit')
     } finally {
       setSubmitting(false)
-      setTakingQuiz(false)
-      setActiveTask(null)
-      loadAssignments() // refresh list
     }
   }
 
@@ -247,6 +254,7 @@ export default function StudentAssignmentsPage() {
         : 'short_answer') as 'multiple_choice' | 'short_answer',
       question: q.question,
       options: q.options,
+      correctAnswer: q.correctAnswer,
       rubric: q.rubric?.join('; '),
     }))
 
@@ -255,6 +263,7 @@ export default function StudentAssignmentsPage() {
         questions={quizQuestions}
         onComplete={handleQuizComplete}
         onClose={handleCloseQuiz}
+        answerReveal={activeTask.answerReveal}
       />
     )
   }

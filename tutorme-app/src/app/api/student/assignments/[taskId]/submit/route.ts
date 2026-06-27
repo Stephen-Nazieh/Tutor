@@ -176,8 +176,23 @@ export async function POST(
       console.warn('[submit] AI feedback generation failed (non-critical):', feedbackError)
     }
 
+    // Reveal correct answers in the response ONLY when the tutor chose
+    // 'after_submit' — now that the student has submitted, it's safe to show
+    // them on the results screen. 'hidden'/'instant' get no post-submit key
+    // ('instant' already had them client-side; 'hidden' never reveals).
+    const rawReveal = (task.metadata as { answerReveal?: string } | null)?.answerReveal
+    const correctAnswers =
+      rawReveal === 'after_submit'
+        ? answerKey.reduce<Record<string, string>>((acc, k) => {
+            if (k.answer != null && k.answer !== '') acc[k.id] = k.answer
+            return acc
+          }, {})
+        : undefined
+
     return NextResponse.json({
       submission: { submissionId, score: score ?? 0, status: 'submitted' },
+      questionResults,
+      correctAnswers,
     })
   } catch (error) {
     return handleApiError(
