@@ -7974,8 +7974,8 @@ FEEDBACK: [your explanation]`
                               <div className="sticky top-0 z-10 flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white">
                                 Desk
                               </div>
-                              <div className="min-h-0 flex-1 overflow-hidden">
-                                <div className="px-2 pt-4">
+                              <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                                <div className="shrink-0 px-2 pt-4">
                                   <Tabs
                                     value={liveRightPanelTab}
                                     onValueChange={value => {
@@ -8010,7 +8010,7 @@ FEEDBACK: [your explanation]`
                                         }
                                         className="flex h-full min-h-0 flex-col"
                                       >
-                                        <TabsList className="mb-2 grid w-full grid-cols-3 gap-2 rounded-lg bg-white p-1 shadow-none">
+                                        <TabsList className="mb-2 grid w-full shrink-0 grid-cols-3 gap-2 rounded-lg bg-white p-1 shadow-none">
                                           <TabsTrigger
                                             value="analytics"
                                             className="h-7 rounded-md px-2 text-[11px] font-medium text-gray-700 transition-all hover:bg-gray-100 data-[state=inactive]:bg-transparent data-[state=active]:bg-gradient-to-br data-[state=active]:from-[#2563EB] data-[state=active]:to-[#1D4ED8] data-[state=active]:text-white data-[state=inactive]:text-gray-700 data-[state=active]:shadow-sm"
@@ -8055,7 +8055,7 @@ FEEDBACK: [your explanation]`
                                               }
                                             />
                                           </div>
-                                          <div className="mt-2 rounded-2xl border border-blue-100 bg-white p-2 shadow-sm">
+                                          <div className="mt-2 shrink-0 rounded-2xl border border-blue-100 bg-white p-2 shadow-sm">
                                             <div className="relative">
                                               <MentionTextarea
                                                 mentionItems={mentionItems}
@@ -8129,7 +8129,7 @@ FEEDBACK: [your explanation]`
                                               }
                                             />
                                           </div>
-                                          <div className="mt-2 rounded-2xl border border-blue-100 bg-white p-2 shadow-sm">
+                                          <div className="mt-2 shrink-0 rounded-2xl border border-blue-100 bg-white p-2 shadow-sm">
                                             <div className="relative">
                                               <MentionTextarea
                                                 mentionItems={mentionItems}
