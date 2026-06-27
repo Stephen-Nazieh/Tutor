@@ -6162,7 +6162,7 @@ FEEDBACK: [your explanation]`
           }}
           className="flex h-full w-full flex-1 flex-col bg-gray-50/50 px-6 pt-0"
         >
-          <div className="relative flex h-full w-full min-w-0 flex-1 gap-6 pb-6 pt-0">
+          <div className="relative flex h-full w-full min-w-0 flex-1 justify-center gap-6 pb-6 pt-0">
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
             {/* Floating collapsed/expanded pill */}
             <div
@@ -8393,8 +8393,8 @@ FEEDBACK: [your explanation]`
               </>
             )}
 
-            {/* CENTER PANEL - New Three-Section Design */}
-            <div className="order-2 flex min-h-0 w-full min-w-0 flex-1 flex-col items-center">
+            {/* CENTER PANEL - Fixed width, always centered */}
+            <div className="order-2 flex min-h-0 w-[800px] shrink-0 flex-col items-center">
               <div className="flex h-full min-h-0 w-full flex-1 grow flex-col items-stretch">
                 {mainTab !== 'builder' && (
                   <Card
@@ -9344,7 +9344,14 @@ FEEDBACK: [your explanation]`
                       padding="none"
                       className="flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-[20px] border border-blue-200 bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]"
                     >
-                      <div className="sticky top-0 z-10 flex h-9 shrink-0 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white">
+                      <div
+                        className={cn(
+                          'sticky top-0 z-10 flex h-9 shrink-0 items-center justify-center rounded-t-[20px] px-4 text-sm font-semibold text-white transition-colors duration-300',
+                          mainBuilderTab === 'assessment'
+                            ? 'bg-gradient-to-br from-[#EC4899] to-[#DB2777]'
+                            : 'bg-gradient-to-br from-[#2563EB] to-[#1D4ED8]'
+                        )}
+                      >
                         <div className="flex items-center gap-2">
                           <Wrench className="h-4 w-4" />
                           Build
@@ -9948,14 +9955,14 @@ FEEDBACK: [your explanation]`
                                     <TabsList className="mb-px grid h-[46px] w-full grid-cols-2 gap-2 rounded-xl bg-transparent p-0 shadow-none">
                                       <TabsTrigger
                                         value="content"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#FBCFE8] data-[state=active]:bg-[#FDF2F8] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#EC4899] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <LayoutPanelTop className="mr-2 h-4 w-4 shrink-0" />
                                         Assessment
                                       </TabsTrigger>
                                       <TabsTrigger
                                         value="pci"
-                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#E2D8FF] data-[state=active]:bg-[#F3EEFF] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#6D59D8] data-[state=inactive]:hover:bg-slate-50"
+                                        className="w-full rounded-xl border border-[#E5E7EB] text-sm font-medium text-[#667085] transition-all data-[state=active]:border-[#FBCFE8] data-[state=active]:bg-[#FDF2F8] data-[state=inactive]:bg-white data-[state=active]:font-medium data-[state=active]:text-[#EC4899] data-[state=inactive]:hover:bg-slate-50"
                                       >
                                         <Brain className="mr-2 h-4 w-4 shrink-0" />
                                         PCI

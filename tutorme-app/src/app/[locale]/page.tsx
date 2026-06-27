@@ -1702,9 +1702,10 @@ const CountdownTimer = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    // Hardcoded launch date: August 1, 2025 at 00:00:00 UTC
+    // Hardcoded launch date: 39 days from now
     // All browsers show the same countdown regardless of when they first visit
-    const targetDate = new Date('2025-08-01T00:00:00Z').getTime()
+    const LAUNCH_DAYS = 39
+    const targetDate = new Date(Date.now() + LAUNCH_DAYS * 24 * 60 * 60 * 1000).getTime()
 
     const calculate = () => {
       const diff = targetDate - Date.now()
