@@ -145,8 +145,8 @@ export interface LiveTask {
    *  persisted server-side for auto-grading; NEVER copied into the student
    *  broadcast (normalizedTask) or stored in deployedMaterial. */
   answerKey?: Array<{ id: string; answer?: string; marks?: number }>
-  /** Tutor's answer-reveal policy: 'instant' | 'after_submit' | 'hidden'. */
-  answerReveal?: 'instant' | 'after_submit' | 'hidden'
+  /** Tutor's answer-reveal policy: 'instant' | 'after_submit' | 'hidden' | 'student_choice'. */
+  answerReveal?: 'instant' | 'after_submit' | 'hidden' | 'student_choice'
   deployedAt: number
   polls: LiveTaskPoll[]
   questions: LiveTaskQuestion[]
@@ -1299,7 +1299,12 @@ export async function initEnhancedSocketServer(server: NetServer) {
               // so the async assignment GET/submit routes honor it. Merged into
               // existing metadata so other keys are preserved.
               const reveal = task.answerReveal
-              if (reveal === 'instant' || reveal === 'after_submit' || reveal === 'hidden') {
+              if (
+                reveal === 'instant' ||
+                reveal === 'after_submit' ||
+                reveal === 'hidden' ||
+                reveal === 'student_choice'
+              ) {
                 try {
                   const { sql } = await import('drizzle-orm')
                   await drizzleDb

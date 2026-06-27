@@ -1005,7 +1005,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // correct answers. Default 'instant' preserves the existing live-feedback
     // behaviour; the tutor can switch to reveal-after-submit or hidden.
     const [deployAnswerReveal, setDeployAnswerReveal] = useState<
-      'instant' | 'after_submit' | 'hidden'
+      'instant' | 'after_submit' | 'hidden' | 'student_choice'
     >('instant')
 
     // Active tab tracking for Enter button
@@ -10261,6 +10261,7 @@ FEEDBACK: [your explanation]`
                                                         | 'instant'
                                                         | 'after_submit'
                                                         | 'hidden'
+                                                        | 'student_choice'
                                                     )
                                                   }
                                                   title="When students may see the correct answers"
@@ -10273,6 +10274,9 @@ FEEDBACK: [your explanation]`
                                                     Answers: after submit
                                                   </option>
                                                   <option value="hidden">Answers: hidden</option>
+                                                  <option value="student_choice">
+                                                    Answers: student chooses (self-study)
+                                                  </option>
                                                 </select>
                                               </>
                                             )}
