@@ -1001,6 +1001,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // "Edit marks & answers" review modal — lets the tutor set per-question marks
     // and vet/approve the AI-generated answers before deploying.
     const [dmiEditor, setDmiEditor] = useState<{ source: 'task' | 'assessment' } | null>(null)
+    // Tutor's answer-reveal policy applied to deploys: when students may see the
+    // correct answers. Default 'instant' preserves the existing live-feedback
+    // behaviour; the tutor can switch to reveal-after-submit or hidden.
+    const [deployAnswerReveal, setDeployAnswerReveal] = useState<
+      'instant' | 'after_submit' | 'hidden'
+    >('instant')
 
     // Active tab tracking for Enter button
     const [taskBuilderActiveTab, setTaskBuilderActiveTab] = useState<'content' | 'pci'>('content')
@@ -2259,6 +2265,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                 answer: i.answer,
                 marks: i.marks,
               })) || [],
+            answerReveal: deployAnswerReveal,
             deployedAt: Date.now(),
             polls: [],
             questions: [],
@@ -3051,6 +3058,7 @@ FEEDBACK: [your explanation]`
           answer: item.answer,
           marks: item.marks,
         })),
+        answerReveal: deployAnswerReveal,
         deployedAt: Date.now(),
         polls: [],
         questions: [],
@@ -3067,7 +3075,13 @@ FEEDBACK: [your explanation]`
       // Success is confirmed by the server's task:deployed broadcast (handled in
       // insights/page.tsx), not optimistically here.
       insightsProps.onDeployTask?.(task)
-    }, [assessmentBuilder, assessmentDmiItems, insightsProps, loadedAssessmentId])
+    }, [
+      assessmentBuilder,
+      assessmentDmiItems,
+      insightsProps,
+      loadedAssessmentId,
+      deployAnswerReveal,
+    ])
 
     useEffect(() => {
       return () => {
@@ -9211,6 +9225,7 @@ FEEDBACK: [your explanation]`
                                                         answer: item.answer,
                                                         marks: item.marks,
                                                       })) || [],
+                                                    answerReveal: deployAnswerReveal,
                                                     deployedAt: Date.now(),
                                                     polls: [],
                                                     questions: [],
@@ -10236,6 +10251,29 @@ FEEDBACK: [your explanation]`
                                                 >
                                                   Edit marks & answers
                                                 </Button>
+                                                <div className="h-3 w-px bg-gray-300" />
+                                                <select
+                                                  value={deployAnswerReveal}
+                                                  disabled={!canEdit}
+                                                  onChange={e =>
+                                                    setDeployAnswerReveal(
+                                                      e.target.value as
+                                                        | 'instant'
+                                                        | 'after_submit'
+                                                        | 'hidden'
+                                                    )
+                                                  }
+                                                  title="When students may see the correct answers"
+                                                  className="h-6 rounded border border-gray-200 bg-white px-1 text-xs font-medium text-gray-600"
+                                                >
+                                                  <option value="instant">
+                                                    Answers: instant feedback
+                                                  </option>
+                                                  <option value="after_submit">
+                                                    Answers: after submit
+                                                  </option>
+                                                  <option value="hidden">Answers: hidden</option>
+                                                </select>
                                               </>
                                             )}
 

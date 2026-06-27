@@ -56,6 +56,7 @@ interface TaskQuestion {
   type: string
   question: string
   options?: string[]
+  correctAnswer?: string
   points: number
   rubric?: string[]
   hints?: string[]
@@ -102,6 +103,7 @@ function AssignmentsTab() {
     id: string
     title: string
     questions: TaskQuestion[]
+    answerReveal?: 'instant' | 'after_submit' | 'hidden'
   } | null>(null)
   const [takingQuiz, setTakingQuiz] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -136,6 +138,7 @@ function AssignmentsTab() {
         id: taskId,
         title: data.task.title,
         questions: data.task.questions,
+        answerReveal: data.task.answerReveal,
       })
       setStartTime(Date.now())
       setTakingQuiz(true)
@@ -170,7 +173,18 @@ function AssignmentsTab() {
 
       if (submitRes.ok) {
         const data = await submitRes.json()
-        toast.success(`Submitted! Score: ${Math.round(data.submission.score)}%`)
+        const submittedScore = data?.submission?.score
+        toast.success(
+          typeof submittedScore === 'number'
+            ? `Submitted! Score: ${Math.round(submittedScore)}%`
+            : 'Submitted! Awaiting grading.'
+        )
+        loadAssignments() // modal closes via its Continue button
+        return {
+          score: submittedScore ?? null,
+          questionResults: data?.questionResults,
+          correctAnswers: data?.correctAnswers,
+        }
       } else if (submitRes.status === 409) {
         toast.info('Already submitted')
       } else {
@@ -180,9 +194,6 @@ function AssignmentsTab() {
       toast.error('Failed to submit')
     } finally {
       setSubmitting(false)
-      setTakingQuiz(false)
-      setActiveTask(null)
-      loadAssignments()
     }
   }
 
@@ -245,6 +256,7 @@ function AssignmentsTab() {
         : 'short_answer') as 'multiple_choice' | 'short_answer',
       question: q.question,
       options: q.options,
+      correctAnswer: q.correctAnswer,
       rubric: q.rubric?.join('; '),
     }))
     return (
@@ -252,6 +264,7 @@ function AssignmentsTab() {
         questions={quizQuestions}
         onComplete={handleQuizComplete}
         onClose={handleCloseQuiz}
+        answerReveal={activeTask.answerReveal}
       />
     )
   }
