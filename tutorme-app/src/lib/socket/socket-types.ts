@@ -82,12 +82,14 @@ export interface LiveTaskSourceDocument {
 
 /**
  * When students may see the correct answers for a deployed task/assessment:
- * - 'instant'      — graded live as they answer (answers sent to the browser).
- * - 'after_submit' — correct answers revealed only on the results screen.
- * - 'hidden'       — never reveal answers; show the score only.
+ * - 'instant'        — graded live as they answer (answers sent to the browser).
+ * - 'after_submit'   — correct answers revealed only on the results screen.
+ * - 'hidden'         — never reveal answers; show the score only.
+ * - 'student_choice' — post-class self-study: the student picks practice (see
+ *                      answers as they go) or test (hide until submit).
  * Chosen by the tutor at deploy time.
  */
-export type AnswerReveal = 'instant' | 'after_submit' | 'hidden'
+export type AnswerReveal = 'instant' | 'after_submit' | 'hidden' | 'student_choice'
 
 export interface LiveTask {
   id: string

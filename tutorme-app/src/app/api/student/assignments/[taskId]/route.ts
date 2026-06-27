@@ -122,9 +122,20 @@ export async function GET(
     // can't peek (the score is computed server-side on submit).
     const rawReveal = (task.metadata as { answerReveal?: string } | null)?.answerReveal
     const answerReveal =
-      rawReveal === 'after_submit' ? 'after_submit' : rawReveal === 'hidden' ? 'hidden' : 'instant'
-    const safeQuestions =
-      answerReveal === 'instant' ? questions : questions.map(({ correctAnswer: _c, ...q }) => q)
+      rawReveal === 'after_submit'
+        ? 'after_submit'
+        : rawReveal === 'hidden'
+          ? 'hidden'
+          : rawReveal === 'student_choice'
+            ? 'student_choice'
+            : 'instant'
+    // correctAnswer is exposed for 'instant' and 'student_choice' (the student
+    // may opt into practice mode); stripped for after_submit/hidden so it can't
+    // be peeked before submitting.
+    const exposeAnswers = answerReveal === 'instant' || answerReveal === 'student_choice'
+    const safeQuestions = exposeAnswers
+      ? questions
+      : questions.map(({ correctAnswer: _c, ...q }) => q)
 
     return NextResponse.json({
       alreadySubmitted: existing != null,

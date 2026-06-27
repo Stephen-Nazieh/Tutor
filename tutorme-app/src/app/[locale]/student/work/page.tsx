@@ -103,8 +103,9 @@ function AssignmentsTab() {
     id: string
     title: string
     questions: TaskQuestion[]
-    answerReveal?: 'instant' | 'after_submit' | 'hidden'
+    answerReveal?: 'instant' | 'after_submit' | 'hidden' | 'student_choice'
   } | null>(null)
+  const [studyMode, setStudyMode] = useState<'practice' | 'test' | null>(null)
   const [takingQuiz, setTakingQuiz] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [startTime, setStartTime] = useState<number>(0)
@@ -140,6 +141,7 @@ function AssignmentsTab() {
         questions: data.task.questions,
         answerReveal: data.task.answerReveal,
       })
+      setStudyMode(null)
       setStartTime(Date.now())
       setTakingQuiz(true)
     } catch {
@@ -200,6 +202,7 @@ function AssignmentsTab() {
   const handleCloseQuiz = () => {
     setTakingQuiz(false)
     setActiveTask(null)
+    setStudyMode(null)
   }
 
   const parseDocumentSource = (raw?: string | null) => {
@@ -249,6 +252,51 @@ function AssignmentsTab() {
     activeTab === 'all' ? assignments : assignments.filter(a => a.status === activeTab)
 
   if (takingQuiz && activeTask) {
+    if (activeTask.answerReveal === 'student_choice' && studyMode === null) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="text-center text-lg font-bold text-gray-900">{activeTask.title}</h2>
+            <p className="mt-1 text-center text-sm text-gray-500">How do you want to study?</p>
+            <div className="mt-5 space-y-3">
+              <button
+                onClick={() => setStudyMode('practice')}
+                className="w-full rounded-xl border border-[#F17623] bg-[#FFF4EC] p-4 text-left transition-colors hover:bg-[#ffe9d8]"
+              >
+                <p className="font-semibold text-[#9a4a12]">Practice</p>
+                <p className="text-sm text-gray-600">
+                  See the correct answer as you go — great for learning.
+                </p>
+              </button>
+              <button
+                onClick={() => setStudyMode('test')}
+                className="w-full rounded-xl border border-gray-300 bg-gray-50 p-4 text-left transition-colors hover:bg-gray-100"
+              >
+                <p className="font-semibold text-gray-800">Test yourself</p>
+                <p className="text-sm text-gray-600">
+                  Answers stay hidden until you submit — check what you really know.
+                </p>
+              </button>
+            </div>
+            <Button variant="ghost" className="mt-4 w-full" onClick={handleCloseQuiz}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )
+    }
+
+    const effectiveReveal: 'instant' | 'after_submit' | 'hidden' =
+      activeTask.answerReveal === 'student_choice'
+        ? studyMode === 'practice'
+          ? 'instant'
+          : 'after_submit'
+        : activeTask.answerReveal === 'after_submit'
+          ? 'after_submit'
+          : activeTask.answerReveal === 'hidden'
+            ? 'hidden'
+            : 'instant'
+
     const quizQuestions = activeTask.questions.map(q => ({
       id: q.id,
       type: (q.type === 'mcq' || q.type === 'multiple_choice'
@@ -264,7 +312,7 @@ function AssignmentsTab() {
         questions={quizQuestions}
         onComplete={handleQuizComplete}
         onClose={handleCloseQuiz}
-        answerReveal={activeTask.answerReveal}
+        answerReveal={effectiveReveal}
       />
     )
   }
