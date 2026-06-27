@@ -2170,6 +2170,11 @@ export default function PublicTutorPage() {
                 {detailsCourse?.description || 'More details will be available soon.'}
               </p>
             </DialogPanel>
+            <DialogPanel className="flex min-h-[120px] items-center justify-center p-3">
+              <span className="text-muted-foreground text-sm font-medium">
+                Course Videos and Documents
+              </span>
+            </DialogPanel>
           </div>
           <DialogFooter className="gap-2">
             <Button
