@@ -2309,6 +2309,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
               homeworkItem.dmiItems?.map(i => ({
                 id: i.id,
                 answer: i.answer,
+                acceptableVariants: i.acceptableVariants,
                 marks: i.marks,
               })) || [],
             answerReveal: deployAnswerReveal,
@@ -2886,24 +2887,78 @@ FEEDBACK: [your explanation]`
       }
     }
 
-    // Parse an uploaded marking scheme and fill each question's answer/rubric by
-    // matching question numbers. Edits apply via applyDmiEdit so they persist.
+    // Render an uploaded marking-scheme PDF's pages to JPEG data URLs for the
+    // vision path — used when text extraction comes back sparse (scanned or
+    // image-flattened PDFs), so image-based schemes still autopopulate.
+    const renderMarkingSchemePages = async (file: File): Promise<string[]> => {
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+      if (!isPdf || typeof window === 'undefined') return []
+      try {
+        const arrayBuffer = await file.arrayBuffer()
+        const pdfjs = await import('pdfjs-dist')
+        const opts = (pdfjs as { GlobalWorkerOptions?: { workerSrc?: string } }).GlobalWorkerOptions
+        if (opts && !opts.workerSrc) opts.workerSrc = '/pdf.worker.min.mjs'
+        const doc = await pdfjs.getDocument({ data: arrayBuffer }).promise
+        const pages: string[] = []
+        const max = Math.min(8, doc.numPages) // endpoint caps pdfPages at 8
+        for (let i = 1; i <= max; i++) {
+          const page = await doc.getPage(i)
+          const base = page.getViewport({ scale: 1 })
+          const scale = Math.min(2, 1400 / base.width)
+          const viewport = page.getViewport({ scale })
+          const canvas = document.createElement('canvas')
+          canvas.width = Math.ceil(viewport.width)
+          canvas.height = Math.ceil(viewport.height)
+          const ctx = canvas.getContext('2d')
+          if (!ctx) continue
+          await page.render({ canvasContext: ctx, viewport }).promise
+          pages.push(canvas.toDataURL('image/jpeg', 0.72))
+        }
+        return pages
+      } catch (e) {
+        console.error('Marking scheme PDF render failed:', e)
+        return []
+      }
+    }
+
+    // Parse an uploaded marking scheme and fill each question's answer, accepted
+    // variants, marks and marking guidance by matching question numbers. Edits
+    // apply via applyDmiEdit so they persist. Falls back to the vision path when
+    // the PDF has little extractable text (scanned schemes).
     const handleMarkingSchemeFile = async (file: File, source: 'task' | 'assessment') => {
       const items = source === 'task' ? taskDmiItems : assessmentDmiItems
       if (items.length === 0) return
       setMarkingSchemeLoading(true)
       try {
         toast.info('Reading the marking scheme…')
-        const content = (await extractMarkingSchemeText(file)).slice(0, 80000)
-        if (content.trim().length < 20) {
-          toast.error('Could not read the marking scheme. Upload a text-based PDF or a .txt file.')
-          return
-        }
         const questions = items.map(it => ({ number: it.questionNumber, label: it.questionText }))
+        const content = (await extractMarkingSchemeText(file)).slice(0, 80000).trim()
+
+        let body: {
+          questions: typeof questions
+          content?: string
+          pdfPages?: string[]
+        }
+        if (content.length >= 200) {
+          body = { questions, content }
+        } else {
+          // Sparse text → try the vision path (scanned / image-based PDF).
+          toast.info('Scanned scheme detected — reading the pages…')
+          const pdfPages = await renderMarkingSchemePages(file)
+          if (pdfPages.length > 0) {
+            body = { questions, pdfPages }
+          } else if (content.length >= 20) {
+            body = { questions, content }
+          } else {
+            toast.error('Could not read the marking scheme. Upload a clearer PDF or a .txt file.')
+            return
+          }
+        }
+
         const res = await fetch('/api/ai/parse-marking-scheme', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content, questions }),
+          body: JSON.stringify(body),
         })
         if (!res.ok) {
           const e = await res.json().catch(() => ({}))
@@ -2911,11 +2966,13 @@ FEEDBACK: [your explanation]`
           return
         }
         const data = await res.json()
-        const matches: Array<{ number: number; answer: string; rubric?: string }> = Array.isArray(
-          data?.matches
-        )
-          ? data.matches
-          : []
+        const matches: Array<{
+          number: number
+          answer: string
+          variants?: string[]
+          marks?: number
+          rubric?: string
+        }> = Array.isArray(data?.matches) ? data.matches : []
         if (matches.length === 0) {
           toast.error('No answers could be matched from that marking scheme.')
           return
@@ -2926,11 +2983,18 @@ FEEDBACK: [your explanation]`
           if (!item) continue
           applyDmiEdit(source, item.id, {
             answer: m.answer,
+            answerProvenance: 'answer_sheet_extracted',
+            ...(Array.isArray(m.variants) && m.variants.length > 0
+              ? { acceptableVariants: m.variants }
+              : {}),
+            ...(typeof m.marks === 'number' && m.marks > 0 ? { marks: m.marks } : {}),
             ...(m.rubric ? { rubric: m.rubric } : {}),
           })
           applied += 1
         }
-        toast.success(`Filled ${applied} of ${questions.length} answers from the marking scheme.`)
+        toast.success(
+          `Filled ${applied} of ${questions.length} answers (with variants & marks) from the marking scheme.`
+        )
       } catch (err) {
         console.error('Marking scheme parse failed:', err)
         toast.error('Failed to read the marking scheme')
@@ -3214,6 +3278,7 @@ FEEDBACK: [your explanation]`
           answerKey: assessmentDmiItems.map(item => ({
             id: item.id,
             answer: item.answer,
+            acceptableVariants: item.acceptableVariants,
             marks: item.marks,
           })),
           answerReveal: reveal,
@@ -11211,6 +11276,25 @@ FEEDBACK: [your explanation]`
                                   })
                                 }
                                 className="min-h-[44px] w-full resize-y rounded-md border border-gray-300 p-2 text-sm"
+                              />
+                            </div>
+                            <div className="mt-2">
+                              <label className="mb-1 block text-xs font-medium text-gray-600">
+                                Accepted variants (one per line)
+                              </label>
+                              <textarea
+                                value={(item.acceptableVariants || []).join('\n')}
+                                disabled={!canEdit}
+                                placeholder="Other answers that earn full marks (alt phrasings, units, equivalent values)…"
+                                onChange={e =>
+                                  applyDmiEdit(dmiEditor.source, item.id, {
+                                    acceptableVariants: e.target.value
+                                      .split('\n')
+                                      .map(s => s.trim())
+                                      .filter(Boolean),
+                                  })
+                                }
+                                className="min-h-[36px] w-full resize-y rounded-md border border-gray-300 p-2 text-sm"
                               />
                             </div>
                             {isOpenEnded && (
