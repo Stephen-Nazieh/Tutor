@@ -685,6 +685,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [rightPanelHidden, setRightPanelHidden] = useState(false)
     const [rightPanelWidth] = useState(380)
     const [leftPanelWidth, setLeftPanelWidth] = useState(340)
+    const [viewportWidth, setViewportWidth] = useState(1920)
+
+    useEffect(() => {
+      const handleResize = () => setViewportWidth(window.innerWidth)
+      if (typeof window !== 'undefined') {
+        setViewportWidth(window.innerWidth)
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+      }
+    }, [])
+
+    const centerColWidth = viewportWidth - leftPanelWidth - rightPanelWidth - 48
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
     const leftPanelRef = useRef<HTMLDivElement>(null)
     const [assetsOpen, setAssetsOpen] = useState(true)
@@ -6256,7 +6268,13 @@ FEEDBACK: [your explanation]`
           }}
           className="flex h-full w-full flex-1 flex-col bg-gray-50/50 px-6 pt-0"
         >
-          <div className="relative flex h-full w-full min-w-0 flex-1 gap-6 pb-6 pt-0">
+          <div
+            className="relative grid h-full w-full min-w-0 pb-6 pt-0"
+            style={{
+              gridTemplateColumns: `${leftPanelHidden ? '0px' : leftPanelWidth}px minmax(0, ${centerColWidth}px) ${rightPanelHidden ? '0px' : rightPanelWidth}px`,
+              gap: '24px',
+            }}
+          >
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
             {/* Floating collapsed/expanded pill */}
             <div
@@ -6274,7 +6292,7 @@ FEEDBACK: [your explanation]`
 
             {!leftPanelHidden && (
               <div
-                className="relative z-40 order-1 flex min-h-0 shrink-0 flex-col"
+                className="relative z-40 flex min-h-0 shrink-0 flex-col"
                 ref={leftPanelRef}
                 style={{ width: leftPanelWidth }}
               >
@@ -8194,7 +8212,7 @@ FEEDBACK: [your explanation]`
                       </div>
                       {!rightPanelHidden && (
                         <div
-                          className="relative z-40 order-3 flex h-full min-h-0 shrink-0 flex-col"
+                          className="relative z-40 flex h-full min-h-0 shrink-0 flex-col"
                           style={{ width: rightPanelWidth }}
                         >
                           <div className="flex h-full min-h-0 flex-col">
@@ -8487,16 +8505,8 @@ FEEDBACK: [your explanation]`
               </>
             )}
 
-            {/* CENTER PANEL - Flexible width with max-width cap */}
-            <div
-              className="order-2 flex min-h-0 flex-1 flex-col items-center"
-              style={{
-                maxWidth:
-                  leftPanelHidden && rightPanelHidden
-                    ? undefined
-                    : `calc(100vw - ${(leftPanelHidden ? 0 : leftPanelWidth) + (rightPanelHidden ? 0 : rightPanelWidth) + 48}px)`,
-              }}
-            >
+            {/* CENTER PANEL - Fixed width based on 3-panel layout */}
+            <div className="flex min-h-0 flex-col items-center">
               <div className="flex h-full min-h-0 w-full flex-1 grow flex-col items-stretch">
                 {mainTab !== 'builder' && (
                   <Card
