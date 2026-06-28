@@ -99,9 +99,15 @@ export interface LiveTask {
   instructions?: string
   source: 'task' | 'assessment' | 'homework'
   dmiItems?: LiveTaskDmiItem[]
-  /** Per-question answer key + marks. Sent tutor→server on deploy ONLY for
-   *  server-side auto-grading; NEVER broadcast to students. */
-  answerKey?: Array<{ id: string; answer?: string; marks?: number }>
+  /** Per-question answer key + accepted variants + marks. Sent tutor→server on
+   *  deploy ONLY for server-side auto-grading; NEVER broadcast to students. */
+  answerKey?: Array<{
+    id: string
+    answer?: string
+    /** Other answer forms that earn full credit (from the marking scheme). */
+    acceptableVariants?: string[]
+    marks?: number
+  }>
   /** Tutor's answer-reveal policy for this deploy (default 'instant'). */
   answerReveal?: AnswerReveal
   deployedAt: number
