@@ -37,6 +37,9 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     participants: [],
     error: null,
   })
+  // Reflects Daily's actual recording state (driven by recording-started/stopped),
+  // so callers can drive auto-record retries and stop recording on leave.
+  const [isRecording, setIsRecording] = useState(false)
 
   // Define updateParticipants before useEffect
   const updateParticipants = useCallback(() => {
@@ -73,11 +76,29 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         optionsRef.current.onError?.(new Error(event.errorMsg))
       })
 
+      // Camera/mic permission or device failures arrive as their own event; the
+      // generic 'error' handler never fires for these, so surface a clear,
+      // actionable message instead of leaving the user stuck on "Connecting...".
+      call.on('camera-error', event => {
+        const raw =
+          (event as any)?.errorMsg?.errorMsg ??
+          (event as any)?.error?.localizedMsg ??
+          (event as any)?.errorMsg
+        const message =
+          typeof raw === 'string' && raw
+            ? raw
+            : 'Camera or microphone unavailable. Please allow access in your browser and check your devices.'
+        setState(prev => ({ ...prev, error: message }))
+        optionsRef.current.onError?.(new Error(message))
+      })
+
       call.on('recording-started', () => {
+        setIsRecording(true)
         optionsRef.current.onRecordingStarted?.()
       })
 
       call.on('recording-stopped', () => {
+        setIsRecording(false)
         optionsRef.current.onRecordingStopped?.()
       })
 
@@ -86,6 +107,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       })
 
       call.on('left-meeting', () => {
+        setIsRecording(false)
         setState(prev => ({ ...prev, isJoined: false, participants: [] }))
       })
     },
@@ -270,6 +292,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
   return {
     call: callRef.current,
     ...state,
+    isRecording,
     join,
     leave,
     toggleAudio,
