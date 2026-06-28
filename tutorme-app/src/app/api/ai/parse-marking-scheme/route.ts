@@ -26,7 +26,10 @@ const RequestSchema = z.object({
   content: z.string().max(80000).optional(),
   pdfPages: z.array(z.string().max(5_000_000)).max(8).optional(),
   questions: z
-    .array(z.object({ number: z.number().int(), label: z.string().max(400) }))
+    // Coerce: the client's questionNumber can arrive as a numeric string after a
+    // round-trip through saved course JSON, and a strict z.number() would reject
+    // the whole request (the upload would silently fail with no answers filled).
+    .array(z.object({ number: z.coerce.number().int(), label: z.string().max(400) }))
     .min(1)
     .max(200),
 })
