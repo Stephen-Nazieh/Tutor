@@ -5,6 +5,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react'
 import DailyIframe, { DailyCall, DailyParticipant } from '@daily-co/daily-js'
+import * as Sentry from '@sentry/nextjs'
 import { VideoCallState, VideoParticipant } from '@/lib/video/types'
 
 interface UseDailyCallOptions {
@@ -17,6 +18,10 @@ interface UseDailyCallOptions {
 
 // Module-level singleton to prevent duplicate Daily instances
 let globalCallInstance: DailyCall | null = null
+// The room URL the singleton is currently joined to. Tracked alongside the
+// instance so join() can detect a request to switch to a different room (Daily
+// can't move one call object between rooms — it must be torn down first).
+let globalJoinedUrl: string | null = null
 let instanceCount = 0
 
 export function useDailyCall(options: UseDailyCallOptions = {}) {
@@ -74,6 +79,10 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       call.on('error', event => {
         setState(prev => ({ ...prev, error: event.errorMsg }))
         optionsRef.current.onError?.(new Error(event.errorMsg))
+        Sentry.captureException(new Error(event.errorMsg || 'Daily call error'), {
+          tags: { feature: 'live-video', phase: 'in-call' },
+          extra: { joinedUrl: globalJoinedUrl },
+        })
       })
 
       // Camera/mic permission or device failures arrive as their own event; the
@@ -90,6 +99,11 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
             : 'Camera or microphone unavailable. Please allow access in your browser and check your devices.'
         setState(prev => ({ ...prev, error: message }))
         optionsRef.current.onError?.(new Error(message))
+        Sentry.captureException(new Error(`Daily camera-error: ${message}`), {
+          tags: { feature: 'live-video', phase: 'camera-error' },
+          extra: { joinedUrl: globalJoinedUrl },
+          level: 'warning',
+        })
       })
 
       call.on('recording-started', () => {
@@ -108,6 +122,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
 
       call.on('left-meeting', () => {
         setIsRecording(false)
+        globalJoinedUrl = null
         setState(prev => ({ ...prev, isJoined: false, participants: [] }))
       })
     },
@@ -160,6 +175,20 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
 
   const join = useCallback(
     async (url: string, token?: string) => {
+      // If the singleton is joined/joining a *different* room, tear it down first.
+      // Daily can't move one call object between rooms, so without this the join
+      // below would no-op and strand the user in the previous room.
+      if (globalCallInstance && globalJoinedUrl && globalJoinedUrl !== url) {
+        try {
+          await globalCallInstance.destroy()
+        } catch {
+          // ignore destroy errors on the previous-room instance
+        }
+        globalCallInstance = null
+        globalJoinedUrl = null
+        callRef.current = null
+      }
+
       const call = await ensureCall()
       if (!call) {
         const error = new Error('Daily call object not initialized')
@@ -168,8 +197,8 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         throw error
       }
 
-      // Don't issue a second join() while one is already in flight or active —
-      // Daily rejects it, which surfaces as a spurious "failed to join".
+      // Don't issue a second join() while one is already in flight or active for
+      // this same room — Daily rejects it, which surfaces as a spurious failure.
       let meetingState: string | undefined
       try {
         meetingState = call.meetingState()
@@ -177,6 +206,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
         meetingState = undefined
       }
       if (meetingState === 'joining-meeting' || meetingState === 'joined-meeting') {
+        globalJoinedUrl = url
         setState(prev => ({ ...prev, isJoined: true, error: null }))
         return
       }
@@ -189,6 +219,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
           videoSource: false,
         })
 
+        globalJoinedUrl = url
         setState(prev => ({
           ...prev,
           isJoined: true,
@@ -199,6 +230,9 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       } catch (error) {
         console.error('Daily join error:', error)
         const message = error instanceof Error ? error.message : 'Failed to join video call'
+        Sentry.captureException(error instanceof Error ? error : new Error(message), {
+          tags: { feature: 'live-video', phase: 'join' },
+        })
         // Tear the errored call object down so the next Retry rebuilds a clean
         // instance instead of re-joining a dead one (which always fails).
         try {
@@ -207,6 +241,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
           // ignore destroy errors
         }
         if (globalCallInstance === call) globalCallInstance = null
+        globalJoinedUrl = null
         callRef.current = null
         setState(prev => ({ ...prev, error: message }))
         throw error
@@ -226,6 +261,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     }
     call.destroy()
     globalCallInstance = null
+    globalJoinedUrl = null
     callRef.current = null
 
     setState(prev => ({
