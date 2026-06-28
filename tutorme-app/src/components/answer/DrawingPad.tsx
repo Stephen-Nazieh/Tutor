@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 interface DrawingPadProps {
   /** Existing PNG data URL to restore (when the student already drew something). */
@@ -13,39 +13,53 @@ interface DrawingPadProps {
 
 /**
  * A lightweight pen/mouse/touch drawing surface for written answers (e.g. maths
- * working). Emits a PNG data URL so the answer can be submitted and graded like
- * any other answer value.
+ * working). The pad is EXPANDABLE — drag the bottom edge to make it taller; the
+ * existing drawing is preserved (more space is added, content isn't scaled).
+ * Emits a PNG data URL so the answer can be submitted/graded like any value.
  */
 export function DrawingPad({ value, onChange, onInteract, className = '' }: DrawingPadProps) {
+  const wrapRef = useRef<HTMLDivElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const drawing = useRef(false)
   const last = useRef<{ x: number; y: number } | null>(null)
+  // Latest drawing, kept so a resize can redraw without losing content.
+  const dataRef = useRef<string>(value && value.startsWith('data:image') ? value : '')
 
-  // Size the canvas to its rendered box (device-pixel aware) and restore any
-  // existing drawing. Runs once on mount.
-  useEffect(() => {
+  // Size the canvas backing store to the wrapper and redraw the saved drawing at
+  // its natural size (top-left) so expanding adds blank space without distorting.
+  const initCanvas = useCallback(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
-    const rect = canvas.getBoundingClientRect()
-    const dpr = window.devicePixelRatio || 1
-    canvas.width = Math.max(1, Math.round(rect.width * dpr))
-    canvas.height = Math.max(1, Math.round(rect.height * dpr))
+    const wrap = wrapRef.current
+    if (!canvas || !wrap) return
+    const rect = wrap.getBoundingClientRect()
+    const w = Math.max(1, Math.round(rect.width))
+    const h = Math.max(1, Math.round(rect.height))
+    if (canvas.width === w && canvas.height === h) return
+    canvas.width = w
+    canvas.height = h
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    ctx.scale(dpr, dpr)
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     ctx.lineWidth = 2.2
     ctx.strokeStyle = '#1F2933'
     ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, rect.width, rect.height)
-    if (value && value.startsWith('data:image')) {
+    ctx.fillRect(0, 0, w, h)
+    if (dataRef.current.startsWith('data:image')) {
       const img = new Image()
-      img.onload = () => ctx.drawImage(img, 0, 0, rect.width, rect.height)
-      img.src = value
+      img.onload = () => ctx.drawImage(img, 0, 0)
+      img.src = dataRef.current
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    initCanvas()
+    const wrap = wrapRef.current
+    if (!wrap || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => initCanvas())
+    ro.observe(wrap)
+    return () => ro.disconnect()
+  }, [initCanvas])
 
   const pointFromEvent = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current!.getBoundingClientRect()
@@ -77,31 +91,41 @@ export function DrawingPad({ value, onChange, onInteract, className = '' }: Draw
     drawing.current = false
     last.current = null
     const url = canvasRef.current?.toDataURL('image/png')
-    if (url) onChange(url)
+    if (url) {
+      dataRef.current = url
+      onChange(url)
+    }
   }
 
   const handleClear = () => {
     const canvas = canvasRef.current
     const ctx = canvas?.getContext('2d')
     if (!canvas || !ctx) return
-    const rect = canvas.getBoundingClientRect()
     ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, rect.width, rect.height)
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    dataRef.current = ''
     onChange('')
   }
 
   return (
     <div className={className}>
-      <canvas
-        ref={canvasRef}
-        className="h-44 w-full touch-none rounded-md border border-gray-300 bg-white"
-        onPointerDown={handleDown}
-        onPointerMove={handleMove}
-        onPointerUp={handleUp}
-        onPointerLeave={handleUp}
-      />
+      <div
+        ref={wrapRef}
+        className="relative h-44 min-h-[120px] w-full resize-y overflow-hidden rounded-md border border-gray-300 bg-white"
+      >
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 h-full w-full touch-none"
+          onPointerDown={handleDown}
+          onPointerMove={handleMove}
+          onPointerUp={handleUp}
+          onPointerLeave={handleUp}
+        />
+      </div>
       <div className="mt-1 flex items-center justify-between">
-        <span className="text-[10px] text-gray-400">Write or draw with a pen, mouse, or finger.</span>
+        <span className="text-[10px] text-gray-400">
+          Pen, mouse, or finger · drag the bottom edge to enlarge.
+        </span>
         <button
           type="button"
           onClick={handleClear}
