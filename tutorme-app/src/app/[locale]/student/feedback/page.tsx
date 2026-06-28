@@ -401,24 +401,15 @@ function WrittenAnswer({
 
   return (
     <div className="space-y-1.5">
-      {multiline ? (
-        <textarea
-          value={text}
-          onFocus={onInteract}
-          onChange={e => update(e.target.value, drawing)}
-          placeholder={placeholder}
-          className={`min-h-[96px] resize-y ${baseField}`}
-        />
-      ) : (
-        <input
-          type="text"
-          value={text}
-          onFocus={onInteract}
-          onChange={e => update(e.target.value, drawing)}
-          placeholder={placeholder}
-          className={baseField}
-        />
-      )}
+      {/* Always a multi-line, expandable box (drag the bottom-right corner). */}
+      <textarea
+        value={text}
+        onFocus={onInteract}
+        onChange={e => update(e.target.value, drawing)}
+        placeholder={placeholder}
+        rows={multiline ? 4 : 2}
+        className={`${multiline ? 'min-h-[96px]' : 'min-h-[56px]'} resize-y ${baseField}`}
+      />
       {/* Live math preview — render $…$ / $$…$$ LaTeX as the student types. */}
       {hasMath(text) && (
         <div className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2">
@@ -479,7 +470,7 @@ function DmiAnswerField({
         ? ['True', 'False']
         : []
   const baseField =
-    'w-full rounded-md border border-gray-200 p-2 text-sm focus:border-[#F17623] focus:outline-none'
+    'w-full rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#F17623] focus:outline-none'
   // Tap-to-place selection for drag_drop (touch fallback for native drag).
   const [dragSelected, setDragSelected] = useState<string | null>(null)
 

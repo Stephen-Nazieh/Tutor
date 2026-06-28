@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface DrawingPadProps {
   /** Existing PNG data URL to restore (when the student already drew something). */
@@ -11,19 +11,26 @@ interface DrawingPadProps {
   className?: string
 }
 
+const MIN_HEIGHT = 120
+const MAX_HEIGHT = 640
+
 /**
- * A lightweight pen/mouse/touch drawing surface for written answers (e.g. maths
- * working). The pad is EXPANDABLE — drag the bottom edge to make it taller; the
- * existing drawing is preserved (more space is added, content isn't scaled).
- * Emits a PNG data URL so the answer can be submitted/graded like any value.
+ * A pen/mouse/touch drawing surface for written answers (e.g. maths working).
+ * The height is ADJUSTABLE via the drag bar at the bottom; existing strokes are
+ * preserved (more space is added, content isn't scaled). Supports a Pen and an
+ * Eraser. Emits a PNG data URL so the answer can be submitted/graded like any
+ * value.
  */
 export function DrawingPad({ value, onChange, onInteract, className = '' }: DrawingPadProps) {
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const drawing = useRef(false)
   const last = useRef<{ x: number; y: number } | null>(null)
-  // Latest drawing, kept so a resize can redraw without losing content.
   const dataRef = useRef<string>(value && value.startsWith('data:image') ? value : '')
+  const toolRef = useRef<'pen' | 'eraser'>('pen')
+  const [tool, setTool] = useState<'pen' | 'eraser'>('pen')
+  const [height, setHeight] = useState(176)
+  const resizeStart = useRef<{ y: number; h: number } | null>(null)
 
   // Size the canvas backing store to the wrapper and redraw the saved drawing at
   // its natural size (top-left) so expanding adds blank space without distorting.
@@ -39,10 +46,6 @@ export function DrawingPad({ value, onChange, onInteract, className = '' }: Draw
     canvas.height = h
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-    ctx.lineWidth = 2.2
-    ctx.strokeStyle = '#1F2933'
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, w, h)
     if (dataRef.current.startsWith('data:image')) {
@@ -61,6 +64,18 @@ export function DrawingPad({ value, onChange, onInteract, className = '' }: Draw
     return () => ro.disconnect()
   }, [initCanvas])
 
+  const applyTool = (ctx: CanvasRenderingContext2D) => {
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    if (toolRef.current === 'eraser') {
+      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 18
+    } else {
+      ctx.strokeStyle = '#1F2933'
+      ctx.lineWidth = 2.4
+    }
+  }
+
   const pointFromEvent = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current!.getBoundingClientRect()
     return { x: e.clientX - rect.left, y: e.clientY - rect.top }
@@ -78,6 +93,7 @@ export function DrawingPad({ value, onChange, onInteract, className = '' }: Draw
     if (!drawing.current) return
     const ctx = canvasRef.current?.getContext('2d')
     if (!ctx || !last.current) return
+    applyTool(ctx)
     const p = pointFromEvent(e)
     ctx.beginPath()
     ctx.moveTo(last.current.x, last.current.y)
@@ -107,11 +123,61 @@ export function DrawingPad({ value, onChange, onInteract, className = '' }: Draw
     onChange('')
   }
 
+  // Drag the bottom bar to resize the pad (separate from the drawing surface).
+  const onResizeDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    ;(e.currentTarget as HTMLDivElement).setPointerCapture(e.pointerId)
+    resizeStart.current = { y: e.clientY, h: height }
+  }
+  const onResizeMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!resizeStart.current) return
+    const next = resizeStart.current.h + (e.clientY - resizeStart.current.y)
+    setHeight(Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, next)))
+  }
+  const onResizeUp = () => {
+    resizeStart.current = null
+  }
+
+  const toolBtn = (active: boolean) =>
+    `rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+      active ? 'bg-[#F17623] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+    }`
+
   return (
     <div className={className}>
+      <div className="mb-1 flex items-center gap-1">
+        <button
+          type="button"
+          className={toolBtn(tool === 'pen')}
+          onClick={() => {
+            toolRef.current = 'pen'
+            setTool('pen')
+          }}
+        >
+          Pen
+        </button>
+        <button
+          type="button"
+          className={toolBtn(tool === 'eraser')}
+          onClick={() => {
+            toolRef.current = 'eraser'
+            setTool('eraser')
+          }}
+        >
+          Eraser
+        </button>
+        <button
+          type="button"
+          onClick={handleClear}
+          className="ml-auto rounded-md px-2.5 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+        >
+          Clear
+        </button>
+      </div>
       <div
         ref={wrapRef}
-        className="relative h-44 min-h-[120px] w-full resize-y overflow-hidden rounded-md border border-gray-300 bg-white"
+        style={{ height }}
+        className="relative w-full overflow-hidden rounded-md border border-gray-300 bg-white"
       >
         <canvas
           ref={canvasRef}
@@ -122,18 +188,19 @@ export function DrawingPad({ value, onChange, onInteract, className = '' }: Draw
           onPointerLeave={handleUp}
         />
       </div>
-      <div className="mt-1 flex items-center justify-between">
-        <span className="text-[10px] text-gray-400">
-          Pen, mouse, or finger · drag the bottom edge to enlarge.
-        </span>
-        <button
-          type="button"
-          onClick={handleClear}
-          className="text-xs font-medium text-gray-500 hover:text-gray-700"
-        >
-          Clear
-        </button>
+      {/* Drag bar to make the pad taller/shorter. */}
+      <div
+        onPointerDown={onResizeDown}
+        onPointerMove={onResizeMove}
+        onPointerUp={onResizeUp}
+        className="mt-0.5 flex h-4 w-full cursor-ns-resize touch-none items-center justify-center rounded-md hover:bg-gray-100"
+        title="Drag to resize the drawing area"
+      >
+        <div className="h-0.5 w-10 rounded-full bg-gray-300" />
       </div>
+      <p className="text-[10px] text-gray-400">
+        Pen, mouse, or finger. Drag the bar above to resize.
+      </p>
     </div>
   )
 }
