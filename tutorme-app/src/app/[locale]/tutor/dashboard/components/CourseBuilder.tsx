@@ -766,7 +766,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       viewportWidth -
       (leftPanelHidden ? 0 : leftPanelWidth) -
       (rightPanelHidden ? 0 : rightPanelWidth) -
-      48
+      96
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
     const leftPanelRef = useRef<HTMLDivElement>(null)
     const [assetsOpen, setAssetsOpen] = useState(true)
