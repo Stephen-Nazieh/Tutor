@@ -2859,11 +2859,29 @@ FEEDBACK: [your explanation]`
       source: 'task' | 'assessment',
       patchByNumber: Map<number, Partial<DMIQuestion>>
     ) => {
-      const editItems = (arr: DMIQuestion[]) =>
-        arr.map(q => {
+      const editItems = (arr: DMIQuestion[]) => {
+        let patched = 0
+        const next = arr.map(q => {
           const patch = patchByNumber.get(q.questionNumber)
-          return patch ? { ...q, ...patch } : q
+          if (!patch) return q
+          patched += 1
+          return { ...q, ...patch }
         })
+        // TEMP DIAGNOSTIC (marking-scheme autofill): remove after debugging.
+        console.warn(
+          '[MS] applyByNumber source=%s latestItems=%d patched=%d',
+          source,
+          arr.length,
+          patched,
+          {
+            patchKeys: [...patchByNumber.keys()],
+            latestNumbers: arr.map(q => q.questionNumber),
+            latestNumberTypes: arr.slice(0, 3).map(q => typeof q.questionNumber),
+            sampleAnswersAfter: next.slice(0, 8).map(q => q.answer),
+          }
+        )
+        return next
+      }
       const activeVersionId = testPciViewMode.startsWith('dmi_')
         ? testPciViewMode.slice('dmi_'.length)
         : null
@@ -3012,6 +3030,14 @@ FEEDBACK: [your explanation]`
         // latest items (see applyDmiEditsByNumber) — matching by a pre-await item
         // id is unreliable because the items can be re-sourced during the AI call.
         const validNumbers = new Set(items.map(it => it.questionNumber))
+        // TEMP DIAGNOSTIC (marking-scheme autofill): remove after debugging.
+        console.warn('[MS] parse source=%s snapshotItems=%d', source, items.length, {
+          snapshotNumbers: items.map(it => it.questionNumber),
+          snapshotNumberTypes: items.slice(0, 3).map(it => typeof it.questionNumber),
+          matchNumbers: matches.map(m => m.number),
+          matchNumberTypes: matches.slice(0, 3).map(m => typeof m.number),
+          firstMatchAnswer: matches[0]?.answer,
+        })
         const patchByNumber = new Map<number, Partial<DMIQuestion>>()
         for (const m of matches) {
           if (!validNumbers.has(m.number)) continue
@@ -11210,6 +11236,20 @@ FEEDBACK: [your explanation]`
             {dmiEditor &&
               (() => {
                 const editItems = dmiEditor.source === 'task' ? taskDmiItems : assessmentDmiItems
+                // TEMP DIAGNOSTIC (marking-scheme autofill): remove after debugging.
+                if (typeof window !== 'undefined') {
+                  console.warn(
+                    '[MS] modal render source=%s rows=%d answered=%d',
+                    dmiEditor.source,
+                    editItems.length,
+                    editItems.filter(i => (i.answer || '').trim().length > 0).length,
+                    {
+                      rowNumbers: editItems.map(i => i.questionNumber),
+                      taskLen: taskDmiItems.length,
+                      assessmentLen: assessmentDmiItems.length,
+                    }
+                  )
+                }
                 const totalMarks = editItems.reduce(
                   (sum, it) => sum + (typeof it.marks === 'number' && it.marks > 0 ? it.marks : 1),
                   0
