@@ -368,12 +368,16 @@ function WrittenAnswer({
   const { text, drawing } = parseWrittenAnswer(value)
   const [showDraw, setShowDraw] = useState(!!drawing)
   const [converting, setConverting] = useState(false)
+  // What we've already transcribed from this handwriting, so a re-convert only
+  // adds the NEW strokes and never re-appends (or disturbs) earlier text.
+  const convertedRef = useRef('')
   const update = (nextText: string, nextDrawing: string) => {
     onInteract()
     onValueChange(serializeWrittenAnswer(nextText, nextDrawing))
   }
 
-  // Convert the handwriting to typed text + LaTeX, appended to the text box.
+  // Convert the handwriting to typed text + LaTeX, APPENDED to the answer. The
+  // student's typed text is never modified — only new handwriting is added.
   const convertHandwriting = async () => {
     if (!drawing || converting) return
     setConverting(true)
@@ -382,16 +386,28 @@ function WrittenAnswer({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ image: drawing }),
+        body: JSON.stringify({
+          image: drawing,
+          // Tell the model what's already been transcribed so it skips it.
+          previousText: convertedRef.current || undefined,
+        }),
       })
       const data = await res.json().catch(() => ({}))
-      if (!res.ok || !data?.text) {
+      if (!res.ok) {
         toast.error(data?.error || 'Could not read the handwriting. Try writing more clearly.')
         return
       }
-      const converted = String(data.text).trim()
+      const converted = String(data?.text ?? '').trim()
+      if (!converted) {
+        toast.info('No new handwriting to convert.')
+        return
+      }
+      // Append only the new transcription to whatever is already in the box.
       update(text ? `${text}\n${converted}` : converted, drawing)
-      toast.success('Handwriting converted to text. Review and edit if needed.')
+      convertedRef.current = convertedRef.current
+        ? `${convertedRef.current}\n${converted}`
+        : converted
+      toast.success('Handwriting converted. Review and edit if needed.')
     } catch {
       toast.error('Failed to convert handwriting')
     } finally {
