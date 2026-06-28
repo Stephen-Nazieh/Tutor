@@ -9065,6 +9065,7 @@ FEEDBACK: [your explanation]`
                                                   <PDFViewer
                                                     key={doc.fileUrl}
                                                     fileUrl={doc.fileUrl}
+                                                    fileKey={doc.fileKey}
                                                     className="absolute inset-0 h-full w-full"
                                                   />
                                                 ) : (
@@ -9096,6 +9097,7 @@ FEEDBACK: [your explanation]`
                                                     <PDFViewer
                                                       key={doc.fileUrl}
                                                       fileUrl={doc.fileUrl}
+                                                      fileKey={doc.fileKey}
                                                       className="absolute inset-0 h-full w-full"
                                                     />
                                                   ) : (
@@ -9806,6 +9808,7 @@ FEEDBACK: [your explanation]`
                                                 <PDFViewer
                                                   key={currentTaskDocument.fileUrl}
                                                   fileUrl={currentTaskDocument.fileUrl}
+                                                  fileKey={currentTaskDocument.fileKey}
                                                   className="absolute inset-0 h-full w-full"
                                                   defaultScale={0.75}
                                                   hidePageNavigation
@@ -10234,6 +10237,7 @@ FEEDBACK: [your explanation]`
                                                 <PDFViewer
                                                   key={currentAssessmentDocument.fileUrl}
                                                   fileUrl={currentAssessmentDocument.fileUrl}
+                                                  fileKey={currentAssessmentDocument.fileKey}
                                                   className="absolute inset-0 h-full w-full"
                                                   defaultScale={0.75}
                                                   hidePageNavigation
