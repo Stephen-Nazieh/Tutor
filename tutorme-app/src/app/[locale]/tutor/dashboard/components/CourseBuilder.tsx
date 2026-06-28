@@ -1001,6 +1001,10 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // "Edit marks & answers" review modal — lets the tutor set per-question marks
     // and vet/approve the AI-generated answers before deploying.
     const [dmiEditor, setDmiEditor] = useState<{ source: 'task' | 'assessment' } | null>(null)
+    // "Upload marking scheme": parse an uploaded scheme and fill each question's
+    // answer/rubric by matching question numbers.
+    const [markingSchemeLoading, setMarkingSchemeLoading] = useState(false)
+    const markingSchemeInputRef = useRef<HTMLInputElement | null>(null)
     // Tutor's answer-reveal policy applied to deploys: when students may see the
     // correct answers. Default 'instant' preserves the existing live-feedback
     // behaviour; the tutor can switch to reveal-after-submit or hidden.
@@ -2830,6 +2834,99 @@ FEEDBACK: [your explanation]`
       } else {
         setAssessmentDmiItems(editItems)
         setAssessmentDmiVersions(editVersions)
+      }
+    }
+
+    // Read text from an uploaded marking scheme (PDF via pdfjs, or plain text).
+    const extractMarkingSchemeText = async (file: File): Promise<string> => {
+      const isPdf =
+        file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+      if (!isPdf) {
+        try {
+          return await file.text()
+        } catch {
+          return ''
+        }
+      }
+      try {
+        const arrayBuffer = await file.arrayBuffer()
+        const pdfjs = await import('pdfjs-dist')
+        if (typeof window !== 'undefined') {
+          const opts = (pdfjs as { GlobalWorkerOptions?: { workerSrc?: string } })
+            .GlobalWorkerOptions
+          if (opts && !opts.workerSrc) opts.workerSrc = '/pdf.worker.min.mjs'
+        }
+        const doc = await pdfjs.getDocument({ data: arrayBuffer }).promise
+        const parts: string[] = []
+        for (let i = 1; i <= Math.min(40, doc.numPages); i++) {
+          const page = await doc.getPage(i)
+          const tc = await page.getTextContent()
+          const pageText = (tc.items as Array<{ str?: string }>)
+            .map(it => it.str ?? '')
+            .join(' ')
+            .replace(/[ \t]+/g, ' ')
+            .trim()
+          if (pageText) parts.push(pageText)
+        }
+        return parts.join('\n\n')
+      } catch (e) {
+        console.error('Marking scheme PDF extraction failed:', e)
+        return ''
+      }
+    }
+
+    // Parse an uploaded marking scheme and fill each question's answer/rubric by
+    // matching question numbers. Edits apply via applyDmiEdit so they persist.
+    const handleMarkingSchemeFile = async (file: File, source: 'task' | 'assessment') => {
+      const items = source === 'task' ? taskDmiItems : assessmentDmiItems
+      if (items.length === 0) return
+      setMarkingSchemeLoading(true)
+      try {
+        toast.info('Reading the marking scheme…')
+        const content = (await extractMarkingSchemeText(file)).slice(0, 80000)
+        if (content.trim().length < 20) {
+          toast.error('Could not read the marking scheme. Upload a text-based PDF or a .txt file.')
+          return
+        }
+        const questions = items.map(it => ({ number: it.questionNumber, label: it.questionText }))
+        const res = await fetch('/api/ai/parse-marking-scheme', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content, questions }),
+        })
+        if (!res.ok) {
+          const e = await res.json().catch(() => ({}))
+          toast.error(e?.error || 'Failed to parse the marking scheme')
+          return
+        }
+        const data = await res.json()
+        const matches: Array<{ number: number; answer: string; rubric?: string }> = Array.isArray(
+          data?.matches
+        )
+          ? data.matches
+          : []
+        if (matches.length === 0) {
+          toast.error('No answers could be matched from that marking scheme.')
+          return
+        }
+        let applied = 0
+        for (const m of matches) {
+          const item = items.find(it => it.questionNumber === m.number)
+          if (!item) continue
+          applyDmiEdit(source, item.id, {
+            answer: m.answer,
+            ...(m.rubric ? { rubric: m.rubric } : {}),
+          })
+          applied += 1
+        }
+        toast.success(
+          `Filled ${applied} of ${questions.length} answers from the marking scheme.`
+        )
+      } catch (err) {
+        console.error('Marking scheme parse failed:', err)
+        toast.error('Failed to read the marking scheme')
+      } finally {
+        setMarkingSchemeLoading(false)
       }
     }
 
@@ -11000,6 +11097,36 @@ FEEDBACK: [your explanation]`
                         {totalMarks} mark{totalMarks === 1 ? '' : 's'}.
                       </DialogDescription>
                     </DialogHeader>
+                    {/* Upload marking scheme: AI matches each question number to
+                        its answer (capturing the scheme's acceptable variations). */}
+                    <div className="flex items-center gap-2 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2">
+                      <FileText className="h-4 w-4 shrink-0 text-sky-700" />
+                      <span className="text-xs text-sky-800">
+                        Have a marking scheme? Auto-fill every answer from it.
+                      </span>
+                      <input
+                        ref={markingSchemeInputRef}
+                        type="file"
+                        accept="application/pdf,.pdf,text/plain,.txt"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0]
+                          e.target.value = ''
+                          if (file && dmiEditor) void handleMarkingSchemeFile(file, dmiEditor.source)
+                        }}
+                      />
+                      <button
+                        type="button"
+                        disabled={!canEdit || markingSchemeLoading}
+                        onClick={() => markingSchemeInputRef.current?.click()}
+                        className="ml-auto inline-flex items-center gap-1 rounded-full border border-sky-300 bg-white px-3 py-1 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-100 disabled:opacity-60"
+                      >
+                        {markingSchemeLoading ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : null}
+                        Upload marking scheme
+                      </button>
+                    </div>
                     <div className="max-h-[60vh] space-y-3 overflow-y-auto pr-1">
                       {editItems.map(item => {
                         const marksVal =
