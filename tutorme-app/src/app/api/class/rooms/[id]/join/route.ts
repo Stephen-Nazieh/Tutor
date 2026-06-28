@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { withAuth, withCsrf, ValidationError, NotFoundError } from '@/lib/api/middleware'
 import { getParamAsync } from '@/lib/api/params'
 import { dailyProvider } from '@/lib/video/daily-provider'
@@ -165,6 +166,10 @@ export const POST = withCsrf(
         }
       } catch (err: any) {
         console.error('[Join] room re-check/recreate failed:', err?.message)
+        Sentry.captureException(err instanceof Error ? err : new Error(String(err?.message)), {
+          tags: { feature: 'live-video', phase: 'room-recreate' },
+          extra: { sessionId: id, roomId: classSessionRow.roomId },
+        })
         // Fall through with the existing room; the token step below surfaces errors.
       }
 
@@ -175,6 +180,10 @@ export const POST = withCsrf(
         })
       } catch (err: any) {
         console.error('[Join] Daily.co token creation failed:', err?.message)
+        Sentry.captureException(err instanceof Error ? err : new Error(String(err?.message)), {
+          tags: { feature: 'live-video', phase: 'token-create' },
+          extra: { sessionId: id },
+        })
         videoError = 'Video is temporarily unavailable for this session.'
       }
     } else {
