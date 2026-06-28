@@ -118,10 +118,58 @@ export const POST = withCsrf(
     // Surfaced to the client so a video-token failure is visible (chat/whiteboard
     // still work) instead of being silently swallowed into a generic join failure.
     let videoError: string | null = null
+    // The room URL handed to the client; refreshed below if the original room has
+    // expired and we recreate it.
+    let roomUrl = classSessionRow.roomUrl
     if (classSessionRow.roomId) {
       const isOwner = userId === classSessionRow.tutorId
+
+      // Rooms expire (durationMinutes + 60m buffer). A session rejoined after that
+      // would hit a dead room and fail every time. If the room is gone, recreate it
+      // once and persist the new room on the session so everyone lands in the same
+      // fresh room. The compare-and-set on roomId keeps concurrent joins from
+      // recreating it more than once.
+      let activeRoomId = classSessionRow.roomId
       try {
-        token = await dailyProvider.createMeetingToken(classSessionRow.roomId, userId, {
+        const roomLive = await dailyProvider.isRoomActive(classSessionRow.roomId)
+        if (!roomLive) {
+          const fresh = await dailyProvider.createRoom(classSessionRow.tutorId, {
+            maxParticipants: Math.min((classSessionRow.maxStudents ?? 9) + 1, 50),
+            durationMinutes: classSessionRow.durationMinutes ?? 120,
+          })
+          const updated = await drizzleDb
+            .update(liveSession)
+            .set({ roomId: fresh.id, roomUrl: fresh.url })
+            .where(
+              and(eq(liveSession.sessionId, id), eq(liveSession.roomId, classSessionRow.roomId))
+            )
+            .returning({ roomId: liveSession.roomId, roomUrl: liveSession.roomUrl })
+
+          if (updated.length > 0) {
+            activeRoomId = fresh.id
+            roomUrl = fresh.url
+          } else {
+            // A concurrent join already recreated the room — use theirs and drop the
+            // extra room we just made so it doesn't linger.
+            const [current] = await drizzleDb
+              .select({ roomId: liveSession.roomId, roomUrl: liveSession.roomUrl })
+              .from(liveSession)
+              .where(eq(liveSession.sessionId, id))
+              .limit(1)
+            if (current?.roomId) {
+              activeRoomId = current.roomId
+              roomUrl = current.roomUrl
+            }
+            dailyProvider.deleteRoom(fresh.id).catch(() => {})
+          }
+        }
+      } catch (err: any) {
+        console.error('[Join] room re-check/recreate failed:', err?.message)
+        // Fall through with the existing room; the token step below surfaces errors.
+      }
+
+      try {
+        token = await dailyProvider.createMeetingToken(activeRoomId, userId, {
           isOwner,
           durationMinutes: classSessionRow.durationMinutes ?? 120,
         })
@@ -188,6 +236,7 @@ export const POST = withCsrf(
 
     const classSession = {
       ...classSessionRow,
+      roomUrl,
       tutor: tutorRow ? { profile: tutorProfile } : null,
       course: courseName ? { name: courseName } : null,
       variantName,
@@ -198,7 +247,7 @@ export const POST = withCsrf(
     return NextResponse.json({
       session: classSession,
       token,
-      roomUrl: classSessionRow.roomUrl,
+      roomUrl,
       videoError,
     })
   })
