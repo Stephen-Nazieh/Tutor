@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { SessionCalendarPanel } from '@/components/session-calendar-panel'
+import { MathText, hasMath } from '@/components/answer/MathText'
 import { cn } from '@/lib/utils'
 
 interface Submission {
@@ -405,10 +406,14 @@ function SubmissionRow({
                         return (
                           <div className="mt-1">
                             {text && (
-                              <p className="text-gray-800">
+                              <div className="text-gray-800">
                                 <span className="text-gray-400">Answer: </span>
-                                {text}
-                              </p>
+                                {hasMath(text) ? (
+                                  <MathText text={text} className="mt-0.5 text-gray-800" />
+                                ) : (
+                                  <span className="whitespace-pre-wrap">{text}</span>
+                                )}
+                              </div>
                             )}
                             {drawing && (
                               <div className="mt-1">
