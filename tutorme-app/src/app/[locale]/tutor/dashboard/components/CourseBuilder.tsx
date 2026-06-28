@@ -2839,8 +2839,7 @@ FEEDBACK: [your explanation]`
 
     // Read text from an uploaded marking scheme (PDF via pdfjs, or plain text).
     const extractMarkingSchemeText = async (file: File): Promise<string> => {
-      const isPdf =
-        file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+      const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
       if (!isPdf) {
         try {
           return await file.text()
@@ -2919,9 +2918,7 @@ FEEDBACK: [your explanation]`
           })
           applied += 1
         }
-        toast.success(
-          `Filled ${applied} of ${questions.length} answers from the marking scheme.`
-        )
+        toast.success(`Filled ${applied} of ${questions.length} answers from the marking scheme.`)
       } catch (err) {
         console.error('Marking scheme parse failed:', err)
         toast.error('Failed to read the marking scheme')
@@ -11124,7 +11121,8 @@ FEEDBACK: [your explanation]`
                         onChange={e => {
                           const file = e.target.files?.[0]
                           e.target.value = ''
-                          if (file && dmiEditor) void handleMarkingSchemeFile(file, dmiEditor.source)
+                          if (file && dmiEditor)
+                            void handleMarkingSchemeFile(file, dmiEditor.source)
                         }}
                       />
                       <button
@@ -11133,9 +11131,7 @@ FEEDBACK: [your explanation]`
                         onClick={() => markingSchemeInputRef.current?.click()}
                         className="ml-auto inline-flex items-center gap-1 rounded-full border border-sky-300 bg-white px-3 py-1 text-xs font-semibold text-sky-700 transition-colors hover:bg-sky-100 disabled:opacity-60"
                       >
-                        {markingSchemeLoading ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : null}
+                        {markingSchemeLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
                         Upload marking scheme
                       </button>
                     </div>
