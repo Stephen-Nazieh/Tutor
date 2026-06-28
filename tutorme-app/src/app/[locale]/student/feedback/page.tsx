@@ -317,10 +317,37 @@ function ClassroomControlsPanel({
  * has no image; long answer is always free-text.
  */
 /**
- * A free-response answer the student can either TYPE or DRAW (pen/mouse/finger) —
- * crucial for maths and other work that doesn't fit a keyboard. A drawn answer is
- * stored as a PNG data URL; a typed answer as plain text. The mode is inferred
- * from the current value so it survives re-renders.
+ * Split a stored answer into its typed + drawn parts. Backward compatible:
+ * - plain text            -> { text, drawing: '' }
+ * - a bare PNG data URL   -> { text: '', drawing }   (legacy drawn-only answer)
+ * - {"text","drawing"}    -> mixed answer
+ */
+function parseWrittenAnswer(value: string): { text: string; drawing: string } {
+  if (!value) return { text: '', drawing: '' }
+  if (value.startsWith('data:image')) return { text: '', drawing: value }
+  if (value.startsWith('{')) {
+    try {
+      const o = JSON.parse(value) as { text?: unknown; drawing?: unknown }
+      if (o && (typeof o.text === 'string' || typeof o.drawing === 'string')) {
+        return { text: String(o.text ?? ''), drawing: String(o.drawing ?? '') }
+      }
+    } catch {
+      // not JSON — treat as plain text below
+    }
+  }
+  return { text: value, drawing: '' }
+}
+
+/** Pure text stays a plain string (so it auto-grades); a drawing makes it JSON. */
+function serializeWrittenAnswer(text: string, drawing: string): string {
+  if (drawing) return JSON.stringify({ text, drawing })
+  return text
+}
+
+/**
+ * A free-response answer the student can TYPE and/or DRAW (pen/mouse/finger) —
+ * crucial where maths/diagrams and writing mix. Both the text box and the
+ * drawing pad are expandable, and a single answer can contain both.
  */
 function WrittenAnswer({
   value,
@@ -337,52 +364,46 @@ function WrittenAnswer({
   placeholder: string
   baseField: string
 }) {
-  const isDrawn = typeof value === 'string' && value.startsWith('data:image')
-  const [mode, setMode] = useState<'type' | 'draw'>(isDrawn ? 'draw' : 'type')
-  // Don't show a data-URL blob as text when typing; keep typed text out of draw.
-  const textValue = isDrawn ? '' : value
-  const tabBtn = (active: boolean) =>
-    cn(
-      'rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
-      active ? 'bg-[#F17623] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-    )
+  const { text, drawing } = parseWrittenAnswer(value)
+  const [showDraw, setShowDraw] = useState(!!drawing)
+  const update = (nextText: string, nextDrawing: string) => {
+    onInteract()
+    onValueChange(serializeWrittenAnswer(nextText, nextDrawing))
+  }
   return (
-    <div>
-      <div className="mb-1.5 inline-flex gap-1 rounded-lg bg-gray-50 p-0.5">
-        <button type="button" className={tabBtn(mode === 'type')} onClick={() => setMode('type')}>
-          Type
-        </button>
-        <button type="button" className={tabBtn(mode === 'draw')} onClick={() => setMode('draw')}>
-          Draw
-        </button>
-      </div>
-      {mode === 'type' ? (
-        multiline ? (
-          <textarea
-            value={textValue}
-            onFocus={onInteract}
-            onChange={e => {
-              onInteract()
-              onValueChange(e.target.value)
-            }}
-            placeholder={placeholder}
-            className={`min-h-[64px] resize-y ${baseField}`}
-          />
-        ) : (
-          <input
-            type="text"
-            value={textValue}
-            onFocus={onInteract}
-            onChange={e => {
-              onInteract()
-              onValueChange(e.target.value)
-            }}
-            placeholder={placeholder}
-            className={baseField}
-          />
-        )
+    <div className="space-y-1.5">
+      {multiline ? (
+        <textarea
+          value={text}
+          onFocus={onInteract}
+          onChange={e => update(e.target.value, drawing)}
+          placeholder={placeholder}
+          className={`min-h-[96px] resize-y ${baseField}`}
+        />
       ) : (
-        <DrawingPad value={isDrawn ? value : undefined} onChange={onValueChange} onInteract={onInteract} />
+        <input
+          type="text"
+          value={text}
+          onFocus={onInteract}
+          onChange={e => update(e.target.value, drawing)}
+          placeholder={placeholder}
+          className={baseField}
+        />
+      )}
+      {showDraw ? (
+        <DrawingPad
+          value={drawing || undefined}
+          onChange={d => update(text, d)}
+          onInteract={onInteract}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowDraw(true)}
+          className="inline-flex items-center gap-1 rounded-full border border-[#F17623] bg-[#FFF4EC] px-3 py-1 text-xs font-semibold text-[#9a4a12] transition-colors hover:bg-[#ffe9d8]"
+        >
+          + Add a drawing
+        </button>
       )}
     </div>
   )
