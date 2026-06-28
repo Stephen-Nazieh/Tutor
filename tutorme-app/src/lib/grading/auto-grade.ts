@@ -110,9 +110,15 @@ export function autoGradeDmi(
     const g = normalize(rawGiven)
     const expected = normalize(item.answer)
     const matched = g.length > 0 && (g === expected || ` ${g} `.includes(` ${expected} `))
+    // A drawn answer (a bare PNG data URL, or a mixed {text,drawing} answer that
+    // contains one) is an image — it can never be auto-matched, so always send it
+    // to the tutor for review instead of marking it wrong.
+    const rawGivenStr = String(rawGiven)
+    const isDrawn =
+      rawGivenStr.startsWith('data:image') || rawGivenStr.includes('"drawing":"data:image')
     // Open-ended (long-key) items that weren't reproduced can't be auto-judged —
     // exclude and flag rather than penalize a possible paraphrase.
-    const review = !matched && wordCount(expected) > SHORT_ANSWER_MAX_WORDS
+    const review = !matched && (isDrawn || wordCount(expected) > SHORT_ANSWER_MAX_WORDS)
     const marks = itemMarks(item)
 
     if (matched) correct += 1

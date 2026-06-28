@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { SessionCalendarPanel } from '@/components/session-calendar-panel'
+import { MathText, hasMath } from '@/components/answer/MathText'
 import { cn } from '@/lib/utils'
 
 interface Submission {
@@ -381,10 +382,56 @@ function SubmissionRow({
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 text-gray-800">
-                        <span className="text-gray-400">Answer: </span>
-                        {typeof ans === 'string' ? ans : JSON.stringify(ans)}
-                      </p>
+                      {(() => {
+                        // An answer may be plain text, a drawing (PNG data URL),
+                        // or a mixed { text, drawing } — render whichever parts
+                        // are present.
+                        const raw = typeof ans === 'string' ? ans : JSON.stringify(ans)
+                        let text = raw
+                        let drawing = ''
+                        if (raw.startsWith('data:image')) {
+                          text = ''
+                          drawing = raw
+                        } else if (raw.startsWith('{')) {
+                          try {
+                            const o = JSON.parse(raw) as { text?: string; drawing?: string }
+                            if (o && (typeof o.text === 'string' || typeof o.drawing === 'string')) {
+                              text = String(o.text ?? '')
+                              drawing = String(o.drawing ?? '')
+                            }
+                          } catch {
+                            /* keep raw as text */
+                          }
+                        }
+                        return (
+                          <div className="mt-1">
+                            {text && (
+                              <div className="text-gray-800">
+                                <span className="text-gray-400">Answer: </span>
+                                {hasMath(text) ? (
+                                  <MathText text={text} className="mt-0.5 text-gray-800" />
+                                ) : (
+                                  <span className="whitespace-pre-wrap">{text}</span>
+                                )}
+                              </div>
+                            )}
+                            {drawing && (
+                              <div className="mt-1">
+                                <span className="text-xs text-gray-400">Drawn:</span>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={drawing}
+                                  alt="Student's drawn answer"
+                                  className="mt-1 max-h-72 w-full rounded-md border border-gray-200 bg-white object-contain"
+                                />
+                              </div>
+                            )}
+                            {!text && !drawing && (
+                              <p className="text-gray-400">No answer recorded.</p>
+                            )}
+                          </div>
+                        )
+                      })()}
                       {meta?.modelAnswer && (
                         <p className="mt-1 rounded bg-emerald-50 px-2 py-1 text-xs text-emerald-800">
                           <span className="font-semibold">Model answer:</span> {meta.modelAnswer}

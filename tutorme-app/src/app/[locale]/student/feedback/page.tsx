@@ -14,6 +14,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { DrawingPad } from '@/components/answer/DrawingPad'
+import { MathText, hasMath } from '@/components/answer/MathText'
 import {
   Select,
   SelectContent,
@@ -315,6 +317,156 @@ function ClassroomControlsPanel({
  * drag_drop/hotspot store JSON). hotspot falls back to free-text when its item
  * has no image; long answer is always free-text.
  */
+/**
+ * Split a stored answer into its typed + drawn parts. Backward compatible:
+ * - plain text            -> { text, drawing: '' }
+ * - a bare PNG data URL   -> { text: '', drawing }   (legacy drawn-only answer)
+ * - {"text","drawing"}    -> mixed answer
+ */
+function parseWrittenAnswer(value: string): { text: string; drawing: string } {
+  if (!value) return { text: '', drawing: '' }
+  if (value.startsWith('data:image')) return { text: '', drawing: value }
+  if (value.startsWith('{')) {
+    try {
+      const o = JSON.parse(value) as { text?: unknown; drawing?: unknown }
+      if (o && (typeof o.text === 'string' || typeof o.drawing === 'string')) {
+        return { text: String(o.text ?? ''), drawing: String(o.drawing ?? '') }
+      }
+    } catch {
+      // not JSON — treat as plain text below
+    }
+  }
+  return { text: value, drawing: '' }
+}
+
+/** Pure text stays a plain string (so it auto-grades); a drawing makes it JSON. */
+function serializeWrittenAnswer(text: string, drawing: string): string {
+  if (drawing) return JSON.stringify({ text, drawing })
+  return text
+}
+
+/**
+ * A free-response answer the student can TYPE and/or DRAW (pen/mouse/finger) —
+ * crucial where maths/diagrams and writing mix. Both the text box and the
+ * drawing pad are expandable, and a single answer can contain both.
+ */
+function WrittenAnswer({
+  value,
+  onValueChange,
+  onInteract,
+  multiline,
+  placeholder,
+  baseField,
+}: {
+  value: string
+  onValueChange: (next: string) => void
+  onInteract: () => void
+  multiline: boolean
+  placeholder: string
+  baseField: string
+}) {
+  const { text, drawing } = parseWrittenAnswer(value)
+  const [showDraw, setShowDraw] = useState(!!drawing)
+  const [converting, setConverting] = useState(false)
+  // What we've already transcribed from this handwriting, so a re-convert only
+  // adds the NEW strokes and never re-appends (or disturbs) earlier text.
+  const convertedRef = useRef('')
+  const update = (nextText: string, nextDrawing: string) => {
+    onInteract()
+    onValueChange(serializeWrittenAnswer(nextText, nextDrawing))
+  }
+
+  // Convert the handwriting to typed text + LaTeX, APPENDED to the answer. The
+  // student's typed text is never modified — only new handwriting is added.
+  const convertHandwriting = async () => {
+    if (!drawing || converting) return
+    setConverting(true)
+    try {
+      const res = await fetch('/api/ai/handwriting-to-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          image: drawing,
+          // Tell the model what's already been transcribed so it skips it.
+          previousText: convertedRef.current || undefined,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data?.error || 'Could not read the handwriting. Try writing more clearly.')
+        return
+      }
+      const converted = String(data?.text ?? '').trim()
+      if (!converted) {
+        toast.info('No new handwriting to convert.')
+        return
+      }
+      // Append only the new transcription to whatever is already in the box.
+      update(text ? `${text}\n${converted}` : converted, drawing)
+      convertedRef.current = convertedRef.current
+        ? `${convertedRef.current}\n${converted}`
+        : converted
+      toast.success('Handwriting converted. Review and edit if needed.')
+    } catch {
+      toast.error('Failed to convert handwriting')
+    } finally {
+      setConverting(false)
+    }
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {/* Always a multi-line, expandable box (drag the bottom-right corner). */}
+      <textarea
+        value={text}
+        onFocus={onInteract}
+        onChange={e => update(e.target.value, drawing)}
+        placeholder={placeholder}
+        rows={multiline ? 4 : 2}
+        className={`${multiline ? 'min-h-[96px]' : 'min-h-[56px]'} resize-y ${baseField}`}
+      />
+      {/* Live math preview — render $…$ / $$…$$ LaTeX as the student types. */}
+      {hasMath(text) && (
+        <div className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2">
+          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-gray-400">
+            Preview
+          </span>
+          <MathText text={text} className="text-sm text-gray-800" />
+        </div>
+      )}
+      {showDraw ? (
+        <div className="space-y-1.5">
+          <DrawingPad
+            value={drawing || undefined}
+            onChange={d => update(text, d)}
+            onInteract={onInteract}
+          />
+          {drawing && (
+            <button
+              type="button"
+              onClick={convertHandwriting}
+              disabled={converting}
+              className="inline-flex items-center gap-1 rounded-full border border-[#F17623] bg-[#FFF4EC] px-3 py-1 text-xs font-semibold text-[#9a4a12] transition-colors hover:bg-[#ffe9d8] disabled:opacity-60"
+            >
+              {converting ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+              {converting ? 'Converting…' : 'Convert handwriting → text'}
+            </button>
+          )}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowDraw(true)}
+          className="inline-flex items-center gap-1 rounded-full border border-[#F17623] bg-[#FFF4EC] px-3 py-1 text-xs font-semibold text-[#9a4a12] transition-colors hover:bg-[#ffe9d8]"
+        >
+          + Add a drawing
+        </button>
+      )}
+    </div>
+  )
+}
+
 function DmiAnswerField({
   item,
   value,
@@ -334,7 +486,7 @@ function DmiAnswerField({
         ? ['True', 'False']
         : []
   const baseField =
-    'w-full rounded-md border border-gray-200 p-2 text-sm focus:border-[#F17623] focus:outline-none'
+    'w-full rounded-md border border-gray-200 bg-white p-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#F17623] focus:outline-none'
   // Tap-to-place selection for drag_drop (touch fallback for native drag).
   const [dragSelected, setDragSelected] = useState<string | null>(null)
 
@@ -425,7 +577,22 @@ function DmiAnswerField({
 
   // Short answer & fill-in-the-blank — single-line input. Choice types with no
   // options provided fall back here so the student is never stuck.
-  if (type === 'short' || type === 'fill_blank' || type === 'mcq' || type === 'multiple_response') {
+  // Short / fill-in answers — type OR draw (maths working, symbols, diagrams).
+  if (type === 'short' || type === 'fill_blank') {
+    return (
+      <WrittenAnswer
+        value={value}
+        onValueChange={onValueChange}
+        onInteract={onInteract}
+        multiline={false}
+        placeholder={type === 'fill_blank' ? 'Fill in the blank…' : 'Type your answer…'}
+        baseField={baseField}
+      />
+    )
+  }
+
+  // mcq / multiple_response that arrived without options → plain text input.
+  if (type === 'mcq' || type === 'multiple_response') {
     return (
       <input
         type="text"
@@ -435,7 +602,7 @@ function DmiAnswerField({
           onInteract()
           onValueChange(e.target.value)
         }}
-        placeholder={type === 'fill_blank' ? 'Fill in the blank…' : 'Type your answer…'}
+        placeholder="Type your answer…"
         className={baseField}
       />
     )
@@ -697,17 +864,15 @@ function DmiAnswerField({
   }
 
   // Long answer + hotspot (still needs image+regions) and any interactive type
-  // that arrives without its data → free-text.
+  // that arrives without its data → free-response (type OR draw).
   return (
-    <textarea
+    <WrittenAnswer
       value={value}
-      onFocus={onInteract}
-      onChange={e => {
-        onInteract()
-        onValueChange(e.target.value)
-      }}
+      onValueChange={onValueChange}
+      onInteract={onInteract}
+      multiline
       placeholder="Type your answer…"
-      className={`min-h-[64px] resize-y ${baseField}`}
+      baseField={baseField}
     />
   )
 }
@@ -786,9 +951,8 @@ function StudentFeedbackContent() {
   const rightResizeStartX = useRef(0)
   const rightResizeStartW = useRef(380)
 
-  // Expanded panels (My Board / Assessment) widen the right panel so the
-  // whiteboard / assessment has more room while the center Classroom shrinks.
-  const isExpanded = rightPanelTab === 'my-board' || rightPanelTab === 'dmi'
+  // The right panel keeps a consistent base width across tabs; students can drag
+  // the resize handle to adjust it for convenience.
   const EXPANDED_PANEL_BONUS = 300
 
   // Assets state
@@ -1999,24 +2163,24 @@ function StudentFeedbackContent() {
               rightPanelResizing ? 'transition-none' : 'transition-all duration-500 ease-out'
             )}
             style={{
-              // Narrow width for Lessons/Interact (380px), expanded for Assessment/My Board (680px)
-              width: rightPanelWidth + (isExpanded ? EXPANDED_PANEL_BONUS : 0),
+              // Keep the right panel a consistent width across ALL tabs — Lessons
+              // and Interact were shrinking vs Assessment/My Board.
+              width: rightPanelWidth + EXPANDED_PANEL_BONUS,
             }}
           >
-            {/* Resize handle */}
-            {!isExpanded && (
-              <div
-                className="absolute bottom-0 left-0 top-0 z-10 flex w-3 cursor-col-resize items-center justify-center bg-slate-100/50 hover:bg-blue-500/30 active:bg-blue-500/50"
-                onMouseDown={e => {
-                  setRightPanelResizing(true)
-                  rightResizeStartX.current = e.clientX
-                  rightResizeStartW.current = rightPanelWidth
-                }}
-                title="Drag to resize"
-              >
-                <div className="h-8 w-0.5 rounded-full bg-slate-300" />
-              </div>
-            )}
+            {/* Resize handle — available on every tab so students can widen or
+                narrow the panel for convenience. */}
+            <div
+              className="absolute bottom-0 left-0 top-0 z-10 flex w-3 cursor-col-resize items-center justify-center bg-slate-100/50 hover:bg-blue-500/30 active:bg-blue-500/50"
+              onMouseDown={e => {
+                setRightPanelResizing(true)
+                rightResizeStartX.current = e.clientX
+                rightResizeStartW.current = rightPanelWidth
+              }}
+              title="Drag to resize"
+            >
+              <div className="h-8 w-0.5 rounded-full bg-slate-300" />
+            </div>
 
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
               <div className="flex w-full items-center gap-2 rounded-lg bg-gray-100 p-1">
