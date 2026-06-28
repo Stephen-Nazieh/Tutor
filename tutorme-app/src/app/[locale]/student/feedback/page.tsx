@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { DrawingPad } from '@/components/answer/DrawingPad'
+import { MathText, hasMath } from '@/components/answer/MathText'
 import {
   Select,
   SelectContent,
@@ -366,10 +367,38 @@ function WrittenAnswer({
 }) {
   const { text, drawing } = parseWrittenAnswer(value)
   const [showDraw, setShowDraw] = useState(!!drawing)
+  const [converting, setConverting] = useState(false)
   const update = (nextText: string, nextDrawing: string) => {
     onInteract()
     onValueChange(serializeWrittenAnswer(nextText, nextDrawing))
   }
+
+  // Convert the handwriting to typed text + LaTeX, appended to the text box.
+  const convertHandwriting = async () => {
+    if (!drawing || converting) return
+    setConverting(true)
+    try {
+      const res = await fetch('/api/ai/handwriting-to-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ image: drawing }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data?.text) {
+        toast.error(data?.error || 'Could not read the handwriting. Try writing more clearly.')
+        return
+      }
+      const converted = String(data.text).trim()
+      update(text ? `${text}\n${converted}` : converted, drawing)
+      toast.success('Handwriting converted to text. Review and edit if needed.')
+    } catch {
+      toast.error('Failed to convert handwriting')
+    } finally {
+      setConverting(false)
+    }
+  }
+
   return (
     <div className="space-y-1.5">
       {multiline ? (
@@ -390,12 +419,34 @@ function WrittenAnswer({
           className={baseField}
         />
       )}
+      {/* Live math preview — render $…$ / $$…$$ LaTeX as the student types. */}
+      {hasMath(text) && (
+        <div className="rounded-md border border-gray-100 bg-gray-50 px-3 py-2">
+          <span className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-gray-400">
+            Preview
+          </span>
+          <MathText text={text} className="text-sm text-gray-800" />
+        </div>
+      )}
       {showDraw ? (
-        <DrawingPad
-          value={drawing || undefined}
-          onChange={d => update(text, d)}
-          onInteract={onInteract}
-        />
+        <div className="space-y-1.5">
+          <DrawingPad
+            value={drawing || undefined}
+            onChange={d => update(text, d)}
+            onInteract={onInteract}
+          />
+          {drawing && (
+            <button
+              type="button"
+              onClick={convertHandwriting}
+              disabled={converting}
+              className="inline-flex items-center gap-1 rounded-full border border-[#F17623] bg-[#FFF4EC] px-3 py-1 text-xs font-semibold text-[#9a4a12] transition-colors hover:bg-[#ffe9d8] disabled:opacity-60"
+            >
+              {converting ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+              {converting ? 'Converting…' : 'Convert handwriting → text'}
+            </button>
+          )}
+        </div>
       ) : (
         <button
           type="button"
