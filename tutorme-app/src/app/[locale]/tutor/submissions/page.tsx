@@ -434,7 +434,9 @@ function SubmissionRow({
                             )}
                             {drawing && (
                               <div className="mt-1">
-                                <span className="text-xs text-gray-400">Handwriting (original):</span>
+                                <span className="text-xs text-gray-400">
+                                  Handwriting (original):
+                                </span>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={drawing}
