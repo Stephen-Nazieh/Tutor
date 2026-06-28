@@ -2850,41 +2850,6 @@ FEEDBACK: [your explanation]`
       }
     }
 
-    // Apply many patches keyed by question NUMBER (not id) against the latest
-    // items in a single update. Marking-scheme autofill must match on the stable
-    // question number: the items can be re-sourced with fresh ids during the
-    // multi-second AI call, so a patch keyed by an id captured beforehand would
-    // miss and the answers would silently never appear.
-    const applyDmiEditsByNumber = (
-      source: 'task' | 'assessment',
-      patchByNumber: Map<number, Partial<DMIQuestion>>
-    ) => {
-      const editItems = (arr: DMIQuestion[]) => {
-        return arr.map(q => {
-          // Normalize to match how patchByNumber is keyed — questionNumber may be a
-          // numeric string at runtime after a save/reload round-trip.
-          const patch = patchByNumber.get(Number(q.questionNumber))
-          if (!patch) return q
-          return { ...q, ...patch }
-        })
-      }
-      const activeVersionId = testPciViewMode.startsWith('dmi_')
-        ? testPciViewMode.slice('dmi_'.length)
-        : null
-      const editVersions = (vs: DMIVersion[]) => {
-        if (vs.length === 0) return vs
-        const targetId = activeVersionId ?? vs[vs.length - 1].id
-        return vs.map(v => (v.id === targetId ? { ...v, items: editItems(v.items) } : v))
-      }
-      if (source === 'task') {
-        setTaskDmiItems(editItems)
-        setTaskDmiVersions(editVersions)
-      } else {
-        setAssessmentDmiItems(editItems)
-        setAssessmentDmiVersions(editVersions)
-      }
-    }
-
     // Read text from an uploaded marking scheme (PDF via pdfjs, or plain text).
     const extractMarkingSchemeText = async (file: File): Promise<string> => {
       const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
@@ -3018,9 +2983,7 @@ FEEDBACK: [your explanation]`
           toast.error('No answers could be matched from that marking scheme.')
           return
         }
-        // Key patches by question NUMBER and apply them in one update against the
-        // latest items (see applyDmiEditsByNumber) — matching by a pre-await item
-        // id is unreliable because the items can be re-sourced during the AI call.
+        // Key the matched answers by question NUMBER.
         const validNumbers = new Set(items.map(it => Number(it.questionNumber)))
         const patchByNumber = new Map<number, Partial<DMIQuestion>>()
         for (const m of matches) {
@@ -3036,17 +2999,48 @@ FEEDBACK: [your explanation]`
             ...(m.rubric ? { rubric: m.rubric } : {}),
           })
         }
-        const applied = patchByNumber.size
-        if (applied === 0) {
+        // Apply the answers directly onto the questions shown in the modal (the
+        // snapshot captured above), keyed by question number — NOT via a functional
+        // update against the latest state. The items can be re-sourced (fresh ids,
+        // sometimes a whole new array) during the multi-second AI call; a functional
+        // update could then land on an array whose numbers no longer match and fill
+        // NOTHING while we still reported "Filled N". The snapshot is exactly what
+        // the tutor is looking at, so the answers always appear on those rows. We
+        // count the rows that actually changed, so the toast can't over-report.
+        const patchOnto = (arr: DMIQuestion[]) =>
+          arr.map(q => {
+            const patch = patchByNumber.get(Number(q.questionNumber))
+            return patch ? { ...q, ...patch } : q
+          })
+        const patchedItems = patchOnto(items)
+        const filled = patchedItems.reduce((n, q, i) => (q === items[i] ? n : n + 1), 0)
+        if (filled === 0) {
           // Matches came back but none lined up with these questions' numbers.
           toast.error(
             "Couldn't line up the marking scheme with these questions — the question numbers didn't match. Check that the scheme covers the same questions."
           )
           return
         }
-        applyDmiEditsByNumber(source, patchByNumber)
+        // Commit to the live items (what the modal + deploy read) and the active DMI
+        // version (persisted with the course) so the answers show now AND survive a
+        // save/reload.
+        const activeVersionId = testPciViewMode.startsWith('dmi_')
+          ? testPciViewMode.slice('dmi_'.length)
+          : null
+        const patchVersions = (vs: DMIVersion[]) => {
+          if (vs.length === 0) return vs
+          const targetId = activeVersionId ?? vs[vs.length - 1].id
+          return vs.map(v => (v.id === targetId ? { ...v, items: patchOnto(v.items) } : v))
+        }
+        if (source === 'task') {
+          setTaskDmiItems(patchedItems)
+          setTaskDmiVersions(patchVersions)
+        } else {
+          setAssessmentDmiItems(patchedItems)
+          setAssessmentDmiVersions(patchVersions)
+        }
         toast.success(
-          `Filled ${applied} of ${questions.length} answers (with variants & marks) from the marking scheme.`
+          `Filled ${filled} of ${questions.length} answers (with variants & marks) from the marking scheme.`
         )
       } catch (err) {
         console.error('Marking scheme parse failed:', err)
