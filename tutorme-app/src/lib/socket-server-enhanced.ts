@@ -144,7 +144,12 @@ export interface LiveTask {
   /** Per-question answer key + marks. Sent tutor→server on deploy ONLY and
    *  persisted server-side for auto-grading; NEVER copied into the student
    *  broadcast (normalizedTask) or stored in deployedMaterial. */
-  answerKey?: Array<{ id: string; answer?: string; marks?: number }>
+  answerKey?: Array<{
+    id: string
+    answer?: string
+    acceptableVariants?: string[]
+    marks?: number
+  }>
   /** Tutor's answer-reveal policy: 'instant' | 'after_submit' | 'hidden' | 'student_choice'. */
   answerReveal?: 'instant' | 'after_submit' | 'hidden' | 'student_choice'
   deployedAt: number
