@@ -66,9 +66,18 @@ export interface DMIQuestion {
   /** Points this question is worth. Drives the auto-total and weighted grading;
    *  defaults to 1 when absent. */
   marks?: number
-  /** Marking guidance / model answer for open-ended items. Tutor-only — never
-   *  sent to students. */
+  /** All accepted answer forms beyond the canonical `answer` — alternative
+   *  phrasings, equivalent values, units, spellings, or methods that earn full
+   *  credit. Populated from a marking scheme. Tutor-only evaluation layer (a
+   *  recognized stripped key) — never sent to students. */
+  acceptableVariants?: string[]
+  /** Marking guidance / model answer for open-ended items. For adaptive schemes
+   *  this captures the award structure verbatim-faithfully (method marks, or
+   *  holistic E/P/I band descriptors). Tutor-only — never sent to students. */
   rubric?: string
+  /** Where the answer came from (ASMT-5). `answer_sheet_extracted` when filled
+   *  from an uploaded marking scheme. Tutor-only evaluation layer. */
+  answerProvenance?: 'tutor_provided' | 'answer_sheet_extracted' | 'llm_inferred' | 'tutor_edited'
   /** Which answer-input control the student sees (defaults to long answer). */
   questionType?: import('@/lib/assessment/question-types').DmiQuestionType
   /** Options for choice types (mcq / true_false / multiple_response). */

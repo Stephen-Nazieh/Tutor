@@ -15,7 +15,11 @@ import { withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
 import { generateWithKimi, generateWithKimiVision } from '@/lib/ai/kimi'
 import { stripCodeFences } from '@/lib/ai/llm-response'
-import { GUARDRAILED_TEMPERATURE } from '@/lib/ai/guardrails'
+import {
+  GUARDRAILED_TEMPERATURE,
+  guardrailSystemPrompt,
+  runAssessmentGuardrails,
+} from '@/lib/ai/guardrails'
 import { z } from 'zod'
 
 const RequestSchema = z.object({
@@ -27,27 +31,51 @@ const RequestSchema = z.object({
     .max(200),
 })
 
-const SYSTEM_PROMPT = `You are given a MARKING SCHEME and a list of QUESTION REFERENCES from an exam/assessment.
-For each reference, find its correct answer in the marking scheme and return it.
+// Task instructions appended after the assessment guardrail system prompt. The
+// scheme style is detected per-document so the same endpoint adapts to every
+// marking standard (mark-per-point, MCQ keys, tolerance-based, or holistic
+// band schemes like AP's Essentially/Partially/Incorrect).
+const TASK_PROMPT = `You are given a MARKING SCHEME and a list of QUESTION REFERENCES from an exam/assessment.
+For each reference, extract its answer key from the marking scheme — adapting to whatever marking
+standard the scheme uses.
 
 Return ONLY a JSON object (no prose, no markdown, no code fences):
-{ "matches": [ { "number": <integer>, "answer": "<expected answer>", "rubric": "<acceptable variations + marking notes>" } ] }
+{ "matches": [ {
+  "number": <integer>,
+  "answer": "<canonical correct answer>",
+  "variants": ["<every other accepted answer form>", ...],
+  "marks": <total points this question is worth>,
+  "rubric": "<how the marks are awarded, faithful to the scheme>"
+} ] }
 
 Rules:
 - Match by question / part number (e.g. "Question 1(a)", "Q3", "12"). Cut through page headers, footers,
   mark totals, watermarks, "GO ON TO THE NEXT PAGE", and formatting noise to find the right answer.
 - "number" is the integer from the reference you were given (the leading #N), NOT a number you invent.
-- "answer": the canonical correct answer. For a multiple-choice item give the correct OPTION LETTER (A, B, C, …).
-  For a short item give the key expected answer. For a worked/extended item give a concise model answer.
-- "rubric": capture the NUANCES the scheme allows — alternative acceptable answers, accepted phrasings /
-  spellings / synonyms, numeric tolerances and units, and any "allow / accept / do not accept / condone"
-  notes. This lets a grader fairly judge differently-worded answers. Keep it concise but faithful.
-- Only include a reference whose answer you can actually find in the scheme. OMIT the rest. NEVER invent
-  an answer that is not in the marking scheme.`
+- "answer": the canonical correct answer. For a multiple-choice item give the correct OPTION LETTER
+  (A, B, C, …). For a short item give the key expected answer. For a worked/extended/holistic item give a
+  concise model answer or the description of a fully-credited (e.g. "Essentially correct") response.
+- "variants": an array of ALL OTHER answer forms the scheme accepts for full credit — alternative phrasings,
+  equivalent values, accepted spellings/synonyms, numeric values within the allowed tolerance, answers
+  with/without units, and alternative valid methods' final answers. List each distinctly. Empty array if
+  the scheme accepts only the one canonical answer.
+- "marks": the total points/marks the scheme assigns to this question (the maximum). For a holistic band
+  scheme use the maximum band score (e.g. 4). Integer or decimal exactly as the scheme states; omit only if
+  the scheme genuinely gives no points value.
+- "rubric": faithfully capture HOW the marks are awarded so a grader can score fairly — method/accuracy
+  marks (M1/A1), per-criterion points, partial-credit rules, "allow / accept / do not accept / condone"
+  notes, OR holistic band descriptors (what makes a response Essentially correct vs Partially correct vs
+  Incorrect). Keep it concise but do not drop award rules.
+- Only include a reference whose answer you can actually find in the scheme. OMIT the rest. NEVER invent an
+  answer, variant, mark value, or award rule that is not in the marking scheme.`
+
+const SYSTEM_PROMPT = `${guardrailSystemPrompt('assessment')}\n\n${TASK_PROMPT}`
 
 interface SchemeMatch {
   number: number
   answer: string
+  variants?: string[]
+  marks?: number
   rubric?: string
 }
 
@@ -58,7 +86,13 @@ function parseMatches(raw: string, validNumbers: Set<number>): SchemeMatch[] {
     const end = text.lastIndexOf('}')
     if (start === -1 || end <= start) return []
     const obj = JSON.parse(text.slice(start, end + 1)) as {
-      matches?: Array<{ number?: unknown; answer?: unknown; rubric?: unknown }>
+      matches?: Array<{
+        number?: unknown
+        answer?: unknown
+        variants?: unknown
+        marks?: unknown
+        rubric?: unknown
+      }>
     }
     if (!Array.isArray(obj.matches)) return []
     const out: SchemeMatch[] = []
@@ -67,7 +101,25 @@ function parseMatches(raw: string, validNumbers: Set<number>): SchemeMatch[] {
       const answer = String(m?.answer ?? '').trim()
       if (!Number.isInteger(n) || !validNumbers.has(n) || !answer) continue
       const rubric = String(m?.rubric ?? '').trim()
-      out.push({ number: n, answer, rubric: rubric || undefined })
+      // De-duplicate variants and drop any that just echo the canonical answer.
+      const variants = Array.isArray(m?.variants)
+        ? Array.from(
+            new Set(
+              m.variants
+                .map(v => String(v ?? '').trim())
+                .filter(v => v && v.toLowerCase() !== answer.toLowerCase())
+            )
+          )
+        : []
+      const marksNum = Number(m?.marks)
+      const marks = Number.isFinite(marksNum) && marksNum > 0 ? marksNum : undefined
+      out.push({
+        number: n,
+        answer,
+        variants: variants.length > 0 ? variants : undefined,
+        marks,
+        rubric: rubric || undefined,
+      })
     }
     return out
   } catch {
@@ -138,7 +190,26 @@ export async function POST(request: NextRequest) {
     const validNumbers = new Set(questions.map(q => q.number))
     const matches = parseMatches(aiResponse, validNumbers)
 
-    return NextResponse.json({ matches, matched: matches.length, total: questions.length })
+    // Guardrail rule 2: run the assessment guardrails over the extracted answer
+    // key (warn-only). Provenance is answer_sheet_extracted (ASMT-5). Not
+    // student-facing — this is the tutor-side evaluation layer.
+    const questionByNumber = new Map(questions.map(q => [q.number, q.label]))
+    const guardrail = runAssessmentGuardrails({
+      questions: matches.map(m => ({
+        questionId: String(m.number),
+        questionText: questionByNumber.get(m.number) ?? '',
+        marks: m.marks,
+        rubric: m.rubric ? { criteria: [] } : null,
+        answerProvenance: 'answer_sheet_extracted' as const,
+      })),
+    })
+
+    return NextResponse.json({
+      matches,
+      matched: matches.length,
+      total: questions.length,
+      guardrailWarnings: guardrail.violations,
+    })
   } catch (error) {
     return handleApiError(
       error,
