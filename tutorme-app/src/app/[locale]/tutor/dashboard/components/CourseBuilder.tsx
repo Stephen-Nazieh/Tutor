@@ -797,6 +797,20 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
     const leftPanelRef = useRef<HTMLDivElement>(null)
     const [assetsOpen, setAssetsOpen] = useState(true)
+    // Peek animation state for side panel toggles
+    const [isLeftPeeking, setIsLeftPeeking] = useState(false)
+    const [isRightPeeking, setIsRightPeeking] = useState(false)
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setIsLeftPeeking(true)
+        setIsRightPeeking(true)
+        setTimeout(() => {
+          setIsLeftPeeking(false)
+          setIsRightPeeking(false)
+        }, 600)
+      }, 8000)
+      return () => clearInterval(interval)
+    }, [])
     const [mediaOpen, setMediaOpen] = useState(true)
     const [docsOpen, setDocsOpen] = useState(true)
     const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set())
@@ -6586,7 +6600,7 @@ FEEDBACK: [your explanation]`
             // the component is used uncontrolled).
             setMainTab(next)
           }}
-          className="flex h-full w-full flex-1 flex-col bg-gray-50/50 px-6 pt-0"
+          className="flex h-full w-full flex-1 flex-col bg-gray-50/50 px-3 pt-0 sm:px-4"
         >
           <div
             className="relative flex h-full w-full pb-6 pt-0"
@@ -6597,24 +6611,29 @@ FEEDBACK: [your explanation]`
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
             {/* Floating collapsed/expanded pill */}
             <div
-              className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
-              style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
+              className={cn(
+                "absolute top-1/2 z-50 flex h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-500 ease-in-out",
+                (leftPanelHidden && isLeftPeeking) ? "w-10" : "w-8 hover:w-10",
+                leftPanelHidden
+                  ? "border-[#1D4ED8]/30 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)]"
+                  : "border-[#E5E7EB] bg-white"
+              )}
+              style={{ left: leftPanelHidden ? -16 : leftPanelWidth - 16 }}
               onClick={() => setLeftPanelHidden(!leftPanelHidden)}
               title={leftPanelHidden ? 'Show curriculum' : 'Hide curriculum'}
             >
               {leftPanelHidden ? (
-                <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
+                <ChevronRight className="h-5 w-5 text-white" />
               ) : (
                 <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
               )}
             </div>
 
-            {!leftPanelHidden && (
-              <div
-                className="relative z-40 flex min-h-0 shrink-0 flex-col"
-                ref={leftPanelRef}
-                style={{ width: leftPanelWidth, flexShrink: 0 }}
-              >
+            <div
+              className="relative z-40 flex min-h-0 shrink-0 flex-col overflow-hidden transition-all duration-500 ease-in-out"
+              ref={leftPanelRef}
+              style={{ width: leftPanelHidden ? 0 : leftPanelWidth, flexShrink: 0 }}
+            >
                 <div className="flex h-full min-h-0 flex-col">
                   <Card
                     padding="none"
@@ -8481,24 +8500,29 @@ FEEDBACK: [your explanation]`
               <>
                 {/* Right panel toggle button - always rendered outside grid flow */}
                 <div
-                  className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full border border-r-0 border-[#E5E7EB] bg-white shadow-[-2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
-                  style={{ right: rightPanelHidden ? 0 : rightPanelWidth - 16 }}
+                  className={cn(
+                    "absolute top-1/2 z-50 flex h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full border border-r-0 shadow-[-2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-500 ease-in-out",
+                    (rightPanelHidden && isRightPeeking) ? "w-10" : "w-8 hover:w-10",
+                    rightPanelHidden
+                      ? "border-[#1D4ED8]/30 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)]"
+                      : "border-[#E5E7EB] bg-white"
+                  )}
+                  style={{ right: rightPanelHidden ? -16 : rightPanelWidth - 16 }}
                   onClick={() => setRightPanelHidden(!rightPanelHidden)}
                   title={rightPanelHidden ? 'Show desk' : 'Hide desk'}
                 >
                   {rightPanelHidden ? (
-                    <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
+                    <ChevronLeft className="h-5 w-5 text-white" />
                   ) : (
                     <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
                   )}
                 </div>
 
                 {/* Right panel content - grid child with consistent wrapper */}
-                {!rightPanelHidden && (
-                  <div
-                    className="relative z-40 flex min-h-0 shrink-0 flex-col"
-                    style={{ width: rightPanelWidth, flexShrink: 0 }}
-                  >
+                <div
+                  className="relative z-40 flex min-h-0 shrink-0 flex-col overflow-hidden transition-all duration-500 ease-in-out"
+                  style={{ width: rightPanelHidden ? 0 : rightPanelWidth, flexShrink: 0 }}
+                >
                     {mainTab === 'live' && liveRightPanelTab === 'insights' ? (
                       <div className="flex h-full min-h-0 flex-col">
                         <Card
@@ -9723,7 +9747,12 @@ FEEDBACK: [your explanation]`
                     {/* COMBINED BUILDER: Task & Assessment Tabs */}
                     <Card
                       padding="none"
-                      className="flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-[20px] border border-blue-200 bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]"
+                      className={cn(
+                        'flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-[20px] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]',
+                        mainBuilderTab === 'assessment'
+                          ? 'border border-pink-200'
+                          : 'border border-blue-200'
+                      )}
                     >
                       <div
                         className={cn(
