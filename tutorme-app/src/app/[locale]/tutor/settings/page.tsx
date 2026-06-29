@@ -788,12 +788,20 @@ export default function TutorSettings() {
                     <div className="flex justify-end">
                       <Button
                         className="bg-[#2563EB] text-white hover:border-[#2563EB] hover:bg-white hover:text-[#2563EB]"
-                        onClick={() => {
-                          window.location.href = '/tutor/my-page'
-                        }}
+                        onClick={handleSaveProfile}
+                        disabled={saving}
                       >
-                        <User className="mr-2 h-4 w-4" />
-                        Edit Public Profile
+                        {saving ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="mr-2 h-4 w-4" />
+                            Save
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -814,22 +822,6 @@ export default function TutorSettings() {
                     <p className="text-xs text-gray-500">
                       Your nationality as selected during registration
                     </p>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button onClick={handleSaveProfile} disabled={saving}>
-                      {saving ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="mr-2 h-4 w-4" />
-                          Save Changes
-                        </>
-                      )}
-                    </Button>
                   </div>
                 </div>
               </CollapsibleCard>
