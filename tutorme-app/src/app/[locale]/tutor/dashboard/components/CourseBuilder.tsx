@@ -116,6 +116,7 @@ import {
   DMI_QUESTION_TYPE_LABELS,
   type DmiQuestionType,
 } from '@/lib/assessment/question-types'
+import { deriveExamContext, EXAM_BOARDS, refKey } from '@/lib/assessment/marking-scheme'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
@@ -393,72 +394,6 @@ import { SubmissionsPanel } from './SubmissionsPanel'
 // Cache of rendered PDF page images keyed by document URL, so PCI vision messages
 // don't re-render the same document on every chat turn.
 const pdfPageCache = new Map<string, string[]>()
-
-// Examining bodies the marking-scheme badge can show / the tutor can pick from.
-// "Other" lets a tutor label a board we don't list yet. The order matters for
-// detection: more specific labels (IGCSE before GCSE) must come first.
-const EXAM_BOARDS = [
-  'AP',
-  'IB',
-  'A-Level',
-  'AS-Level',
-  'IGCSE',
-  'GCSE',
-  'SAT',
-  'ACT',
-  'Cambridge',
-  'Edexcel',
-  'AQA',
-  'OCR',
-  'WJEC',
-  'Other',
-] as const
-
-// Map a course category label (e.g. "AP Calculus AB", "IB (International
-// Baccalaureate)", "Cambridge AS Mathematics") to a best-effort { examBody,
-// subject }. Used as the badge's default before a per-paper detector exists; the
-// tutor can always override.
-function deriveExamContext(
-  category?: string | null,
-  fallbackSubject?: string | null
-): { examBody?: string; subject?: string } {
-  const raw = String(category ?? '').trim()
-  // Ordered patterns: longest / most specific first.
-  const patterns: Array<[RegExp, string]> = [
-    [/international baccalaureate|\bIB\b/i, 'IB'],
-    [/advanced placement|\bAP\b/i, 'AP'],
-    [/\bIGCSE\b/i, 'IGCSE'],
-    [/\bGCSE\b/i, 'GCSE'],
-    [/\bAS[\s-]?Level/i, 'AS-Level'],
-    [/\bA[\s-]?Level/i, 'A-Level'],
-    [/cambridge/i, 'Cambridge'],
-    [/edexcel/i, 'Edexcel'],
-    [/\bAQA\b/i, 'AQA'],
-    [/\bOCR\b/i, 'OCR'],
-    [/\bWJEC\b/i, 'WJEC'],
-    [/\bSAT\b/i, 'SAT'],
-    [/\bACT\b/i, 'ACT'],
-  ]
-  let examBody: string | undefined
-  for (const [re, board] of patterns) {
-    if (re.test(raw)) {
-      examBody = board
-      break
-    }
-  }
-  // Subject = the category with the board name + parenthetical removed.
-  let subject = raw
-    .replace(/\([^)]*\)/g, ' ')
-    .replace(/advanced placement|international baccalaureate/i, ' ')
-    .replace(
-      /\b(AP|IB|IGCSE|GCSE|AS[\s-]?Level|A[\s-]?Level|Cambridge|Edexcel|AQA|OCR|WJEC|SAT|ACT)\b/gi,
-      ' '
-    )
-    .replace(/\s+/g, ' ')
-    .trim()
-  if (!subject) subject = String(fallbackSubject ?? '').trim()
-  return { examBody, subject: subject || undefined }
-}
 
 // Collapsible explainer at the top of a PCI tab. PCI ("how to mark this") is easy
 // to confuse with the question content, so this spells out what it is, the flow,
@@ -3088,12 +3023,7 @@ FEEDBACK: [your explanation]`
         // Match on the paper's REAL question reference (e.g. "1(a)") — not the
         // re-serialized questionNumber. A scheme keyed to 1(a), 1(b), 2 … never
         // lines up with a 1, 2, 3 … serial, which left most answers unfilled.
-        // refKey normalizes "1(a)" and "1a" to the same key so minor formatting
-        // differences between the DMI and the scheme still match.
-        const refKey = (v: unknown) =>
-          String(v ?? '')
-            .toLowerCase()
-            .replace(/[^a-z0-9]/g, '')
+        // refKey (from the shared lib) normalizes "1(a)" and "1a" to the same key.
         const questions = items.map(it => ({
           ref: String(it.questionLabel ?? it.questionNumber ?? ''),
           label: it.questionText,
