@@ -795,6 +795,20 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [rightPanelWidth] = useState(380)
     const [leftPanelWidth, setLeftPanelWidth] = useState(340)
     const [viewportWidth, setViewportWidth] = useState(1920)
+    // Peek animation state for side panel toggles
+    const [isLeftPeeking, setIsLeftPeeking] = useState(false)
+    const [isRightPeeking, setIsRightPeeking] = useState(false)
+    useEffect(() => {
+      const interval = setInterval(() => {
+        setIsLeftPeeking(true)
+        setIsRightPeeking(true)
+        setTimeout(() => {
+          setIsLeftPeeking(false)
+          setIsRightPeeking(false)
+        }, 600)
+      }, 8000)
+      return () => clearInterval(interval)
+    }, [])
 
     useEffect(() => {
       const handleResize = () => setViewportWidth(window.innerWidth)
@@ -6610,26 +6624,29 @@ FEEDBACK: [your explanation]`
             {/* LEFT PANEL - Course Structure (resizable, ~75% of original width) */}
             {/* Floating collapsed/expanded pill */}
             <div
-              className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 border-[#E5E7EB] bg-white shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
-              style={{ left: leftPanelHidden ? 0 : leftPanelWidth - 16 }}
+              className={cn(
+                "absolute top-1/2 z-50 flex h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-r-full border border-l-0 shadow-[2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-500 ease-in-out",
+                (leftPanelHidden && isLeftPeeking) ? "w-10" : "w-8 hover:w-10",
+                leftPanelHidden
+                  ? "border-[#1D4ED8]/30 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)]"
+                  : "border-[#E5E7EB] bg-white"
+              )}
+              style={{ left: leftPanelHidden ? -16 : leftPanelWidth - 16 }}
               onClick={() => setLeftPanelHidden(!leftPanelHidden)}
               title={leftPanelHidden ? 'Show curriculum' : 'Hide curriculum'}
             >
               {leftPanelHidden ? (
-                <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
+                <ChevronRight className="h-5 w-5 text-white" />
               ) : (
                 <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
               )}
             </div>
 
-            {leftPanelHidden ? (
-              <div style={{ width: leftPanelWidth, flexShrink: 0 }} />
-            ) : (
-              <div
-                className="relative z-40 flex min-h-0 shrink-0 flex-col"
-                ref={leftPanelRef}
-                style={{ width: leftPanelWidth, flexShrink: 0 }}
-              >
+            <div
+              className="relative z-40 flex min-h-0 shrink-0 flex-col overflow-hidden transition-all duration-500 ease-in-out"
+              ref={leftPanelRef}
+              style={{ width: leftPanelHidden ? 0 : leftPanelWidth, flexShrink: 0 }}
+            >
                 <div className="flex h-full min-h-0 flex-col">
                   <Card
                     padding="none"
@@ -10592,26 +10609,29 @@ FEEDBACK: [your explanation]`
               <>
                 {/* Right panel toggle button - always rendered outside grid flow */}
                 <div
-                  className="absolute top-1/2 z-50 flex h-16 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full border border-r-0 border-[#E5E7EB] bg-white shadow-[-2px_0_8px_rgba(0,0,0,0.08)] transition-all hover:w-10 hover:bg-slate-50"
-                  style={{ right: rightPanelHidden ? 0 : rightPanelWidth - 16 }}
+                  className={cn(
+                    "absolute top-1/2 z-50 flex h-16 -translate-y-1/2 cursor-pointer items-center justify-center rounded-l-full border border-r-0 shadow-[-2px_0_8px_rgba(0,0,0,0.08)] transition-all duration-500 ease-in-out",
+                    (rightPanelHidden && isRightPeeking) ? "w-10" : "w-8 hover:w-10",
+                    rightPanelHidden
+                      ? "border-[#1D4ED8]/30 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)]"
+                      : "border-[#E5E7EB] bg-white"
+                  )}
+                  style={{ right: rightPanelHidden ? -16 : rightPanelWidth - 16 }}
                   onClick={() => setRightPanelHidden(!rightPanelHidden)}
                   title={rightPanelHidden ? 'Show desk' : 'Hide desk'}
                 >
                   {rightPanelHidden ? (
-                    <ChevronLeft className="h-5 w-5 text-[#2B5FB8]" />
+                    <ChevronLeft className="h-5 w-5 text-white" />
                   ) : (
                     <ChevronRight className="h-5 w-5 text-[#2B5FB8]" />
                   )}
                 </div>
 
                 {/* Right panel content - grid child with consistent wrapper */}
-                {rightPanelHidden ? (
-                  <div style={{ width: rightPanelWidth, flexShrink: 0 }} />
-                ) : (
-                  <div
-                    className="relative z-40 flex min-h-0 shrink-0 flex-col"
-                    style={{ width: rightPanelWidth, flexShrink: 0 }}
-                  >
+                <div
+                  className="relative z-40 flex min-h-0 shrink-0 flex-col overflow-hidden transition-all duration-500 ease-in-out"
+                  style={{ width: rightPanelHidden ? 0 : rightPanelWidth, flexShrink: 0 }}
+                >
                     {mainTab === 'live' && liveRightPanelTab === 'insights' ? (
                       <div className="flex h-full min-h-0 flex-col">
                         <Card
