@@ -2192,7 +2192,11 @@ function StudentFeedbackContent() {
             )}
             style={{
               // Narrow width for Lessons/Interact (380px), expanded for Assessment/My Board (680px)
-              width: rightPanelWidth + (rightPanelTab === 'lessons' || rightPanelTab === 'interactions' ? 0 : EXPANDED_PANEL_BONUS),
+              width:
+                rightPanelWidth +
+                (rightPanelTab === 'lessons' || rightPanelTab === 'interactions'
+                  ? 0
+                  : EXPANDED_PANEL_BONUS),
             }}
           >
             {/* Resize handle — available on every tab so students can widen or
