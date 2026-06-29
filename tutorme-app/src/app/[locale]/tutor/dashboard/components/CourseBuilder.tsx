@@ -116,8 +116,9 @@ import {
   DMI_QUESTION_TYPE_LABELS,
   type DmiQuestionType,
 } from '@/lib/assessment/question-types'
-import { deriveExamContext, EXAM_BOARDS, extractQuestionRef } from '@/lib/assessment/marking-scheme'
+import { deriveExamContext, EXAM_BOARDS } from '@/lib/assessment/marking-scheme'
 import { useMarkingScheme } from './hooks/use-marking-scheme'
+import { useDmiEditor } from './hooks/use-dmi-editor'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
@@ -2910,113 +2911,24 @@ FEEDBACK: [one or two short sentences explaining the score]`
       return firstMcq > 1500 ? raw.slice(firstMcq) : raw
     }
 
-    // Apply a per-question edit (marks / answer / rubric) to the loaded DMI.
-    // Updates BOTH the live items state (used by deploy + the View-DMI modal)
-    // and the matching version (persisted with the course on save) so edits
-    // survive a deploy and a reload.
-    const applyDmiEdit = (
-      source: 'task' | 'assessment',
-      itemId: string,
-      patch: Partial<DMIQuestion>
-    ) => {
-      const editItems = (arr: DMIQuestion[]) =>
-        arr.map(q => (q.id === itemId ? { ...q, ...patch } : q))
-      const activeVersionId = testPciViewMode.startsWith('dmi_')
-        ? testPciViewMode.slice('dmi_'.length)
-        : null
-      const editVersions = (vs: DMIVersion[]) => {
-        if (vs.length === 0) return vs
-        const targetId = activeVersionId ?? vs[vs.length - 1].id
-        return vs.map(v => (v.id === targetId ? { ...v, items: editItems(v.items) } : v))
-      }
-      if (source === 'task') {
-        setTaskDmiItems(editItems)
-        setTaskDmiVersions(editVersions)
-      } else {
-        setAssessmentDmiItems(editItems)
-        setAssessmentDmiVersions(editVersions)
-      }
-    }
-
-    // Backfill questionLabel (the paper's real reference, e.g. "1(a)") from the
-    // question text for DMIs generated before references were preserved — so old
-    // assessments match an uploaded marking scheme. Only fills missing labels;
-    // never overwrites an existing one.
-    const reextractRefs = (source: 'task' | 'assessment') => {
-      const items = source === 'task' ? taskDmiItems : assessmentDmiItems
-      const fixItem = (q: DMIQuestion): DMIQuestion => {
-        if (q.questionLabel) return q
-        const ref = extractQuestionRef(q.questionText)
-        return ref ? { ...q, questionLabel: ref } : q
-      }
-      const fixed = items.map(fixItem)
-      const updated = fixed.reduce((n, q, i) => (q === items[i] ? n : n + 1), 0)
-      if (updated === 0) {
-        toast.info('No question numbers to re-detect — already set, or none found in the text.')
-        return
-      }
-      const activeVersionId = testPciViewMode.startsWith('dmi_')
-        ? testPciViewMode.slice('dmi_'.length)
-        : null
-      const fixVersions = (vs: DMIVersion[]) => {
-        if (vs.length === 0) return vs
-        const targetId = activeVersionId ?? vs[vs.length - 1].id
-        return vs.map(v => (v.id === targetId ? { ...v, items: v.items.map(fixItem) } : v))
-      }
-      if (source === 'task') {
-        setTaskDmiItems(fixed)
-        setTaskDmiVersions(fixVersions)
-      } else {
-        setAssessmentDmiItems(fixed)
-        setAssessmentDmiVersions(fixVersions)
-      }
-      toast.success(
-        `Re-detected ${updated} question number${updated === 1 ? '' : 's'} from the question text.`
-      )
-    }
-
-    // Remove a DMI question (e.g. a row appended from a marking scheme that the
-    // tutor doesn't want) from the live items and the active version.
-    const removeDmiItem = (source: 'task' | 'assessment', itemId: string) => {
-      const dropItem = (arr: DMIQuestion[]) => arr.filter(q => q.id !== itemId)
-      const activeVersionId = testPciViewMode.startsWith('dmi_')
-        ? testPciViewMode.slice('dmi_'.length)
-        : null
-      const dropVersions = (vs: DMIVersion[]) => {
-        if (vs.length === 0) return vs
-        const targetId = activeVersionId ?? vs[vs.length - 1].id
-        return vs.map(v => (v.id === targetId ? { ...v, items: dropItem(v.items) } : v))
-      }
-      if (source === 'task') {
-        setTaskDmiItems(dropItem)
-        setTaskDmiVersions(dropVersions)
-      } else {
-        setAssessmentDmiItems(dropItem)
-        setAssessmentDmiVersions(dropVersions)
-      }
-    }
-
-    // Persist the examining-body / subject badge onto the active DMI version (it
-    // saves & reloads with the course). Only touches version metadata, never the
-    // questions.
-    const setExamContext = (
-      source: 'task' | 'assessment',
-      patch: { examBody?: string; subject?: string }
-    ) => {
-      const activeVersionId = testPciViewMode.startsWith('dmi_')
-        ? testPciViewMode.slice('dmi_'.length)
-        : null
-      const editVersions = (vs: DMIVersion[]) => {
-        if (vs.length === 0) return vs
-        const targetId = activeVersionId ?? vs[vs.length - 1].id
-        return vs.map(v => (v.id === targetId ? { ...v, ...patch } : v))
-      }
-      if (source === 'task') setTaskDmiVersions(editVersions)
-      else setAssessmentDmiVersions(editVersions)
-    }
-
-    // Whether the badge's inline board/subject editor is open.
-    const [editingExamContext, setEditingExamContext] = useState(false)
+    // Per-question DMI edits, row add/remove, reference backfill and the badge's
+    // board/subject — all live in their own hook.
+    const {
+      applyDmiEdit,
+      reextractRefs,
+      removeDmiItem,
+      setExamContext,
+      editingExamContext,
+      setEditingExamContext,
+    } = useDmiEditor({
+      taskDmiItems,
+      assessmentDmiItems,
+      setTaskDmiItems,
+      setAssessmentDmiItems,
+      setTaskDmiVersions,
+      setAssessmentDmiVersions,
+      testPciViewMode,
+    })
 
     // Marking-scheme upload (extract → parse → fill/append) lives in its own hook.
     const {
