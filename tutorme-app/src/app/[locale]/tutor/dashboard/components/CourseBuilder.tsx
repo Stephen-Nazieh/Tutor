@@ -212,7 +212,7 @@ import {
   StudentPreviewModal,
   PreviewCard,
 } from './builder-components'
-import { LessonSelectorDialog } from './LessonSelectorDialog'
+import { LessonSelectorDialog, NEW_LESSON_VALUE } from './LessonSelectorDialog'
 import {
   AssessmentBuilderModal,
   TaskBuilderModal,
@@ -813,6 +813,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       type: 'task' | 'assessment' | null
       title: string
     }>({ isOpen: false, type: null, title: '' })
+
+    // Loading a document from its own kebab menu asks which lesson to load into
+    // (existing or new) before the "Load as…" modal, instead of forcing Lesson 1.
+    const [assetLessonPickerOpen, setAssetLessonPickerOpen] = useState(false)
+    const [assetLoadTarget, setAssetLoadTarget] = useState<{
+      nodeId: string
+      lessonId: string
+    } | null>(null)
 
     // State for editable PCI tabs
     const [testPciTabs, setTestPciTabs] = useState(() =>
@@ -3847,6 +3855,25 @@ FEEDBACK: [one or two short sentences explaining the score]`
       }
     }, [expandedCourseBuilderNodes, nodes])
 
+    // Create a fresh "Lesson N" and return its ids (for the "New lesson" choice
+    // when loading a document from its kebab menu).
+    const createNewLessonTarget = useCallback((): { nodeId: string; lessonId: string } => {
+      const newOrder = nodes.length
+      const newNode = DEFAULT_NODE(newOrder)
+      newNode.title = `Lesson ${newOrder + 1}`
+      newNode.lessons[0].title = `Lesson ${newOrder + 1}`
+      setCourseBuilderNodes([...nodes, newNode])
+      setExpandedCourseBuilderNodes(new Set([...expandedCourseBuilderNodes, newNode.id]))
+      return { nodeId: newNode.id, lessonId: newNode.lessons[0].id }
+    }, [expandedCourseBuilderNodes, nodes, setCourseBuilderNodes])
+
+    // Where a document load should land: the lesson the tutor picked from the
+    // kebab flow, else the first lesson (the previous always-Lesson-1 behavior).
+    const resolveAssetLoadTarget = useCallback(
+      () => assetLoadTarget ?? ensureFirstLessonContext(),
+      [assetLoadTarget, ensureFirstLessonContext]
+    )
+
     // Auto-create task when typing in Task Builder without loaded task
     const autoCreateTask = useCallback(() => {
       const { nodeId, lessonId } = ensureFirstLessonContext()
@@ -5346,13 +5373,18 @@ FEEDBACK: [one or two short sentences explaining the score]`
       // we know the target context, so we can skip the 'main' choice and go straight to options.
       if (assetPickerTarget === 'assessment') {
         setLoadAsStep('assessment-options')
+        setLoadAsModalOpen(true)
       } else if (assetPickerTarget === 'task') {
         setLoadAsStep('task-options')
+        setLoadAsModalOpen(true)
       } else {
+        // Document's own kebab "Load": let the tutor pick which lesson to load
+        // into (existing or new) before the "Load as…" step, rather than always
+        // defaulting to Lesson 1.
         setLoadAsStep('main')
+        setAssetLoadTarget(null)
+        setAssetLessonPickerOpen(true)
       }
-
-      setLoadAsModalOpen(true)
     }
 
     const recentAssets = useMemo(() => courseAssets.slice(-2).reverse(), [courseAssets])
@@ -5566,6 +5598,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
             if (!open) {
               setLoadAsStep('main')
               setAssetToLoad(null)
+              setAssetLoadTarget(null)
             }
           }}
         >
@@ -5614,7 +5647,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                       }
 
                       if (nodeIndex === -1 || lessonIndex === -1) {
-                        const { nodeId, lessonId } = ensureFirstLessonContext()
+                        const { nodeId, lessonId } = resolveAssetLoadTarget()
                         nodeIndex = nodes.findIndex(m => m.id === nodeId)
                         lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
                       }
@@ -5924,7 +5957,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                         }
 
                         if (nodeIndex === -1 || lessonIndex === -1) {
-                          const { nodeId, lessonId } = ensureFirstLessonContext()
+                          const { nodeId, lessonId } = resolveAssetLoadTarget()
                           nodeIndex = nodes.findIndex(m => m.id === nodeId)
                           lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
                         }
@@ -6069,7 +6102,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                       }
 
                       if (nodeIndex === -1 || lessonIndex === -1) {
-                        const { nodeId, lessonId } = ensureFirstLessonContext()
+                        const { nodeId, lessonId } = resolveAssetLoadTarget()
                         nodeIndex = nodes.findIndex(m => m.id === nodeId)
                         lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
                       }
@@ -10976,6 +11009,24 @@ FEEDBACK: [one or two short sentences explaining the score]`
           }}
           nodes={nodes}
           itemType={lessonSelectDialog.type || 'item'}
+        />
+
+        {/* Document kebab "Load": pick which lesson to load into (existing or new)
+            before the "Load as…" step, instead of always defaulting to Lesson 1. */}
+        <LessonSelectorDialog
+          isOpen={assetLessonPickerOpen}
+          onClose={() => setAssetLessonPickerOpen(false)}
+          onConfirm={(nodeId, lessonId) => {
+            const target =
+              nodeId === NEW_LESSON_VALUE ? createNewLessonTarget() : { nodeId, lessonId }
+            setAssetLoadTarget(target)
+            setAssetLessonPickerOpen(false)
+            setLoadAsStep('main')
+            setLoadAsModalOpen(true)
+          }}
+          nodes={nodes}
+          itemType="document"
+          allowNewLesson
         />
 
         {/* AI Assist Agent Modal */}
