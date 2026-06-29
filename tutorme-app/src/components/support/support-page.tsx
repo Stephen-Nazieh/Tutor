@@ -57,7 +57,7 @@ export function SupportPage({ subtitle, heroGradient, topics }: SupportPageProps
 
       {/* Lower panel */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-0.5">
-        <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-[0_18px_60px_rgba(0,0,0,0.28)] ring-1 ring-black/5">
+        <Card className="flex h-full flex-col overflow-hidden">
           {/* Mode selector cards */}
           <div className="grid flex-shrink-0 grid-cols-2 gap-3 p-5 pb-3 sm:grid-cols-4">
             {topics.map(topic => {
@@ -85,7 +85,7 @@ export function SupportPage({ subtitle, heroGradient, topics }: SupportPageProps
           {/* Content + Assistant */}
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4 sm:flex-row">
             {/* FAQ / Content panel */}
-            <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
+            <Card className="shadow-elevation-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white">
               <div className="flex-shrink-0 border-b border-[#E5E7EB] p-4">
                 <h2 className="text-lg font-semibold text-slate-900">{activeTopicData.title}</h2>
                 <p className="text-sm text-slate-500">{activeTopicData.description}</p>
@@ -105,12 +105,12 @@ export function SupportPage({ subtitle, heroGradient, topics }: SupportPageProps
 
             {/* AI Assistant panel */}
             {showAssistant && (
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_16px_rgba(0,0,0,0.06)]">
+              <div className="shadow-elevation-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white">
                 <SupportAiAssistant />
               </div>
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   )
