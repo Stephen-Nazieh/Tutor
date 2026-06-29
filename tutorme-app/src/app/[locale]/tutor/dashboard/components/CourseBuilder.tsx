@@ -119,6 +119,7 @@ import {
 import { deriveExamContext, EXAM_BOARDS } from '@/lib/assessment/marking-scheme'
 import { useMarkingScheme } from './hooks/use-marking-scheme'
 import { useDmiEditor } from './hooks/use-dmi-editor'
+import { parsePciTranscript } from '@/lib/assessment/pci'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
@@ -1548,36 +1549,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       taskBuilder.activeExtensionId,
       taskBuilder.extensions,
     ])
-
-    // Load task data into taskBuilder
-    const parsePciTranscript = (text: string) => {
-      if (!text?.trim()) return [] as { role: 'user' | 'assistant'; content: string }[]
-      const lines = text.split('\n')
-      const messages: { role: 'user' | 'assistant'; content: string }[] = []
-      let current: { role: 'user' | 'assistant'; content: string } | null = null
-      for (const line of lines) {
-        const trimmed = line.trim()
-        const userMatch = trimmed.match(/^User:\s*(.*)$/i)
-        const assistantMatch = trimmed.match(/^Assistant:\s*(.*)$/i)
-        if (userMatch) {
-          if (current) messages.push(current)
-          current = { role: 'user', content: userMatch[1] }
-          continue
-        }
-        if (assistantMatch) {
-          if (current) messages.push(current)
-          current = { role: 'assistant', content: assistantMatch[1] }
-          continue
-        }
-        if (current) {
-          current.content = `${current.content}\n${line}`
-        } else if (trimmed) {
-          current = { role: 'assistant', content: trimmed }
-        }
-      }
-      if (current) messages.push(current)
-      return messages
-    }
 
     const loadTaskIntoBuilder = useCallback(
       (task: Task, activeExtensionId: string | null = null) => {
