@@ -5477,8 +5477,7 @@ FEEDBACK: [your explanation]`
                     ? 'cursor-pointer ring-2 ring-transparent hover:ring-blue-400'
                     : 'cursor-grab active:cursor-grabbing'
                 )}
-              >
-                <div className="mr-2 flex flex-1 items-center gap-2 overflow-hidden">
+              >                <div className="mr-2 flex flex-1 items-center gap-2 overflow-hidden">
                   <FileText className="h-4 w-4 shrink-0 text-slate-500" />
                   <span className="flex-1 truncate text-sm font-medium text-slate-700">
                     {asset.name}
@@ -8518,7 +8517,10 @@ FEEDBACK: [your explanation]`
                   <Card
                     padding="none"
                     className={cn(
-                      'flex h-full w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
+                      'flex h-full w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border bg-white shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]',
+                      mainTab === 'live'
+                        ? 'border-orange-200'
+                        : 'border-purple-200'
                     )}
                   >
                     <div

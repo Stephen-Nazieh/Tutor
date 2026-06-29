@@ -807,7 +807,7 @@ function CourseBuilderInsightsRouteInner({
               <div className="flex flex-col justify-center">
                 <div className="flex items-center gap-2">
                   {/* Course selector — locked to read-only when a session is active */}
-                  {activeMainTab !== 'live' && insightsProps.sessionId && currentCourse && (
+                  {activeMainTab !== 'live' && activeMainTab !== 'test-pci' && insightsProps.sessionId && currentCourse && (
                     <div className="flex h-9 min-w-[160px] max-w-[320px] items-center px-2 text-sm font-semibold text-slate-700">
                       {currentCourse.nationality && currentCourse.nationality !== 'Global' ? (
                         <span className="inline-flex items-center gap-1">
@@ -823,7 +823,7 @@ function CourseBuilderInsightsRouteInner({
                       )}
                     </div>
                   )}
-                  {activeMainTab !== 'live' && insightsProps.onCourseChange && (
+                  {activeMainTab !== 'live' && activeMainTab !== 'test-pci' && insightsProps.onCourseChange && (
                     <Select
                       // Only feed a value that has a matching <SelectItem>. courseId can
                       // be an id absent from courses/draftCourses (template vs published
@@ -921,7 +921,7 @@ function CourseBuilderInsightsRouteInner({
                     </Button>
                   )}
 
-                  {activeMainTab !== 'live' &&
+                  {activeMainTab !== 'live' && activeMainTab !== 'test-pci' &&
                     onCourseNameChange &&
                     courseId &&
                     courseId !== 'insights-draft' && (
@@ -964,6 +964,15 @@ function CourseBuilderInsightsRouteInner({
                       )}
                     </h1>
                   )}
+                  {activeMainTab === 'test-pci' && (
+                    <h1 className="text-foreground flex flex-1 items-center justify-center gap-2 text-2xl font-bold tracking-tight">
+                      {currentCourse?.name && (
+                        <span className="text-muted-foreground ml-2 text-xl font-normal">
+                          {currentCourse.name}
+                        </span>
+                      )}
+                    </h1>
+                  )}
                   {activeMainTab === 'live' &&
                     (sessionVariantName || sessionCategory || sessionNationality) && (
                       <span className="bg-muted text-muted-foreground ml-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
@@ -976,7 +985,7 @@ function CourseBuilderInsightsRouteInner({
                             : sessionCategory || sessionNationality}
                       </span>
                     )}
-                  {activeMainTab !== 'live' &&
+                  {activeMainTab !== 'live' && activeMainTab !== 'test-pci' &&
                   currentCourse &&
                   (currentCourse as any).categories?.length > 0 ? (
                     <span className="bg-muted text-muted-foreground ml-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium">
