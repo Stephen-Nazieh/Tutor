@@ -870,20 +870,19 @@ function TutorDashboardContent() {
                               </Button>
                             )}
                             <Button
-                              asChild
                               variant="outline"
                               size="sm"
                               className="border-white/30 bg-[#36454F] text-white transition-all duration-200 hover:bg-white hover:text-red-500"
+                              onClick={() =>
+                                router.push(
+                                  withLocalePath(
+                                    `/tutor/insights?tab=builder&courseId=${course.id}&mode=edit`
+                                  )
+                                )
+                              }
                             >
-                              <Link
-                                href={withLocalePath(
-                                  `/tutor/insights?tab=builder&courseId=${course.id}&mode=edit`
-                                )}
-                                className="flex items-center text-white"
-                              >
-                                <Pencil className="mr-1 h-3 w-3" />
-                                Edit
-                              </Link>
+                              <Pencil className="mr-1 h-3 w-3" />
+                              Edit
                             </Button>
                             <Button
                               variant="outline"
