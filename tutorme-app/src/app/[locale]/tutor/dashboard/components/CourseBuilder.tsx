@@ -763,7 +763,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
     }, [])
 
-    const centerColWidth = viewportWidth - leftPanelWidth - 24 - rightPanelWidth - 24
+    const centerColWidth = viewportWidth - leftPanelWidth - 24 - rightPanelWidth - 24 - 32
 
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
     const leftPanelRef = useRef<HTMLDivElement>(null)
@@ -6123,7 +6123,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
           className="flex h-full w-full flex-1 flex-col bg-gray-50/50 px-0 pt-0"
         >
           <div
-            className="relative flex h-full w-full px-7 pb-6 pt-0 sm:px-8"
+            className="relative flex h-full w-full px-4 pb-6 pt-0 sm:px-4"
             style={{
               gap: '24px',
             }}
@@ -6151,7 +6151,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
 
             <div
               className={cn(
-                'relative z-40 flex min-h-0 shrink-0 flex-col items-end',
+                'relative z-40 flex min-h-0 shrink-0 flex-col',
                 leftPanelHidden
                   ? 'bg-transparent shadow-none'
                   : 'rounded-[20px] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
