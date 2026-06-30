@@ -140,7 +140,7 @@ export function StudentReportsTab() {
           </div>
         ) : (
           reports.map(report => (
-            <Card key={report.reportId}>
+            <Card key={report.reportId} className="shadow-[0_14px_45px_rgba(0,0,0,0.14)]">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                 <div>
                   <CardTitle className="flex items-center gap-2 text-lg">

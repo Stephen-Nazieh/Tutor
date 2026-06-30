@@ -415,7 +415,10 @@ export default function TutorReports() {
               </button>
               {revenueExpanded && (
                 <div className="min-h-0 flex-1 p-6">
-                  <RevenueDashboard className="border-0 bg-white shadow-none" themeId="current" />
+                  <RevenueDashboard
+                    className="border-0 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)]"
+                    themeId="current"
+                  />
                 </div>
               )}
             </div>
@@ -487,7 +490,7 @@ export default function TutorReports() {
                       filteredStudents.map(student => (
                         <div
                           key={student.id}
-                          className="flex items-center justify-between rounded-[12px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] p-4 transition-all duration-200 ease-in-out hover:bg-slate-50 hover:shadow-sm"
+                          className="flex items-center justify-between rounded-[12px] border border-[rgba(0,0,0,0.04)] bg-[#FFFFFF] p-4 shadow-[0_14px_45px_rgba(0,0,0,0.14)] transition-all duration-200 ease-in-out hover:bg-slate-50 hover:shadow-[0_18px_50px_rgba(0,0,0,0.18)]"
                         >
                           <div className="flex items-center gap-4">
                             <Avatar className="h-10 w-10">
