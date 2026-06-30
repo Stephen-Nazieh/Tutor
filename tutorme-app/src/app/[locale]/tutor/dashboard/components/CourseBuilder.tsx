@@ -117,6 +117,7 @@ import {
   type DmiQuestionType,
 } from '@/lib/assessment/question-types'
 import { deriveExamContext, EXAM_BOARDS } from '@/lib/assessment/marking-scheme'
+import { findOpenItemsMissingRubric } from '@/lib/assessment/assessment-gates'
 import { useMarkingScheme } from './hooks/use-marking-scheme'
 import { useDmiEditor } from './hooks/use-dmi-editor'
 import { usePci } from './hooks/use-pci'
@@ -2877,6 +2878,18 @@ FEEDBACK: [one or two short sentences explaining the score]`
         }
         if (!insightsProps?.sessionId) {
           toast.error('Select a course session for insights')
+          return
+        }
+
+        // ASMT-8: block deploy until every open-response question has a marking
+        // pathway (a rubric, or an explicit "manual marking" note).
+        const missingRubric = findOpenItemsMissingRubric(assessmentDmiItems)
+        if (missingRubric.length > 0) {
+          toast.error(
+            `Add marking guidance for ${missingRubric.length} open question${
+              missingRubric.length > 1 ? 's' : ''
+            } (${missingRubric.join(', ')}) before deploying — or mark them for manual grading.`
+          )
           return
         }
 
@@ -11078,24 +11091,53 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                 className="min-h-[36px] w-full resize-y rounded-md border border-gray-300 p-2 text-sm text-gray-900"
                               />
                             </div>
-                            {isOpenEnded && (
-                              <div className="mt-2">
-                                <label className="mb-1 block text-xs font-medium text-gray-600">
-                                  Marking guidance (optional)
-                                </label>
-                                <textarea
-                                  value={item.rubric || ''}
-                                  disabled={!canEdit}
-                                  placeholder="How to award the marks…"
-                                  onChange={e =>
-                                    applyDmiEdit(dmiEditor.source, item.id, {
-                                      rubric: e.target.value,
-                                    })
-                                  }
-                                  className="min-h-[36px] w-full resize-y rounded-md border border-gray-300 p-2 text-sm text-gray-900"
-                                />
-                              </div>
-                            )}
+                            {isOpenEnded &&
+                              (() => {
+                                // short/long are gated at deploy (ASMT-8); other
+                                // "open-ish" types keep the rubric optional.
+                                const rubricRequired =
+                                  item.questionType === 'short' || item.questionType === 'long'
+                                return (
+                                  <div className="mt-2">
+                                    <div className="mb-1 flex items-center justify-between gap-2">
+                                      <label className="block text-xs font-medium text-gray-600">
+                                        Marking guidance{' '}
+                                        {rubricRequired ? (
+                                          <span className="font-semibold text-red-600">
+                                            (required)
+                                          </span>
+                                        ) : (
+                                          '(optional)'
+                                        )}
+                                      </label>
+                                      {rubricRequired && canEdit && (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            applyDmiEdit(dmiEditor.source, item.id, {
+                                              rubric: 'Manual marking — tutor grades by hand.',
+                                            })
+                                          }
+                                          className="shrink-0 text-xs font-medium text-blue-700 hover:underline"
+                                        >
+                                          Manual marking only
+                                        </button>
+                                      )}
+                                    </div>
+                                    <textarea
+                                      value={item.rubric || ''}
+                                      disabled={!canEdit}
+                                      placeholder="How to award the marks…"
+                                      onChange={e =>
+                                        applyDmiEdit(dmiEditor.source, item.id, {
+                                          rubric: e.target.value,
+                                        })
+                                      }
+                                      className="min-h-[36px] w-full resize-y rounded-md border border-gray-300 p-2 text-sm text-gray-900"
+                                    />
+                                  </div>
+                                )
+                              })()}
                           </div>
                         )
                       })}
