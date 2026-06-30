@@ -64,8 +64,13 @@ export async function fetchWithTimeout(
  * Fetch wrapper with timeout + limited retries for transient failures.
  *
  * Retries:
- * - network errors (except AbortError)
+ * - network errors
+ * - our own request timeouts (the timeoutMs AbortController firing) — a slow
+ *   upstream is exactly the kind of transient worth one more shot
  * - HTTP statuses in retryOnStatuses
+ *
+ * Does NOT retry a caller-initiated cancellation (the AbortSignal passed in
+ * `init.signal`), since that means the caller intentionally gave up.
  */
 export async function fetchWithTimeoutAndRetry(
   input: RequestInfo | URL,
@@ -85,7 +90,10 @@ export async function fetchWithTimeoutAndRetry(
       if (attempt >= retries || !retryOnStatuses.includes(res.status)) return res
     } catch (err: any) {
       const name = err?.name
-      if (name === 'AbortError') throw err
+      // A caller-initiated cancellation must never be retried; only our own
+      // timeout abort (or a plain network error) is a transient worth retrying.
+      const callerAborted = !!(init.signal as AbortSignal | undefined)?.aborted
+      if (name === 'AbortError' && callerAborted) throw err
       if (attempt >= retries) throw err
     }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { checkRateLimit, getClientIdentifier } from './rate-limit'
+import { checkRateLimit, getClientIdentifier, checkRateLimitPreset } from './rate-limit'
 
 describe('rate-limit', () => {
   describe('checkRateLimit', () => {
@@ -75,6 +75,28 @@ describe('rate-limit', () => {
     it('returns unknown when no IP headers', () => {
       const req = new Request('http://x')
       expect(getClientIdentifier(req)).toBe('unknown:b3e1b807')
+    })
+  })
+
+  describe('checkRateLimitPreset', () => {
+    it('keys by identifier (per-user) rather than IP when one is provided', async () => {
+      const req = new Request('http://x', { headers: { 'x-forwarded-for': '1.1.1.1' } })
+      const userA = 'user:A-' + Date.now()
+      const userB = 'user:B-' + Date.now()
+      const a1 = await checkRateLimitPreset(req, 'aiGenerate', userA)
+      const a2 = await checkRateLimitPreset(req, 'aiGenerate', userA) // same user, same IP
+      const b1 = await checkRateLimitPreset(req, 'aiGenerate', userB) // different user, same IP
+      expect(a1.allowed).toBe(true)
+      expect(a2.remaining).toBe(a1.remaining - 1) // shares user A's bucket
+      expect(b1.remaining).toBe(a1.remaining) // independent bucket despite the same IP
+    })
+
+    it('falls back to IP keying when no identifier is given', async () => {
+      const ip = '203.0.113.' + (Date.now() % 200)
+      const req = new Request('http://x', { headers: { 'x-real-ip': ip } })
+      const first = await checkRateLimitPreset(req, 'aiGenerate')
+      const second = await checkRateLimitPreset(req, 'aiGenerate') // same IP
+      expect(second.remaining).toBe(first.remaining - 1)
     })
   })
 })

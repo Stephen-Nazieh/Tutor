@@ -149,19 +149,23 @@ export const RATE_LIMIT_PRESETS = {
   enroll: { max: 30, windowMs: 60 * 1000 },
   /** Class booking: 20 per minute per IP */
   booking: { max: 20, windowMs: 60 * 1000 },
-  /** AI generation/chat: 12 per minute per client identifier */
-  aiGenerate: { max: 12, windowMs: 60 * 1000 },
+  /** AI generation/chat: 30 per minute per client identifier (per-user when authenticated) */
+  aiGenerate: { max: 30, windowMs: 60 * 1000 },
 } as const
 
 /**
  * Check rate limit using a named preset. Key will be prefixed with the preset name.
+ *
+ * When `identifier` is supplied (e.g. a user id), the bucket is keyed by it
+ * instead of the client IP — so co-located users behind one NAT/proxy don't
+ * share a single quota. Falls back to the IP otherwise.
  */
 export async function checkRateLimitPreset(
   req: Request,
-  preset: keyof typeof RATE_LIMIT_PRESETS
+  preset: keyof typeof RATE_LIMIT_PRESETS,
+  identifier?: string
 ): Promise<RateLimitResult> {
-  const ip = getClientIdentifier(req)
-  const key = `${preset}:${ip}`
+  const key = `${preset}:${identifier ?? getClientIdentifier(req)}`
   const options = RATE_LIMIT_PRESETS[preset]
   return checkRateLimit(key, options)
 }
