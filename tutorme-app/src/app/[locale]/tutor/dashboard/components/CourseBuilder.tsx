@@ -759,7 +759,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
     }, [])
 
-    const centerColWidth = viewportWidth - 32 - leftPanelWidth - 24 - rightPanelWidth - 24 - 32
+    const centerColWidth = viewportWidth - leftPanelWidth - 24 - rightPanelWidth - 24
 
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
     const leftPanelRef = useRef<HTMLDivElement>(null)
@@ -6083,7 +6083,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
           className="flex h-full w-full flex-1 flex-col bg-gray-50/50 px-0 pt-0"
         >
           <div
-            className="relative flex h-full w-full px-7 pb-6 pt-0 sm:px-8"
+            className="relative flex h-full w-full pb-6 pt-0"
             style={{
               gap: '24px',
             }}
@@ -6132,7 +6132,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                   <div className="sticky top-0 z-10 flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white">
                     Curriculum
                   </div>
-                  <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 pb-0 pt-5">
+                  <CardContent className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pb-0 pt-5">
                     {mainTab !== 'live' && mainTab !== 'test-pci' && canEdit && (
                       <Button
                         size="sm"
@@ -10038,7 +10038,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                     'relative z-40 flex min-h-0 shrink-0 flex-col',
                     rightPanelHidden
                       ? 'bg-transparent shadow-none'
-                      : 'items-end rounded-[20px] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
+                      : 'rounded-[20px] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
                   )}
                   style={{ width: rightPanelWidth, flexShrink: 0 }}
                 >
@@ -10058,7 +10058,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                             Desk
                           </div>
                           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                            <div className="shrink-0 px-2 pt-4">
+                            <div className="shrink-0 px-4 pt-4">
                               <Tabs
                                 value={liveRightPanelTab}
                                 onValueChange={value => {
@@ -10083,9 +10083,9 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                 </TabsList>
                               </Tabs>
                             </div>
-                            <div className="min-h-0 flex-1 overflow-hidden p-3 pt-2">
+                            <div className="min-h-0 flex-1 overflow-hidden p-4 pt-2">
                               {insightsProps ? (
-                                <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-blue-50 p-3 pb-4">
+                                <div className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-blue-50 p-4 pb-4">
                                   <Tabs
                                     value={insightsTab}
                                     onValueChange={value =>
@@ -10119,6 +10119,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                     >
                                       <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-blue-100 bg-white p-3 shadow-sm">
                                         <AiAssistantPanel
+                                          isActive={insightsTab === 'analytics'}
                                           sessionId={insightsProps.sessionId}
                                           courseName={courseName}
                                           sessions={insightsProps.sessions?.map((s: any) => ({
@@ -10295,7 +10296,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                         onToggleHidden={setRightPanelHidden}
                         liveSubmissions={insightsProps?.liveSubmissions}
                         headerExtra={
-                          <div className="px-2 pt-4">
+                          <div className="px-4 pt-4">
                             <Tabs
                               value={liveRightPanelTab}
                               onValueChange={value => {

@@ -284,9 +284,9 @@ export function SubmissionsPanel({
         <div className="sticky top-0 z-10 flex h-9 items-center justify-center rounded-t-[20px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] px-4 text-sm font-semibold text-white">
           Desk
         </div>
-        {headerExtra && <div className="px-2">{headerExtra}</div>}
+        {headerExtra && <div className="px-4">{headerExtra}</div>}
 
-        <ScrollArea className={cn('min-h-0 flex-1', headerExtra ? 'p-3 pt-0' : 'p-3')}>
+        <ScrollArea className={cn('min-h-0 flex-1', headerExtra ? 'p-4 pt-0' : 'p-4')}>
           {loading ? (
             <div className="flex items-center gap-2 text-sm text-slate-600">
               <Loader2 className="h-4 w-4 animate-spin" />
