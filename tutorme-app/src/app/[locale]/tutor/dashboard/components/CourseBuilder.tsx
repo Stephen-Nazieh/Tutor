@@ -10129,6 +10129,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                           }))}
                                           studentsCount={(insightsProps.students || []).length}
                                           liveSubmissions={insightsProps.liveSubmissions || []}
+                                          isActive={insightsTab === 'analytics'}
                                         />
                                       </div>
                                     </TabsContent>
