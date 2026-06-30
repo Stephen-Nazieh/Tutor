@@ -18,6 +18,7 @@ import {
   type DmiQuestionType,
 } from '@/lib/assessment/question-types'
 import { extractQuestionRef } from '@/lib/assessment/marking-scheme'
+import { scoreDocumentConfidence } from '@/lib/assessment/confidence'
 import {
   runAssessmentGuardrails,
   GUARDRAILED_TEMPERATURE,
@@ -487,11 +488,19 @@ export async function POST(request: NextRequest) {
     // Warn-only assessment guardrails. Checks wording fidelity against the
     // source (ASMT-4) and other structural rules where data is available.
     // Non-blocking — surfaced as `guardrailWarnings` and logged server-side.
+    // ASMT-2: score how reliably the document was parsed (question papers only;
+    // study material is tutor-defined). Feeds the Low→pause guardrail and is
+    // surfaced to the tutor.
+    const confidence =
+      type === 'assessment' && documentKind === 'question_paper'
+        ? scoreDocumentConfidence(questions, content)
+        : null
+
     let guardrailWarnings: GuardrailViolation[] = []
     if (type === 'assessment') {
       guardrailWarnings = runAssessmentGuardrails(
         { title, questions: questions.map(q => ({ questionText: q.questionText })) },
-        { sourceContent: content }
+        { sourceContent: content, confidence: confidence?.level }
       ).violations
       if (guardrailWarnings.length > 0) {
         console.warn(
@@ -512,6 +521,9 @@ export async function POST(request: NextRequest) {
       needsQuestionSpec: documentKind === 'study_material' && !questionSpec,
       questions,
       guardrailWarnings,
+      // ASMT-2 document confidence (null for study material). Low → the builder
+      // warns the tutor to verify before proceeding.
+      confidence,
     })
   } catch (error) {
     console.error('Generate DMI error:', error)
