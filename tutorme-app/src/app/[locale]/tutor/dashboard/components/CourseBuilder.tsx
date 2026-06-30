@@ -8902,7 +8902,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                       className={cn(
                         'flex h-full w-full flex-shrink-0 flex-col overflow-hidden rounded-[20px] bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]',
                         mainBuilderTab === 'assessment'
-                          ? 'border border-pink-200'
+                          ? 'border border-[#EC4899]'
                           : 'border border-blue-200'
                       )}
                     >
