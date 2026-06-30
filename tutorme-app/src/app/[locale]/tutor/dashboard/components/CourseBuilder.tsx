@@ -8321,6 +8321,19 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                             <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-blue-100 bg-white p-3 shadow-sm">
                                               <AiAssistantPanel
                                                 sessionId={insightsProps.sessionId}
+                                                courseName={courseName}
+                                                sessions={insightsProps.sessions?.map((s: any) => ({
+                                                  id: s.id,
+                                                  title: s.title,
+                                                  scheduledAt: s.scheduledAt,
+                                                  status: s.status,
+                                                }))}
+                                                studentsCount={
+                                                  (insightsProps.students || []).length
+                                                }
+                                                liveSubmissions={
+                                                  insightsProps.liveSubmissions || []
+                                                }
                                               />
                                             </div>
                                           </TabsContent>
@@ -10390,7 +10403,18 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                       className="flex h-full flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-blue-100 bg-white p-3 shadow-sm">
-                                        <AiAssistantPanel sessionId={insightsProps.sessionId} />
+                                        <AiAssistantPanel
+                                          sessionId={insightsProps.sessionId}
+                                          courseName={courseName}
+                                          sessions={insightsProps.sessions?.map((s: any) => ({
+                                            id: s.id,
+                                            title: s.title,
+                                            scheduledAt: s.scheduledAt,
+                                            status: s.status,
+                                          }))}
+                                          studentsCount={(insightsProps.students || []).length}
+                                          liveSubmissions={insightsProps.liveSubmissions || []}
+                                        />
                                       </div>
                                     </TabsContent>
                                     <TabsContent
