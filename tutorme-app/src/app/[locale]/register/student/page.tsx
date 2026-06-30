@@ -15,10 +15,9 @@ import {
 } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Check } from 'lucide-react'
 import { REGIONS } from '@/lib/data/tutor-categories'
 import { BackButton } from '@/components/navigation'
-import { AvatarGalleryPicker } from '@/components/avatar-gallery-picker'
 import { cn } from '@/lib/utils'
 
 const STEPS = [
@@ -26,6 +25,29 @@ const STEPS = [
   { number: 2, title: 'Security' },
   { number: 3, title: 'Profile' },
   { number: 4, title: 'Terms' },
+]
+
+const AVATARS = [
+  { name: 'Avatar 1', url: '/avatars/avatar-01.jpg' },
+  { name: 'Avatar 2', url: '/avatars/avatar-02.jpg' },
+  { name: 'Avatar 3', url: '/avatars/avatar-03.jpg' },
+  { name: 'Avatar 4', url: '/avatars/avatar-04.jpg' },
+  { name: 'Avatar 5', url: '/avatars/avatar-05.jpg' },
+  { name: 'Avatar 6', url: '/avatars/avatar-06.jpg' },
+  { name: 'Avatar 7', url: '/avatars/avatar-07.jpg' },
+  { name: 'Avatar 8', url: '/avatars/avatar-08.jpg' },
+  { name: 'Avatar 9', url: '/avatars/avatar-09.jpg' },
+  { name: 'Avatar 10', url: '/avatars/avatar-10.jpg' },
+  { name: 'Avatar 11', url: '/avatars/avatar-11.png' },
+  { name: 'Avatar 12', url: '/avatars/avatar-12.png' },
+  { name: 'Avatar 13', url: '/avatars/avatar-13.png' },
+  { name: 'Avatar 14', url: '/avatars/avatar-14.png' },
+  { name: 'Avatar 15', url: '/avatars/avatar-15.png' },
+  { name: 'Avatar 16', url: '/avatars/avatar-16.png' },
+  { name: 'Avatar 17', url: '/avatars/avatar-17.png' },
+  { name: 'Avatar 18', url: '/avatars/avatar-18.png' },
+  { name: 'Avatar 19', url: '/avatars/avatar-19.png' },
+  { name: 'Avatar 20', url: '/avatars/avatar-20.png' },
 ]
 
 function Stepper({ currentStep }: { currentStep: number }) {
@@ -156,12 +178,6 @@ export default function StudentRegistrationPage() {
           toast.error('Parent or guardian emails do not match')
           return false
         }
-      }
-    }
-    if (step === 3) {
-      if (!formData.age) {
-        toast.error('Please enter your age')
-        return false
       }
     }
     return true
@@ -441,14 +457,14 @@ export default function StudentRegistrationPage() {
 
             {step === 2 && (
               <>
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-center space-x-3">
                   <Checkbox
                     id="isSixteen"
                     checked={formData.isSixteen}
                     onCheckedChange={checked =>
                       setFormData(prev => ({ ...prev, isSixteen: checked === true }))
                     }
-                    className="border-white data-[state=checked]:border-white data-[state=checked]:bg-white data-[state=checked]:text-[#F97316]"
+                    className="border-white bg-white text-[#F97316] data-[state=checked]:border-white data-[state=checked]:bg-white data-[state=checked]:text-[#F97316]"
                   />
                   <div className="space-y-1">
                     <Label htmlFor="isSixteen" className="cursor-pointer text-sm text-white/80">
@@ -500,29 +516,48 @@ export default function StudentRegistrationPage() {
 
             {step === 3 && (
               <>
-                <div className="space-y-1">
-                  <Label htmlFor="age" className="text-xs text-white/70">
-                    Age
-                  </Label>
-                  <Input
-                    id="age"
-                    type="number"
-                    min={5}
-                    max={100}
-                    value={formData.age}
-                    onChange={e => setFormData({ ...formData, age: e.target.value })}
-                    placeholder="Enter age"
-                    className={inputClassName}
-                  />
+                {/* Header indicators */}
+                <div className="flex items-center justify-between gap-4 rounded-lg bg-white/10 px-4 py-3">
+                  <div className="text-sm text-white">
+                    <span className="text-white/60">Profile Name:</span>{' '}
+                    <span className="font-semibold">{formData.firstName || '—'}</span>
+                  </div>
+                  <div className="text-sm text-white">
+                    <span className="text-white/60">Country:</span>{' '}
+                    <span className="font-semibold">
+                      {availableCountries.find(c => c.code === formData.countryCode)?.name ||
+                        formData.countryCode ||
+                        '—'}
+                    </span>
+                  </div>
                 </div>
 
+                {/* Avatar selection */}
                 <div className="space-y-2">
-                  <Label className="text-xs text-white/70">Profile photo (optional)</Label>
-                  <AvatarGalleryPicker
-                    value={formData.avatarUrl || null}
-                    onChange={url => setFormData(prev => ({ ...prev, avatarUrl: url || '' }))}
-                    fallbackText={formData.firstName.charAt(0).toUpperCase() || '?'}
-                  />
+                  <Label className="text-xs text-white/70">Avatar</Label>
+                  <div className="grid grid-cols-5 gap-3">
+                    {AVATARS.map(a => {
+                      const selected = formData.avatarUrl === a.url
+                      return (
+                        <button
+                          key={a.url}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, avatarUrl: a.url }))}
+                          className={`group relative aspect-square overflow-hidden rounded-full border-2 transition-all hover:border-[#F97316] focus:border-[#F97316] focus:outline-none ${
+                            selected ? 'border-[#F97316]' : 'border-white/30'
+                          }`}
+                          aria-label={`Select ${a.name}`}
+                        >
+                          <img src={a.url} alt={a.name} className="h-full w-full object-cover" />
+                          {selected && (
+                            <span className="absolute inset-0 flex items-center justify-center bg-black/30">
+                              <Check className="h-5 w-5 text-white" />
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
 
                 <div className="flex gap-3">
