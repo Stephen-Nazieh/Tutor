@@ -117,7 +117,7 @@ import {
   type DmiQuestionType,
 } from '@/lib/assessment/question-types'
 import { deriveExamContext, EXAM_BOARDS } from '@/lib/assessment/marking-scheme'
-import { findOpenItemsMissingRubric } from '@/lib/assessment/assessment-gates'
+import { reverifyAssessment } from '@/lib/assessment/assessment-gates'
 import { toStudentDmiItem } from '@/lib/assessment/student-dmi'
 import { findEvaluationLeaks } from '@/lib/ai/guardrails'
 import { useMarkingScheme } from './hooks/use-marking-scheme'
@@ -2873,15 +2873,18 @@ FEEDBACK: [one or two short sentences explaining the score]`
           return
         }
 
-        // ASMT-8: block deploy until every open-response question has a marking
-        // pathway (a rubric, or an explicit "manual marking" note).
-        const missingRubric = findOpenItemsMissingRubric(assessmentDmiItems)
-        if (missingRubric.length > 0) {
-          toast.error(
-            `Add marking guidance for ${missingRubric.length} open question${
-              missingRubric.length > 1 ? 's' : ''
-            } (${missingRubric.join(', ')}) before deploying — or mark them for manual grading.`
-          )
+        // ASMT-12: re-verify the assessment is internally consistent and fully
+        // gradable before generating the final/deployed DMI. Covers ASMT-8
+        // (open-question rubric), numbering integrity, and answer-key mapping;
+        // blocks deploy on any issue.
+        const reverifyIssues = reverifyAssessment(assessmentDmiItems)
+        if (reverifyIssues.length > 0) {
+          const shown = reverifyIssues
+            .slice(0, 3)
+            .map(i => i.message)
+            .join(' ')
+          const more = reverifyIssues.length > 3 ? ` (+${reverifyIssues.length - 3} more)` : ''
+          toast.error(`Cannot deploy — ${shown}${more}`)
           return
         }
 
