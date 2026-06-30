@@ -53,4 +53,34 @@ describe('ai/fetch-utils', () => {
     expect(res.ok).toBe(true)
     expect(fetchSpy).toHaveBeenCalledTimes(2)
   })
+
+  it('retries our own timeout abort when the caller did not cancel', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch' as any)
+      .mockRejectedValueOnce(abortError()) // our timeoutMs controller fired
+      .mockResolvedValueOnce({ ok: true, status: 200 } as any)
+
+    const res = await fetchWithTimeoutAndRetry(
+      'http://example.com',
+      {},
+      { retries: 1, retryBaseDelayMs: 1, timeoutMs: 50 }
+    )
+    expect(res.ok).toBe(true)
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
+  })
+
+  it('does NOT retry a caller-initiated cancellation', async () => {
+    const controller = new AbortController()
+    controller.abort()
+    const fetchSpy = vi.spyOn(globalThis, 'fetch' as any).mockRejectedValue(abortError())
+
+    await expect(
+      fetchWithTimeoutAndRetry(
+        'http://example.com',
+        { signal: controller.signal },
+        { retries: 2, retryBaseDelayMs: 1 }
+      )
+    ).rejects.toMatchObject({ name: 'AbortError' })
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
 })

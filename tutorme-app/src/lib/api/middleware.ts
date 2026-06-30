@@ -368,11 +368,13 @@ type RateLimitPreset = 'login' | 'register' | 'paymentCreate' | 'enroll' | 'book
  */
 export async function withRateLimitPreset(
   req: NextRequest,
-  preset: RateLimitPreset
+  preset: RateLimitPreset,
+  identifier?: string
 ): Promise<{ response: NextResponse | null; remaining: number }> {
   const { allowed, remaining, resetAt } = await checkRateLimitPreset(
     req as unknown as Request,
-    preset
+    preset,
+    identifier
   )
   if (!allowed) {
     const retryAfter = Math.ceil((resetAt - Date.now()) / 1000)

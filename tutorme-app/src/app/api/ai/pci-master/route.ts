@@ -121,14 +121,20 @@ async function probeAdk(baseUrl: string): Promise<{
 
 export async function POST(request: NextRequest) {
   try {
-    const { response: rateLimitResponse } = await withRateLimitPreset(request, 'aiGenerate')
-    if (rateLimitResponse) return rateLimitResponse
-
     const session =
       (await getSessionForRealm(request, 'tutor')) ?? (await getServerSession(authOptions, request))
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    // Rate-limit per authenticated user, not per IP, so co-located tutors behind
+    // one NAT/proxy don't share a single AI quota.
+    const { response: rateLimitResponse } = await withRateLimitPreset(
+      request,
+      'aiGenerate',
+      `user:${session.user.id}`
+    )
+    if (rateLimitResponse) return rateLimitResponse
 
     const body = await request.json().catch(() => null)
     const parsed = PciMasterRequestSchema.safeParse(body)
@@ -207,69 +213,90 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (pdfPages && pdfPages.length > 0) {
-      // Vision path: let the model actually SEE the attached document pages so it can
-      // summarize/critique real content instead of guessing from the title. Bypasses
-      // ADK (text-only) and goes straight to the vision-capable provider (Gemini).
-      const promptItems: Array<
-        { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
-      > = [
-        { type: 'text', text: `${activeSystemPrompt}\n\n${userPrompt}` },
-        ...pdfPages.map(url => ({ type: 'image_url' as const, image_url: { url } })),
-      ]
-      const visionText = await generateWithKimiVision(promptItems, {
-        temperature: activeTemperature,
-        maxTokens: 4096,
-        timeoutMs: 60000,
-      })
-      response = toCleanResponse(visionText)
-    } else if (adkBaseUrl) {
-      try {
-        // Guardrail enforcement on the ADK path. The ADK agent's instructions
-        // live in a separate service we can't edit from here, so we (a) pass the
-        // canonical guardrail prompt as a `systemPrompt` field for a future
-        // guardrail-aware ADK, and (b) — to enforce TODAY regardless of whether
-        // the remote service reads that field — prepend the prompt to the
-        // message the agent actually consumes. The warn-only validator below
-        // still runs on whatever ADK returns.
-        const adkMessage = guardrailDomain
-          ? `${activeSystemPrompt}\n\n---\nTutor message:\n${safeMessage}`
-          : safeMessage
-        response = await adkPciMasterChat({
-          userId: session.user.id,
-          sessionId,
-          message: adkMessage,
-          systemPrompt: guardrailDomain ? activeSystemPrompt : undefined,
-          context,
+    // Timeout + retry budget for the upstream model call. Moonshot/Kimi is the
+    // sole provider, so a slow or 5xx/429 response has no second provider to fall
+    // back to — bound each attempt and retry a couple of times before giving up.
+    const GEN_TIMEOUT_MS = 60_000
+    const GEN_RETRIES = 3
+    const fallbackOptions = {
+      temperature: activeTemperature,
+      maxTokens: 4096,
+      skipCache: true,
+      timeoutMs: GEN_TIMEOUT_MS,
+      retries: GEN_RETRIES,
+    }
+
+    try {
+      if (pdfPages && pdfPages.length > 0) {
+        // Vision path: let the model actually SEE the attached document pages so it can
+        // summarize/critique real content instead of guessing from the title. Bypasses
+        // ADK (text-only) and goes straight to the vision-capable provider (Gemini).
+        const promptItems: Array<
+          { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }
+        > = [
+          { type: 'text', text: `${activeSystemPrompt}\n\n${userPrompt}` },
+          ...pdfPages.map(url => ({ type: 'image_url' as const, image_url: { url } })),
+        ]
+        const visionText = await generateWithKimiVision(promptItems, {
+          temperature: activeTemperature,
+          maxTokens: 4096,
+          timeoutMs: GEN_TIMEOUT_MS,
+          retries: GEN_RETRIES,
         })
-      } catch (error) {
-        if (!hasLocalProvider) {
-          return NextResponse.json(
-            { error: 'ADK provider error', status: 'adk_error' },
-            { status: 502 }
+        response = toCleanResponse(visionText)
+      } else if (adkBaseUrl) {
+        try {
+          // Guardrail enforcement on the ADK path. The ADK agent's instructions
+          // live in a separate service we can't edit from here, so we (a) pass the
+          // canonical guardrail prompt as a `systemPrompt` field for a future
+          // guardrail-aware ADK, and (b) — to enforce TODAY regardless of whether
+          // the remote service reads that field — prepend the prompt to the
+          // message the agent actually consumes. The warn-only validator below
+          // still runs on whatever ADK returns.
+          const adkMessage = guardrailDomain
+            ? `${activeSystemPrompt}\n\n---\nTutor message:\n${safeMessage}`
+            : safeMessage
+          response = await adkPciMasterChat({
+            userId: session.user.id,
+            sessionId,
+            message: adkMessage,
+            systemPrompt: guardrailDomain ? activeSystemPrompt : undefined,
+            context,
+          })
+        } catch (error) {
+          if (!hasLocalProvider) {
+            return NextResponse.json(
+              { error: 'ADK provider error', status: 'adk_error' },
+              { status: 502 }
+            )
+          }
+          console.warn('ADK PCI master failed, falling back to local providers:', error)
+          const fallback = await generateWithFallback(
+            `System:\n${activeSystemPrompt}\n\n${userPrompt}`,
+            fallbackOptions
           )
+          response = toCleanResponse(fallback.content)
         }
-        console.warn('ADK PCI master failed, falling back to local providers:', error)
+      } else {
         const fallback = await generateWithFallback(
           `System:\n${activeSystemPrompt}\n\n${userPrompt}`,
-          {
-            temperature: activeTemperature,
-            maxTokens: 4096,
-            skipCache: true,
-          }
+          fallbackOptions
         )
         response = toCleanResponse(fallback.content)
       }
-    } else {
-      const fallback = await generateWithFallback(
-        `System:\n${activeSystemPrompt}\n\n${userPrompt}`,
+    } catch (providerError) {
+      // The upstream model failed (timeout / 429 / 5xx) after retries. Surface a
+      // retryable 503 with a friendly message instead of a generic 500 — the PCI
+      // chat shows this text and the tutor can simply send again.
+      console.error('PCI Master provider error:', providerError)
+      return NextResponse.json(
         {
-          temperature: activeTemperature,
-          maxTokens: 4096,
-          skipCache: true,
-        }
+          error: 'The AI model is briefly unavailable. Please try again in a moment.',
+          status: 'provider_unavailable',
+          retryable: true,
+        },
+        { status: 503, headers: { 'Retry-After': '5' } }
       )
-      response = toCleanResponse(fallback.content)
     }
 
     // Guardrail (task/assessment) output is a {"reply","pci"} envelope: `reply`
