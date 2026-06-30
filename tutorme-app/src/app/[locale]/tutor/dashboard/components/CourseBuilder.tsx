@@ -2703,6 +2703,19 @@ FEEDBACK: [one or two short sentences explaining the score]`
           notify(`Guardrail ${w.ruleId}: ${w.message}`)
         }
 
+        // ASMT-2: warn the tutor when the document parsed with low/medium
+        // confidence so they verify before proceeding ("pause" on Low).
+        const confidence = data.confidence as
+          | { level: 'High' | 'Medium' | 'Low'; reasons?: string[] }
+          | null
+          | undefined
+        if (confidence && confidence.level !== 'High') {
+          const reason = confidence.reasons?.[0] ? ` ${confidence.reasons[0]}` : ''
+          const msg = `${confidence.level} confidence parsing this document — please verify the extracted questions.${reason}`
+          if (confidence.level === 'Low') toast.error(msg)
+          else toast.warning(msg)
+        }
+
         if (questions.length === 0) {
           toast.warning('No questions could be generated. Try adding more content.')
           return
