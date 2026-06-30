@@ -28,6 +28,8 @@ interface AIOptions {
   temperature?: number
   maxTokens?: number
   timeoutMs?: number
+  /** Transient-failure retries for the direct provider call (default 1). */
+  retries?: number
   /** Skip response cache (default false for generate, true when cache not desired) */
   skipCache?: boolean
   /** Attribute token usage to a student/course/feature (recorded by the Kimi provider). */
