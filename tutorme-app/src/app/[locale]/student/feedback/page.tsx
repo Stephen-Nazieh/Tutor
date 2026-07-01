@@ -74,6 +74,7 @@ import type {
   ChatMessage,
 } from '@/lib/socket'
 import { normalizeDmiQuestionType, DMI_QUESTION_TYPE_LABELS } from '@/lib/assessment/question-types'
+import { TaskAiHelper } from './TaskAiHelper'
 
 type WhiteboardPages = NonNullable<ComponentProps<typeof EnhancedWhiteboard>['pages']>
 type WhiteboardPage = WhiteboardPages[number]
@@ -2385,6 +2386,14 @@ function StudentFeedbackContent() {
                     <p className="text-sm text-gray-500">
                       {activeTask ? 'This task has no questions to answer.' : ''}
                     </p>
+                  )}
+                  {/* Ask the AI tutor about this task — applies the task's PCI
+                      (TASK-6). Integrity is enforced server-side (ASMT-15). */}
+                  {activeTask && (
+                    <TaskAiHelper
+                      taskId={activeTaskId}
+                      subject={sessionContext?.courseCategory || 'General'}
+                    />
                   )}
                 </div>
               ) : rightPanelTab === 'my-board' ? (
