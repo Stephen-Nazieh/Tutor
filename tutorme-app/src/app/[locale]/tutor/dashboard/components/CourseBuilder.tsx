@@ -4738,14 +4738,22 @@ FEEDBACK: [one or two short sentences explaining the score]`
       setPptUploadDialog({ isOpen: false, file: null, target: null })
     }
 
-    const handleLoadAsset = (asset: {
-      name: string
-      content?: string
-      url?: string
-      fileKey?: string
-      mimeType?: string
-      folder?: string
-    }) => {
+    const handleLoadAsset = (
+      asset: {
+        name: string
+        content?: string
+        url?: string
+        fileKey?: string
+        mimeType?: string
+        folder?: string
+      },
+      // Explicit target context. The document's own kebab passes `null` so it
+      // always shows the lesson picker; the task/assessment "+" doc-picker rows
+      // pass the current `assetPickerTarget` (the default). Passing it explicitly
+      // avoids relying on `assetPickerTarget` state, which is never reset and
+      // would otherwise stay stuck and hide the picker on later kebab loads.
+      target: 'task' | 'assessment' | null = assetPickerTarget
+    ) => {
       // Warn if loading from a folder that doesn't match the current course's designated folder
       if (
         asset.folder &&
@@ -4760,12 +4768,12 @@ FEEDBACK: [one or two short sentences explaining the score]`
 
       setAssetToLoad(asset)
 
-      // If we already opened the view assets modal from an assessment or task kebab menu,
-      // we know the target context, so we can skip the 'main' choice and go straight to options.
-      if (assetPickerTarget === 'assessment') {
+      // If we came from an assessment/task "+" picker, the target context is known,
+      // so skip the 'main' choice and go straight to options.
+      if (target === 'assessment') {
         setLoadAsStep('assessment-options')
         setLoadAsModalOpen(true)
-      } else if (assetPickerTarget === 'task') {
+      } else if (target === 'task') {
         setLoadAsStep('task-options')
         setLoadAsModalOpen(true)
       } else {
@@ -4955,7 +4963,8 @@ FEEDBACK: [one or two short sentences explaining the score]`
                     <DropdownMenuContent align="end" className="z-[100]">
                       <DropdownMenuItem
                         onSelect={() => {
-                          setTimeout(() => handleLoadAsset(asset), 50)
+                          // Document's own kebab → always show the lesson picker.
+                          setTimeout(() => handleLoadAsset(asset, null), 50)
                         }}
                       >
                         Load
@@ -5758,7 +5767,8 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                   <DropdownMenuItem
                                     onSelect={() => {
                                       setAssetsViewOpen(false)
-                                      setTimeout(() => handleLoadAsset(asset), 50)
+                                      // Document's own kebab → always show the lesson picker.
+                                      setTimeout(() => handleLoadAsset(asset, null), 50)
                                     }}
                                   >
                                     Load
@@ -9068,15 +9078,15 @@ FEEDBACK: [one or two short sentences explaining the score]`
                           </div>
 
                           {/* Content area */}
-                          <div className="relative min-h-0 flex-1 rounded-none border-0 bg-transparent p-0 shadow-none">
+                          <div className="relative flex-1 rounded-none border-0 bg-transparent p-0 shadow-none">
                             {/* Task Builder Tab */}
                             <TabsContent
                               value="task"
                               className="flex h-full flex-col space-y-px overflow-hidden data-[state=inactive]:hidden"
                             >
-                              <div className="flex min-h-0 flex-1 gap-px overflow-hidden">
+                              <div className="flex flex-1 gap-px overflow-hidden">
                                 {/* Main content with tabs */}
-                                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                                <div className="flex flex-1 flex-col overflow-hidden">
                                   <Tabs
                                     value={taskBuilderActiveTab}
                                     onValueChange={v => {
@@ -9573,9 +9583,9 @@ FEEDBACK: [one or two short sentences explaining the score]`
                               value="assessment"
                               className="flex h-full flex-col space-y-px overflow-hidden data-[state=inactive]:hidden"
                             >
-                              <div className="flex min-h-0 flex-1 gap-px overflow-hidden">
+                              <div className="flex flex-1 gap-px overflow-hidden">
                                 {/* Main content with tabs */}
-                                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                                <div className="flex flex-1 flex-col overflow-hidden">
                                   <Tabs
                                     value={assessmentBuilderActiveTab}
                                     onValueChange={v => {
