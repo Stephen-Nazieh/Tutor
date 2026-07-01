@@ -6180,7 +6180,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                 'relative z-40 flex min-h-0 shrink-0 flex-col',
                 leftPanelHidden
                   ? 'bg-transparent shadow-none'
-                  : 'rounded-[20px] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
+                  : 'shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
               )}
               ref={leftPanelRef}
               style={{ width: leftPanelWidth, flexShrink: 0 }}
@@ -9063,7 +9063,12 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                       className="mt-3 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div
-                                        className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-sm"
+                                        className={cn(
+                                          'relative flex h-full min-h-0 flex-row overflow-hidden rounded-2xl border bg-white shadow-sm',
+                                          mainBuilderTab === 'assessment'
+                                            ? 'border-[#EC4899]'
+                                            : 'border-blue-200'
+                                        )}
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
                                           if (!canEdit) return
@@ -10092,7 +10097,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                     'relative z-40 flex min-h-0 shrink-0 flex-col items-end',
                     rightPanelHidden
                       ? 'bg-transparent shadow-none'
-                      : 'rounded-[20px] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
+                      : 'shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
                   )}
                   style={{ width: rightPanelWidth, flexShrink: 0 }}
                 >
