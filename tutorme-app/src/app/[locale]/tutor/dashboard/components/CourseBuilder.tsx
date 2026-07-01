@@ -1092,11 +1092,32 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // then runs the real deploy with the chosen mode applied to the payload.
     const deployTaskWithDialog = useCallback(
       (payload: LiveTask) => {
+        // Attach the tutor's PCI (free-text `instructions` + finalized structured
+        // spec) so the server can persist it for the live tutor + grader. Looked
+        // up from the source task when the caller didn't supply it. Deploy-only —
+        // the server never broadcasts it to students.
+        let src: Task | undefined
+        for (const mod of nodes) {
+          for (const lesson of mod.lessons) {
+            const found = lesson.tasks?.find(t => t.id === payload.id)
+            if (found) {
+              src = found
+              break
+            }
+          }
+          if (src) break
+        }
+        const enriched: LiveTask = {
+          ...payload,
+          pci:
+            payload.pci ?? (typeof src?.instructions === 'string' ? src.instructions : undefined),
+          pciSpec: payload.pciSpec ?? src?.pciSpec,
+        }
         setDeployDialog({
-          run: reveal => insightsProps?.onDeployTask?.({ ...payload, answerReveal: reveal }),
+          run: reveal => insightsProps?.onDeployTask?.({ ...enriched, answerReveal: reveal }),
         })
       },
-      [insightsProps]
+      [insightsProps, nodes]
     )
 
     // Active tab tracking for Enter button
@@ -2764,6 +2785,14 @@ FEEDBACK: [one or two short sentences explaining the score]`
           regions: Array.isArray(q.regions) ? q.regions : undefined,
           // Paper section this part belongs to (ASMT-4), when present.
           section: typeof q.section === 'string' && q.section.trim() ? q.section.trim() : undefined,
+          // Expected answer format + source-material dependencies (ASMT-4).
+          responseType:
+            typeof q.responseType === 'string' && q.responseType.trim()
+              ? q.responseType.trim()
+              : undefined,
+          sourceDependencies: Array.isArray(q.sourceDependencies)
+            ? q.sourceDependencies
+            : undefined,
         }))
 
         // Study material: students see the GENERATED questions (with options) on
@@ -2959,6 +2988,10 @@ FEEDBACK: [one or two short sentences explaining the score]`
             marks: item.marks,
           })),
           answerReveal: reveal,
+          // Tutor's PCI (free-text) for server-side use by the live tutor +
+          // grader. Deploy-only; never broadcast to students. (Assessments have
+          // no structured pciSpec — that's a task-builder concept.)
+          pci: assessmentBuilder.taskPci || undefined,
           deployedAt: Date.now(),
           polls: [],
           questions: [],
@@ -8871,6 +8904,15 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                             marks: item.marks,
                                                           })) || [],
                                                         answerReveal: reveal,
+                                                        // Tutor's PCI + structured
+                                                        // spec for the live tutor +
+                                                        // grader (deploy-only; never
+                                                        // sent to students).
+                                                        pci:
+                                                          typeof task.instructions === 'string'
+                                                            ? task.instructions
+                                                            : undefined,
+                                                        pciSpec: task.pciSpec,
                                                         deployedAt: Date.now(),
                                                         polls: [],
                                                         questions: [],
@@ -9026,15 +9068,15 @@ FEEDBACK: [one or two short sentences explaining the score]`
                           </div>
 
                           {/* Content area */}
-                          <div className="relative flex-1 rounded-none border-0 bg-transparent p-0 shadow-none">
+                          <div className="relative min-h-0 flex-1 rounded-none border-0 bg-transparent p-0 shadow-none">
                             {/* Task Builder Tab */}
                             <TabsContent
                               value="task"
                               className="flex h-full flex-col space-y-px overflow-hidden data-[state=inactive]:hidden"
                             >
-                              <div className="flex flex-1 gap-px overflow-hidden">
+                              <div className="flex min-h-0 flex-1 gap-px overflow-hidden">
                                 {/* Main content with tabs */}
-                                <div className="flex flex-1 flex-col overflow-hidden">
+                                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                                   <Tabs
                                     value={taskBuilderActiveTab}
                                     onValueChange={v => {
@@ -9526,9 +9568,9 @@ FEEDBACK: [one or two short sentences explaining the score]`
                               value="assessment"
                               className="flex h-full flex-col space-y-px overflow-hidden data-[state=inactive]:hidden"
                             >
-                              <div className="flex flex-1 gap-px overflow-hidden">
+                              <div className="flex min-h-0 flex-1 gap-px overflow-hidden">
                                 {/* Main content with tabs */}
-                                <div className="flex flex-1 flex-col overflow-hidden">
+                                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                                   <Tabs
                                     value={assessmentBuilderActiveTab}
                                     onValueChange={v => {
