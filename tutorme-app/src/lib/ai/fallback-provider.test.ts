@@ -50,13 +50,11 @@ describe('fallback-provider', () => {
   })
 
   it('throws on a non-ok response', async () => {
-    global.fetch = vi
-      .fn()
-      .mockResolvedValue({
-        ok: false,
-        status: 500,
-        text: async () => 'boom',
-      }) as unknown as typeof fetch
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      text: async () => 'boom',
+    }) as unknown as typeof fetch
     await expect(generateWithFallbackProvider('hi', CFG, { retries: 0 })).rejects.toThrow(
       /Fallback provider error: 500/
     )
