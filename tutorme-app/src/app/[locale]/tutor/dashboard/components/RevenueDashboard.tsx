@@ -393,17 +393,21 @@ export function RevenueDashboard({
 
   return (
     <>
-      <Card
-        className={cn('border-border bg-card flex h-full flex-col border', className)}
+      <div
+        className={cn(
+          'flex h-full flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)]',
+          className
+        )}
         style={themeStyle}
       >
-        <CardHeader className="text-foreground pb-3">
+        {/* Metallic Header - flush with top of panel */}
+        <div className="panel-header panel-header-metallic w-full">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-green-500" />
-              <CardTitle className="text-foreground text-base font-bold">
-                Revenue & Business
-              </CardTitle>
+            <div className="flex items-center gap-3">
+              <div className="panel-header-icon">
+                <DollarSign className="h-5 w-5 text-slate-900" />
+              </div>
+              <div className="panel-header-title">Revenue & Business</div>
             </div>
             <div className="flex items-center gap-1">
               {!controlledThemeId && (
@@ -468,7 +472,7 @@ export function RevenueDashboard({
               </TabsTrigger>
             </TabsList>
           </Tabs>
-        </CardHeader>
+        </div>
 
         <CardContent className="flex-1 p-0">
           <ScrollArea className="h-[calc(100%-180px)]">
@@ -767,7 +771,7 @@ export function RevenueDashboard({
             </div>
           </ScrollArea>
         </CardContent>
-      </Card>
+      </div>
       <EmailStatementDialog
         open={showEmailDialog}
         onOpenChange={setShowEmailDialog}
