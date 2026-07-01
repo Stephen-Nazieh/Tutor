@@ -134,7 +134,6 @@ export default function TutorReports() {
   const [globalAllStudents, setGlobalAllStudents] = useState<Student[]>([])
   const [loadingGlobals, setLoadingGlobals] = useState(true)
 
-  const [revenueExpanded, setRevenueExpanded] = useState(true)
   const [rosterExpanded, setRosterExpanded] = useState(true)
   const [reportsExpanded, setReportsExpanded] = useState(true)
 
@@ -396,7 +395,7 @@ export default function TutorReports() {
           </TabsContent>
 
           {/* Students Tab */}
-          <TabsContent value="students" className="h-full overflow-y-auto">
+          <TabsContent value="students" className="flex h-full flex-col gap-4 overflow-y-auto pb-4">
             <div className="flex flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)]">
               <button
                 type="button"
@@ -521,7 +520,7 @@ export default function TutorReports() {
           </TabsContent>
 
           {/* Reports Tab */}
-          <TabsContent value="reports" className="h-full overflow-y-auto">
+          <TabsContent value="reports" className="flex h-full flex-col gap-4 overflow-y-auto pb-4">
             <div className="flex flex-col overflow-hidden rounded-[16px] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)]">
               <button
                 type="button"
