@@ -324,6 +324,7 @@ import {
   type PollResultBlock,
   type QuestionResultBlock,
 } from './builder-parts/InsightsReportView'
+import { PciWalkthrough } from './builder-parts/PciWalkthrough'
 
 // ============================================
 // BUILDER MODAL COMPONENTS
@@ -425,8 +426,9 @@ function PciGuidance({ kind }: { kind: 'task' | 'assessment' }) {
         <p>
           <b>PCI is your marking instruction</b> for this {noun} — <i>how</i> you want answers
           marked, not the questions themselves. Chat your rules below; the assistant turns them into
-          a finalized <b>rubric</b>. Click <b>Apply to PCI</b> to save it — it then guides the AI
-          grading suggestions and how an uploaded marking scheme is read.
+          a finalized <b>rubric</b>. Save it under <b>Current marking policy</b> (use <b>Edit</b> to
+          paste or refine) — it then guides the AI grading suggestions and how an uploaded marking
+          scheme is read.
         </p>
         <p className="font-semibold">Things worth telling it:</p>
         <ul className="list-disc space-y-0.5 pl-4">
@@ -439,9 +441,10 @@ function PciGuidance({ kind }: { kind: 'task' | 'assessment' }) {
           <li>&ldquo;One mark per valid point, maximum 4.&rdquo;</li>
         </ul>
         <p className="text-blue-700/80">
-          Flow: chat &rarr; the assistant proposes a rubric &rarr; <b>Apply to PCI</b> &rarr;
-          it&rsquo;s saved and used when grading. The answer key itself comes from the DMI / an
-          uploaded marking scheme — PCI is the <i>policy</i> on top.
+          Flow: chat &rarr; the assistant proposes a rubric &rarr; set it as your{' '}
+          <b>Current marking policy</b> &rarr; it&rsquo;s saved and used when grading. The answer
+          key itself comes from the DMI / an uploaded marking scheme — PCI is the <i>policy</i> on
+          top.
         </p>
       </div>
     </details>
@@ -6036,7 +6039,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
             value={value}
             readOnly={!canEdit}
             onChange={e => setCurrentPci(source, e.target.value)}
-            placeholder="The marking policy used when grading… (or chat below and Apply to PCI)"
+            placeholder="The marking policy used when grading… (chat below to draft one, then paste/refine it here)"
             className="mt-1.5 min-h-[80px] w-full resize-y rounded-md border border-gray-300 p-2 text-xs text-gray-900"
           />
         ) : value.trim() ? (
@@ -6045,8 +6048,8 @@ FEEDBACK: [one or two short sentences explaining the score]`
           </p>
         ) : (
           <p className="mt-1 italic text-slate-400">
-            None yet — chat below and click &ldquo;Apply to PCI&rdquo;, or Edit to type one. This is
-            what guides AI grading.
+            None yet — chat below to draft one, then click <b>Edit</b> to paste or type it here.
+            This is what guides AI grading.
           </p>
         )}
         {/* TASK-6: the structured specification mirror, when one was finalized. */}
@@ -9556,7 +9559,8 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                       value="pci"
                                       className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      <div className="flex h-full min-h-0 flex-col rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
+                                      <div className="relative flex h-full min-h-0 flex-col rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
+                                        <PciWalkthrough kind="task" />
                                         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-1">
                                           <PciGuidance kind="task" />
                                           {renderCurrentPci('task', activeTaskPci)}
@@ -9989,6 +9993,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                       className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div className="relative flex h-full min-h-0 flex-col rounded-2xl border border-[#EC4899] bg-white p-4 shadow-sm">
+                                        <PciWalkthrough kind="assessment" />
                                         {/* Centered Pill for Test, Generate DMI, and Version History */}
                                         <div className="pointer-events-none absolute left-1/2 top-0 z-20 flex -translate-x-1/2 items-center justify-center">
                                           <div className="pointer-events-auto flex h-11 items-center gap-1 rounded-b-xl border-x border-b border-[#E5E7EB] bg-white/90 px-2 shadow-sm backdrop-blur-sm">
