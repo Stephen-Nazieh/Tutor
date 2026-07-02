@@ -197,7 +197,7 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     isClassroomPage ||
     isClassroomView
   ) {
-    return <>{children}</>
+    return <div className="isolate flex h-screen w-full overflow-hidden bg-white">{children}</div>
   }
 
   return (
