@@ -9,6 +9,7 @@ import { useAutoScrollOnExpand } from '@/hooks/use-auto-scroll-on-expand'
 export interface CollapsibleCardProps {
   title: string
   description?: string
+  icon?: React.ReactNode
   defaultOpen?: boolean
   className?: string
   contentClassName?: string
@@ -19,6 +20,7 @@ export interface CollapsibleCardProps {
 export function CollapsibleCard({
   title,
   description,
+  icon,
   defaultOpen = false,
   className,
   contentClassName,
@@ -48,9 +50,12 @@ export function CollapsibleCard({
           )}
         >
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center">
-              <span className="panel-header-title">{title}</span>
-              {description && <span className="panel-header-subtext">{description}</span>}
+            <div className="flex items-center gap-3">
+              {icon && <div className="panel-header-icon">{icon}</div>}
+              <div className="flex items-center">
+                <span className="panel-header-title">{title}</span>
+                {description && <span className="panel-header-subtext">{description}</span>}
+              </div>
             </div>
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white">
               {open ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
