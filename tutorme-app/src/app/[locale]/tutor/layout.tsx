@@ -179,6 +179,16 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
   const isInsightsPageForce = pathname?.includes('/tutor/insights')
 
   if (isCourseBuilder || isCoursePublishPage || isInsightsPage || isInsightsPageForce) {
+  // DEBUG: Log pathname and checks to console for troubleshooting
+  if (typeof window !== 'undefined') {
+    console.log('[TutorLayout] pathname:', pathname)
+    console.log('[TutorLayout] isInsightsPage:', isInsightsPage)
+    console.log('[TutorLayout] isInsightsPageForce:', isInsightsPageForce)
+    console.log('[TutorLayout] isCourseBuilder:', isCourseBuilder)
+    console.log('[TutorLayout] isCoursePublishPage:', isCoursePublishPage)
+    console.log('[TutorLayout] localePrefix:', localePrefix)
+  }
+
     return <>{children}</>
   }
 
