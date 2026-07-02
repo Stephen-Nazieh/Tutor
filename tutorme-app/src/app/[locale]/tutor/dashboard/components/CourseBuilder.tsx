@@ -8469,7 +8469,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                   ) : (
                                     <div
                                       className={cn(
-                                        'flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-white p-0'
+                                        'flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-violet-300 bg-white p-0'
                                       )}
                                     >
                                       <PanelErrorBoundary
@@ -8861,7 +8861,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                               !(mainTab === 'live' && testPciActiveTab === 'student1') && (
                                 <div
                                   className={cn(
-                                    'mt-1 w-full rounded-2xl bg-white transition-all duration-300'
+                                    'mt-1 w-full rounded-2xl border border-violet-300 bg-white transition-all duration-300'
                                   )}
                                 >
                                   <div className="relative flex w-full flex-col p-px">
