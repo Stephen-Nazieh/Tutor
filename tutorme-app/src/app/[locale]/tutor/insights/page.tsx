@@ -1223,7 +1223,7 @@ function TutorInsightsPageInner() {
   const dataMode = saveMode === 'draft' && !sessionId ? 'detached' : 'default'
 
   return (
-    <div className="flex min-h-screen w-full flex-col items-stretch bg-gray-50">
+    <div className="flex h-screen w-full flex-col items-stretch bg-gray-50">
       <PanelErrorBoundary label="the insights builder" resetKeys={[courseId, saveMode]}>
         <CourseBuilderInsightsRoute
           courseId={courseId}
