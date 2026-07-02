@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useRealmSession } from '@/hooks/use-realm-session'
@@ -73,6 +73,7 @@ const bottomNavItems: NavItem[] = [
 
 export default function TutorLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const { data: session, status } = useSession()
   const { data: realmSession, status: realmStatus } = useRealmSession('tutor')
@@ -180,11 +181,22 @@ export default function TutorLayout({ children }: { children: React.ReactNode })
     return () => clearInterval(interval)
   }, [])
 
-  // Force insights pages to have no nav and no wrapper
+  // Force insights pages and classroom pages to have no nav and no wrapper
   // Use a robust check that handles locale-prefixed paths during SSR
   const isInsightsPageForce = pathname?.includes('/tutor/insights')
+  // Also check for classroom paths in case redirect hasn't completed
+  const isClassroomPage = pathname?.includes('/tutor/classroom')
+  // Check for classroom view mode via search params as a fallback
+  const isClassroomView = searchParams?.get('view') === 'classroom'
 
-  if (isCourseBuilder || isCoursePublishPage || isInsightsPage || isInsightsPageForce) {
+  if (
+    isCourseBuilder ||
+    isCoursePublishPage ||
+    isInsightsPage ||
+    isInsightsPageForce ||
+    isClassroomPage ||
+    isClassroomView
+  ) {
     return <>{children}</>
   }
 
