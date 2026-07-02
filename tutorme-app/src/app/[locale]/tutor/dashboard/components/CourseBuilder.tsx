@@ -324,6 +324,7 @@ import {
   type PollResultBlock,
   type QuestionResultBlock,
 } from './builder-parts/InsightsReportView'
+import { PciWalkthrough } from './builder-parts/PciWalkthrough'
 
 // ============================================
 // BUILDER MODAL COMPONENTS
@@ -413,6 +414,7 @@ function PciGuidance({ kind }: { kind: 'task' | 'assessment' }) {
   return (
     <details
       open
+      data-pci-anchor="guidance"
       className="group mb-3 rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-2 text-xs text-blue-900"
     >
       <summary className="flex cursor-pointer list-none items-center gap-1.5 font-semibold">
@@ -425,8 +427,9 @@ function PciGuidance({ kind }: { kind: 'task' | 'assessment' }) {
         <p>
           <b>PCI is your marking instruction</b> for this {noun} — <i>how</i> you want answers
           marked, not the questions themselves. Chat your rules below; the assistant turns them into
-          a finalized <b>rubric</b>. Click <b>Apply to PCI</b> to save it — it then guides the AI
-          grading suggestions and how an uploaded marking scheme is read.
+          a finalized <b>rubric</b>. Save it under <b>Current marking policy</b> (use <b>Edit</b> to
+          paste or refine) — it then guides the AI grading suggestions and how an uploaded marking
+          scheme is read.
         </p>
         <p className="font-semibold">Things worth telling it:</p>
         <ul className="list-disc space-y-0.5 pl-4">
@@ -439,9 +442,10 @@ function PciGuidance({ kind }: { kind: 'task' | 'assessment' }) {
           <li>&ldquo;One mark per valid point, maximum 4.&rdquo;</li>
         </ul>
         <p className="text-blue-700/80">
-          Flow: chat &rarr; the assistant proposes a rubric &rarr; <b>Apply to PCI</b> &rarr;
-          it&rsquo;s saved and used when grading. The answer key itself comes from the DMI / an
-          uploaded marking scheme — PCI is the <i>policy</i> on top.
+          Flow: chat &rarr; the assistant proposes a rubric &rarr; set it as your{' '}
+          <b>Current marking policy</b> &rarr; it&rsquo;s saved and used when grading. The answer
+          key itself comes from the DMI / an uploaded marking scheme — PCI is the <i>policy</i> on
+          top.
         </p>
       </div>
     </details>
@@ -786,9 +790,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Fall back to the window measure only until the observer takes its first
     // reading (avoids a 1-frame flash of a negative width during hydration).
     const availableRowWidth = (layoutRowWidth > 0 ? layoutRowWidth : viewportWidth) - 33
+    // A hidden side panel collapses to a peek pill and reclaims its width for the
+    // center column. The panel's own outer width below uses the same effective
+    // value so the flex row stays exact; both animate via a width transition.
+    const effLeftPanelWidth = leftPanelHidden ? 0 : leftPanelWidth
+    const effRightPanelWidth = rightPanelHidden ? 0 : rightPanelWidth
     const centerColWidth = Math.max(
       320,
-      availableRowWidth - leftPanelWidth - 24 - rightPanelWidth - 24
+      availableRowWidth - effLeftPanelWidth - 24 - effRightPanelWidth - 24
     )
 
     const [leftPanelResizing, setLeftPanelResizing] = useState(false)
@@ -6007,7 +6016,10 @@ FEEDBACK: [one or two short sentences explaining the score]`
       : taskBuilder.taskPci
     // Read-only-with-edit "Current marking policy" box shown atop a PCI tab.
     const renderCurrentPci = (source: 'task' | 'assessment', value: string) => (
-      <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs">
+      <div
+        data-pci-anchor="current-pci"
+        className="mb-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs"
+      >
         <div className="flex items-center justify-between gap-2">
           <span className="font-semibold text-slate-700">Current marking policy (PCI)</span>
           <div className="flex items-center gap-2">
@@ -6023,6 +6035,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
             {canEdit && (
               <button
                 type="button"
+                data-pci-anchor="edit-pci"
                 onClick={() => setEditingCurrentPci(v => !v)}
                 className="font-semibold text-blue-700 hover:underline"
               >
@@ -6036,7 +6049,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
             value={value}
             readOnly={!canEdit}
             onChange={e => setCurrentPci(source, e.target.value)}
-            placeholder="The marking policy used when grading… (or chat below and Apply to PCI)"
+            placeholder="The marking policy used when grading… (chat below to draft one, then paste/refine it here)"
             className="mt-1.5 min-h-[80px] w-full resize-y rounded-md border border-gray-300 p-2 text-xs text-gray-900"
           />
         ) : value.trim() ? (
@@ -6045,8 +6058,8 @@ FEEDBACK: [one or two short sentences explaining the score]`
           </p>
         ) : (
           <p className="mt-1 italic text-slate-400">
-            None yet — chat below and click &ldquo;Apply to PCI&rdquo;, or Edit to type one. This is
-            what guides AI grading.
+            None yet — chat below to draft one, then click <b>Edit</b> to paste or type it here.
+            This is what guides AI grading.
           </p>
         )}
         {/* TASK-6: the structured specification mirror, when one was finalized. */}
@@ -6325,13 +6338,13 @@ FEEDBACK: [one or two short sentences explaining the score]`
 
             <div
               className={cn(
-                'relative z-40 flex min-h-0 shrink-0 flex-col',
+                'relative z-40 flex min-h-0 shrink-0 flex-col transition-[width] duration-500 ease-in-out',
                 leftPanelHidden
                   ? 'bg-transparent shadow-none'
                   : 'shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
               )}
               ref={leftPanelRef}
-              style={{ width: leftPanelWidth, flexShrink: 0 }}
+              style={{ width: effLeftPanelWidth, flexShrink: 0 }}
             >
               <div
                 className={cn(
@@ -8111,9 +8124,10 @@ FEEDBACK: [one or two short sentences explaining the score]`
               </div>
             </div>
 
-            {/* CENTER PANEL - Fixed width based on 3-panel layout */}
+            {/* CENTER PANEL - width tracks the visible side panels (expands when
+                one is hidden), animated to match the panel collapse. */}
             <div
-              className="flex min-h-0 flex-col items-center"
+              className="flex min-h-0 flex-col items-center transition-[width] duration-500 ease-in-out"
               style={{ width: centerColWidth, flexShrink: 0 }}
             >
               <div className="flex h-full min-h-0 w-full flex-col items-stretch">
@@ -9557,7 +9571,11 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                       value="pci"
                                       className="mt-0.5 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      <div className="flex h-full min-h-0 flex-col rounded-2xl border border-blue-200 bg-white p-4 shadow-sm">
+                                      <div
+                                        data-pci-container="task"
+                                        className="relative flex h-full min-h-0 flex-col rounded-2xl border border-blue-200 bg-white p-4 shadow-sm"
+                                      >
+                                        <PciWalkthrough kind="task" />
                                         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-1">
                                           <PciGuidance kind="task" />
                                           {renderCurrentPci('task', activeTaskPci)}
@@ -9600,7 +9618,8 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                           {taskPciDraft && (
                                             <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
                                               <span>
-                                                Finalized rubric ready to apply to the PCI field.
+                                                Rubric ready — click Apply to save it as your
+                                                marking policy.
                                               </span>
                                               <Button
                                                 size="sm"
@@ -9619,7 +9638,10 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                           <GuardrailWarningsBanner
                                             warnings={taskPciGuardrailWarnings}
                                           />
-                                          <div className="mt-2 w-full rounded-2xl border border-blue-300 bg-white/90 backdrop-blur-md transition-all duration-300">
+                                          <div
+                                            data-pci-anchor="chat-input"
+                                            className="mt-2 w-full rounded-2xl border border-blue-300 bg-white/90 backdrop-blur-md transition-all duration-300"
+                                          >
                                             <div className="relative flex w-full flex-col p-px">
                                               <div className="flex w-full flex-col">
                                                 <MentionTextarea
@@ -9655,6 +9677,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                     disabled={
                                                       taskPciLoading || !activeTaskPciInput.trim()
                                                     }
+                                                    data-pci-anchor="send"
                                                     onClick={() => handlePciSend('task')}
                                                     aria-label="Send"
                                                   >
@@ -9989,7 +10012,11 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                       value="pci"
                                       className="mt-2 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
-                                      <div className="relative flex h-full min-h-0 flex-col rounded-2xl border border-[#EC4899] bg-white p-4 shadow-sm">
+                                      <div
+                                        data-pci-container="assessment"
+                                        className="relative flex h-full min-h-0 flex-col rounded-2xl border border-[#EC4899] bg-white p-4 shadow-sm"
+                                      >
+                                        <PciWalkthrough kind="assessment" />
                                         {/* Centered Pill for Test, Generate DMI, and Version History */}
                                         <div className="pointer-events-none absolute left-1/2 top-0 z-20 flex -translate-x-1/2 items-center justify-center">
                                           <div className="pointer-events-auto flex h-11 items-center gap-1 rounded-b-xl border-x border-b border-[#E5E7EB] bg-white/90 px-2 shadow-sm backdrop-blur-sm">
@@ -10000,6 +10027,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                             <Button
                                               variant="ghost"
                                               size="sm"
+                                              data-pci-anchor="generate-dmi"
                                               className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
                                               disabled={dmiGenerating || !canEdit}
                                               onClick={() => {
@@ -10029,6 +10057,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                 <Button
                                                   variant="ghost"
                                                   size="sm"
+                                                  data-pci-anchor="edit-marks"
                                                   className="h-6 px-2 text-xs font-medium text-[#F17623] hover:text-[#d9651a]"
                                                   disabled={!canEdit}
                                                   title="Set marks per question and review the AI answers"
@@ -10114,7 +10143,8 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                           {assessmentPciDraftMap[loadedAssessmentId || ''] && (
                                             <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
                                               <span>
-                                                Finalized rubric ready to apply to the PCI field.
+                                                Rubric ready — click Apply to save it as your
+                                                marking policy.
                                               </span>
                                               <Button
                                                 size="sm"
@@ -10143,7 +10173,10 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                               ] || []
                                             }
                                           />
-                                          <div className="mt-2 w-full rounded-2xl border border-purple-300 bg-white/90 backdrop-blur-md transition-all duration-300">
+                                          <div
+                                            data-pci-anchor="chat-input"
+                                            className="mt-2 w-full rounded-2xl border border-purple-300 bg-white/90 backdrop-blur-md transition-all duration-300"
+                                          >
                                             <div className="relative flex w-full flex-col p-px">
                                               <div className="flex w-full flex-col">
                                                 <MentionTextarea
@@ -10189,6 +10222,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                         ] || ''
                                                       ).trim()
                                                     }
+                                                    data-pci-anchor="send"
                                                     onClick={() => handlePciSend('assessment')}
                                                     aria-label="Send"
                                                   >
@@ -10244,12 +10278,12 @@ FEEDBACK: [one or two short sentences explaining the score]`
                 {/* Right panel content - grid child with consistent wrapper */}
                 <div
                   className={cn(
-                    'relative z-40 flex min-h-0 shrink-0 flex-col items-end',
+                    'relative z-40 flex min-h-0 shrink-0 flex-col items-end transition-[width] duration-500 ease-in-out',
                     rightPanelHidden
                       ? 'bg-transparent shadow-none'
                       : 'shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
                   )}
-                  style={{ width: rightPanelWidth, flexShrink: 0 }}
+                  style={{ width: effRightPanelWidth, flexShrink: 0 }}
                 >
                   <div
                     className={cn(
