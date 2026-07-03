@@ -70,7 +70,7 @@ const LANGUAGES = [
 ]
 
 const SECTION_CARD_CLASS =
-  'overflow-hidden bg-white rounded-[16px] shadow-[0_14px_45px_rgba(0,0,0,0.14)]'
+  'overflow-hidden bg-white rounded-[16px] shadow-[0_14px_45px_rgba(0,0,0,0.22)]'
 
 interface PaymentMethod {
   id: string
