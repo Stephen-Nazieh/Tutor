@@ -1323,6 +1323,7 @@ function TutorDashboardContent() {
       <ScheduleViewModal
         courseId={scheduleCourse?.id ?? null}
         courseName={scheduleCourse?.name}
+        canCreate
         onClose={() => setScheduleCourse(null)}
       />
     </div>
