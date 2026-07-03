@@ -1296,11 +1296,11 @@ function TutorDashboardContent() {
 
             <Separator className="my-4" />
 
-            <DialogFooter className="flex items-center justify-between sm:justify-between">
+            <DialogFooter className="flex items-center justify-end sm:justify-end">
               <div className="flex flex-wrap items-center gap-2">
                 {selectedCourseForCancel && (
                   <Button
-                    variant="outline"
+                    variant="modal-primary-dark"
                     onClick={() =>
                       setOneTimeCourse({
                         id: selectedCourseForCancel.id,
