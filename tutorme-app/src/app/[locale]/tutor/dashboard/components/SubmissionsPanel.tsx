@@ -158,9 +158,9 @@ export function SubmissionsPanel({
         // Only auto-expand on the first load — a refetch must not collapse or
         // re-expand folders the tutor has toggled.
         if (!preserveOpen) {
-          const nextOpen: Record<string, boolean> = { course: true }
+          const nextOpen: Record<string, boolean> = { course: false }
           ;(json?.lessons || []).forEach((l: any) => {
-            nextOpen[`lesson_${l.id}`] = true
+            nextOpen[`lesson_${l.id}`] = false
           })
           setOpen(nextOpen)
         }
