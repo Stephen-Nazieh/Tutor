@@ -8135,7 +8135,10 @@ FEEDBACK: [one or two short sentences explaining the score]`
             {/* CENTER PANEL - width tracks the visible side panels (expands when
                 one is hidden), animated to match the panel collapse. */}
             <div
-              className={cn('flex min-h-0 flex-col items-center', panelsMounted ? 'transition-[width] duration-500 ease-in-out' : '')}
+              className={cn(
+                'flex min-h-0 flex-col items-center',
+                panelsMounted ? 'transition-[width] duration-500 ease-in-out' : ''
+              )}
               style={{ width: centerColWidth, flexShrink: 0 }}
             >
               <div className="flex h-full min-h-0 w-full flex-col items-stretch">
@@ -10302,7 +10305,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                   <div
                     className={cn(
                       'flex h-full min-h-0 flex-col overflow-hidden rounded-[20px]',
-                  panelsMounted ? 'transition-all duration-500 ease-in-out' : '',
+                      panelsMounted ? 'transition-all duration-500 ease-in-out' : '',
                       rightPanelHidden ? 'w-0 opacity-0' : 'w-full opacity-100'
                     )}
                   >
