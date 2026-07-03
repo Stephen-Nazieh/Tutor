@@ -70,7 +70,7 @@ const LANGUAGES = [
 ]
 
 const SECTION_CARD_CLASS =
-  'overflow-hidden bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)] rounded-[16px]'
+  'overflow-hidden bg-white rounded-[16px] border border-slate-200 shadow-sm'
 
 interface PaymentMethod {
   id: string
@@ -652,32 +652,58 @@ export default function TutorSettings() {
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-0.5">
         <Card className="flex h-full flex-col overflow-hidden rounded-[16px] border-0 shadow-[0_14px_45px_rgba(0,0,0,0.14)]">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="flex h-full flex-col">
-            <TabsList className="grid w-full grid-cols-4 gap-1 p-1 sm:grid-cols-8">
-              <TabsTrigger value="profile" className="text-xs">
-                Profile
-              </TabsTrigger>
-              <TabsTrigger value="1-on-1" className="text-xs">
-                1-on-1
-              </TabsTrigger>
-              <TabsTrigger value="billing" className="text-xs">
-                Billing
-              </TabsTrigger>
-              <TabsTrigger value="refunds" className="text-xs">
-                Refunds
-              </TabsTrigger>
-              <TabsTrigger value="notifications" className="text-xs">
-                Notifications
-              </TabsTrigger>
-              <TabsTrigger value="security" className="text-xs">
-                Security
-              </TabsTrigger>
-              <TabsTrigger value="controls" className="text-xs">
-                Account
-              </TabsTrigger>
-              <TabsTrigger value="session-log" className="text-xs">
-                Session Log
-              </TabsTrigger>
-            </TabsList>
+            <div className="flex-shrink-0 p-4">
+              <TabsList className="relative flex w-full gap-1.5 rounded-xl bg-[#1F2933] p-1.5">
+                <TabsTrigger
+                  value="profile"
+                  className="flex-1 rounded-lg text-xs text-white/80 transition-colors hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-sm"
+                >
+                  Profile
+                </TabsTrigger>
+                <TabsTrigger
+                  value="1-on-1"
+                  className="flex-1 rounded-lg text-xs text-white/80 transition-colors hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-sm"
+                >
+                  1-on-1
+                </TabsTrigger>
+                <TabsTrigger
+                  value="billing"
+                  className="flex-1 rounded-lg text-xs text-white/80 transition-colors hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-sm"
+                >
+                  Billing
+                </TabsTrigger>
+                <TabsTrigger
+                  value="refunds"
+                  className="flex-1 rounded-lg text-xs text-white/80 transition-colors hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-sm"
+                >
+                  Refunds
+                </TabsTrigger>
+                <TabsTrigger
+                  value="notifications"
+                  className="flex-1 rounded-lg text-xs text-white/80 transition-colors hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-sm"
+                >
+                  Notifications
+                </TabsTrigger>
+                <TabsTrigger
+                  value="security"
+                  className="flex-1 rounded-lg text-xs text-white/80 transition-colors hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-sm"
+                >
+                  Security
+                </TabsTrigger>
+                <TabsTrigger
+                  value="controls"
+                  className="flex-1 rounded-lg text-xs text-white/80 transition-colors hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-sm"
+                >
+                  Account
+                </TabsTrigger>
+                <TabsTrigger
+                  value="session-log"
+                  className="flex-1 rounded-lg text-xs text-white/80 transition-colors hover:text-white data-[state=active]:bg-white data-[state=active]:text-[#1F2933] data-[state=active]:shadow-sm"
+                >
+                  Session Log
+                </TabsTrigger>
+              </TabsList>
+            </div>
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden pt-3">
               {/* Profile & Identity */}
               <TabsContent
