@@ -400,7 +400,10 @@ export function DailyVideoFrame({
   return (
     <div
       ref={outerRef}
-      className={floating && frame ? 'absolute' : 'relative'}
+      // In overlay mode (floating=false) the frame must FILL its parent so the
+      // full-bleed `absolute inset-0` video has a real height to expand into —
+      // without h-full the container is auto-height and the video collapses.
+      className={floating && frame ? 'absolute' : 'relative h-full w-full'}
       style={
         floating && frame
           ? { left: frame.x, top: frame.y, width: frame.w, height: frame.h }
