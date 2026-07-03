@@ -212,11 +212,16 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
       }
 
       try {
+        // Start with camera + mic OFF, but do NOT pass audioSource/videoSource:
+        // false — that tells Daily to acquire NO device, so a later
+        // setLocalVideo(true) has no camera to turn on (video never appears).
+        // startVideoOff/startAudioOff join muted while still acquiring the
+        // devices, so toggling the camera on works.
         await call.join({
           url,
           token,
-          audioSource: false,
-          videoSource: false,
+          startVideoOff: true,
+          startAudioOff: true,
         })
 
         globalJoinedUrl = url
@@ -304,23 +309,57 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     }))
   }, [])
 
-  const toggleAudio = useCallback(() => {
+  const toggleAudio = useCallback(async () => {
     const call = callRef.current
     if (!call || !state.isJoined) return
 
     const newState = !state.isAudioEnabled
+    // If the mic device wasn't acquired yet, setLocalAudio(true) can't unmute a
+    // track that doesn't exist — acquire it first via startCamera({ startAudio }).
+    if (newState) {
+      const local = call.participants()?.local as
+        | { tracks?: { audio?: { persistentTrack?: unknown } } }
+        | undefined
+      if (!local?.tracks?.audio?.persistentTrack) {
+        try {
+          await (call as unknown as { startCamera: (o: unknown) => Promise<unknown> }).startCamera({
+            startAudioOff: false,
+            startVideoOff: !state.isVideoEnabled,
+          })
+        } catch {
+          // fall through to setLocalAudio below
+        }
+      }
+    }
     call.setLocalAudio(newState)
     setState(prev => ({ ...prev, isAudioEnabled: newState }))
-  }, [state.isJoined, state.isAudioEnabled])
+  }, [state.isJoined, state.isAudioEnabled, state.isVideoEnabled])
 
-  const toggleVideo = useCallback(() => {
+  const toggleVideo = useCallback(async () => {
     const call = callRef.current
     if (!call || !state.isJoined) return
 
     const newState = !state.isVideoEnabled
+    // Same as audio: with no camera acquired yet, ask Daily to acquire it before
+    // enabling, so the local video track actually appears.
+    if (newState) {
+      const local = call.participants()?.local as
+        | { tracks?: { video?: { persistentTrack?: unknown } } }
+        | undefined
+      if (!local?.tracks?.video?.persistentTrack) {
+        try {
+          await (call as unknown as { startCamera: (o: unknown) => Promise<unknown> }).startCamera({
+            startVideoOff: false,
+            startAudioOff: !state.isAudioEnabled,
+          })
+        } catch {
+          // fall through to setLocalVideo below
+        }
+      }
+    }
     call.setLocalVideo(newState)
     setState(prev => ({ ...prev, isVideoEnabled: newState }))
-  }, [state.isJoined, state.isVideoEnabled])
+  }, [state.isJoined, state.isVideoEnabled, state.isAudioEnabled])
 
   const startScreenShare = useCallback(() => {
     const call = callRef.current
