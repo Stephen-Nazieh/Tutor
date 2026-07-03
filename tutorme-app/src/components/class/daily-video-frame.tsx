@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useDailyCall } from '@/hooks/use-daily-call'
 import {
   AlertTriangle,
+  Image as ImageIcon,
   Loader2,
   Mic,
   MicOff,
@@ -136,6 +137,7 @@ export function DailyVideoFrame({
   // Selected virtual background: 'none' | 'blur' | wallpaper url. Tutor only.
   const [background, setBackgroundId] = useState<string>('none')
   const [applyingBackground, setApplyingBackground] = useState(false)
+  const [backgroundOpen, setBackgroundOpen] = useState(false)
   const applyBackground = async (value: 'none' | 'blur' | { url: string }, id: string) => {
     setApplyingBackground(true)
     try {
@@ -581,6 +583,73 @@ export function DailyVideoFrame({
               activeLabel="Sharing"
               inactiveLabel="Share"
             />
+
+            {/* Virtual background — a dedicated, discoverable button (tutor only,
+                since students don't broadcast). */}
+            {isTutor && (
+              <Popover open={backgroundOpen} onOpenChange={setBackgroundOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={`inline-flex h-9 items-center gap-2 rounded-full px-4 text-sm font-semibold shadow-sm transition-colors ${
+                      background !== 'none'
+                        ? 'bg-white text-slate-900 hover:bg-white/90'
+                        : 'bg-white/10 text-white hover:bg-white/15'
+                    }`}
+                  >
+                    {applyingBackground ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ImageIcon className="h-4 w-4" />
+                    )}
+                    Background
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="center"
+                  className="w-[320px] rounded-xl border border-slate-200 bg-white p-4"
+                >
+                  <div className="mb-2 text-sm font-semibold text-slate-900">
+                    Virtual background
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    <BackgroundSwatch
+                      label="None"
+                      active={background === 'none'}
+                      onClick={() => applyBackground('none', 'none')}
+                    >
+                      <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-slate-500">
+                        None
+                      </div>
+                    </BackgroundSwatch>
+                    <BackgroundSwatch
+                      label="Blur"
+                      active={background === 'blur'}
+                      onClick={() => applyBackground('blur', 'blur')}
+                    >
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-400 text-[10px] font-medium text-slate-700 blur-[1px]">
+                        Blur
+                      </div>
+                    </BackgroundSwatch>
+                    {VIDEO_BACKGROUNDS.map(bg => (
+                      <BackgroundSwatch
+                        key={bg.id}
+                        label={bg.label}
+                        active={background === bg.url}
+                        onClick={() => applyBackground({ url: bg.url }, bg.url)}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={bg.url} alt={bg.label} className="h-full w-full object-cover" />
+                      </BackgroundSwatch>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[10px] text-slate-400">
+                    Turn your camera on to preview. Not available on some low-power devices.
+                  </p>
+                </PopoverContent>
+              </Popover>
+            )}
+
             <button
               type="button"
               onClick={handleLeave}
@@ -670,56 +739,6 @@ export function DailyVideoFrame({
                       </SelectContent>
                     </Select>
                   </div>
-
-                  {/* Virtual background — tutor only (students don't broadcast). */}
-                  {isTutor && (
-                    <div className="grid gap-1">
-                      <div className="flex items-center justify-between">
-                        <div className="text-xs font-semibold text-slate-600">Background</div>
-                        {applyingBackground && (
-                          <Loader2 className="h-3 w-3 animate-spin text-slate-400" />
-                        )}
-                      </div>
-                      <div className="grid grid-cols-4 gap-2">
-                        <BackgroundSwatch
-                          label="None"
-                          active={background === 'none'}
-                          onClick={() => applyBackground('none', 'none')}
-                        >
-                          <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-slate-500">
-                            None
-                          </div>
-                        </BackgroundSwatch>
-                        <BackgroundSwatch
-                          label="Blur"
-                          active={background === 'blur'}
-                          onClick={() => applyBackground('blur', 'blur')}
-                        >
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-400 text-[10px] font-medium text-slate-700 blur-[1px]">
-                            Blur
-                          </div>
-                        </BackgroundSwatch>
-                        {VIDEO_BACKGROUNDS.map(bg => (
-                          <BackgroundSwatch
-                            key={bg.id}
-                            label={bg.label}
-                            active={background === bg.url}
-                            onClick={() => applyBackground({ url: bg.url }, bg.url)}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={bg.url}
-                              alt={bg.label}
-                              className="h-full w-full object-cover"
-                            />
-                          </BackgroundSwatch>
-                        ))}
-                      </div>
-                      <p className="text-[10px] text-slate-400">
-                        Turn your camera on to preview. Not available on some low-power devices.
-                      </p>
-                    </div>
-                  )}
                 </div>
               </PopoverContent>
             </Popover>
