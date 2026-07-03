@@ -16,6 +16,8 @@ import {
   Wifi,
   X,
 } from 'lucide-react'
+import { toast } from 'sonner'
+import { VIDEO_BACKGROUNDS } from '@/lib/video/backgrounds'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
@@ -52,6 +54,7 @@ export function DailyVideoFrame({
     leave,
     toggleAudio,
     toggleVideo,
+    setBackground,
     isAudioEnabled,
     isVideoEnabled,
     isScreenSharing,
@@ -130,6 +133,21 @@ export function DailyVideoFrame({
   const [videoInputId, setVideoInputId] = useState<string>('')
   const [audioOutputId, setAudioOutputId] = useState<string>('')
   const [isRefreshingDevices, setIsRefreshingDevices] = useState(false)
+  // Selected virtual background: 'none' | 'blur' | wallpaper url. Tutor only.
+  const [background, setBackgroundId] = useState<string>('none')
+  const [applyingBackground, setApplyingBackground] = useState(false)
+  const applyBackground = async (value: 'none' | 'blur' | { url: string }, id: string) => {
+    setApplyingBackground(true)
+    try {
+      await setBackground(value)
+      setBackgroundId(id)
+    } catch (err) {
+      console.warn('[video] background effect failed:', err)
+      toast.error("Backgrounds aren't supported on this device/browser.")
+    } finally {
+      setApplyingBackground(false)
+    }
+  }
 
   useEffect(() => {
     if (!call) return
@@ -652,6 +670,56 @@ export function DailyVideoFrame({
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Virtual background — tutor only (students don't broadcast). */}
+                  {isTutor && (
+                    <div className="grid gap-1">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-semibold text-slate-600">Background</div>
+                        {applyingBackground && (
+                          <Loader2 className="h-3 w-3 animate-spin text-slate-400" />
+                        )}
+                      </div>
+                      <div className="grid grid-cols-4 gap-2">
+                        <BackgroundSwatch
+                          label="None"
+                          active={background === 'none'}
+                          onClick={() => applyBackground('none', 'none')}
+                        >
+                          <div className="flex h-full w-full items-center justify-center text-[10px] font-medium text-slate-500">
+                            None
+                          </div>
+                        </BackgroundSwatch>
+                        <BackgroundSwatch
+                          label="Blur"
+                          active={background === 'blur'}
+                          onClick={() => applyBackground('blur', 'blur')}
+                        >
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-200 to-slate-400 text-[10px] font-medium text-slate-700 blur-[1px]">
+                            Blur
+                          </div>
+                        </BackgroundSwatch>
+                        {VIDEO_BACKGROUNDS.map(bg => (
+                          <BackgroundSwatch
+                            key={bg.id}
+                            label={bg.label}
+                            active={background === bg.url}
+                            onClick={() => applyBackground({ url: bg.url }, bg.url)}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={bg.url}
+                              alt={bg.label}
+                              className="h-full w-full object-cover"
+                            />
+                          </BackgroundSwatch>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-slate-400">
+                        Turn your camera on to preview. Not available on some low-power devices.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </PopoverContent>
             </Popover>
@@ -659,6 +727,31 @@ export function DailyVideoFrame({
         </div>
       </div>
     </div>
+  )
+}
+
+function BackgroundSwatch({
+  label,
+  active,
+  onClick,
+  children,
+}: {
+  label: string
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      className={`aspect-video overflow-hidden rounded-md border-2 transition-colors ${
+        active ? 'border-indigo-500' : 'border-transparent hover:border-slate-300'
+      }`}
+    >
+      {children}
+    </button>
   )
 }
 

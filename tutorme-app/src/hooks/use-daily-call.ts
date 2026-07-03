@@ -361,6 +361,21 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     setState(prev => ({ ...prev, isVideoEnabled: newState }))
   }, [state.isJoined, state.isVideoEnabled, state.isAudioEnabled])
 
+  // Virtual background: 'none' | 'blur' | a wallpaper image URL. Applied via
+  // Daily's video input processor (segmentation runs client-side). Rejections
+  // (unsupported browser/GPU) are surfaced to the caller.
+  const setBackground = useCallback(async (bg: 'none' | 'blur' | { url: string }) => {
+    const call = callRef.current
+    if (!call) return
+    const processor =
+      bg === 'none'
+        ? { type: 'none' as const }
+        : bg === 'blur'
+          ? { type: 'background-blur' as const, config: { strength: 0.6 } }
+          : { type: 'background-image' as const, config: { url: bg.url } }
+    await call.updateInputSettings({ video: { processor } })
+  }, [])
+
   const startScreenShare = useCallback(() => {
     const call = callRef.current
     if (!call || !state.isJoined) return
@@ -401,6 +416,7 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
     leave,
     toggleAudio,
     toggleVideo,
+    setBackground,
     startScreenShare,
     stopScreenShare,
     startRecording,
