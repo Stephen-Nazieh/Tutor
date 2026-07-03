@@ -649,7 +649,7 @@ export default function TutorSettings() {
       </section>
 
       {/* Mode selector + tab content */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-0.5">
+      <div className="flex min-h-0 flex-1 flex-col pb-0.5">
         <Card className="flex h-full flex-col rounded-[16px] border border-[#E5E7EB] bg-slate-50 p-5 ring-1 ring-black/5">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="flex h-full flex-col">
             <div className="flex-shrink-0">
@@ -704,12 +704,9 @@ export default function TutorSettings() {
                 </TabsTrigger>
               </TabsList>
             </div>
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden pt-3">
+            <div className="flex min-h-0 flex-1 flex-col pt-3">
               {/* Profile & Identity */}
-              <TabsContent
-                value="profile"
-                className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
-              >
+              <TabsContent value="profile" className="mt-0 flex min-h-0 flex-1 flex-col">
                 <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     className={SECTION_CARD_CLASS}
@@ -993,20 +990,14 @@ export default function TutorSettings() {
               </TabsContent>
 
               {/* 1-on-1 Booking */}
-              <TabsContent
-                value="1-on-1"
-                className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
-              >
+              <TabsContent value="1-on-1" className="mt-0 flex min-h-0 flex-1 flex-col">
                 <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <OneOnOneSettingsCard />
                 </div>
               </TabsContent>
 
               {/* Billing & Payment */}
-              <TabsContent
-                value="billing"
-                className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
-              >
+              <TabsContent value="billing" className="mt-0 flex min-h-0 flex-1 flex-col">
                 <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     flush
@@ -1218,10 +1209,7 @@ export default function TutorSettings() {
               </TabsContent>
 
               {/* Refunds */}
-              <TabsContent
-                value="refunds"
-                className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
-              >
+              <TabsContent value="refunds" className="mt-0 flex min-h-0 flex-1 flex-col">
                 <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     flush
@@ -1239,10 +1227,7 @@ export default function TutorSettings() {
               </TabsContent>
 
               {/* Notifications */}
-              <TabsContent
-                value="notifications"
-                className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
-              >
+              <TabsContent value="notifications" className="mt-0 flex min-h-0 flex-1 flex-col">
                 <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     flush
@@ -1359,10 +1344,7 @@ export default function TutorSettings() {
               </TabsContent>
 
               {/* Privacy & Security */}
-              <TabsContent
-                value="security"
-                className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
-              >
+              <TabsContent value="security" className="mt-0 flex min-h-0 flex-1 flex-col">
                 <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     flush
@@ -1472,10 +1454,7 @@ export default function TutorSettings() {
               </TabsContent>
 
               {/* Live Session Mirroring */}
-              <TabsContent
-                value="controls"
-                className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
-              >
+              <TabsContent value="controls" className="mt-0 flex min-h-0 flex-1 flex-col">
                 <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     flush
@@ -1690,10 +1669,7 @@ export default function TutorSettings() {
               </TabsContent>
 
               {/* Session Log */}
-              <TabsContent
-                value="session-log"
-                className="mt-0 flex min-h-0 flex-1 flex-col overflow-hidden"
-              >
+              <TabsContent value="session-log" className="mt-0 flex min-h-0 flex-1 flex-col">
                 <SessionLog />
               </TabsContent>
             </div>
