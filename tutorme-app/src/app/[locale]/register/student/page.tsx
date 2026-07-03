@@ -113,6 +113,7 @@ export default function StudentRegistrationPage() {
     parentFirstName: '',
     parentMiddleName: '',
     parentLastName: '',
+    preferredLanguage: '',
   })
 
   const [region, countryCode] = [formData.region, formData.countryCode]
@@ -586,6 +587,33 @@ export default function StudentRegistrationPage() {
                           formData.countryCode ||
                           '—'}
                       </span>
+                    </div>
+                    {/* Preferred Language dropdown */}
+                    <div className="rounded-lg bg-white/10 px-2 py-1 text-sm">
+                      <Select
+                        value={formData.preferredLanguage}
+                        onValueChange={value =>
+                          setFormData(prev => ({ ...prev, preferredLanguage: value }))
+                        }
+                      >
+                        <SelectTrigger className="h-7 w-[140px] border-0 bg-transparent text-sm text-white focus:ring-0 focus:ring-offset-0">
+                          <span className="mr-1 text-white/60">Language:</span>
+                          <SelectValue placeholder="Select…" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-48">
+                          {(() => {
+                            const country = availableCountries.find(
+                              c => c.code === formData.countryCode
+                            )
+                            const langs = country?.languages || ['English']
+                            return langs.map(lang => (
+                              <SelectItem key={lang} value={lang} className="text-sm">
+                                {lang}
+                              </SelectItem>
+                            ))
+                          })()}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
