@@ -6397,7 +6397,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                   ? 'border-[#1D4ED8]/30 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)]'
                   : 'border-[#E5E7EB] bg-white'
               )}
-              style={{ left: leftPanelHidden ? -16 : leftPanelWidth - 16 }}
+              style={{ left: leftPanelHidden ? 0 : leftPanelWidth }}
               onClick={() => setLeftPanelHidden(!leftPanelHidden)}
               title={leftPanelHidden ? 'Show curriculum' : 'Hide curriculum'}
             >
@@ -10348,7 +10348,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                       ? 'border-[#1D4ED8]/30 bg-[linear-gradient(135deg,#0B3A9B_0%,#1D4ED8_35%,#0A2F78_100%)]'
                       : 'border-[#E5E7EB] bg-white'
                   )}
-                  style={{ right: rightPanelHidden ? -16 : rightPanelWidth - 16 }}
+                  style={{ right: rightPanelHidden ? 0 : rightPanelWidth }}
                   onClick={() => setRightPanelHidden(!rightPanelHidden)}
                   title={rightPanelHidden ? 'Show desk' : 'Hide desk'}
                 >
