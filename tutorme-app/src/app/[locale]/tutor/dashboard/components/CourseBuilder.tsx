@@ -8424,14 +8424,12 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                     className="h-8 w-8 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-30"
                                                     disabled={
                                                       !activeInsightsTaskId ||
-                                                      !activeInsightsTask ||
                                                       !insightsProps.sessionId ||
                                                       !pollPrompt.trim()
                                                     }
                                                     onClick={() => {
                                                       if (
                                                         !activeInsightsTaskId ||
-                                                        !activeInsightsTask ||
                                                         !insightsProps.sessionId
                                                       )
                                                         return
@@ -8524,14 +8522,12 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                     className="h-8 w-8 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-30"
                                                     disabled={
                                                       !activeInsightsTaskId ||
-                                                      !activeInsightsTask ||
                                                       !insightsProps.sessionId ||
                                                       !questionPrompt.trim()
                                                     }
                                                     onClick={() => {
                                                       if (
                                                         !activeInsightsTaskId ||
-                                                        !activeInsightsTask ||
                                                         !insightsProps.sessionId
                                                       )
                                                         return
@@ -10516,14 +10512,12 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                               className="h-8 w-8 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-30"
                                               disabled={
                                                 !activeInsightsTaskId ||
-                                                !activeInsightsTask ||
                                                 !insightsProps.sessionId ||
                                                 !pollPrompt.trim()
                                               }
                                               onClick={() => {
                                                 if (
                                                   !activeInsightsTaskId ||
-                                                  !activeInsightsTask ||
                                                   !insightsProps.sessionId
                                                 )
                                                   return
@@ -10597,14 +10591,12 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                               className="h-8 w-8 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-30"
                                               disabled={
                                                 !activeInsightsTaskId ||
-                                                !activeInsightsTask ||
                                                 !insightsProps.sessionId ||
                                                 !questionPrompt.trim()
                                               }
                                               onClick={() => {
                                                 if (
                                                   !activeInsightsTaskId ||
-                                                  !activeInsightsTask ||
                                                   !insightsProps.sessionId
                                                 )
                                                   return
