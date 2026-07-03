@@ -35,8 +35,8 @@ export function CollapsibleCard({
         className={cn(
           'overflow-hidden p-0',
           flush
-            ? 'rounded-b-[16px] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)]'
-            : 'rounded-[16px] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)]',
+            ? 'rounded-b-[16px] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.22)]'
+            : 'rounded-[16px] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.22)]',
           className
         )}
       >
