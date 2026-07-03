@@ -237,13 +237,27 @@ export function useDailyCall(options: UseDailyCallOptions = {}) {
           errorMsg?: string | { errorMsg?: string }
           error?: { localizedMsg?: string; msg?: string; type?: string }
         }
+        const stringified = (() => {
+          try {
+            const s = JSON.stringify(error)
+            return s && s !== '{}' && s !== 'null' ? s : ''
+          } catch {
+            return ''
+          }
+        })()
         const dailyMsg =
           (typeof daily?.errorMsg === 'string' && daily.errorMsg) ||
           (typeof daily?.errorMsg === 'object' && daily.errorMsg?.errorMsg) ||
           daily?.error?.localizedMsg ||
           daily?.error?.msg ||
-          (error instanceof Error ? error.message : '')
-        const message = dailyMsg || 'Failed to join video call'
+          (error instanceof Error ? error.message : '') ||
+          stringified
+        // Rooms are private, so joining WITHOUT a token (the server failed to mint
+        // one) always fails — that's the single most common cause, so name it
+        // plainly instead of the generic message.
+        const message = !token
+          ? 'No video access token — the server could not create one for this session (check the Daily API key / account).'
+          : dailyMsg || 'Failed to join video call'
         Sentry.captureException(error instanceof Error ? error : new Error(message), {
           tags: { feature: 'live-video', phase: 'join' },
           extra: { joinedUrl: url, hasToken: !!token },
