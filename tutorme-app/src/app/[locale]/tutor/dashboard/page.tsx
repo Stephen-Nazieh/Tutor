@@ -34,7 +34,6 @@ import {
   Users,
   AlertCircle,
   Ban,
-  Eye,
   CalendarClock,
   Pencil,
   Presentation,
@@ -839,20 +838,12 @@ function TutorDashboardContent() {
                               <Presentation className="mr-1 h-3 w-3" />
                               Classroom
                             </Button>
-                            {hasViewableSessions ? (
-                              <Button
-                                variant="default"
-                                size="sm"
-                                onClick={() => handleOpenSessionsModal(course)}
-                                className="bg-blue-600 text-white transition-all duration-200 hover:bg-white hover:text-blue-600"
-                              >
-                                <Eye className="mr-1 h-3 w-3" />
-                                View Sessions
-                              </Button>
-                            ) : (
-                              // Sessions come only from the course schedule — send the
-                              // tutor to the scheduler (course details page) to add slots
-                              // and publish, instead of creating an ad-hoc session.
+                            {/* When sessions exist, the "N sessions" count badge above
+                                already opens the sessions modal, so a separate "View
+                                Sessions" button here was redundant and has been removed.
+                                With no sessions yet, send the tutor to the scheduler
+                                (course details page) to add slots and publish. */}
+                            {!hasViewableSessions && (
                               <Button
                                 asChild
                                 variant="default"
@@ -1088,7 +1079,7 @@ function TutorDashboardContent() {
                   )}
                 </div>
               ) : (
-                <div className="max-h-[60vh] space-y-3 overflow-y-auto pr-2">
+                <div className="scrollbar-hide h-[460px] space-y-3 overflow-y-auto pr-2">
                   {courseSessions.length > 6 && (
                     <p className="text-muted-foreground pb-1 text-xs">
                       {courseSessions.length} sessions — scroll to see all
@@ -1130,11 +1121,11 @@ function TutorDashboardContent() {
                       return (
                         <div
                           key={session.id}
-                          className="border-border/30 bg-card/50 hover:border-border/50 hover:bg-card flex items-center justify-between rounded-lg border p-3 transition-all duration-200"
+                          className="border-border/30 bg-card hover:border-border/50 flex items-center justify-between rounded-lg border p-3 transition-all duration-200 hover:bg-white"
                         >
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <p className="truncate font-medium">
+                              <p className="truncate font-medium text-gray-900">
                                 {sessionsCourseMeta?.name
                                   ? (() => {
                                       const [cat, nat] = sessionsCourseMeta.variantName
@@ -1296,37 +1287,21 @@ function TutorDashboardContent() {
 
             <Separator className="my-4" />
 
-            <DialogFooter className="flex items-center justify-between sm:justify-between">
-              <div className="flex items-center gap-2 text-xs">
-                <AlertCircle className="h-4 w-4" />
-                <span>Add recurring sessions in the scheduler, or create a one-off session</span>
-              </div>
+            <DialogFooter className="flex items-center justify-end sm:justify-end">
               <div className="flex flex-wrap items-center gap-2">
                 {selectedCourseForCancel && (
-                  <>
-                    <Button asChild variant="outline">
-                      <Link
-                        href={withLocalePath(
-                          `/tutor/courses/${selectedCourseForCancel.templateCourseId ?? selectedCourseForCancel.id}`
-                        )}
-                      >
-                        <CalendarClock className="mr-1 h-4 w-4" />
-                        +Add/Edit schedule
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        setOneTimeCourse({
-                          id: selectedCourseForCancel.id,
-                          name: selectedCourseForCancel.name,
-                        })
-                      }
-                    >
-                      <Video className="mr-1 h-4 w-4" />
-                      Create one-time session
-                    </Button>
-                  </>
+                  <Button
+                    variant="modal-primary-dark"
+                    onClick={() =>
+                      setOneTimeCourse({
+                        id: selectedCourseForCancel.id,
+                        name: selectedCourseForCancel.name,
+                      })
+                    }
+                  >
+                    <Video className="mr-1 h-4 w-4" />
+                    Create one-time session
+                  </Button>
                 )}
                 <Button variant="modal-secondary-dark" onClick={() => setCancelModalOpen(false)}>
                   Close
@@ -1339,6 +1314,7 @@ function TutorDashboardContent() {
       <ScheduleViewModal
         courseId={scheduleCourse?.id ?? null}
         courseName={scheduleCourse?.name}
+        canCreate
         onClose={() => setScheduleCourse(null)}
       />
     </div>
