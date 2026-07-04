@@ -69,8 +69,7 @@ const LANGUAGES = [
   { code: 'ja', name: '日本語 (Japanese)' },
 ]
 
-const SECTION_CARD_CLASS =
-  'overflow-hidden bg-white rounded-[16px] shadow-[0_14px_45px_rgba(0,0,0,0.22)]'
+const SECTION_CARD_CLASS = 'overflow-hidden rounded-[16px] bg-white'
 
 interface PaymentMethod {
   id: string
@@ -639,7 +638,7 @@ export default function TutorSettings() {
   }
 
   return (
-    <div className="flex h-full min-h-full flex-col bg-white px-3 pb-0 pt-2 lg:px-4 lg:pt-0">
+    <div className="flex h-full min-h-full flex-col bg-[#fafafc] px-3 pb-0 pt-2 lg:px-4 lg:pt-0">
       {/* Hero */}
       <section className="relative mb-4 flex-shrink-0 overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5 shadow-[0_24px_72px_rgba(0,0,0,0.20)] ring-1 ring-white/20">
         <div className="text-center">
@@ -650,7 +649,7 @@ export default function TutorSettings() {
 
       {/* Mode selector + tab content */}
       <div className="flex min-h-0 flex-1 flex-col pb-0.5">
-        <Card className="flex h-full flex-col rounded-[16px] border border-[#E5E7EB] bg-slate-50 p-5 ring-1 ring-black/5">
+        <div className="flex h-full flex-col rounded-[16px] bg-gray-50 p-5">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="flex h-full flex-col">
             <div className="flex-shrink-0">
               <TabsList className="relative flex w-full gap-1.5 rounded-xl bg-[#1F2933] p-1.5">
@@ -707,7 +706,7 @@ export default function TutorSettings() {
             <div className="flex min-h-0 flex-1 flex-col pt-3">
               {/* Profile & Identity */}
               <TabsContent value="profile" className="mt-0 flex min-h-0 flex-1 flex-col">
-                <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
+                <div className="no-scrollbar h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     className={SECTION_CARD_CLASS}
                     title="Your Profile"
@@ -835,7 +834,21 @@ export default function TutorSettings() {
                               ))}
                           </div>
                         )}
+                      </div>
 
+                      <Separator />
+
+                      {/* Nationality */}
+                      <div className="space-y-2">
+                        <Label className="inline-flex items-center gap-1.5">
+                          <CountryFlag countryName={formData.nationality} size="xs" />
+                          Nationality
+                        </Label>
+                        <Input
+                          value={formData.nationality || 'Not specified'}
+                          disabled
+                          className="bg-white"
+                        />
                         <div className="flex justify-end">
                           <Button
                             className="bg-[#2563EB] text-white hover:border-[#2563EB] hover:bg-white hover:text-[#2563EB]"
@@ -855,24 +868,6 @@ export default function TutorSettings() {
                             )}
                           </Button>
                         </div>
-                      </div>
-
-                      <Separator />
-
-                      {/* Nationality */}
-                      <div className="space-y-2">
-                        <Label className="inline-flex items-center gap-1.5">
-                          <CountryFlag countryName={formData.nationality} size="xs" />
-                          Nationality
-                        </Label>
-                        <Input
-                          value={formData.nationality || 'Not specified'}
-                          disabled
-                          className="bg-white"
-                        />
-                        <p className="text-xs text-gray-500">
-                          Your nationality as selected during registration
-                        </p>
                       </div>
                     </div>
                   </CollapsibleCard>
@@ -991,14 +986,14 @@ export default function TutorSettings() {
 
               {/* 1-on-1 Booking */}
               <TabsContent value="1-on-1" className="mt-0 flex min-h-0 flex-1 flex-col">
-                <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
+                <div className="no-scrollbar h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <OneOnOneSettingsCard />
                 </div>
               </TabsContent>
 
               {/* Billing & Payment */}
               <TabsContent value="billing" className="mt-0 flex min-h-0 flex-1 flex-col">
-                <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
+                <div className="no-scrollbar h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     flush
                     className={SECTION_CARD_CLASS}
@@ -1210,7 +1205,7 @@ export default function TutorSettings() {
 
               {/* Refunds */}
               <TabsContent value="refunds" className="mt-0 flex min-h-0 flex-1 flex-col">
-                <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
+                <div className="no-scrollbar h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     flush
                     className={SECTION_CARD_CLASS}
@@ -1228,7 +1223,7 @@ export default function TutorSettings() {
 
               {/* Notifications */}
               <TabsContent value="notifications" className="mt-0 flex min-h-0 flex-1 flex-col">
-                <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
+                <div className="no-scrollbar h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     flush
                     className={SECTION_CARD_CLASS}
@@ -1345,7 +1340,7 @@ export default function TutorSettings() {
 
               {/* Privacy & Security */}
               <TabsContent value="security" className="mt-0 flex min-h-0 flex-1 flex-col">
-                <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
+                <div className="no-scrollbar h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     flush
                     className={SECTION_CARD_CLASS}
@@ -1455,7 +1450,7 @@ export default function TutorSettings() {
 
               {/* Live Session Mirroring */}
               <TabsContent value="controls" className="mt-0 flex min-h-0 flex-1 flex-col">
-                <div className="h-full space-y-6 overflow-y-auto pb-4 pr-2">
+                <div className="no-scrollbar h-full space-y-6 overflow-y-auto pb-4 pr-2">
                   <CollapsibleCard
                     flush
                     className={SECTION_CARD_CLASS}
@@ -1674,7 +1669,7 @@ export default function TutorSettings() {
               </TabsContent>
             </div>
           </Tabs>
-        </Card>
+        </div>
       </div>
 
       {/* Delete Account Dialog */}

@@ -116,7 +116,8 @@ import {
   DMI_QUESTION_TYPE_LABELS,
   type DmiQuestionType,
 } from '@/lib/assessment/question-types'
-import { deriveExamContext, EXAM_BOARDS } from '@/lib/assessment/marking-scheme'
+import { deriveExamContext } from '@/lib/assessment/marking-scheme'
+import { getAllCourseCategoryOptions } from '@/lib/data/all-categories'
 import { reverifyAssessment } from '@/lib/assessment/assessment-gates'
 import { deriveSections, deriveTotalMarks } from '@/lib/assessment/sections'
 import { toStudentDmiItem } from '@/lib/assessment/student-dmi'
@@ -127,6 +128,7 @@ import { usePci } from './hooks/use-pci'
 import { getThread, type PciTarget } from './hooks/pci-reducer'
 import { parsePciTranscript, type PciMessage } from '@/lib/assessment/pci'
 import { PCI_SPEC_FIELDS } from '@/lib/assessment/pci-spec'
+import { PciQuestionnaire } from './PciQuestionnaire'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable'
@@ -476,6 +478,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       isStudentView = false,
       onSyncToLiveSession,
       onUnsyncedChangesChange,
+      focusLessonId,
     },
     ref
   ) {
@@ -556,8 +559,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       return JSON.parse(JSON.stringify(value)) as CourseBuilderNode[]
     }, [])
 
+    // Live shows the synced snapshot (liveNodes). But a session opened directly
+    // in 'live' mode may never run the switch-triggered sync, leaving liveNodes
+    // empty and the lessons "missing" — fall back to builderNodes (the loaded
+    // course lessons) whenever the snapshot is empty.
     const nodes = useMemo(
-      () => (mainTab === 'live' ? liveNodes : builderNodes),
+      () => (mainTab === 'live' ? (liveNodes.length > 0 ? liveNodes : builderNodes) : builderNodes),
       [mainTab, liveNodes, builderNodes]
     )
 
@@ -574,6 +581,22 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [expandedCourseBuilderNodes, setExpandedCourseBuilderNodes] = useState<Set<string>>(
       new Set()
     )
+
+    // When a live session is opened with an assigned lesson, expand + scroll to
+    // that lesson exactly once (the existing expand→scroll effect handles the
+    // scroll). Guarded by a ref so a tutor's later manual collapse isn't undone.
+    const didFocusLessonRef = useRef(false)
+    useEffect(() => {
+      if (didFocusLessonRef.current) return
+      if (!focusLessonId || mainTab !== 'live' || nodes.length === 0) return
+      const target = nodes.find(
+        n => n.id === focusLessonId || n.lessons.some(l => l.id === focusLessonId)
+      )
+      if (!target) return
+      didFocusLessonRef.current = true
+      setExpandedCourseBuilderNodes(prev => new Set(prev).add(target.id))
+    }, [focusLessonId, mainTab, nodes])
+
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedItem, setSelectedItem] = useState<{ type: string; id: string } | null>(null)
     const [outlineModalOpen, setOutlineModalOpen] = useState(false)
@@ -688,6 +711,22 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     useEffect(() => {
       setAssetViewFolder(designatedFolder !== 'Uncategorized' ? designatedFolder : 'All')
     }, [courseId, designatedFolder])
+
+    // Board & Subject for the PCI Guided form (Model A: the course category is
+    // the shared source of truth). `courseCategoryOverride` reflects a change the
+    // tutor makes here immediately, before the `courses` prop refetches; the
+    // change is also persisted back to the course so Course details picks it up.
+    const liveCourseCategories = useMemo(() => {
+      const lc = (insightsProps as any)?.courses?.find((c: any) => c.id === courseId)
+      return Array.isArray(lc?.categories) ? (lc.categories as string[]) : []
+    }, [(insightsProps as any)?.courses, courseId])
+    const [courseCategoryOverride, setCourseCategoryOverride] = useState<string | null>(null)
+    const [pciBoardOverride, setPciBoardOverride] = useState<string | null>(null)
+    const pciCategory =
+      courseCategoryOverride ?? (designatedFolder !== 'Uncategorized' ? designatedFolder : '')
+    const pciBoard =
+      pciBoardOverride ?? deriveExamContext(pciCategory || null, courseName).examBody ?? ''
+    const pciCategoryOptions = useMemo(() => getAllCourseCategoryOptions(), [])
 
     const [assetFoldersList, setAssetFoldersList] = useState<string[]>(() => {
       if (typeof window !== 'undefined') {
@@ -929,6 +968,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       title: string
       taskContent: string
       taskPci: string
+      // Current approved structured PCI spec (TASK-6) — persisted at deploy to
+      // BuilderTask.pciSpec, mirroring tasks, so the grader gets it too.
+      pciSpec?: import('@/lib/assessment/pci-spec').PciSpec
       details: string
       sourceDocument?: {
         fileName: string
@@ -966,6 +1008,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // Whether the "Current PCI" box is in edit mode (tutor typing the policy
     // directly instead of via the assistant chat).
     const [editingCurrentPci, setEditingCurrentPci] = useState(false)
+    // Which source's guided PCI questionnaire is open ('task' | 'assessment' | null).
+    const [pciFormSource, setPciFormSource] = useState<'task' | 'assessment' | null>(null)
     // Directly set the saved PCI (the marking policy used by grading) for the
     // active context — the active task extension, the base task, or the
     // assessment. Mirrors where applyTaskPciDraft / applyAssessmentPciDraft write.
@@ -992,7 +1036,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             : base
         })
       } else {
-        setAssessmentBuilder(prev => ({ ...prev, taskPci: text }))
+        // TASK-6: persist the structured spec on a real "Apply to PCI" (audit
+        // present); a manual edit/clear passes no audit and leaves it as-is.
+        setAssessmentBuilder(prev =>
+          audit ? { ...prev, taskPci: text, pciSpec: audit.spec } : { ...prev, taskPci: text }
+        )
       }
     }
 
@@ -1138,21 +1186,34 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         // up from the source task when the caller didn't supply it. Deploy-only —
         // the server never broadcasts it to students.
         let src: Task | undefined
+        let srcLessonId: string | undefined
         for (const mod of nodes) {
           for (const lesson of mod.lessons) {
             const found = lesson.tasks?.find(t => t.id === payload.id)
             if (found) {
               src = found
+              srcLessonId = lesson.id
+              break
+            }
+            // Also match assessments/homework so their deploys carry the lesson.
+            if (
+              lesson.assessments?.some(a => a.id === payload.id) ||
+              lesson.homework?.some(h => h.id === payload.id)
+            ) {
+              srcLessonId = lesson.id
               break
             }
           }
-          if (src) break
+          if (srcLessonId) break
         }
         const enriched: LiveTask = {
           ...payload,
           pci:
             payload.pci ?? (typeof src?.instructions === 'string' ? src.instructions : undefined),
           pciSpec: payload.pciSpec ?? src?.pciSpec,
+          // The lesson this material was deployed from, so the server tags it with
+          // the real lesson (not "Lesson 1").
+          lessonId: payload.lessonId ?? srcLessonId,
         }
         setDeployDialog({
           run: reveal => insightsProps?.onDeployTask?.({ ...enriched, answerReveal: reveal }),
@@ -1793,6 +1854,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         title: assessment.title || '',
         taskContent: content,
         taskPci: assessment.instructions || '',
+        pciSpec: assessment.pciSpec,
         details: '',
         sourceDocument: assessment.sourceDocument,
         extensions: [],
@@ -2044,6 +2106,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   hw.title === assessmentBuilder.title &&
                   hw.description === assessmentBuilder.taskContent &&
                   hw.instructions === assessmentBuilder.taskPci &&
+                  hw.pciSpec === assessmentBuilder.pciSpec &&
                   hw.dmiItems === assessmentDmiItems &&
                   hw.dmiVersions === assessmentDmiVersions &&
                   hw.activeDmiVersionId === nextActiveDmiVersionId &&
@@ -2057,6 +2120,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   title: assessmentBuilder.title,
                   description: assessmentBuilder.taskContent,
                   instructions: assessmentBuilder.taskPci,
+                  pciSpec: assessmentBuilder.pciSpec,
                   dmiItems: assessmentDmiItems,
                   dmiVersions: assessmentDmiVersions,
                   activeDmiVersionId: nextActiveDmiVersionId,
@@ -2074,6 +2138,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       assessmentBuilder.title,
       assessmentBuilder.taskContent,
       assessmentBuilder.taskPci,
+      assessmentBuilder.pciSpec,
       assessmentBuilder.sourceDocument,
       assessmentDmiItems,
       assessmentDmiVersions,
@@ -2418,6 +2483,26 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           }
         }
         return null
+      },
+      [nodes]
+    )
+
+    // The lesson id that contains a given task/assessment/homework item, so a
+    // deploy can be tagged with the real lesson (not "Lesson 1").
+    const findLessonIdForItem = useCallback(
+      (id: string): string | undefined => {
+        for (const mod of nodes) {
+          for (const lesson of mod.lessons) {
+            if (
+              lesson.tasks?.some(t => t.id === id) ||
+              lesson.assessments?.some(a => a.id === id) ||
+              lesson.homework?.some(h => h.id === id)
+            ) {
+              return lesson.id
+            }
+          }
+        }
+        return undefined
       },
       [nodes]
     )
@@ -2824,14 +2909,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
 
     // Per-question DMI edits, row add/remove, reference backfill and the badge's
     // board/subject — all live in their own hook.
-    const {
-      applyDmiEdit,
-      reextractRefs,
-      removeDmiItem,
-      setExamContext,
-      editingExamContext,
-      setEditingExamContext,
-    } = useDmiEditor({
+    const { applyDmiEdit, reextractRefs, removeDmiItem, setExamContext } = useDmiEditor({
       taskDmiItems,
       assessmentDmiItems,
       setTaskDmiItems,
@@ -2864,6 +2942,52 @@ FEEDBACK: [one or two short sentences explaining the score]`
       courseName,
       setExamContext,
     })
+
+    // Persist the Guided-form Subject back to the course's categories so it
+    // reflects on the Course details page (Model A, item 5). Replaces the
+    // primary category, preserving any additional ones. Best-effort — the local
+    // override already reflects it in the form. The PATCH route is auth-only.
+    const persistCourseCategory = useCallback(
+      async (cat: string) => {
+        if (!courseId || !cat) return
+        const next =
+          liveCourseCategories.length > 0
+            ? [cat, ...liveCourseCategories.slice(1).filter(c => c !== cat)]
+            : [cat]
+        try {
+          await fetch(`/api/tutor/courses/${courseId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ categories: next }),
+          })
+        } catch {
+          // best-effort — the form already reflects it via the local override
+        }
+      },
+      [courseId, liveCourseCategories]
+    )
+
+    // Board/Subject changes from the PCI Guided form. Subject (a course category)
+    // drives the DMI exam context AND writes back to the course; Board overrides
+    // the derived examBody on the DMI.
+    const handlePciExamContextChange = useCallback(
+      (source: 'task' | 'assessment', patch: { category?: string; board?: string }) => {
+        if (patch.category !== undefined) {
+          const cat = patch.category
+          const derived = deriveExamContext(cat || null, courseName)
+          setCourseCategoryOverride(cat)
+          setPciBoardOverride(null) // re-derive the board from the new subject
+          setExamContext(source, { examBody: derived.examBody, subject: derived.subject ?? cat })
+          void persistCourseCategory(cat)
+        }
+        if (patch.board !== undefined) {
+          setPciBoardOverride(patch.board)
+          setExamContext(source, { examBody: patch.board })
+        }
+      },
+      [courseName, setExamContext, persistCourseCategory]
+    )
 
     // Generate DMI using AI from content or PDF images with versioning.
     // `questionSpec` is supplied (via the spec dialog) when the source is study
@@ -3190,10 +3314,14 @@ FEEDBACK: [one or two short sentences explaining the score]`
             marks: item.marks,
           })),
           answerReveal: reveal,
-          // Tutor's PCI (free-text) for server-side use by the live tutor +
-          // grader. Deploy-only; never broadcast to students. (Assessments have
-          // no structured pciSpec — that's a task-builder concept.)
+          // Tutor's PCI (free-text + structured spec) for server-side use by the
+          // live tutor + grader. Deploy-only; never broadcast to students. The
+          // server persists pciSpec to BuilderTask.pciSpec, mirroring tasks.
           pci: assessmentBuilder.taskPci || undefined,
+          pciSpec: assessmentBuilder.pciSpec,
+          // The lesson this assessment was deployed from (real lesson, not
+          // "Lesson 1").
+          lessonId: findLessonIdForItem(loadedAssessmentId),
           deployedAt: Date.now(),
           polls: [],
           questions: [],
@@ -3319,13 +3447,27 @@ FEEDBACK: [one or two short sentences explaining the score]`
     }
 
     // Add handlers
+    // Next lesson number = one past the HIGHEST existing "Lesson N" — not the
+    // count. So after deleting Lesson 3 (leaving 1, 2, 4) a new lesson is "Lesson
+    // 5", never colliding with 4 or silently refilling the gap. The gap at 3 only
+    // fills when a tutor manually renames a lesson to "Lesson 3".
+    const nextLessonNumber = (mods: CourseBuilderNode[]): number => {
+      let max = 0
+      for (const mod of mods) {
+        const m = /^Lesson\s+(\d+)/i.exec(mod.title || '')
+        if (m) max = Math.max(max, parseInt(m[1], 10))
+      }
+      return max + 1
+    }
+
     const addCourseBuilderNode = () => {
       // Create a new lesson directly without opening modal
       const newOrder = nodes.length
       const newCourseBuilderNode = DEFAULT_NODE(newOrder)
-      // Ensure the title follows "Lesson N" format
-      newCourseBuilderNode.title = `Lesson ${newOrder + 1}`
-      newCourseBuilderNode.lessons[0].title = `Lesson ${newOrder + 1}`
+      // Number by the next available (highest+1), preserving any gaps.
+      const num = nextLessonNumber(nodes)
+      newCourseBuilderNode.title = `Lesson ${num}`
+      newCourseBuilderNode.lessons[0].title = `Lesson ${num}`
 
       setCourseBuilderNodes([...nodes, newCourseBuilderNode])
       setExpandedCourseBuilderNodes(
@@ -3453,8 +3595,14 @@ FEEDBACK: [one or two short sentences explaining the score]`
     const createNewLessonTarget = useCallback((): { nodeId: string; lessonId: string } => {
       const newOrder = nodes.length
       const newNode = DEFAULT_NODE(newOrder)
-      newNode.title = `Lesson ${newOrder + 1}`
-      newNode.lessons[0].title = `Lesson ${newOrder + 1}`
+      // Next available number (highest+1), preserving gaps — see nextLessonNumber.
+      let maxNum = 0
+      for (const mod of nodes) {
+        const m = /^Lesson\s+(\d+)/i.exec(mod.title || '')
+        if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10))
+      }
+      newNode.title = `Lesson ${maxNum + 1}`
+      newNode.lessons[0].title = `Lesson ${maxNum + 1}`
       setCourseBuilderNodes([...nodes, newNode])
       setExpandedCourseBuilderNodes(new Set([...expandedCourseBuilderNodes, newNode.id]))
       return { nodeId: newNode.id, lessonId: newNode.lessons[0].id }
@@ -3552,12 +3700,13 @@ FEEDBACK: [one or two short sentences explaining the score]`
       setActiveDragId(event.active.id as string)
     }
 
-    // Helper function to renumber lesson titles after reordering
+    // Update lesson positions after reordering WITHOUT renaming. Lesson numbers
+    // are the tutor's to set — they must stay stable (and any gaps persist) until
+    // a tutor manually renames, so reordering only changes `order`, not the title.
     const renumberCourseBuilderNodes = (mods: CourseBuilderNode[]): CourseBuilderNode[] => {
       return mods.map((mod, idx) => ({
         ...mod,
         order: idx,
-        title: mod.title.replace(/^Lesson \d+/, `Lesson ${idx + 1}`),
       }))
     }
 
@@ -3775,11 +3924,10 @@ FEEDBACK: [one or two short sentences explaining the score]`
             activeLessonIndex,
             overLessonIndex
           )
-          // Renumber lessons after reordering
+          // Reposition only — keep each lesson's title stable (no auto-renumber).
           newCourseBuilderNodes[nIdx].lessons = movedLessons.map((lesson, idx) => ({
             ...lesson,
             order: idx,
-            title: lesson.title.replace(/^Lesson \d+/, `Lesson ${idx + 1}`),
           }))
           setCourseBuilderNodes(newCourseBuilderNodes)
           return
@@ -4044,8 +4192,38 @@ FEEDBACK: [one or two short sentences explaining the score]`
       )
     }
 
+    // Block deleting a lesson that has had material deployed from it in a live
+    // class. Returns true when deletion is allowed (or the check can't run).
+    const ensureLessonsDeletable = async (lessonIds: string[]): Promise<boolean> => {
+      const ids = lessonIds.filter(Boolean)
+      if (!courseId || ids.length === 0) return true
+      try {
+        const res = await fetch(`/api/tutor/courses/${courseId}/lessons/usage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ lessonIds: ids }),
+        })
+        if (!res.ok) return true // never block on a failed check
+        const data = await res.json().catch(() => ({}))
+        const usage = (data?.usage ?? {}) as Record<string, { deployedCount?: number }>
+        const blocked = ids.some(id => (usage[id]?.deployedCount ?? 0) > 0)
+        if (blocked) {
+          toast.error(
+            'This lesson has material deployed from it in a class and can’t be deleted. Remove or reassign its deployed tasks/assessments first.'
+          )
+          return false
+        }
+        return true
+      } catch {
+        return true
+      }
+    }
+
     const deleteCourseBuilderNode = async (nodeId: string) => {
       const nodeToDelete = nodes.find(m => m.id === nodeId)
+      const lessonIds = nodeToDelete?.lessons.map(l => l.id) ?? []
+      if (!(await ensureLessonsDeletable(lessonIds))) return
       if (nodeToDelete) {
         const keys = nodeToDelete.lessons.flatMap(l => collectLessonFileKeys(l))
         if (keys.length > 0) await cleanupGcsFiles(keys)
@@ -4057,6 +4235,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
     }
 
     const deleteLesson = async (nodeId: string, lessonId: string) => {
+      if (!(await ensureLessonsDeletable([lessonId]))) return
       const lessonToDelete = nodes.find(m => m.id === nodeId)?.lessons.find(l => l.id === lessonId)
       if (lessonToDelete) {
         const keys = collectLessonFileKeys(lessonToDelete)
@@ -6117,6 +6296,15 @@ FEEDBACK: [one or two short sentences explaining the score]`
             {canEdit && (
               <button
                 type="button"
+                onClick={() => setPciFormSource(prev => (prev === source ? null : source))}
+                className="font-semibold text-indigo-700 hover:underline"
+              >
+                {pciFormSource === source ? 'Hide PCI form' : 'Guided PCI form'}
+              </button>
+            )}
+            {canEdit && (
+              <button
+                type="button"
                 data-pci-anchor="edit-pci"
                 onClick={() => setEditingCurrentPci(v => !v)}
                 className="font-semibold text-blue-700 hover:underline"
@@ -6126,14 +6314,66 @@ FEEDBACK: [one or two short sentences explaining the score]`
             )}
           </div>
         </div>
-        {editingCurrentPci ? (
-          <textarea
-            value={value}
-            readOnly={!canEdit}
-            onChange={e => setCurrentPci(source, e.target.value)}
-            placeholder="The marking policy used when grading… (chat below to draft one, then paste/refine it here)"
-            className="mt-1.5 min-h-[80px] w-full resize-y rounded-md border border-gray-300 p-2 text-xs text-gray-900"
+        {pciFormSource === source && (
+          <PciQuestionnaire
+            source={source}
+            title={source === 'task' ? taskBuilder.title : assessmentBuilder.title}
+            content={source === 'task' ? taskBuilder.taskContent : assessmentBuilder.taskContent}
+            currentPci={value}
+            // The official marking scheme (DMI) loaded in "Edit marks & answers",
+            // distilled to its policy-bearing bits (no answers) so the AI can
+            // infer award conventions from it.
+            markingScheme={(source === 'task' ? taskDmiItems : assessmentDmiItems)
+              .map(q => ({
+                label: q.questionLabel,
+                marks: typeof q.marks === 'number' ? q.marks : undefined,
+                rubric: q.rubric?.trim() || undefined,
+                responseType: q.responseType?.trim() || undefined,
+                hasVariants: (q.acceptableVariants?.length ?? 0) > 0,
+              }))
+              .filter(q => q.rubric || typeof q.marks === 'number' || q.hasVariants)}
+            // Upload a marking scheme straight from the Guided form: fills the
+            // DMI (marks & answers) via the same flow as "Edit marks & answers",
+            // then the form auto-prefills the PCI from it.
+            onUploadMarkingScheme={file => handleMarkingSchemeFile(file, source)}
+            markingSchemeLoading={markingSchemeLoading}
+            board={pciBoard}
+            subject={pciCategory}
+            categoryOptions={pciCategoryOptions}
+            onExamContextChange={patch => handlePciExamContextChange(source, patch)}
+            canEdit={canEdit}
+            onSave={(specText, spec) => {
+              setCurrentPci(source, specText, {
+                approvedPci: specText,
+                spec,
+                transcript: [],
+                approvedAt: Date.now(),
+              })
+              setPciFormSource(null)
+              toast.success('Marking policy saved to PCI')
+            }}
+            onClose={() => setPciFormSource(null)}
           />
+        )}
+        {editingCurrentPci ? (
+          <>
+            <textarea
+              value={value}
+              readOnly={!canEdit}
+              onChange={e => setCurrentPci(source, e.target.value)}
+              placeholder="The marking policy used when grading… (chat below to draft one, then paste/refine it here)"
+              className="mt-1.5 min-h-[80px] w-full resize-y rounded-md border border-gray-300 p-2 text-xs text-gray-900"
+            />
+            <p className="mt-1 text-[11px] leading-snug text-slate-500">
+              <span className="font-semibold">Tip:</span> put scoring specifics — correct answers,
+              acceptable variants, marks, per-question rubric — in the{' '}
+              {source === 'assessment' ? 'marking scheme (DMI)' : 'question rubric'}. Use the PCI
+              for cross-cutting <span className="font-semibold">policy</span>: method marks,
+              accepted equivalents, unit penalties, tone, and retries. The PCI{' '}
+              <span className="font-semibold">overrides</span> the rubric where they conflict, so
+              avoid restating the same rules in both.
+            </p>
+          </>
         ) : value.trim() ? (
           <p className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap text-slate-700">
             {value}
@@ -6145,21 +6385,25 @@ FEEDBACK: [one or two short sentences explaining the score]`
           </p>
         )}
         {/* TASK-6: the structured specification mirror, when one was finalized. */}
-        {source === 'task' && taskBuilder.pciSpec && !editingCurrentPci && (
-          <div className="mt-2 border-t border-slate-200 pt-2">
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-              Structured specification
-            </p>
-            <dl className="space-y-1">
-              {PCI_SPEC_FIELDS.filter(f => taskBuilder.pciSpec?.[f.key]).map(f => (
-                <div key={f.key} className="grid grid-cols-[minmax(0,9rem)_1fr] gap-2">
-                  <dt className="text-slate-500">{f.label}</dt>
-                  <dd className="text-slate-700">{taskBuilder.pciSpec?.[f.key]}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        )}
+        {(() => {
+          const activeSpec = source === 'task' ? taskBuilder.pciSpec : assessmentBuilder.pciSpec
+          if (!activeSpec || editingCurrentPci) return null
+          return (
+            <div className="mt-2 border-t border-slate-200 pt-2">
+              <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                Structured specification
+              </p>
+              <dl className="space-y-1">
+                {PCI_SPEC_FIELDS.filter(f => activeSpec[f.key]).map(f => (
+                  <div key={f.key} className="grid grid-cols-[minmax(0,9rem)_1fr] gap-2">
+                    <dt className="text-slate-500">{f.label}</dt>
+                    <dd className="text-slate-700">{activeSpec[f.key]}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )
+        })()}
       </div>
     )
     const activeTaskPciInput = activeTaskThread.input
@@ -9107,6 +9351,9 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                         title: task.title || 'Task',
                                                         content: task.description || '',
                                                         source: 'task',
+                                                        // Real source lesson (not
+                                                        // "Lesson 1").
+                                                        lessonId: findLessonIdForItem(task.id),
                                                         // Student-safe projection
                                                         // (strips answer key incl.
                                                         // matching pairs / hotspot
@@ -9559,7 +9806,6 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                   fileKey={currentTaskDocument.fileKey}
                                                   className="absolute inset-0 h-full w-full"
                                                   defaultScale={0.75}
-                                                  hidePageNavigation
                                                   onHidePreview={() => {
                                                     if (!taskTextVisible) setTaskTextVisible(true)
                                                     setTaskPdfVisible(false)
@@ -9947,7 +10193,6 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                   fileKey={currentAssessmentDocument.fileKey}
                                                   className="absolute inset-0 h-full w-full"
                                                   defaultScale={0.75}
-                                                  hidePageNavigation
                                                   onHidePreview={() => {
                                                     if (!assessmentTextVisible)
                                                       setAssessmentTextVisible(true)
@@ -11136,49 +11381,19 @@ FEEDBACK: [one or two short sentences explaining the score]`
                         {totalMarks} mark{totalMarks === 1 ? '' : 's'}.
                       </DialogDescription>
                     </DialogHeader>
-                    {/* Examining body + subject. Defaults come from the course
-                        category; the tutor can override (a later per-paper detector
-                        will set these). They drive board-specific marking. */}
+                    {/* Board & subject are set in the Guided PCI form now (single
+                        source of truth, shared with Course details). Shown here
+                        read-only for reference; they drive board-specific marking. */}
                     <div className="flex flex-wrap items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2">
                       <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-900">
                         <BookOpen className="h-3.5 w-3.5 text-indigo-600" />
-                        {examBody || 'Set board'}
+                        {examBody || '—'}
                         <span className="text-indigo-300">·</span>
-                        {examSubject || 'Set subject'}
+                        {examSubject || '—'}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => setEditingExamContext(v => !v)}
-                        className="ml-auto text-xs font-semibold text-indigo-700 hover:underline"
-                      >
-                        {editingExamContext ? 'Done' : 'Edit'}
-                      </button>
-                      {editingExamContext && (
-                        <div className="flex w-full flex-wrap items-center gap-2 pt-1">
-                          <select
-                            value={examBody}
-                            onChange={e =>
-                              setExamContext(dmiEditor.source, { examBody: e.target.value })
-                            }
-                            className="rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-900"
-                          >
-                            <option value="">Board…</option>
-                            {EXAM_BOARDS.map(b => (
-                              <option key={b} value={b}>
-                                {b}
-                              </option>
-                            ))}
-                          </select>
-                          <input
-                            value={examSubject}
-                            onChange={e =>
-                              setExamContext(dmiEditor.source, { subject: e.target.value })
-                            }
-                            placeholder="Subject (e.g. Calculus AB)"
-                            className="min-w-[140px] flex-1 rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-900"
-                          />
-                        </div>
-                      )}
+                      <span className="ml-auto text-[11px] text-indigo-500">
+                        Set in the Guided PCI form
+                      </span>
                     </div>
                     {/* Upload marking scheme: AI matches each question number to
                         its answer (capturing the scheme's acceptable variations). */}
