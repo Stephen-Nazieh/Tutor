@@ -116,7 +116,7 @@ import {
   DMI_QUESTION_TYPE_LABELS,
   type DmiQuestionType,
 } from '@/lib/assessment/question-types'
-import { deriveExamContext, EXAM_BOARDS } from '@/lib/assessment/marking-scheme'
+import { deriveExamContext } from '@/lib/assessment/marking-scheme'
 import { getAllCourseCategoryOptions } from '@/lib/data/all-categories'
 import { reverifyAssessment } from '@/lib/assessment/assessment-gates'
 import { deriveSections, deriveTotalMarks } from '@/lib/assessment/sections'
@@ -2909,14 +2909,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
 
     // Per-question DMI edits, row add/remove, reference backfill and the badge's
     // board/subject — all live in their own hook.
-    const {
-      applyDmiEdit,
-      reextractRefs,
-      removeDmiItem,
-      setExamContext,
-      editingExamContext,
-      setEditingExamContext,
-    } = useDmiEditor({
+    const { applyDmiEdit, reextractRefs, removeDmiItem, setExamContext } = useDmiEditor({
       taskDmiItems,
       assessmentDmiItems,
       setTaskDmiItems,
@@ -11486,49 +11479,19 @@ FEEDBACK: [one or two short sentences explaining the score]`
                         {totalMarks} mark{totalMarks === 1 ? '' : 's'}.
                       </DialogDescription>
                     </DialogHeader>
-                    {/* Examining body + subject. Defaults come from the course
-                        category; the tutor can override (a later per-paper detector
-                        will set these). They drive board-specific marking. */}
+                    {/* Board & subject are set in the Guided PCI form now (single
+                        source of truth, shared with Course details). Shown here
+                        read-only for reference; they drive board-specific marking. */}
                     <div className="flex flex-wrap items-center gap-2 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2">
                       <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-900">
                         <BookOpen className="h-3.5 w-3.5 text-indigo-600" />
-                        {examBody || 'Set board'}
+                        {examBody || '—'}
                         <span className="text-indigo-300">·</span>
-                        {examSubject || 'Set subject'}
+                        {examSubject || '—'}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => setEditingExamContext(v => !v)}
-                        className="ml-auto text-xs font-semibold text-indigo-700 hover:underline"
-                      >
-                        {editingExamContext ? 'Done' : 'Edit'}
-                      </button>
-                      {editingExamContext && (
-                        <div className="flex w-full flex-wrap items-center gap-2 pt-1">
-                          <select
-                            value={examBody}
-                            onChange={e =>
-                              setExamContext(dmiEditor.source, { examBody: e.target.value })
-                            }
-                            className="rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-900"
-                          >
-                            <option value="">Board…</option>
-                            {EXAM_BOARDS.map(b => (
-                              <option key={b} value={b}>
-                                {b}
-                              </option>
-                            ))}
-                          </select>
-                          <input
-                            value={examSubject}
-                            onChange={e =>
-                              setExamContext(dmiEditor.source, { subject: e.target.value })
-                            }
-                            placeholder="Subject (e.g. Calculus AB)"
-                            className="min-w-[140px] flex-1 rounded-md border border-gray-300 px-2 py-1 text-xs text-gray-900"
-                          />
-                        </div>
-                      )}
+                      <span className="ml-auto text-[11px] text-indigo-500">
+                        Set in the Guided PCI form
+                      </span>
                     </div>
                     {/* Upload marking scheme: AI matches each question number to
                         its answer (capturing the scheme's acceptable variations). */}
