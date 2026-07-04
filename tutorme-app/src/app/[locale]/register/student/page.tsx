@@ -525,7 +525,6 @@ export default function StudentRegistrationPage() {
                     autoComplete="off"
                     value={formData.parentEmail}
                     onChange={e => setFormData({ ...formData, parentEmail: e.target.value })}
-                    placeholder="parent@example.com"
                     className={inputClassName}
                   />
                 </div>
@@ -540,7 +539,6 @@ export default function StudentRegistrationPage() {
                     autoComplete="off"
                     value={formData.confirmParentEmail}
                     onChange={e => setFormData({ ...formData, confirmParentEmail: e.target.value })}
-                    placeholder="parent@example.com"
                     className={inputClassName}
                   />
                 </div>
@@ -588,16 +586,16 @@ export default function StudentRegistrationPage() {
                           '—'}
                       </span>
                     </div>
-                    {/* Preferred Language dropdown */}
-                    <div className="rounded-full border border-white/40 bg-white/10 px-3 py-1 text-sm transition-colors hover:bg-white/20">
+                    {/* Preferred Language dropdown — styled as badge */}
+                    <div className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white">
                       <Select
                         value={formData.preferredLanguage}
                         onValueChange={value =>
                           setFormData(prev => ({ ...prev, preferredLanguage: value }))
                         }
                       >
-                        <SelectTrigger className="h-7 w-[200px] border-0 bg-transparent text-sm text-white focus:ring-0 focus:ring-offset-0">
-                          <span className="mr-1 text-white/60">Language:</span>
+                        <SelectTrigger className="h-auto w-auto border-0 bg-transparent p-0 text-sm text-white focus:ring-0 focus:ring-offset-0 [&>span]:flex [&>span]:items-center [&>span]:gap-1">
+                          <span className="text-white/60">Language:</span>
                           <SelectValue placeholder="Select…" />
                         </SelectTrigger>
                         <SelectContent className="max-h-48 w-[220px]">
@@ -658,6 +656,43 @@ export default function StudentRegistrationPage() {
 
             {step === 4 && (
               <>
+                {/* Header with Avatar + Profile Name + Country + Language */}
+                <div className="flex items-end gap-3">
+                  {/* Avatar circle */}
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white/30 bg-slate-100">
+                    {formData.avatarUrl ? (
+                      <img
+                        src={formData.avatarUrl}
+                        alt="Selected avatar"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-lg font-semibold text-slate-400">
+                        {formData.firstName.charAt(0).toUpperCase() || '?'}
+                      </span>
+                    )}
+                  </div>
+                  {/* Profile Name, Country, and Language badges */}
+                  <div className="flex items-center gap-3 pb-1">
+                    <div className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white">
+                      <span className="text-white/60">Profile Name:</span>{' '}
+                      <span className="font-semibold">{formData.firstName || '—'}</span>
+                    </div>
+                    <div className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white">
+                      <span className="text-white/60">Country:</span>{' '}
+                      <span className="font-semibold">
+                        {availableCountries.find(c => c.code === formData.countryCode)?.name ||
+                          formData.countryCode ||
+                          '—'}
+                      </span>
+                    </div>
+                    <div className="rounded-lg bg-white/10 px-4 py-2 text-sm text-white">
+                      <span className="text-white/60">Language:</span>{' '}
+                      <span className="font-semibold">{formData.preferredLanguage || '—'}</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex items-start space-x-3">
                   <Checkbox
                     id="tosAccepted"
