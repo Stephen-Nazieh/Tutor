@@ -3355,13 +3355,27 @@ FEEDBACK: [one or two short sentences explaining the score]`
     }
 
     // Add handlers
+    // Next lesson number = one past the HIGHEST existing "Lesson N" — not the
+    // count. So after deleting Lesson 3 (leaving 1, 2, 4) a new lesson is "Lesson
+    // 5", never colliding with 4 or silently refilling the gap. The gap at 3 only
+    // fills when a tutor manually renames a lesson to "Lesson 3".
+    const nextLessonNumber = (mods: CourseBuilderNode[]): number => {
+      let max = 0
+      for (const mod of mods) {
+        const m = /^Lesson\s+(\d+)/i.exec(mod.title || '')
+        if (m) max = Math.max(max, parseInt(m[1], 10))
+      }
+      return max + 1
+    }
+
     const addCourseBuilderNode = () => {
       // Create a new lesson directly without opening modal
       const newOrder = nodes.length
       const newCourseBuilderNode = DEFAULT_NODE(newOrder)
-      // Ensure the title follows "Lesson N" format
-      newCourseBuilderNode.title = `Lesson ${newOrder + 1}`
-      newCourseBuilderNode.lessons[0].title = `Lesson ${newOrder + 1}`
+      // Number by the next available (highest+1), preserving any gaps.
+      const num = nextLessonNumber(nodes)
+      newCourseBuilderNode.title = `Lesson ${num}`
+      newCourseBuilderNode.lessons[0].title = `Lesson ${num}`
 
       setCourseBuilderNodes([...nodes, newCourseBuilderNode])
       setExpandedCourseBuilderNodes(
@@ -3489,8 +3503,14 @@ FEEDBACK: [one or two short sentences explaining the score]`
     const createNewLessonTarget = useCallback((): { nodeId: string; lessonId: string } => {
       const newOrder = nodes.length
       const newNode = DEFAULT_NODE(newOrder)
-      newNode.title = `Lesson ${newOrder + 1}`
-      newNode.lessons[0].title = `Lesson ${newOrder + 1}`
+      // Next available number (highest+1), preserving gaps — see nextLessonNumber.
+      let maxNum = 0
+      for (const mod of nodes) {
+        const m = /^Lesson\s+(\d+)/i.exec(mod.title || '')
+        if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10))
+      }
+      newNode.title = `Lesson ${maxNum + 1}`
+      newNode.lessons[0].title = `Lesson ${maxNum + 1}`
       setCourseBuilderNodes([...nodes, newNode])
       setExpandedCourseBuilderNodes(new Set([...expandedCourseBuilderNodes, newNode.id]))
       return { nodeId: newNode.id, lessonId: newNode.lessons[0].id }
@@ -3588,12 +3608,13 @@ FEEDBACK: [one or two short sentences explaining the score]`
       setActiveDragId(event.active.id as string)
     }
 
-    // Helper function to renumber lesson titles after reordering
+    // Update lesson positions after reordering WITHOUT renaming. Lesson numbers
+    // are the tutor's to set — they must stay stable (and any gaps persist) until
+    // a tutor manually renames, so reordering only changes `order`, not the title.
     const renumberCourseBuilderNodes = (mods: CourseBuilderNode[]): CourseBuilderNode[] => {
       return mods.map((mod, idx) => ({
         ...mod,
         order: idx,
-        title: mod.title.replace(/^Lesson \d+/, `Lesson ${idx + 1}`),
       }))
     }
 
@@ -3811,11 +3832,10 @@ FEEDBACK: [one or two short sentences explaining the score]`
             activeLessonIndex,
             overLessonIndex
           )
-          // Renumber lessons after reordering
+          // Reposition only — keep each lesson's title stable (no auto-renumber).
           newCourseBuilderNodes[nIdx].lessons = movedLessons.map((lesson, idx) => ({
             ...lesson,
             order: idx,
-            title: lesson.title.replace(/^Lesson \d+/, `Lesson ${idx + 1}`),
           }))
           setCourseBuilderNodes(newCourseBuilderNodes)
           return
