@@ -9,8 +9,8 @@
  * plus the structured spec, so it complements the chat rather than replacing it.
  */
 
-import { useState } from 'react'
-import { Loader2, Sparkles } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Loader2, Sparkles, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { PCI_SPEC_FIELDS, pciSpecToText, type PciSpec } from '@/lib/assessment/pci-spec'
 
@@ -45,6 +45,11 @@ interface PciQuestionnaireProps {
   currentPci?: string
   /** Distilled marking scheme from the "Edit marks & answers" modal, if any. */
   markingScheme?: MarkingSchemeDigestRow[]
+  /** Upload a marking-scheme file — populates the DMI (marks & answers) exactly
+   *  as the "Edit marks & answers" modal does. When provided, the Guided form
+   *  shows an upload control and auto-prefills the PCI once the DMI is filled. */
+  onUploadMarkingScheme?: (file: File) => Promise<void>
+  markingSchemeLoading?: boolean
   canEdit: boolean
   onSave: (specText: string, spec: PciSpec) => void
   onClose: () => void
@@ -56,12 +61,18 @@ export function PciQuestionnaire({
   content,
   currentPci,
   markingScheme,
+  onUploadMarkingScheme,
+  markingSchemeLoading,
   canEdit,
   onSave,
   onClose,
 }: PciQuestionnaireProps) {
   const [spec, setSpec] = useState<PciSpec>({})
   const [prefilling, setPrefilling] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  // Set right after an upload so the auto-prefill fires once the DMI (and thus
+  // the markingScheme prop) has repopulated from the parsed scheme.
+  const [awaitingSchemePrefill, setAwaitingSchemePrefill] = useState(false)
 
   const setField = (key: keyof PciSpec, value: string) =>
     setSpec(prev => {
@@ -71,7 +82,7 @@ export function PciQuestionnaire({
       return next
     })
 
-  const prefill = async () => {
+  const prefill = useCallback(async () => {
     setPrefilling(true)
     try {
       const res = await fetch('/api/ai/pci-spec-suggest', {
@@ -104,6 +115,26 @@ export function PciQuestionnaire({
     } finally {
       setPrefilling(false)
     }
+  }, [source, title, content, currentPci, markingScheme])
+
+  // After an upload, the parent repopulates the DMI → the markingScheme prop
+  // grows → auto-prefill the PCI from the freshly-parsed scheme.
+  useEffect(() => {
+    if (awaitingSchemePrefill && (markingScheme?.length ?? 0) > 0) {
+      setAwaitingSchemePrefill(false)
+      void prefill()
+    }
+  }, [awaitingSchemePrefill, markingScheme, prefill])
+
+  const handleUpload = async (file: File) => {
+    if (!onUploadMarkingScheme) return
+    try {
+      await onUploadMarkingScheme(file)
+      // Fill the DMI first, then let the effect prefill the PCI from it.
+      setAwaitingSchemePrefill(true)
+    } catch {
+      // The upload hook surfaces its own errors.
+    }
   }
 
   const handleSave = () => {
@@ -122,10 +153,39 @@ export function PciQuestionnaire({
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-xs font-semibold text-indigo-900">Guided marking policy</span>
         <div className="flex items-center gap-2">
+          {canEdit && onUploadMarkingScheme && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf,.pdf,text/plain,.txt"
+                className="hidden"
+                onChange={e => {
+                  const file = e.target.files?.[0]
+                  e.target.value = ''
+                  if (file) void handleUpload(file)
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={markingSchemeLoading || prefilling}
+                className="inline-flex items-center gap-1 rounded-full border border-sky-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-sky-700 transition-colors hover:bg-sky-100 disabled:opacity-60"
+                title="Upload a marking scheme — fills marks & answers, then the policy"
+              >
+                {markingSchemeLoading ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Upload className="h-3 w-3" />
+                )}
+                Upload marking scheme
+              </button>
+            </>
+          )}
           {canEdit && (
             <button
               type="button"
-              onClick={prefill}
+              onClick={() => prefill()}
               disabled={prefilling}
               className="inline-flex items-center gap-1 rounded-full border border-indigo-300 bg-white px-2.5 py-1 text-[11px] font-semibold text-indigo-700 transition-colors hover:bg-indigo-100 disabled:opacity-60"
             >
@@ -156,6 +216,12 @@ export function PciQuestionnaire({
             {' '}
             Prefill reads your loaded marking scheme ({markingScheme.length} question
             {markingScheme.length === 1 ? '' : 's'}) and distils its award conventions into policy.
+          </>
+        ) : onUploadMarkingScheme ? (
+          <>
+            {' '}
+            Have the official marking scheme? <span className="font-medium">Upload</span> it — it
+            fills the marks &amp; answers, then prefills this policy automatically.
           </>
         ) : null}
       </p>
