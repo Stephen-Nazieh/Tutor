@@ -683,6 +683,15 @@
     display: none;
   }
 
+  /* Utility: hide scrollbar but keep scroll functionality */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Prevent layout shift when scrollbar appears/disappears (Radix/shadcn dropdowns/modals) */
   html[data-scroll-locked],
   body[data-scroll-locked] {
@@ -710,6 +719,14 @@
   [role='listbox'] {
     position: absolute;
     z-index: 1000;
+  }
+
+  /* Suppress Radix UI default focus/highlight background on Select and Dropdown items */
+  [data-radix-select-viewport] [data-highlighted],
+  [data-radix-dropdown-menu-content] [data-highlighted],
+  [role='option'][data-highlighted],
+  [role='menuitem'][data-highlighted] {
+    background-color: transparent !important;
   }
 
   /* Typography Hierarchy - Fira Code for headings */
