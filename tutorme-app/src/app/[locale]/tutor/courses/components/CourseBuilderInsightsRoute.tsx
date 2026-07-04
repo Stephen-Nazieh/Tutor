@@ -812,25 +812,6 @@ function CourseBuilderInsightsRouteInner({
                   {/* Course selector — locked to read-only when a session is active */}
                   {activeMainTab !== 'live' &&
                     activeMainTab !== 'test-pci' &&
-                    insightsProps.sessionId &&
-                    currentCourse && (
-                      <div className="flex h-9 min-w-[160px] max-w-[320px] items-center px-2 text-sm font-semibold text-slate-700">
-                        {currentCourse.nationality && currentCourse.nationality !== 'Global' ? (
-                          <span className="inline-flex items-center gap-1">
-                            {currentCourse.name} — {currentCourse.variantCategory || ''} —{' '}
-                            <CountryFlag
-                              countryName={currentCourse.nationality}
-                              size="xs"
-                              showLabel
-                            />
-                          </span>
-                        ) : (
-                          currentCourse.name
-                        )}
-                      </div>
-                    )}
-                  {activeMainTab !== 'live' &&
-                    activeMainTab !== 'test-pci' &&
                     insightsProps.onCourseChange && (
                       <Select
                         // Only feed a value that has a matching <SelectItem>. courseId can
@@ -919,28 +900,15 @@ function CourseBuilderInsightsRouteInner({
                       </Select>
                     )}
 
-                  {activeMainTab !== 'live' &&
-                    activeMainTab !== 'test-pci' &&
-                    onCourseNameChange &&
-                    courseId &&
-                    courseId !== 'insights-draft' && (
-                      <input
-                        className={cn(
-                          'h-9 min-w-[200px] rounded-md border-none bg-transparent px-2 text-sm font-semibold transition-colors placeholder:text-gray-400 focus:outline-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0',
-                          isCoursePublished ? 'cursor-not-allowed opacity-70' : 'hover:bg-slate-100'
-                        )}
-                        value={courseName || ''}
-                        readOnly={isCoursePublished}
-                        onChange={e => {
-                          onCourseNameChange(e.target.value)
-                        }}
-                        placeholder="Course Name..."
-                        title={
-                          isCoursePublished ? 'Published variant names cannot be edited' : undefined
-                        }
-                      />
-                    )}
-
+                  {activeMainTab === 'builder' && (
+                    <h1 className="text-foreground pointer-events-none absolute left-0 right-0 mx-auto flex items-center justify-center gap-2 text-2xl font-bold tracking-tight">
+                      {currentCourse?.name && (
+                        <span className="text-muted-foreground text-xl font-normal">
+                          {currentCourse.name}
+                        </span>
+                      )}
+                    </h1>
+                  )}
                   {activeMainTab === 'live' && (
                     // Centered across the full header via absolute positioning;
                     // pointer-events-none so the overlay never blocks the back
