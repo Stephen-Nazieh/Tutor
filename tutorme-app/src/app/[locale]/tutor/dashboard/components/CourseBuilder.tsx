@@ -6276,6 +6276,11 @@ FEEDBACK: [one or two short sentences explaining the score]`
                 hasVariants: (q.acceptableVariants?.length ?? 0) > 0,
               }))
               .filter(q => q.rubric || typeof q.marks === 'number' || q.hasVariants)}
+            // Upload a marking scheme straight from the Guided form: fills the
+            // DMI (marks & answers) via the same flow as "Edit marks & answers",
+            // then the form auto-prefills the PCI from it.
+            onUploadMarkingScheme={file => handleMarkingSchemeFile(file, source)}
+            markingSchemeLoading={markingSchemeLoading}
             canEdit={canEdit}
             onSave={(specText, spec) => {
               setCurrentPci(source, specText, {
