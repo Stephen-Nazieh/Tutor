@@ -5183,13 +5183,13 @@ FEEDBACK: [one or two short sentences explaining the score]`
     }, [courseAssets, assetViewFolder, assetViewSearch])
 
     const renderAssetsFolder = () => (
-      <div className="mb-3 mt-3 rounded-xl border bg-white shadow-sm">
+      <div className="mb-3 mt-3 rounded-xl border border-emerald-500 bg-white shadow-sm">
         {/* Header row matching image 1 */}
-        <div className="flex items-center justify-between px-3 py-2">
+        <div className="relative flex items-center justify-center px-3 py-2">
           <span className="text-sm font-semibold text-slate-700">Assets</span>
-          <div className="flex items-center gap-3">
+          <div className="absolute right-3 flex items-center gap-3">
             <button
-              className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              className="text-sm font-medium text-emerald-600 hover:text-emerald-700"
               onClick={() => {
                 setAssetViewSearch('')
                 setAssetViewFolder('All')
@@ -5268,7 +5268,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                   }}
                 />
                 <span
-                  className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                  className="flex items-center text-sm font-medium text-emerald-600 hover:text-emerald-700"
                   title="Upload Asset"
                 >
                   <Plus className="h-4 w-4" />
@@ -6711,7 +6711,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                       </div>
                     )}
 
-                    <ScrollArea className="min-h-0 flex-1 pr-1">
+                    <ScrollArea className="[&>[data-radix-scroll-area-viewport]]:scrollbar-none min-h-0 flex-1 pr-1">
                       <DndContext
                         sensors={sensors}
                         collisionDetection={closestCenter}
@@ -9991,7 +9991,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                       className="mt-3 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div
-                                        className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-2xl border border-[#EC4899] bg-white shadow-sm"
+                                        className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-2xl border border-pink-200 bg-white shadow-sm"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
                                           if (!canEdit) return
@@ -10185,7 +10185,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                     >
                                       <div
                                         data-pci-container="assessment"
-                                        className="relative flex h-full min-h-0 flex-col rounded-2xl border border-[#EC4899] bg-white p-4 shadow-sm"
+                                        className="relative flex h-full min-h-0 flex-col rounded-2xl border border-pink-200 bg-white p-4 shadow-sm"
                                       >
                                         <PciWalkthrough kind="assessment" />
                                         {/* Centered Pill for Test, Generate DMI, and Version History */}
@@ -10346,7 +10346,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                           />
                                           <div
                                             data-pci-anchor="chat-input"
-                                            className="mt-2 w-full rounded-2xl border border-purple-300 bg-white/90 backdrop-blur-md transition-all duration-300"
+                                            className="mt-2 w-full rounded-2xl border border-pink-200 bg-white/90 backdrop-blur-md transition-all duration-300"
                                           >
                                             <div className="relative flex w-full flex-col p-px">
                                               <div className="flex w-full flex-col">
