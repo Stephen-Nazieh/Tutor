@@ -33,7 +33,7 @@ export function CollapsibleCard({
     <div ref={cardRef}>
       <div
         className={cn(
-          'overflow-hidden p-0',
+          'flex flex-col overflow-hidden p-0',
           flush
             ? 'rounded-b-[16px] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)]'
             : 'rounded-[16px] bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)]',
@@ -51,8 +51,8 @@ export function CollapsibleCard({
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               {icon && <div className="panel-header-icon">{icon}</div>}
-              <div className="flex items-center">
-                <span className="panel-header-title">{title}</span>
+              <div>
+                <div className="panel-header-title">{title}</div>
                 {description && <span className="panel-header-subtext">{description}</span>}
               </div>
             </div>
