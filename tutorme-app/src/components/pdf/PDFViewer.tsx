@@ -186,16 +186,21 @@ export function PDFViewer({
           ref={scrollContainerRef}
           className={`relative flex-1 overflow-y-auto ${loading ? 'hidden' : 'block'}`}
         >
-          {/* Floating zoom pill */}
+          {/* Floating zoom pill - fixed position, does not scroll with content */}
           {!loading && !error && numPages > 0 && (
-            <FloatingZoomPill
-              scale={scale}
-              onScaleChange={newScale => changeScale(newScale, true)}
-              minScale={0.5}
-              maxScale={1.5}
-              onHidePreview={onHidePreview}
-              containerRef={scrollContainerRef}
-            />
+            <div className="pointer-events-none absolute right-4 top-1/2 z-50 -translate-y-1/2">
+              <div className="pointer-events-auto">
+                <FloatingZoomPill
+                  scale={scale}
+                  onScaleChange={newScale => changeScale(newScale, true)}
+                  minScale={0.5}
+                  maxScale={1.5}
+                  onHidePreview={onHidePreview}
+                  containerRef={scrollContainerRef}
+                  fixed
+                />
+              </div>
+            </div>
           )}
           <Document
             file={pdfData}

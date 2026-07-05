@@ -11,6 +11,7 @@ interface FloatingZoomPillProps {
   onHidePreview?: () => void
   className?: string
   containerRef?: React.RefObject<HTMLElement | null>
+  fixed?: boolean
 }
 
 export function FloatingZoomPill({
@@ -21,6 +22,7 @@ export function FloatingZoomPill({
   onHidePreview,
   className,
   containerRef,
+  fixed = false,
 }: FloatingZoomPillProps) {
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isDragging, setIsDragging] = useState(false)
@@ -41,20 +43,21 @@ export function FloatingZoomPill({
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
+      if (fixed) return
       setIsDragging(true)
       dragStartRef.current = {
         x: e.clientX - position.x,
         y: e.clientY - position.y,
       }
     },
-    [position]
+    [position, fixed]
   )
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (!isDragging) return
-      const pillWidth = pillRef.current?.offsetWidth ?? 56
-      const pillHeight = pillRef.current?.offsetHeight ?? 200
+      if (!isDragging || fixed) return
+      const pillWidth = pillRef.current?.offsetWidth ?? 50
+      const pillHeight = pillRef.current?.offsetHeight ?? 180
       const margin = 8
       const container = containerRef?.current
       let maxX: number
@@ -71,7 +74,7 @@ export function FloatingZoomPill({
       const newY = Math.max(margin, Math.min(maxY, e.clientY - dragStartRef.current.y))
       setPosition({ x: newX, y: newY })
     },
-    [isDragging, containerRef]
+    [isDragging, containerRef, fixed]
   )
 
   const handleMouseUp = useCallback(() => {
@@ -100,34 +103,21 @@ export function FloatingZoomPill({
     <div
       ref={pillRef}
       className={cn(
-        'absolute z-50 flex flex-col items-center gap-2 rounded-xl border border-white/20 bg-white/10 p-2.5 shadow-lg backdrop-blur-md transition-shadow',
+        'absolute z-50 flex flex-col items-center gap-2 rounded-xl border border-white/20 bg-white/10 p-2 shadow-lg backdrop-blur-md transition-shadow',
         isDragging ? 'cursor-grabbing shadow-xl' : 'cursor-default',
         className
       )}
       style={{
-        transform: `translate(${position.x}px, ${position.y}px)`,
+        transform: fixed ? undefined : `translate(${position.x}px, ${position.y}px)`,
         right: '16px',
         top: '50%',
-        marginTop: '-100px',
+        marginTop: '-90px',
       }}
     >
-      {/* Grab handle — four dots */}
-      <div
-        className="flex cursor-grab flex-col items-center gap-1 py-1 active:cursor-grabbing"
-        onMouseDown={handleMouseDown}
-        title="Drag to move"
-      >
-        <div className="grid grid-cols-2 gap-0.5">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-1 w-1 rounded-full bg-white/60" />
-          ))}
-        </div>
-      </div>
-
       {/* Vertical zoom slider */}
       <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] font-medium text-white/80">{Math.round(scale * 100)}%</span>
-        <div className="relative h-24 w-6">
+        <span className="text-[10px] font-medium text-gray-700">{Math.round(scale * 100)}%</span>
+        <div className="relative h-24 w-5">
           <input
             type="range"
             min="0"
@@ -135,7 +125,7 @@ export function FloatingZoomPill({
             step="1"
             value={sliderPercent}
             onChange={handleSliderChange}
-            className="absolute inset-0 h-24 w-6 cursor-pointer appearance-none rounded-full bg-white/20 outline-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_0_2px_rgba(255,255,255,0.8),0_2px_4px_rgba(0,0,0,0.3)]"
+            className="absolute inset-0 h-24 w-5 cursor-pointer appearance-none rounded-full bg-gray-500/30 outline-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-[0_0_0_2px_rgba(255,255,255,0.8),0_2px_4px_rgba(0,0,0,0.3)]"
             style={{
               writingMode: 'vertical-lr',
               direction: 'rtl',
