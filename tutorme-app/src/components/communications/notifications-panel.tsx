@@ -117,45 +117,7 @@ export default function NotificationsPanel({
   )
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden rounded-b-2xl border-0 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)]">
-      <div className="flex items-center justify-between bg-gradient-to-br from-[#1F2933] to-[#111827] px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
-            <Bell className="h-4 w-4 text-white" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-white">Notifications</h3>
-            <p className="text-[11px] text-white/60">
-              {unreadCount > 0 ? `${unreadCount} unread` : 'No new notifications'}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onMarkAllRead}
-              title="Mark all as read"
-              className="h-8 w-8 text-white/80 hover:bg-white/10 hover:text-white"
-            >
-              <CheckCheck className="h-4 w-4" />
-            </Button>
-          )}
-          {notifications.length > 0 && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClearAll}
-              title="Clear all"
-              className="h-8 w-8 text-white/80 hover:bg-white/10 hover:text-white"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-
+    <div className="flex h-full w-full flex-col overflow-hidden">
       <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-4 pb-4">
         {loading ? (
           <div className="flex items-center justify-center py-10">
