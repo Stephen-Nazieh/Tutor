@@ -1524,6 +1524,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       [insightsProps?.liveTasks, currentInsightsId]
     )
 
+    // Tutor closes a poll/question: server locks it and no more answers land.
+    const handleCloseInsight = useCallback(
+      (kind: 'poll' | 'question', insightId: string) => {
+        const socket = insightsProps?.socket
+        const roomId = insightsProps?.sessionId
+        const taskId = activeLiveTask?.id
+        if (!socket || !roomId || !taskId) return
+        socket.emit('insight:close', { roomId, taskId, type: kind, insightId })
+      },
+      [insightsProps?.socket, insightsProps?.sessionId, activeLiveTask?.id]
+    )
+
     // ALL polls for the active task (newest first) so sending a new poll no
     // longer hides the previous ones. Each option's tally is by 0-based index,
     // labelled from the poll's optionLabels (True/False, Yes/No, custom) with an
@@ -1538,6 +1550,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             id: poll.id,
             question: poll.question,
             totalResponses: total,
+            closed: poll.status === 'closed',
             options: Array.from({ length: optionCount }, (_, i) => {
               const responders = poll.responses.filter(r => r.value === i)
               return {
@@ -1559,6 +1572,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         .map(q => ({
           id: q.id,
           prompt: q.prompt,
+          closed: (q as { status?: string }).status === 'closed',
           answers: q.responses.map(r => ({
             studentName: studentNameById.get(r.studentId) || 'Student',
             answer: r.answer,
@@ -8800,6 +8814,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                               <InsightsReportView
                                                 type="poll"
                                                 pollResults={pollResults}
+                                                onClose={handleCloseInsight}
                                                 onMentionStudent={name =>
                                                   setPollPrompt(
                                                     pollPrompt
@@ -8896,6 +8911,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                               <InsightsReportView
                                                 type="question"
                                                 questionResults={questionResults}
+                                                onClose={handleCloseInsight}
                                                 onMentionStudent={name =>
                                                   setQuestionPrompt(
                                                     questionPrompt
@@ -10556,6 +10572,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                         <InsightsReportView
                                           type="poll"
                                           pollResults={pollResults}
+                                          onClose={handleCloseInsight}
                                           onMentionStudent={name =>
                                             setPollPrompt(
                                               pollPrompt
@@ -10633,6 +10650,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                         <InsightsReportView
                                           type="question"
                                           questionResults={questionResults}
+                                          onClose={handleCloseInsight}
                                           onMentionStudent={name =>
                                             setQuestionPrompt(
                                               questionPrompt
