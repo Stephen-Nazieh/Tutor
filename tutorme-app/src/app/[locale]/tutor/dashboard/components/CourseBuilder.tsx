@@ -9991,7 +9991,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                       className="mt-3 flex h-full min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden"
                                     >
                                       <div
-                                        className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-2xl border border-[#EC4899] bg-white shadow-sm"
+                                        className="relative flex h-full min-h-0 flex-row overflow-hidden rounded-2xl border border-pink-200 bg-white shadow-sm"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
                                           if (!canEdit) return
@@ -10185,7 +10185,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                     >
                                       <div
                                         data-pci-container="assessment"
-                                        className="relative flex h-full min-h-0 flex-col rounded-2xl border border-[#EC4899] bg-white p-4 shadow-sm"
+                                        className="relative flex h-full min-h-0 flex-col rounded-2xl border border-pink-200 bg-white p-4 shadow-sm"
                                       >
                                         <PciWalkthrough kind="assessment" />
                                         {/* Centered Pill for Test, Generate DMI, and Version History */}
@@ -10346,7 +10346,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                           />
                                           <div
                                             data-pci-anchor="chat-input"
-                                            className="mt-2 w-full rounded-2xl border border-purple-300 bg-white/90 backdrop-blur-md transition-all duration-300"
+                                            className="mt-2 w-full rounded-2xl border border-pink-200 bg-white/90 backdrop-blur-md transition-all duration-300"
                                           >
                                             <div className="relative flex w-full flex-col p-px">
                                               <div className="flex w-full flex-col">
