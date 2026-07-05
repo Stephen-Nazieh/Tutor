@@ -1129,6 +1129,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [liveRightPanelTab, setLiveRightPanelTab] = useState<'submissions' | 'insights'>(
       'submissions'
     )
+    // New (unseen) submission count, surfaced by SubmissionsPanel to badge the tab.
+    const [newSubmissionCount, setNewSubmissionCount] = useState(0)
 
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
     const [alertDialog, setAlertDialog] = useState<{
@@ -10712,6 +10714,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                         courseId={courseId || ''}
                         onToggleHidden={setRightPanelHidden}
                         liveSubmissions={insightsProps?.liveSubmissions}
+                        onNewSubmissionCount={setNewSubmissionCount}
                         headerExtra={
                           <div className="px-4 pt-4">
                             <Tabs
@@ -10724,9 +10727,14 @@ FEEDBACK: [one or two short sentences explaining the score]`
                               <TabsList className="grid w-full grid-cols-2 gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
                                 <TabsTrigger
                                   value="submissions"
-                                  className="h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
+                                  className="relative h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
                                 >
                                   Submissions
+                                  {newSubmissionCount > 0 && (
+                                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-semibold text-white">
+                                      {newSubmissionCount}
+                                    </span>
+                                  )}
                                 </TabsTrigger>
                                 <TabsTrigger
                                   value="insights"
