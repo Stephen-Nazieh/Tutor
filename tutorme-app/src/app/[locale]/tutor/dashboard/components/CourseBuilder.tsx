@@ -1467,11 +1467,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // the live session), fall back to the most-recently-deployed live task so the
     // composer has a real target and the Send button isn't permanently disabled.
     const loadedInsightsTaskId = mainBuilderTab === 'assessment' ? loadedAssessmentId : loadedTaskId
+    // Fall back to the most-recently-deployed live task whenever one exists, so
+    // the poll/question composer has a target and its Send button is active —
+    // the composer only shows in a live session, so gating on the exact mainTab
+    // value was too strict and left Send permanently disabled.
     const activeInsightsTaskId =
       loadedInsightsTaskId ??
-      (mainTab === 'live'
-        ? (insightsProps?.liveTasks?.[insightsProps.liveTasks.length - 1]?.id ?? null)
-        : null)
+      insightsProps?.liveTasks?.[(insightsProps.liveTasks?.length ?? 0) - 1]?.id ??
+      null
     const activeInsightsTask = activeInsightsTaskId
       ? (nodes
           .flatMap(n => n.lessons.flatMap(l => [...l.tasks, ...(l.homework || [])]))
