@@ -665,7 +665,10 @@ export default function TutorSettings() {
           ]}
         >
           {/* Profile & Identity */}
-          <TabsContent value="profile" className="mt-0 flex h-full flex-col gap-4 pb-4">
+          <TabsContent
+            value="profile"
+            className="mt-0 flex h-full flex-col gap-4 overflow-y-auto pb-4"
+          >
             <CollapsibleCard
               className={SECTION_CARD_CLASS}
               title="Your Profile"
@@ -928,12 +931,18 @@ export default function TutorSettings() {
           </TabsContent>
 
           {/* 1-on-1 Booking */}
-          <TabsContent value="1-on-1" className="mt-0 flex h-full flex-col gap-4 pb-4">
+          <TabsContent
+            value="1-on-1"
+            className="mt-0 flex h-full flex-col gap-4 overflow-y-auto pb-4"
+          >
             <OneOnOneSettingsCard />
           </TabsContent>
 
           {/* Billing & Payment */}
-          <TabsContent value="billing" className="mt-0 flex h-full flex-col gap-4 pb-4">
+          <TabsContent
+            value="billing"
+            className="mt-0 flex h-full flex-col gap-4 overflow-y-auto pb-4"
+          >
             <CollapsibleCard
               className={SECTION_CARD_CLASS}
               title="Payment Methods"
@@ -1137,7 +1146,10 @@ export default function TutorSettings() {
           </TabsContent>
 
           {/* Refunds */}
-          <TabsContent value="refunds" className="mt-0 flex h-full flex-col gap-4 pb-4">
+          <TabsContent
+            value="refunds"
+            className="mt-0 flex h-full flex-col gap-4 overflow-y-auto pb-4"
+          >
             <CollapsibleCard
               className={SECTION_CARD_CLASS}
               title="Refunds"
@@ -1152,7 +1164,10 @@ export default function TutorSettings() {
           </TabsContent>
 
           {/* Notifications */}
-          <TabsContent value="notifications" className="mt-0 flex h-full flex-col gap-4 pb-4">
+          <TabsContent
+            value="notifications"
+            className="mt-0 flex h-full flex-col gap-4 overflow-y-auto pb-4"
+          >
             <CollapsibleCard
               className={SECTION_CARD_CLASS}
               title="Notification Preferences"
@@ -1258,7 +1273,10 @@ export default function TutorSettings() {
           </TabsContent>
 
           {/* Privacy & Security */}
-          <TabsContent value="security" className="mt-0 flex h-full flex-col gap-4 pb-4">
+          <TabsContent
+            value="security"
+            className="mt-0 flex h-full flex-col gap-4 overflow-y-auto pb-4"
+          >
             <CollapsibleCard
               className={SECTION_CARD_CLASS}
               title="Privacy & Security"
@@ -1362,7 +1380,10 @@ export default function TutorSettings() {
           </TabsContent>
 
           {/* Live Session Mirroring */}
-          <TabsContent value="controls" className="mt-0 flex h-full flex-col gap-4 pb-4">
+          <TabsContent
+            value="controls"
+            className="mt-0 flex h-full flex-col gap-4 overflow-y-auto pb-4"
+          >
             <CollapsibleCard
               className={SECTION_CARD_CLASS}
               title="Live Session Mirroring"
@@ -1571,7 +1592,10 @@ export default function TutorSettings() {
           </TabsContent>
 
           {/* Session Log */}
-          <TabsContent value="session-log" className="mt-0 flex h-full flex-col gap-4 pb-4">
+          <TabsContent
+            value="session-log"
+            className="mt-0 flex h-full flex-col gap-4 overflow-y-auto pb-4"
+          >
             <SessionLog />
           </TabsContent>
         </SessionCalendarPanel>
