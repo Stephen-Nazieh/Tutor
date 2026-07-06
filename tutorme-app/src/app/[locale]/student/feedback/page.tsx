@@ -985,6 +985,7 @@ function StudentFeedbackContent() {
     tasks: true,
     assessments: true,
     homework: true,
+    materials: true,
     reports: true,
     recordedSessions: true,
   })
@@ -1014,6 +1015,7 @@ function StudentFeedbackContent() {
             tasks: true,
             assessments: true,
             homework: true,
+            materials: true,
             reports: true,
             recordedSessions: true,
           }
@@ -1759,6 +1761,7 @@ function StudentFeedbackContent() {
         item.type === 'task' ||
         item.type === 'assessment' ||
         item.type === 'homework' ||
+        item.type === 'asset' ||
         item.type === 'recording'
       ) {
         try {
@@ -2793,6 +2796,61 @@ function StudentFeedbackContent() {
                                                         </span>
                                                       </button>
                                                     ))}
+                                              </div>
+                                            )}
+                                          </div>
+
+                                          {/* Materials — documents/resources the
+                                              tutor deployed in a live session. */}
+                                          <div>
+                                            <button
+                                              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 hover:bg-slate-100"
+                                              onClick={() =>
+                                                setFoldersOpen(prev => ({
+                                                  ...prev,
+                                                  materials: !prev.materials,
+                                                }))
+                                              }
+                                            >
+                                              {foldersOpen.materials ? (
+                                                <ChevronDown className="h-4 w-4 shrink-0 text-slate-500" />
+                                              ) : (
+                                                <ChevronRight className="h-4 w-4 shrink-0 text-slate-500" />
+                                              )}
+                                              <Folder
+                                                className="h-4 w-4 shrink-0 text-amber-400"
+                                                fill="currentColor"
+                                              />
+                                              <span className="text-sm font-medium text-slate-700">
+                                                Materials
+                                              </span>
+                                            </button>
+                                            {foldersOpen.materials && (
+                                              <div className="mt-1 flex flex-col gap-0.5 pl-6">
+                                                {(!courseData.materials ||
+                                                  courseData.materials.length === 0) && (
+                                                  <span className="px-2 py-1 text-xs text-slate-500">
+                                                    Empty folder
+                                                  </span>
+                                                )}
+                                                {courseData.materials &&
+                                                  [...courseData.materials].reverse().map(task => (
+                                                    <button
+                                                      key={task.id}
+                                                      onClick={() =>
+                                                        handleSelectDirectoryItem(task)
+                                                      }
+                                                      className={cn(
+                                                        'group flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
+                                                        activeTaskId === (task.itemId || task.id)
+                                                          ? 'bg-amber-50 font-medium text-amber-700'
+                                                          : 'text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+                                                      )}
+                                                    >
+                                                      <FileText className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+                                                      <span className="truncate">{task.title}</span>
+                                                    </button>
+                                                  ))}
                                               </div>
                                             )}
                                           </div>
