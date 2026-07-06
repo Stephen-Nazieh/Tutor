@@ -1181,6 +1181,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [dmiSpecRows, setDmiSpecRows] = useState<Array<{ type: DmiQuestionType; count: number }>>(
       []
     )
+    // "Is this a question paper?" confirmation — shown when generate-dmi can't be
+    // confident of the document kind (model unsure, or its call conflicts with the
+    // text signals). `signal` is the code-level paper-signal strength, for a hint.
+    const [dmiKindDialog, setDmiKindDialog] = useState<{
+      type: 'task' | 'assessment'
+      signal: 'strong' | 'weak' | 'none' | null
+    } | null>(null)
     // "Edit marks & answers" review modal — lets the tutor set per-question marks
     // and vet/approve the AI-generated answers before deploying.
     const [dmiEditor, setDmiEditor] = useState<{ source: 'task' | 'assessment' } | null>(null)
@@ -3045,7 +3052,8 @@ FEEDBACK: [one or two short sentences explaining the score]`
     // material and the tutor has chosen which question types/counts to generate.
     const handleGenerateDMI = async (
       type: 'task' | 'assessment',
-      questionSpec?: Array<{ type: DmiQuestionType; count: number }>
+      questionSpec?: Array<{ type: DmiQuestionType; count: number }>,
+      documentKindOverride?: 'question_paper' | 'study_material'
     ) => {
       const isTask = type === 'task'
       const builder = isTask ? taskBuilder : assessmentBuilder
@@ -3095,6 +3103,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
             content: pdfText ?? (!hasPdf && hasContent ? content : undefined),
             pdfPages,
             questionSpec,
+            documentKindOverride,
           }),
         })
 
@@ -3104,6 +3113,14 @@ FEEDBACK: [one or two short sentences explaining the score]`
         }
 
         const data = await response.json()
+
+        // Ambiguous document kind: ask the tutor to confirm "question paper vs
+        // study material" before proceeding, instead of silently treating it as a
+        // paper. On confirm we re-run with an explicit override.
+        if (data.needsKindConfirmation && !documentKindOverride) {
+          setDmiKindDialog({ type, signal: data.documentSignal ?? null })
+          return
+        }
 
         // Study material with no explicit questions: ask the tutor which question
         // types + counts to generate, then re-run with that spec.
@@ -11938,6 +11955,53 @@ FEEDBACK: [one or two short sentences explaining the score]`
                   </>
                 )
               })()}
+          </DialogContent>
+        </Dialog>
+
+        {/* Document-kind confirmation — shown when generate-dmi can't be confident
+            whether the upload is a question paper or study material, so we ask
+            rather than silently treating it as a paper. */}
+        <Dialog
+          open={!!dmiKindDialog}
+          onOpenChange={open => {
+            if (!open) setDmiKindDialog(null)
+          }}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Is this a question paper?</DialogTitle>
+              <DialogDescription>
+                We couldn&rsquo;t tell whether this document is a question paper (a set of questions
+                for students to answer) or study material to learn from.
+                {dmiKindDialog?.signal === 'none'
+                  ? ' It reads mostly like explanatory material.'
+                  : dmiKindDialog?.signal === 'strong'
+                    ? ' It shows strong signs of a question paper.'
+                    : ''}{' '}
+                Which is it?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-2 py-2">
+              <Button
+                onClick={() => {
+                  const t = dmiKindDialog?.type
+                  setDmiKindDialog(null)
+                  if (t) void handleGenerateDMI(t, undefined, 'question_paper')
+                }}
+              >
+                It&rsquo;s a question paper
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const t = dmiKindDialog?.type
+                  setDmiKindDialog(null)
+                  if (t) void handleGenerateDMI(t, undefined, 'study_material')
+                }}
+              >
+                It&rsquo;s study material
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
 

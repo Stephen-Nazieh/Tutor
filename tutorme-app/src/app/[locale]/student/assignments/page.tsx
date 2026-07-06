@@ -22,7 +22,9 @@ import { QuizModal, type QuestionResultItem } from '@/components/quiz/quiz-modal
 import {
   AssessmentReviewModal,
   type AssessmentReviewData,
+  type FollowUpTurn,
 } from '@/components/quiz/assessment-review-modal'
+import { AssessmentMasteryCard } from '@/components/student/assessment-mastery-card'
 import { toast } from 'sonner'
 
 interface AssignmentItem {
@@ -82,6 +84,8 @@ export default function StudentAssignmentsPage() {
   const [reviewData, setReviewData] = useState<AssessmentReviewData | null>(null)
   const [reviewTaskId, setReviewTaskId] = useState<string | null>(null)
   const [hintsLoading, setHintsLoading] = useState(false)
+  // Non-graded re-practice of missed questions (never hits the submit endpoint).
+  const [isPractice, setIsPractice] = useState(false)
 
   const loadAssignments = useCallback(async () => {
     setLoading(true)
@@ -145,6 +149,7 @@ export default function StudentAssignmentsPage() {
           answers: data.existingAnswers ?? null,
           questionResults: data.existingQuestionResults ?? null,
           aiFeedback: data.existingAiFeedback?.items ?? null,
+          answerReveal: data.task.answerReveal,
         })
         return
       }
@@ -188,12 +193,77 @@ export default function StudentAssignmentsPage() {
     }
   }
 
+  // Answer a follow-up about one question, grounded in the tutor's marking policy.
+  const handleAsk = async (
+    questionId: string,
+    question: string,
+    history: FollowUpTurn[]
+  ): Promise<string> => {
+    if (!reviewTaskId) throw new Error('No task')
+    const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+    const csrf = (await csrfRes.json().catch(() => ({})))?.token ?? null
+    const res = await fetch(`/api/student/assignments/${reviewTaskId}/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
+      credentials: 'include',
+      body: JSON.stringify({ questionId, question, history }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || !data?.answer) {
+      throw new Error(data?.error ?? 'Could not answer')
+    }
+    return data.answer as string
+  }
+
+  // Grounded step-by-step worked solution for one question.
+  const handleWorkedSolution = async (questionId: string): Promise<string> => {
+    if (!reviewTaskId) throw new Error('No task')
+    const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+    const csrf = (await csrfRes.json().catch(() => ({})))?.token ?? null
+    const res = await fetch(`/api/student/assignments/${reviewTaskId}/worked-solution`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(csrf && { 'X-CSRF-Token': csrf }) },
+      credentials: 'include',
+      body: JSON.stringify({ questionId }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || !data?.solution) {
+      throw new Error(data?.error ?? 'No worked solution')
+    }
+    return data.solution as string
+  }
+
+  // Re-practise the missed questions in instant (practice) mode — never submits.
+  const handlePractice = (questionIds: string[]) => {
+    const wrong = (reviewData?.questions ?? []).filter(q => questionIds.includes(String(q.id)))
+    if (wrong.length === 0) return
+    const questions = wrong.map(q => ({
+      id: q.id,
+      type: q.options && q.options.length > 0 ? 'multiple_choice' : 'short_answer',
+      question: q.question,
+      options: q.options,
+      correctAnswer: q.correctAnswer,
+      points: q.points ?? 10,
+    }))
+    const title = reviewData?.title ?? 'Practice'
+    setReviewData(null)
+    setIsPractice(true)
+    setStudyMode('practice')
+    setActiveTask({ id: reviewTaskId ?? 'practice', title, questions, answerReveal: 'instant' })
+    setStartTime(Date.now())
+    setTakingQuiz(true)
+  }
+
   const handleQuizComplete = async (results: {
     score: number
     answers: Record<string, any>
     questionResults?: QuestionResultItem[]
   }) => {
     if (!activeTask) return
+    // Practice mode is non-graded — QuizModal already showed instant results, so
+    // don't touch the submit endpoint (which would 409 on the real submission).
+    if (isPractice) return
+
     setSubmitting(true)
 
     const timeSpentSec = Math.round((Date.now() - startTime) / 1000)
@@ -250,6 +320,7 @@ export default function StudentAssignmentsPage() {
     setTakingQuiz(false)
     setActiveTask(null)
     setStudyMode(null)
+    setIsPractice(false)
   }
 
   const parseDocumentSource = (raw?: string | null): ParsedDocumentSource | null => {
@@ -336,8 +407,10 @@ export default function StudentAssignmentsPage() {
     }
 
     // Resolve the student's choice to a concrete reveal mode for the quiz.
-    const effectiveReveal: 'instant' | 'after_submit' | 'hidden' =
-      activeTask.answerReveal === 'student_choice'
+    // Practice mode always grades instantly (it's a non-graded re-attempt).
+    const effectiveReveal: 'instant' | 'after_submit' | 'hidden' = isPractice
+      ? 'instant'
+      : activeTask.answerReveal === 'student_choice'
         ? studyMode === 'practice'
           ? 'instant'
           : 'after_submit'
@@ -376,6 +449,9 @@ export default function StudentAssignmentsPage() {
           onClose={() => setReviewData(null)}
           onRequestHints={handleRequestHints}
           hintsLoading={hintsLoading}
+          onAsk={handleAsk}
+          onWorkedSolution={handleWorkedSolution}
+          onPractice={handlePractice}
         />
       )}
       <div className="mb-8">
@@ -385,6 +461,8 @@ export default function StudentAssignmentsPage() {
         </h1>
         <p className="mt-1 text-gray-600">Track your homework, quizzes, and projects</p>
       </div>
+
+      <AssessmentMasteryCard />
 
       {/* Stats Cards */}
       <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">

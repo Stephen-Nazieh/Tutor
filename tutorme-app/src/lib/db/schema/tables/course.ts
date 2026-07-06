@@ -325,6 +325,14 @@ export const taskSubmission = pgTable(
     maxScore: integer('maxScore').notNull(),
     status: text('status').notNull(),
     aiFeedback: jsonb('aiFeedback'),
+    // Persisted follow-up Q&A the student had with the PCI-scoped assistant, so
+    // the tutor can see what was asked/answered (and catch AI drift). Array of
+    // { questionId, question, answer, at }.
+    followUps: jsonb('followUps'),
+    // Cached AI worked solutions, keyed by questionId: { [questionId]: string }.
+    // Generated on demand and reused so we never re-run the model for a solution
+    // the student already viewed.
+    workedSolutions: jsonb('workedSolutions'),
     tutorFeedback: text('tutorFeedback'),
     tutorApproved: boolean('tutorApproved').notNull(),
     submittedAt: timestamp('submittedAt', { withTimezone: true }).notNull().defaultNow(),

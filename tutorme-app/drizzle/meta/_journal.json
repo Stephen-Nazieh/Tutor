@@ -470,6 +470,20 @@
       "when": 1781900000066,
       "tag": "0066_courselesson_source_lesson",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1781900000067,
+      "tag": "0067_tasksubmission_followups",
+      "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1781900000068,
+      "tag": "0068_tasksubmission_worked_solutions",
+      "breakpoints": true
     }
   ]
 }
