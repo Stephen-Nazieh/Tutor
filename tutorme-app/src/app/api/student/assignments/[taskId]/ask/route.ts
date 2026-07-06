@@ -80,7 +80,11 @@ export async function POST(
     // The student's own submission for this task (proves ownership + provides
     // the answer being discussed).
     const [submission] = await drizzleDb
-      .select({ answers: taskSubmission.answers })
+      .select({
+        submissionId: taskSubmission.submissionId,
+        answers: taskSubmission.answers,
+        followUps: taskSubmission.followUps,
+      })
       .from(taskSubmission)
       .where(and(eq(taskSubmission.taskId, taskId), eq(taskSubmission.studentId, studentId)))
       .limit(1)
@@ -192,6 +196,24 @@ export async function POST(
         '[ask] task guardrail warnings:',
         guardrail.violations.map(v => `${v.ruleId} ${v.severity}`).join(', ')
       )
+    }
+
+    // Persist the Q&A so the tutor can see what the student asked and how the
+    // assistant answered (best-effort — never fail the response on a write error).
+    try {
+      const existing = Array.isArray(submission.followUps)
+        ? (submission.followUps as unknown[])
+        : []
+      const next = [
+        ...existing,
+        { questionId, question, answer, at: new Date().toISOString() },
+      ].slice(-50)
+      await drizzleDb
+        .update(taskSubmission)
+        .set({ followUps: next })
+        .where(eq(taskSubmission.submissionId, submission.submissionId))
+    } catch (persistErr) {
+      console.warn('[ask] failed to persist follow-up:', persistErr)
     }
 
     return NextResponse.json({ answer })
