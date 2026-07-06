@@ -150,6 +150,10 @@ ALTER TABLE "DeployedMaterial" ADD COLUMN IF NOT EXISTS "lessonId" text;
 -- lesson was copied from, so correlation survives lesson reordering. Nullable.
 ALTER TABLE "CourseLesson" ADD COLUMN IF NOT EXISTS "sourceLessonId" text;
 
+-- Follow-up Q&A (drizzle/0067): persisted student<->assistant follow-ups on a
+-- graded assessment, so tutors can see what was asked/answered. Nullable jsonb.
+ALTER TABLE "TaskSubmission" ADD COLUMN IF NOT EXISTS "followUps" jsonb;
+
 -- TaskDeploymentStatus enum
 DO $$
 BEGIN
