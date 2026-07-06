@@ -37,6 +37,7 @@ import {
 } from 'lucide-react'
 import { StudentHeroSection } from '@/app/[locale]/student/dashboard/components/StudentHeroSection'
 import { SessionCalendarPanel } from '@/components/session-calendar-panel'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { useNavigationOverlay } from '@/components/navigation/NavigationOverlay'
 import {
   Dialog,
@@ -655,7 +656,7 @@ function CoursePageInner() {
       />
 
       {/* Tabs */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-0.5">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl pb-0.5 shadow-[0_14px_45px_rgba(0,0,0,0.14)]">
         <SessionCalendarPanel
           value={activeTab}
           onValueChange={value => {
@@ -671,7 +672,7 @@ function CoursePageInner() {
             { value: 'following', label: `Following (${followingTutors.length})` },
           ]}
         >
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pr-4">
+          <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pb-4">
             {isLoading ? (
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {[1, 2, 3].map(i => (
@@ -681,66 +682,106 @@ function CoursePageInner() {
                 ))}
               </div>
             ) : (
-              <div className="flex min-h-0 flex-1 flex-col gap-12">
-                {activeTab === 'mine' && (
-                  <CourseSection
-                    title="Ongoing Courses"
-                    description="Courses you've started — your start date has passed and you haven't finished them yet. Join live sessions and keep learning."
-                    courses={ongoing}
-                    favoriteIds={favoriteIds}
-                    toggleFavorite={toggleFavorite}
-                    onDetails={setDetailCourse}
-                    onSchedule={setScheduleCourse}
-                    enteringClass={enteringClass}
-                    onEnterClass={handleEnterClass}
-                    onUnregister={handleUnregister}
-                    unregisteringId={unregisteringId}
-                  />
-                )}
-                {activeTab === 'pending' && (
-                  <CourseSection
-                    title="Pending Courses"
-                    description="Courses you're enrolled in that haven't started yet — their start date is still in the future. They'll move to Ongoing once they begin."
-                    courses={upcoming}
-                    favoriteIds={favoriteIds}
-                    toggleFavorite={toggleFavorite}
-                    onDetails={setDetailCourse}
-                    onSchedule={setScheduleCourse}
-                    enteringClass={enteringClass}
-                    onEnterClass={handleEnterClass}
-                    onUnregister={handleUnregister}
-                    unregisteringId={unregisteringId}
-                  />
-                )}
-                {activeTab === 'completed' && (
-                  <CourseSection
-                    title="Completed Courses"
-                    description="Courses you've finished — you've completed all lessons. Revisit materials and recordings anytime."
-                    courses={completed}
-                    favoriteIds={favoriteIds}
-                    toggleFavorite={toggleFavorite}
-                    onDetails={setDetailCourse}
-                    onSchedule={setScheduleCourse}
-                    enteringClass={enteringClass}
-                    onEnterClass={handleEnterClass}
-                    onUnregister={handleUnregister}
-                    unregisteringId={unregisteringId}
-                  />
-                )}
-                {activeTab === 'favorites' && (
-                  <CourseSection
-                    title="Favorite Courses"
-                    description="Courses you've saved to revisit later. Favoriting doesn't enrol you — open one to enrol or view details."
-                    courses={favorites}
-                    favoriteIds={favoriteIds}
-                    toggleFavorite={toggleFavorite}
-                    onDetails={setDetailCourse}
-                    onSchedule={setScheduleCourse}
-                    enteringClass={enteringClass}
-                    onEnterClass={handleEnterClass}
-                  />
-                )}
-                {activeTab === 'following' && (
+              <>
+                <TabsContent value="mine" className="h-full overflow-hidden">
+                  {ongoing.length === 0 ? (
+                    <div className="flex h-full flex-col items-center justify-center text-center">
+                      <BookOpen className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+                      <h3 className="text-lg font-medium text-gray-900">
+                        No courses in this section
+                      </h3>
+                    </div>
+                  ) : (
+                    <CourseSection
+                      title="Ongoing Courses"
+                      description="Courses you've started — your start date has passed and you haven't finished them yet. Join live sessions and keep learning."
+                      courses={ongoing}
+                      favoriteIds={favoriteIds}
+                      toggleFavorite={toggleFavorite}
+                      onDetails={setDetailCourse}
+                      onSchedule={setScheduleCourse}
+                      enteringClass={enteringClass}
+                      onEnterClass={handleEnterClass}
+                      onUnregister={handleUnregister}
+                      unregisteringId={unregisteringId}
+                    />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="pending" className="h-full overflow-hidden">
+                  {upcoming.length === 0 ? (
+                    <div className="flex h-full flex-col items-center justify-center text-center">
+                      <BookOpen className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+                      <h3 className="text-lg font-medium text-gray-900">
+                        No courses in this section
+                      </h3>
+                    </div>
+                  ) : (
+                    <CourseSection
+                      title="Pending Courses"
+                      description="Courses you're enrolled in that haven't started yet — their start date is still in the future. They'll move to Ongoing once they begin."
+                      courses={upcoming}
+                      favoriteIds={favoriteIds}
+                      toggleFavorite={toggleFavorite}
+                      onDetails={setDetailCourse}
+                      onSchedule={setScheduleCourse}
+                      enteringClass={enteringClass}
+                      onEnterClass={handleEnterClass}
+                      onUnregister={handleUnregister}
+                      unregisteringId={unregisteringId}
+                    />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="completed" className="h-full overflow-hidden">
+                  {completed.length === 0 ? (
+                    <div className="flex h-full flex-col items-center justify-center text-center">
+                      <BookOpen className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+                      <h3 className="text-lg font-medium text-gray-900">
+                        No courses in this section
+                      </h3>
+                    </div>
+                  ) : (
+                    <CourseSection
+                      title="Completed Courses"
+                      description="Courses you've finished — you've completed all lessons. Revisit materials and recordings anytime."
+                      courses={completed}
+                      favoriteIds={favoriteIds}
+                      toggleFavorite={toggleFavorite}
+                      onDetails={setDetailCourse}
+                      onSchedule={setScheduleCourse}
+                      enteringClass={enteringClass}
+                      onEnterClass={handleEnterClass}
+                      onUnregister={handleUnregister}
+                      unregisteringId={unregisteringId}
+                    />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="favorites" className="h-full overflow-hidden">
+                  {favorites.length === 0 ? (
+                    <div className="flex h-full flex-col items-center justify-center text-center">
+                      <BookOpen className="mx-auto mb-4 h-16 w-16 text-gray-300" />
+                      <h3 className="text-lg font-medium text-gray-900">
+                        No courses in this section
+                      </h3>
+                    </div>
+                  ) : (
+                    <CourseSection
+                      title="Favorite Courses"
+                      description="Courses you've saved to revisit later. Favoriting doesn't enrol you — open one to enrol or view details."
+                      courses={favorites}
+                      favoriteIds={favoriteIds}
+                      toggleFavorite={toggleFavorite}
+                      onDetails={setDetailCourse}
+                      onSchedule={setScheduleCourse}
+                      enteringClass={enteringClass}
+                      onEnterClass={handleEnterClass}
+                    />
+                  )}
+                </TabsContent>
+
+                <TabsContent value="following" className="h-full overflow-hidden">
                   <section className="flex min-h-0 flex-1 flex-col">
                     <div className="mb-6 flex items-center justify-between">
                       <h2 className="text-xl font-bold text-gray-900">Following tutors</h2>
@@ -846,20 +887,8 @@ function CoursePageInner() {
                       </div>
                     )}
                   </section>
-                )}
-
-                {((activeTab === 'mine' && ongoing.length === 0) ||
-                  (activeTab === 'pending' && upcoming.length === 0) ||
-                  (activeTab === 'completed' && completed.length === 0) ||
-                  (activeTab === 'favorites' && favorites.length === 0)) && (
-                  <div className="flex flex-1 flex-col items-center justify-center text-center">
-                    <BookOpen className="mx-auto mb-4 h-16 w-16 text-gray-300" />
-                    <h3 className="text-lg font-medium text-gray-900">
-                      No courses in this section
-                    </h3>
-                  </div>
-                )}
-              </div>
+                </TabsContent>
+              </>
             )}
           </div>
         </SessionCalendarPanel>
