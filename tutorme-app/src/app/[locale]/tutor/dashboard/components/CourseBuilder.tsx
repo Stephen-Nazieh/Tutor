@@ -10929,26 +10929,19 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                 setLiveRightPanelTab(value as 'submissions' | 'insights')
                               }}
                             >
-                              <TabsList className="grid w-full grid-cols-2 gap-2 rounded-lg border-0 bg-gray-100 p-1 shadow-none">
-                                <TabsTrigger
-                                  value="submissions"
-                                  className="relative h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
-                                >
-                                  Submissions
-                                  {newSubmissionCount > 0 && (
-                                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-600 px-1 text-[9px] font-semibold text-white">
-                                      {newSubmissionCount}
-                                    </span>
-                                  )}
-                                </TabsTrigger>
-                                <TabsTrigger
-                                  value="insights"
-                                  disabled={mainTab !== 'live'}
-                                  className="h-8 rounded-md px-3 text-xs font-medium transition-all hover:bg-white hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 data-[state=active]:bg-gray-800 data-[state=inactive]:bg-white data-[state=active]:text-white data-[state=inactive]:text-gray-700"
-                                >
-                                  Insights
-                                </TabsTrigger>
-                              </TabsList>
+                              <SlidingPillTabsList
+                                value={liveRightPanelTab}
+                                variant="gray"
+                                tabs={[
+                                  { value: 'submissions', label: 'Submissions' },
+                                  {
+                                    value: 'insights',
+                                    label: 'Insights',
+                                    disabled: mainTab !== 'live',
+                                  },
+                                ]}
+                                triggerClassName="h-8 rounded-md px-3"
+                              />
                             </Tabs>
                           </div>
                         }
