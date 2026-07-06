@@ -19,6 +19,7 @@ import {
 } from '@/lib/assessment/question-types'
 import { extractQuestionRef } from '@/lib/assessment/marking-scheme'
 import { scoreDocumentConfidence } from '@/lib/assessment/confidence'
+import { analyzeDocumentSignals } from '@/lib/assessment/document-signals'
 import {
   runAssessmentGuardrails,
   GUARDRAILED_TEMPERATURE,
@@ -43,6 +44,12 @@ const GenerateDmiRequestSchema = z.object({
     .array(z.object({ type: z.enum(DMI_QUESTION_TYPES), count: z.number().int().min(1).max(50) }))
     .max(10)
     .optional(),
+  /**
+   * Tutor's explicit answer to the "is this a question paper?" prompt. When set,
+   * the model is told the kind (so it extracts/authors accordingly) and the
+   * re-classification confirmation is skipped.
+   */
+  documentKindOverride: z.enum(['question_paper', 'study_material']).optional(),
 })
 
 const SYSTEM_PROMPT = `You build a DMI: a list of ANSWER INPUT FIELDS for a question paper. The student
@@ -51,7 +58,7 @@ the question wording or any answers — you only output a short reference LABEL 
 
 Return ONLY a JSON object (no prose, no markdown, no code fences) with EXACTLY this shape:
 {
-  "documentKind": "question_paper" | "study_material",
+  "documentKind": "question_paper" | "study_material" | "uncertain",
   "fields": [
     { "label": "Question 1(a)", "type": "short", "marks": 2 },
     { "label": "Question 2", "type": "mcq", "options": ["A", "B", "C", "D", "E"], "answer": "C", "marks": 1 }
@@ -59,23 +66,27 @@ Return ONLY a JSON object (no prose, no markdown, no code fences) with EXACTLY t
 }
 
 Rules:
-- documentKind (ALWAYS include it). Decide ONLY by whether the student is being asked to ANSWER
-  questions — NOT by how much prose the document contains:
-  - "question_paper" — the document contains questions/tasks the student must answer. Signals:
-    numbered questions or parts (1, 2, (a), (b), (i), (ii)); multiple-choice items with lettered
-    options (A–E); imperative task verbs aimed at the student (calculate, determine, find, compute,
-    show, prove, explain, justify, describe, state, estimate, sketch, construct, interpret); printed
-    mark allocations like "[5]"; or blank answer spaces. This INCLUDES exam / past papers that wrap
-    each question in heavy context — a scenario paragraph, a data set, a table, a chart, a formula
-    sheet, or a stimulus passage is NORMAL in a question paper and does NOT make it study material
-    (e.g. an AP Statistics free-response paper is a question_paper even though every question has a
-    long scenario).
-  - "study_material" — ONLY when the document is purely explanatory (a textbook section, lecture
-    notes, an article, a summary, revision slides) with NO questions for the student to answer.
-  - If the document has BOTH explanation AND questions to answer (worked examples followed by
-    exercises, or a past paper with scenario context), choose "question_paper".
-  - Tie-breaker: if it contains ANY numbered question, sub-part, or multiple-choice item, it is a
-    "question_paper".
+- documentKind (ALWAYS include it): "question_paper", "study_material", or "uncertain". Decide by the
+  document's PURPOSE — is the student meant to ANSWER a set of questions (a paper), or to LEARN from
+  it (material)? Judge by real answer-prompts aimed at the student, NOT by mere structure (numbering,
+  lists) or by how much prose it contains.
+  - "question_paper" — the document is a SET of questions/tasks for the student to answer, shown by a
+    CONSISTENT pattern of answerable items: numbered questions that each pose a task; printed mark
+    allocations like "[5]"; multiple-choice items with lettered options (A–E); blank answer spaces; or
+    task verbs directed at the student to produce an answer (calculate, determine, find, compute,
+    show, prove, explain, justify, describe, state, estimate, sketch, construct, interpret). This
+    INCLUDES exam / past papers that wrap each question in heavy context — a scenario paragraph, data
+    set, table, chart, formula sheet, or stimulus passage is NORMAL in a question paper and does NOT
+    make it study material (e.g. an AP Statistics free-response paper is a question_paper even though
+    every question has a long scenario).
+  - "study_material" — the document is mainly there to be READ and learned from: a textbook section,
+    lecture notes, an article, a summary, revision slides, or a worked-examples handout. Incidental
+    structure — numbered headings, bulleted or lettered lists, the odd rhetorical or embedded question,
+    or worked examples that use verbs like "calculate"/"explain" while TEACHING a method — does NOT
+    make it a question paper. If the bulk is explanation and there is no consistent set of
+    answer-prompts aimed at the student, it is study_material.
+  - "uncertain" — use this when you genuinely cannot tell (a mix with no clear intent). Do NOT fall
+    back to "question_paper" when unsure; returning "uncertain" lets the tutor confirm.
 - For a question_paper: output ONE field per answerable part — every question AND every sub-part
   (a),(b),(c) and sub-sub-part (i),(ii). "label" is the part's reference EXACTLY as printed, e.g.
   "Question 1(a)", "Question 1(b)(i)", "Question 3(a)(ii)". For a bare multiple-choice section,
@@ -446,7 +457,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
     }
 
-    const { type, title, content, pdfPages, questionSpec } = parsed.data
+    const { type, title, content, pdfPages, questionSpec, documentKindOverride } = parsed.data
 
     if (!content?.trim() && (!pdfPages || pdfPages.length === 0)) {
       return NextResponse.json({ error: 'No content or PDF pages provided' }, { status: 400 })
@@ -461,6 +472,15 @@ export async function POST(request: NextRequest) {
             .join(', ')}. Use those exact types and counts.`
         : ''
 
+    // When the tutor has explicitly confirmed the document kind, tell the model
+    // so it classifies + extracts accordingly (and we skip re-confirmation).
+    const overrideInstruction =
+      documentKindOverride === 'question_paper'
+        ? `\n\nThe tutor has confirmed this document IS a question paper. Set documentKind to "question_paper" and extract one answer-input field per answerable part — do NOT author new questions or answers.`
+        : documentKindOverride === 'study_material'
+          ? `\n\nThe tutor has confirmed this document is study material (not a question paper). Set documentKind to "study_material".`
+          : ''
+
     let aiResponse: string
 
     if (pdfPages && pdfPages.length > 0) {
@@ -469,7 +489,7 @@ export async function POST(request: NextRequest) {
       > = [
         {
           type: 'text',
-          text: `Build a DMI (answer input fields) for the following ${type}${title ? ` titled "${title}"` : ''}.${specInstruction}`,
+          text: `Build a DMI (answer input fields) for the following ${type}${title ? ` titled "${title}"` : ''}.${specInstruction}${overrideInstruction}`,
         },
         ...pdfPages.map(page => ({
           type: 'image_url' as const,
@@ -484,7 +504,7 @@ export async function POST(request: NextRequest) {
         timeoutMs: 60000,
       })
     } else {
-      const prompt = `Build a DMI (answer input fields) for the following ${type}${title ? ` titled "${title}"` : ''}:${specInstruction}\n\n${content}`
+      const prompt = `Build a DMI (answer input fields) for the following ${type}${title ? ` titled "${title}"` : ''}:${specInstruction}${overrideInstruction}\n\n${content}`
       aiResponse = await generateWithKimi(prompt, {
         systemPrompt: SYSTEM_PROMPT,
         temperature: GUARDRAILED_TEMPERATURE,
@@ -504,8 +524,30 @@ export async function POST(request: NextRequest) {
 
     // Prefer the strict-JSON output; fall back to the legacy line parser if the
     // model didn't return usable JSON.
-    const { documentKind, questions } =
+    const { documentKind: modelKind, questions } =
       parseDmiJson(aiResponse) ?? parseDmiResponse(stripCodeFences(aiResponse))
+
+    // A tutor override wins; otherwise use the model's classification.
+    const documentKind = documentKindOverride ?? modelKind
+
+    // Code-level cross-check on the classification (ASMT). We do NOT let the
+    // heuristic decide the kind — only flag a LIKELY misclassification so the
+    // tutor confirms, instead of silently defaulting an ambiguous document to
+    // "question paper". Text-only, so skipped for image-only PDFs.
+    const signals = content && content.trim() ? analyzeDocumentSignals(content) : null
+    const needsKindConfirmation =
+      !questionSpec &&
+      !documentKindOverride &&
+      // The model was unsure / didn't classify — ask rather than assume a paper.
+      (modelKind === null ||
+        // The model called it a paper, but the text shows no paper markers at all
+        // and reads like prose — a likely false "question paper".
+        (modelKind === 'question_paper' &&
+          signals != null &&
+          signals.paperSignal === 'none' &&
+          signals.proseChars > 400) ||
+        // The model called it study material, but the text has strong paper markers.
+        (modelKind === 'study_material' && signals != null && signals.paperSignal === 'strong'))
 
     // Warn-only assessment guardrails. Checks wording fidelity against the
     // source (ASMT-4) and other structural rules where data is available.
@@ -534,10 +576,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       response: aiResponse,
-      // null when the model didn't classify; the tutor UI treats null as
-      // "question paper" (the common case) and only prompts for types/counts
-      // when it's explicitly study_material with no questionSpec supplied.
+      // The resolved kind (tutor override, else the model's classification; null
+      // when the model was uncertain). The UI no longer assumes "question paper"
+      // for null — see needsKindConfirmation.
       documentKind,
+      // True when we can't be confident of the kind (model uncertain, or its call
+      // conflicts with the text signals). The builder should ask the tutor to
+      // confirm "question paper vs study material" before proceeding, instead of
+      // silently treating an ambiguous document as a question paper.
+      needsKindConfirmation,
+      // The code-level paper-signal strength, for an optional "we think this is …"
+      // note on the confirm prompt.
+      documentSignal: signals?.paperSignal ?? null,
       // True when the source is study material and the tutor hasn't yet chosen
       // the question types/counts — the builder should prompt before deploying.
       needsQuestionSpec: documentKind === 'study_material' && !questionSpec,
