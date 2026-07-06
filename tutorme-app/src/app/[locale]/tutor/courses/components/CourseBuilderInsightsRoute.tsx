@@ -825,7 +825,11 @@ function CourseBuilderInsightsRouteInner({
                       >
                         <SelectTrigger
                           className={cn(
-                            'h-9 min-w-[160px] max-w-[320px] border-none bg-transparent text-sm font-semibold shadow-none transition-colors focus:ring-0',
+                            // Header card is hardcoded light (bg-white) regardless of
+                            // theme, so use a hardcoded dark text colour — the theme
+                            // token text-foreground flips to white under dark themes
+                            // and made the course name unreadable here.
+                            'h-9 min-w-[160px] max-w-[320px] border-none bg-transparent text-sm font-semibold text-[#1F2933] shadow-none transition-colors focus:ring-0',
                             hasNoCourses ? 'cursor-not-allowed opacity-60' : 'hover:bg-slate-100'
                           )}
                         >
@@ -901,9 +905,9 @@ function CourseBuilderInsightsRouteInner({
                     )}
 
                   {activeMainTab === 'builder' && (
-                    <h1 className="text-foreground pointer-events-none absolute left-0 right-0 mx-auto flex items-center justify-center gap-2 text-2xl font-bold tracking-tight">
+                    <h1 className="pointer-events-none absolute left-0 right-0 mx-auto flex items-center justify-center gap-2 text-2xl font-bold tracking-tight text-[#1F2933]">
                       {currentCourse?.name && (
-                        <span className="text-muted-foreground text-xl font-normal">
+                        <span className="text-xl font-normal text-slate-500">
                           {currentCourse.name}
                         </span>
                       )}
@@ -913,9 +917,9 @@ function CourseBuilderInsightsRouteInner({
                     // Centered across the full header via absolute positioning;
                     // pointer-events-none so the overlay never blocks the back
                     // button / header controls underneath it.
-                    <h1 className="text-foreground pointer-events-none absolute left-0 right-0 mx-auto flex items-center justify-center gap-2 text-2xl font-bold tracking-tight">
+                    <h1 className="pointer-events-none absolute left-0 right-0 mx-auto flex items-center justify-center gap-2 text-2xl font-bold tracking-tight text-[#1F2933]">
                       {model.course?.name && (
-                        <span className="text-muted-foreground text-xl font-normal">
+                        <span className="text-xl font-normal text-slate-500">
                           {model.course.name}
                         </span>
                       )}
@@ -935,9 +939,9 @@ function CourseBuilderInsightsRouteInner({
                     </h1>
                   )}
                   {activeMainTab === 'test-pci' && (
-                    <h1 className="text-foreground pointer-events-none absolute left-0 right-0 mx-auto flex items-center justify-center gap-2 text-2xl font-bold tracking-tight">
+                    <h1 className="pointer-events-none absolute left-0 right-0 mx-auto flex items-center justify-center gap-2 text-2xl font-bold tracking-tight text-[#1F2933]">
                       {(model.course?.name || currentCourse?.name) && (
-                        <span className="text-muted-foreground text-xl font-normal">
+                        <span className="text-xl font-normal text-slate-500">
                           {model.course?.name || currentCourse?.name}
                         </span>
                       )}
