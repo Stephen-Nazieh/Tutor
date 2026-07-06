@@ -203,7 +203,7 @@ export default function CommunicationsPage({ role }: CommunicationsPageProps) {
               title="Messaging"
               icon={<MessageSquare className="h-5 w-5 text-slate-900" />}
               defaultOpen
-              fill
+              className="flex-1"
             >
               <MessagingPanel activeSection={activeSection} onSectionChange={setActiveSection} />
             </CollapsibleCard>
@@ -214,7 +214,7 @@ export default function CommunicationsPage({ role }: CommunicationsPageProps) {
               title="Notifications"
               icon={<Bell className="h-5 w-5 text-slate-900" />}
               defaultOpen
-              fill
+              className="flex-1"
             >
               <NotificationsPanel
                 role={role}
