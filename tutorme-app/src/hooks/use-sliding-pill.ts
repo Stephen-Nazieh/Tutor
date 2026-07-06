@@ -6,7 +6,8 @@ export function useSlidingPillMetrics(
 ) {
   const [metrics, setMetrics] = useState({ left: 0, width: 0 })
 
-  useLayoutEffect(() => {
+  // Calculate metrics based on current DOM state
+  const calculateMetrics = () => {
     if (!triggerRefs.current) return
     const trigger = triggerRefs.current[activeIndex]
     if (!trigger) return
@@ -14,35 +15,50 @@ export function useSlidingPillMetrics(
       left: trigger.offsetLeft,
       width: trigger.offsetWidth,
     })
-  }, [activeIndex, triggerRefs])
+  }
 
+  // Initial calculation + when activeIndex changes
+  useLayoutEffect(() => {
+    calculateMetrics()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex])
+
+  // Recalculate after a short delay to ensure DOM is ready (fonts, etc.)
   useEffect(() => {
-    // Recalculate after a short delay to ensure DOM is ready
     const timeoutId = setTimeout(() => {
-      if (!triggerRefs.current) return
-      const trigger = triggerRefs.current[activeIndex]
-      if (!trigger) return
-      setMetrics({
-        left: trigger.offsetLeft,
-        width: trigger.offsetWidth,
-      })
-    }, 50)
+      calculateMetrics()
+    }, 100)
     return () => clearTimeout(timeoutId)
-  }, [activeIndex, triggerRefs])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex])
 
+  // Recalculate on window resize
   useEffect(() => {
-    const handleResize = () => {
-      if (!triggerRefs.current) return
-      const trigger = triggerRefs.current[activeIndex]
-      if (!trigger) return
-      setMetrics({
-        left: trigger.offsetLeft,
-        width: trigger.offsetWidth,
-      })
-    }
+    const handleResize = () => calculateMetrics()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [activeIndex, triggerRefs])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex])
+
+  // Use ResizeObserver to watch the active trigger element for size changes
+  useEffect(() => {
+    const trigger = triggerRefs.current?.[activeIndex]
+    if (!trigger) return
+
+    const ro = new ResizeObserver(() => {
+      calculateMetrics()
+    })
+    ro.observe(trigger)
+
+    // Also observe the parent to catch layout shifts
+    const parent = trigger.parentElement
+    if (parent) {
+      ro.observe(parent)
+    }
+
+    return () => ro.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex])
 
   return metrics
 }
