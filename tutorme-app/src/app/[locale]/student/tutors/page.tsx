@@ -185,9 +185,9 @@ export default function StudentTutorDirectoryPage() {
   }, [tutors])
 
   return (
-    <div className="text-foreground flex h-full flex-col bg-slate-50 px-6 pb-0 pt-2 lg:pt-0">
+    <div className="flex h-full min-h-full flex-col bg-white px-3 pb-0 lg:px-4">
       {/* Hero */}
-      <section className="relative mb-4 overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] p-5 shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+      <section className="relative mb-4 flex-shrink-0 overflow-hidden rounded-[20px] border border-white/10 bg-gradient-to-br from-[#F97316] to-[#EA580C] p-5 shadow-[0_12px_40px_-4px_rgba(0,0,0,0.22)] ring-1 ring-white/20">
         <div className="relative flex flex-wrap items-center justify-center gap-3">
           <div className="text-center">
             <h2 className="text-xl font-bold text-white">Solocorn Tutors</h2>
@@ -223,7 +223,7 @@ export default function StudentTutorDirectoryPage() {
 
       {/* Bottom panel: filters + results */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-4">
-        <div className="flex h-full flex-col overflow-hidden rounded-[18px] border border-slate-200/80 bg-white shadow-[0_14px_45px_rgba(0,0,0,0.14)]">
+        <div className="shadow-hover-lift flex h-full flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white ring-1 ring-black/5">
           {/* Filters */}
           <div className="grid grid-cols-1 gap-3 p-4 pb-0 sm:p-6 sm:pb-0 md:grid-cols-4">
             <div className="relative">
