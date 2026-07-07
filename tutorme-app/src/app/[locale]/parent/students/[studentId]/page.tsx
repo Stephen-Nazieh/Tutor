@@ -12,6 +12,7 @@ import {
   Loader2,
   BookOpen,
   Calendar,
+  CalendarClock,
   TrendingUp,
   CreditCard,
 } from 'lucide-react'
@@ -42,6 +43,12 @@ const tabs = [
     label: '作业与测验',
     href: (id: string) => `/parent/students/${id}/assignments`,
     icon: ClipboardList,
+  },
+  {
+    id: 'availability',
+    label: '可用时间',
+    href: (id: string) => `/parent/students/${id}/availability`,
+    icon: CalendarClock,
   },
   {
     id: 'ai-tutor',
