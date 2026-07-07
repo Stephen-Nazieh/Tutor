@@ -721,12 +721,12 @@
     z-index: 1000;
   }
 
-  /* Suppress Radix UI default focus/highlight background on Select and Dropdown items */
+  /* Allow Radix UI hover highlight on Select and Dropdown items */
   [data-radix-select-viewport] [data-highlighted],
   [data-radix-dropdown-menu-content] [data-highlighted],
   [role='option'][data-highlighted],
   [role='menuitem'][data-highlighted] {
-    background-color: transparent !important;
+    /* Let component classes handle hover/focus styling */
   }
 
   /* Typography Hierarchy - Fira Code for headings */
