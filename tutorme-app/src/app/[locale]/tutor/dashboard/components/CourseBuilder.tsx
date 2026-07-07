@@ -9013,38 +9013,6 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                         ))}
                                                       </>
                                                     )}
-                                                    {pollOptionMode === 'tf' && (
-                                                      <>
-                                                        <button
-                                                          type="button"
-                                                          className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700"
-                                                        >
-                                                          True
-                                                        </button>
-                                                        <button
-                                                          type="button"
-                                                          className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700"
-                                                        >
-                                                          False
-                                                        </button>
-                                                      </>
-                                                    )}
-                                                    {pollOptionMode === 'yn' && (
-                                                      <>
-                                                        <button
-                                                          type="button"
-                                                          className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700"
-                                                        >
-                                                          Yes
-                                                        </button>
-                                                        <button
-                                                          type="button"
-                                                          className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700"
-                                                        >
-                                                          No
-                                                        </button>
-                                                      </>
-                                                    )}
                                                     {pollOptionMode === 'custom' && (
                                                       <p className="text-xs text-gray-400">
                                                         Custom poll options will appear here
@@ -9055,14 +9023,14 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                 {/* Bottom button row */}
                                                 <div className="relative flex items-center gap-1.5 border-t border-blue-100 px-4 py-3">
                                                   {/* Speed Dial */}
-                                                  <div className="relative flex-1">
+                                                  <div className="relative">
                                                     <button
                                                       type="button"
                                                       onClick={() =>
                                                         setSpeedDialOpen(!speedDialOpen)
                                                       }
                                                       className={cn(
-                                                        'flex h-8 w-full items-center justify-center rounded-md px-3 text-xs font-medium transition-colors',
+                                                        'flex h-8 w-[100px] items-center justify-center rounded-md px-2 text-xs font-medium transition-colors',
                                                         'bg-[#2563EB] text-white hover:bg-white hover:text-[#2563EB] hover:ring-1 hover:ring-[#2563EB]'
                                                       )}
                                                     >
@@ -9071,7 +9039,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                       )?.label || 'Type'}
                                                     </button>
                                                     {speedDialOpen && (
-                                                      <div className="absolute bottom-full left-0 right-0 z-20 mb-1 flex flex-col gap-1 rounded-lg border border-blue-100 bg-white p-1 shadow-lg">
+                                                      <div className="absolute bottom-full left-0 z-20 mb-1 flex flex-col gap-1">
                                                         {POLL_OPTION_PRESETS.map(preset => (
                                                           <button
                                                             key={preset.id}
@@ -9081,7 +9049,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                               setSpeedDialOpen(false)
                                                             }}
                                                             className={cn(
-                                                              'flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium transition-colors',
+                                                              'flex h-8 w-[100px] items-center justify-center rounded-md px-2 text-xs font-medium transition-colors',
                                                               pollOptionMode === preset.id
                                                                 ? 'bg-[#2563EB] text-white'
                                                                 : 'border border-blue-200 bg-white text-blue-700 hover:bg-blue-50'
@@ -10889,38 +10857,6 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                   )}
                                                 </>
                                               )}
-                                              {pollOptionMode === 'tf' && (
-                                                <>
-                                                  <button
-                                                    type="button"
-                                                    className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700"
-                                                  >
-                                                    True
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700"
-                                                  >
-                                                    False
-                                                  </button>
-                                                </>
-                                              )}
-                                              {pollOptionMode === 'yn' && (
-                                                <>
-                                                  <button
-                                                    type="button"
-                                                    className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700"
-                                                  >
-                                                    Yes
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700"
-                                                  >
-                                                    No
-                                                  </button>
-                                                </>
-                                              )}
                                               {pollOptionMode === 'custom' && (
                                                 <p className="text-xs text-gray-400">
                                                   Custom poll options will appear here
@@ -10931,12 +10867,12 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                           {/* Bottom button row */}
                                           <div className="relative flex items-center gap-1.5 border-t border-blue-100 px-4 py-3">
                                             {/* Speed Dial */}
-                                            <div className="relative flex-1">
+                                            <div className="relative">
                                               <button
                                                 type="button"
                                                 onClick={() => setSpeedDialOpen(!speedDialOpen)}
                                                 className={cn(
-                                                  'flex h-8 w-full items-center justify-center rounded-md px-3 text-xs font-medium transition-colors',
+                                                  'flex h-8 w-[100px] items-center justify-center rounded-md px-2 text-xs font-medium transition-colors',
                                                   'bg-[#2563EB] text-white hover:bg-white hover:text-[#2563EB] hover:ring-1 hover:ring-[#2563EB]'
                                                 )}
                                               >
@@ -10945,7 +10881,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                 )?.label || 'Type'}
                                               </button>
                                               {speedDialOpen && (
-                                                <div className="absolute bottom-full left-0 right-0 z-20 mb-1 flex flex-col gap-1 rounded-lg border border-blue-100 bg-white p-1 shadow-lg">
+                                                <div className="absolute bottom-full left-0 z-20 mb-1 flex flex-col gap-1">
                                                   {POLL_OPTION_PRESETS.map(preset => (
                                                     <button
                                                       key={preset.id}
@@ -10955,7 +10891,7 @@ FEEDBACK: [one or two short sentences explaining the score]`
                                                         setSpeedDialOpen(false)
                                                       }}
                                                       className={cn(
-                                                        'flex h-8 items-center justify-center rounded-md px-3 text-xs font-medium transition-colors',
+                                                        'flex h-8 w-[100px] items-center justify-center rounded-md px-2 text-xs font-medium transition-colors',
                                                         pollOptionMode === preset.id
                                                           ? 'bg-[#2563EB] text-white'
                                                           : 'border border-blue-200 bg-white text-blue-700 hover:bg-blue-50'
