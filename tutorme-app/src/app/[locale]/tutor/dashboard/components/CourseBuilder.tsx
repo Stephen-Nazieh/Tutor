@@ -130,6 +130,7 @@ import { getThread, type PciTarget } from './hooks/pci-reducer'
 import { parsePciTranscript, type PciMessage } from '@/lib/assessment/pci'
 import { PCI_SPEC_FIELDS } from '@/lib/assessment/pci-spec'
 import { PciQuestionnaire } from './PciQuestionnaire'
+import { PciSpecSoFar } from './PciSpecSoFar'
 import { TestTaskChat } from './TestTaskChat'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -430,7 +431,6 @@ function PciGuidance({ kind }: { kind: 'task' | 'assessment' }) {
   const noun = kind === 'assessment' ? 'assessment' : 'task'
   return (
     <details
-      open
       data-pci-anchor="guidance"
       className="group mb-3 rounded-xl border border-blue-200 bg-blue-50/70 px-3 py-2 text-xs text-blue-900"
     >
@@ -5776,7 +5776,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                           setTimeout(() => {
                             handlePciSend(
                               'task',
-                              `I just uploaded a document named '${assetToLoad?.name}'. First, give me a brief summary of what the document actually is and what it contains. Only mention diagrams or images if they are genuinely present — do not assume there are any. Then, right away, start helping me build the marking policy: begin probing me with ONE simple question at a time — using clear, simple language and a small example each time — so we build it together. Please ask your first question now; do not stop and wait for me to confirm the summary first.`
+                              `I just uploaded a document named '${assetToLoad?.name}'. First, give me a brief summary of what the document actually is and what it contains. Only mention diagrams or images if they are genuinely present — do not assume there are any. Then ask me to confirm the summary is correct (or tell you what to fix), and do NOT ask any marking-policy questions yet — wait until I confirm the summary is right. Once I confirm, then help me build the marking policy by asking ONE simple question at a time, using clear, simple language and a small example each time.`
                             )
                           }, 500)
                         }
@@ -5998,7 +5998,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                         setTimeout(() => {
                           handlePciSend(
                             'task',
-                            `I just uploaded a document named '${assetToLoad?.name}'. First, give me a brief summary of what the document actually is and what it contains. Only mention diagrams or images if they are genuinely present — do not assume there are any. Then, right away, start helping me build the marking policy: begin probing me with ONE simple question at a time — using clear, simple language and a small example each time — so we build it together. Please ask your first question now; do not stop and wait for me to confirm the summary first.`
+                            `I just uploaded a document named '${assetToLoad?.name}'. First, give me a brief summary of what the document actually is and what it contains. Only mention diagrams or images if they are genuinely present — do not assume there are any. Then ask me to confirm the summary is correct (or tell you what to fix), and do NOT ask any marking-policy questions yet — wait until I confirm the summary is right. Once I confirm, then help me build the marking policy by asking ONE simple question at a time, using clear, simple language and a small example each time.`
                           )
                         }, 500)
                       } catch (err: any) {
@@ -6114,7 +6114,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                       setTimeout(() => {
                         handlePciSend(
                           'assessment',
-                          `I just uploaded a document named '${assetToLoad?.name}'. First, give me a brief summary of what the document actually is and what it contains. Only mention diagrams or images if they are genuinely present — do not assume there are any. Then, right away, start helping me build the marking policy: begin probing me with ONE simple question at a time — using clear, simple language and a small example each time — so we build it together. Please ask your first question now; do not stop and wait for me to confirm the summary first.`
+                          `I just uploaded a document named '${assetToLoad?.name}'. First, give me a brief summary of what the document actually is and what it contains. Only mention diagrams or images if they are genuinely present — do not assume there are any. Then ask me to confirm the summary is correct (or tell you what to fix), and do NOT ask any marking-policy questions yet — wait until I confirm the summary is right. Once I confirm, then help me build the marking policy by asking ONE simple question at a time, using clear, simple language and a small example each time.`
                         )
                       }, 500)
                     }}
@@ -6625,6 +6625,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     )
     const assessmentPciGuardrailWarningsMap = Object.fromEntries(
       Object.entries(pci.assessments).map(([k, t]) => [k, t.guardrailWarnings])
+    )
+    const assessmentPciSpecSoFarMap = Object.fromEntries(
+      Object.entries(pci.assessments).map(([k, t]) => [k, t.specSoFar])
     )
 
     const activeTaskPciMessages = activeTaskThread.messages
@@ -10270,6 +10273,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-1">
                                           <PciGuidance kind="task" />
                                           {renderCurrentPci('task', activeTaskPci)}
+                                          <PciSpecSoFar
+                                            spec={activeTaskThread.specSoFar}
+                                            board={pciBoard}
+                                            subject={pciCategory}
+                                          />
                                           {activeTaskPciMessages.length === 0 && (
                                             <p className="text-muted-foreground text-xs">
                                               Start a PCI chat to build instructions with the
@@ -10702,6 +10710,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                             'assessment',
                                             assessmentBuilder.taskPci
                                           )}
+                                          <PciSpecSoFar
+                                            spec={
+                                              assessmentPciSpecSoFarMap[loadedAssessmentId || '']
+                                            }
+                                            board={pciBoard}
+                                            subject={pciCategory}
+                                          />
                                           {(
                                             assessmentPciMessagesMap[loadedAssessmentId || ''] || []
                                           ).length === 0 && (
