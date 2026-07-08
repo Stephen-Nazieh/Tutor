@@ -400,6 +400,26 @@ export async function POST(request: NextRequest) {
           guardrailWarnings.map(v => `${v.ruleId} ${v.severity}`).join(', ')
         )
       }
+    } else if (guardrailDomain === 'assessment') {
+      // Warn-only hygiene for the assessment marking-policy chat. The DMI's
+      // STRUCTURAL guardrails (question-wording fidelity, rubric/marks totals,
+      // evaluation-layer separation) run in generate-dmi, where the parsed
+      // question structure exists. In this CONVERSATIONAL chat the relevant
+      // checks are the domain-agnostic ones — fabricated evaluation policy
+      // (marks/retries/penalties not in the source), false certainty, and
+      // keeping the reply conversational. Reuse those and surface them under a
+      // neutral PCI-* label so they aren't misattributed to a TASK-* rule.
+      guardrailWarnings = runTaskGuardrails(response.response, {
+        sourceContent: context?.content,
+        finalizing: tutorSignaledFinalize,
+        finalizedPci: pciDraft,
+      }).violations.map(v => ({ ...v, ruleId: v.ruleId.replace(/^TASK-/, 'PCI-') }))
+      if (guardrailWarnings.length > 0) {
+        console.warn(
+          `[guardrails] pci-master assessment violations (${guardrailWarnings.length}):`,
+          guardrailWarnings.map(v => `${v.ruleId} ${v.severity}`).join(', ')
+        )
+      }
     }
 
     return NextResponse.json({
