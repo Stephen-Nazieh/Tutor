@@ -53,6 +53,7 @@ export function SlidingPillTabsList({
 }: SlidingPillTabsListProps) {
   const listRef = useRef<HTMLDivElement>(null)
   const [pillStyle, setPillStyle] = useState({ left: 0, width: 0 })
+  const [isFirstRender, setIsFirstRender] = useState(true)
   const styles = VARIANT_STYLES[variant]
 
   const updatePillPosition = useCallback(() => {
@@ -73,6 +74,10 @@ export function SlidingPillTabsList({
     // Defer to next frame so Radix UI has time to update data-state attributes
     const id = requestAnimationFrame(() => {
       updatePillPosition()
+      // After first measurement, enable transitions for subsequent tab changes
+      if (isFirstRender) {
+        setIsFirstRender(false)
+      }
     })
     return () => cancelAnimationFrame(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -117,15 +122,13 @@ export function SlidingPillTabsList({
         </TabsTrigger>
       ))}
       <div
-        className={cn(
-          'absolute bottom-1.5 top-1.5 rounded-lg transition-all duration-300 ease-out',
-          styles.pill,
-          pillClassName
-        )}
+        className={cn('absolute bottom-1.5 top-1.5 rounded-lg', styles.pill, pillClassName)}
         style={{
           left: pillStyle.left,
           width: pillStyle.width,
-          transitionProperty: 'left, width',
+          transitionProperty: isFirstRender ? 'none' : 'left, width',
+          transitionDuration: isFirstRender ? '0s' : '300ms',
+          transitionTimingFunction: 'ease-out',
         }}
       />
     </TabsList>
