@@ -2046,7 +2046,12 @@ const Panel2SearchResults = ({ query, onClearAll }: { query: string; onClearAll:
             <div className="truncate text-slate-300">
               {item?.isFree ? 'Free' : item?.price != null ? `$${item.price}` : 'Free'}
             </div>
-            <div className="text-blue-400">{formatCourseDate(item?.updatedAt)}</div>
+            <div className="flex items-center gap-2 text-blue-400">
+              {formatCourseDate(item?.updatedAt)}
+              {item?.variantNationality && item.variantNationality !== 'Global' && (
+                <CountryFlag countryName={item.variantNationality} size="xs" />
+              )}
+            </div>
           </div>
         </div>
       </div>
