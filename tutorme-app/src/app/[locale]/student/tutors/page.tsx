@@ -440,9 +440,9 @@ export default function StudentTutorDirectoryPage() {
                     </Card>
                   ))
                 ) : filteredTutors.length === 0 ? (
-                  <p className="col-span-full text-center text-sm text-gray-500">
+                  <div className="col-span-full py-10 text-center text-sm text-gray-500">
                     Unfortunately, the search did not find any tutors. Please try again.
-                  </p>
+                  </div>
                 ) : (
                   paginatedTutors.map(tutor => (
                     <TutorCard
