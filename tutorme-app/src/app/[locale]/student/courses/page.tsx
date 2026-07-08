@@ -51,6 +51,7 @@ import {
 import { cn, resolvePublicUrl } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { CountryFlag } from '@/components/country-flag'
 
 function stringToColor(str: string): string {
   let hash = 0
@@ -73,6 +74,7 @@ interface Course {
   tutorHandle?: string | null
   tutorImage?: string | null
   tutorAvatar?: string | null
+  variantNationality?: string | null
   hasOutline?: boolean
   _count: {
     modules: number
@@ -1117,42 +1119,49 @@ function CourseCard({
       </div>
 
       <div className="flex gap-2 border-t border-[rgba(255,255,255,0.1)] p-4">
-        {(isOngoing || isPending) && (
-          <Button
-            className="h-8 flex-1 border border-white/60 bg-transparent text-xs text-white transition-colors hover:bg-white hover:text-emerald-600"
-            disabled={enteringClass === course.id}
-            onClick={e => {
-              e.stopPropagation()
-              onEnterClass(course.id)
-            }}
-          >
-            {enteringClass === course.id
-              ? 'Joining...'
-              : progressPercent > 0
-                ? 'Continue'
-                : 'Enter Classroom'}
-          </Button>
-        )}
-        {progress?.isCompleted && (
-          <Link href={`/student/feedback`} className="flex-1" onClick={e => e.stopPropagation()}>
-            <Button className="h-8 w-full border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] text-xs text-slate-100 transition-colors hover:bg-[rgba(255,255,255,0.15)]">
-              <Trophy className="mr-2 h-4 w-4 text-yellow-400" />
-              View Results
+        <div className="flex flex-1 items-center gap-2">
+          {(isOngoing || isPending) && (
+            <Button
+              className="h-8 flex-1 border border-white/60 bg-transparent text-xs text-white transition-colors hover:bg-white hover:text-emerald-600"
+              disabled={enteringClass === course.id}
+              onClick={e => {
+                e.stopPropagation()
+                onEnterClass(course.id)
+              }}
+            >
+              {enteringClass === course.id
+                ? 'Joining...'
+                : progressPercent > 0
+                  ? 'Continue'
+                  : 'Enter Classroom'}
             </Button>
-          </Link>
-        )}
-        {onUnregister && course.enrollment && (
-          <Button
-            variant="outline"
-            className="h-8 flex-1 border border-white/60 bg-transparent text-xs text-white transition-colors hover:bg-white hover:text-red-600"
-            disabled={unregisteringId === course.id}
-            onClick={e => {
-              e.stopPropagation()
-              onUnregister(course)
-            }}
-          >
-            {unregisteringId === course.id ? 'Unregistering...' : 'Unregister'}
-          </Button>
+          )}
+          {progress?.isCompleted && (
+            <Link href={`/student/feedback`} className="flex-1" onClick={e => e.stopPropagation()}>
+              <Button className="h-8 w-full border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.08)] text-xs text-slate-100 transition-colors hover:bg-[rgba(255,255,255,0.15)]">
+                <Trophy className="mr-2 h-4 w-4 text-yellow-400" />
+                View Results
+              </Button>
+            </Link>
+          )}
+          {onUnregister && course.enrollment && (
+            <Button
+              variant="outline"
+              className="h-8 flex-1 border border-white/60 bg-transparent text-xs text-white transition-colors hover:bg-white hover:text-red-600"
+              disabled={unregisteringId === course.id}
+              onClick={e => {
+                e.stopPropagation()
+                onUnregister(course)
+              }}
+            >
+              {unregisteringId === course.id ? 'Unregistering...' : 'Unregister'}
+            </Button>
+          )}
+        </div>
+        {course.variantNationality && course.variantNationality !== 'Global' && (
+          <div className="flex items-center">
+            <CountryFlag countryName={course.variantNationality} size="xs" />
+          </div>
         )}
       </div>
     </div>
