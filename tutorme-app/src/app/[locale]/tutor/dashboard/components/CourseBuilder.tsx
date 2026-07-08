@@ -131,7 +131,7 @@ import { parsePciTranscript, type PciMessage } from '@/lib/assessment/pci'
 import { PCI_SPEC_FIELDS } from '@/lib/assessment/pci-spec'
 import { PciQuestionnaire } from './PciQuestionnaire'
 import { PciSpecSoFar } from './PciSpecSoFar'
-import { TestTaskChat } from './TestTaskChat'
+import { TestTaskChat, type TestTaskChatState } from './TestTaskChat'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SlidingPillTabsList } from '@/components/sliding-pill-tabs'
@@ -427,6 +427,58 @@ const pdfPageCache = new Map<string, string[]>()
 // Collapsible explainer at the top of a PCI tab. PCI ("how to mark this") is easy
 // to confuse with the question content, so this spells out what it is, the flow,
 // and concrete things worth telling the assistant — to point tutors the right way.
+/**
+ * Split a document's extracted text into logical sections for creating one
+ * task/extension per section. Tries, in order: real page breaks (form feed or
+ * "--- Page N ---" markers from PDF extraction), numbered headings at line start
+ * (e.g. "1. Title", "2) Title"), then blank-line paragraph groups. Falls back to
+ * the whole text as one section. Used when a per-page PDF split isn't available —
+ * notably for .docx, whose extracted text carries no page markers, so it would
+ * otherwise collapse into a single task.
+ */
+function splitDocIntoSections(text: string): string[] {
+  const trimmed = (text || '').trim()
+  if (!trimmed) return []
+
+  // 1) Real page breaks from PDF/text extraction.
+  if (trimmed.includes('\f')) {
+    const pages = trimmed
+      .split('\f')
+      .map(p => p.trim())
+      .filter(Boolean)
+    if (pages.length > 1) return pages
+  }
+  if (/--- Page \d+ ---/.test(trimmed)) {
+    const pages = trimmed
+      .split(/--- Page \d+ ---/)
+      .map(p => p.trim())
+      .filter(Boolean)
+    if (pages.length > 1) return pages
+  }
+
+  // 2) Numbered headings at the start of a line ("1. ", "2) ", "3 - "…). Split
+  //    BEFORE each heading so the number stays with its section. Guarded so a
+  //    short numbered list inside one section doesn't shatter into tiny tasks.
+  const numbered = trimmed
+    .split(/\n(?=\s{0,3}\d{1,3}[.)]\s+\S)/)
+    .map(p => p.trim())
+    .filter(Boolean)
+  if (numbered.length > 1 && numbered.length <= 60) {
+    const avgLen = numbered.reduce((sum, s) => sum + s.length, 0) / numbered.length
+    if (avgLen > 60) return numbered
+  }
+
+  // 3) Blank-line separated blocks of meaningful length.
+  const blocks = trimmed
+    .split(/\n\s*\n+/)
+    .map(p => p.trim())
+    .filter(p => p.length > 50)
+  if (blocks.length > 1) return blocks
+
+  // 4) Whole document as a single section.
+  return [trimmed]
+}
+
 function PciGuidance({ kind }: { kind: 'task' | 'assessment' }) {
   const noun = kind === 'assessment' ? 'assessment' : 'task'
   return (
@@ -1162,6 +1214,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [newSubmissionCount, setNewSubmissionCount] = useState(0)
 
     const [testPciSource, setTestPciSource] = useState<'task' | 'assessment'>('task')
+    // Persists each Test-tab task-chat preview (keyed by task/extension + student
+    // tab) across the remounts that happen when switching Test students, so the
+    // conversation isn't lost. A ref: writing it must not trigger a re-render.
+    const testTaskChatStore = useRef<Record<string, TestTaskChatState>>({})
+    // Test-tab-only DEBUG control: grade against all available bases (default) or
+    // isolate one (PCI / rubric / model answer) to see its effect alone. Never
+    // affects student/production grading — only the tutor's test-grade requests.
+    const [testPciBasis, setTestPciBasis] = useState<'all' | 'pci' | 'rubric' | 'model'>('all')
     const [alertDialog, setAlertDialog] = useState<{
       open: boolean
       title: string
@@ -2788,16 +2848,22 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         })
       }
 
+      // DEBUG basis isolation (test-tab only): drop the bases the tutor didn't
+      // pick so grading rests on just the selected one. 'all' keeps everything.
+      const usesPci = testPciBasis === 'all' || testPciBasis === 'pci'
+      const usesRubric = testPciBasis === 'all' || testPciBasis === 'rubric'
+      const usesModel = testPciBasis === 'all' || testPciBasis === 'model'
+
       try {
         // Grade through the shared engine — identical to what students get.
         const response = await fetchWithCsrf('/api/tutor/test-grade', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            pci: pciContent,
-            pciSpec,
-            rubric,
-            modelAnswer,
+            pci: usesPci ? pciContent : '',
+            pciSpec: usesPci ? pciSpec : undefined,
+            rubric: usesRubric ? rubric : '',
+            modelAnswer: usesModel ? modelAnswer : '',
             questionText,
             responseType,
             sourceDependencies,
@@ -2843,14 +2909,31 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       }
     }
 
+    // Build a same-origin proxy URL for fetching a stored file. Prefer the by-key
+    // streaming path (?key=) when we have the storage key: it downloads via the
+    // service account's read access and is resilient to signed-URL problems — a
+    // missing signBlob permission makes "signed" URLs fall back to public URLs
+    // that 403 under uniform bucket-level access (the cause of "Failed to fetch
+    // PDF"). Fall back to ?url= for non-GCS or keyless sources.
+    const proxyFetchUrl = (fileUrl: string, fileKey?: string): string => {
+      if (fileKey && /^(documents|assets|resources)\//.test(fileKey) && !fileKey.includes('..')) {
+        return `/api/proxy-file?key=${encodeURIComponent(fileKey)}`
+      }
+      if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
+        return `/api/proxy-file?url=${encodeURIComponent(fileUrl)}`
+      }
+      return fileUrl
+    }
+
     // Helper: render PDF pages to base64 PNG images
-    const renderPdfToImages = async (pdfUrl: string, maxPages = 3): Promise<string[]> => {
+    const renderPdfToImages = async (
+      pdfUrl: string,
+      maxPages = 3,
+      fileKey?: string
+    ): Promise<string[]> => {
       try {
-        // Proxy external URLs through our API to avoid CORS issues (e.g. GCS)
-        const fetchUrl =
-          pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')
-            ? `/api/proxy-file?url=${encodeURIComponent(pdfUrl)}`
-            : pdfUrl
+        // Proxy through our API to avoid CORS issues (e.g. GCS); by key when possible.
+        const fetchUrl = proxyFetchUrl(pdfUrl, fileKey)
         const response = await fetch(fetchUrl)
         if (!response.ok) throw new Error('Failed to fetch PDF')
         const arrayBuffer = await response.arrayBuffer()
@@ -2887,12 +2970,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // page-images for digital papers so a long multi-page question paper is fully
     // captured (image analysis is capped at a few pages). Returns '' if the PDF
     // has no extractable text (e.g. a scan) so the caller can fall back to images.
-    const extractPdfText = async (pdfUrl: string, maxPages = 30): Promise<string> => {
+    const extractPdfText = async (
+      pdfUrl: string,
+      maxPages = 30,
+      fileKey?: string
+    ): Promise<string> => {
       try {
-        const fetchUrl =
-          pdfUrl.startsWith('http://') || pdfUrl.startsWith('https://')
-            ? `/api/proxy-file?url=${encodeURIComponent(pdfUrl)}`
-            : pdfUrl
+        const fetchUrl = proxyFetchUrl(pdfUrl, fileKey)
         const response = await fetch(fetchUrl)
         if (!response.ok) throw new Error('Failed to fetch PDF')
         const arrayBuffer = await response.arrayBuffer()
@@ -3059,11 +3143,26 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           // reach the questions, then drop the leading cover/instructions so the
           // budget is spent on the actual questions. Fall back to page images
           // for scanned PDFs.
-          const extracted = await extractPdfText(sourceDoc.fileUrl, 60)
+          const extracted = await extractPdfText(sourceDoc.fileUrl, 60, sourceDoc.fileKey)
           if (extracted.trim().length > 200) {
             pdfText = focusOnQuestions(extracted).slice(0, 70000)
           } else {
-            pdfPages = await renderPdfToImages(sourceDoc.fileUrl, 8)
+            try {
+              pdfPages = await renderPdfToImages(sourceDoc.fileUrl, 8, sourceDoc.fileKey)
+            } catch (fetchErr) {
+              // The stored PDF couldn't be fetched (e.g. a broken/expired storage
+              // link). Rather than failing outright with "Failed to fetch PDF",
+              // fall back to the text we already extracted from the document at
+              // upload time so DMI generation still proceeds.
+              console.error('PDF fetch for DMI failed; falling back to extracted text:', fetchErr)
+              const fallbackText = (sourceDoc.extractedText || content || '').trim()
+              if (fallbackText.length > 40) {
+                pdfText = focusOnQuestions(fallbackText).slice(0, 70000)
+                toast.info('Could not read the PDF file; using the document text instead.')
+              } else {
+                throw fetchErr
+              }
+            }
           }
         }
 
@@ -5613,15 +5712,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
                       const textToInsert = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
 
-                      let pages: string[] = []
-                      if (textToInsert.includes('\f')) {
-                        pages = textToInsert.split('\f').filter(p => p.trim())
-                      } else if (textToInsert.includes('--- Page')) {
-                        pages = textToInsert.split(/--- Page \d+ ---/).filter(p => p.trim())
-                      } else {
-                        const chunks = textToInsert.split(/\n\n+/).filter(p => p.trim().length > 50)
-                        pages = chunks.length > 1 ? chunks : [textToInsert]
-                      }
+                      const pages: string[] = splitDocIntoSections(textToInsert)
+                      if (pages.length === 0) pages.push(textToInsert)
 
                       setIsSplittingTasks(true)
                       const newTasks: Task[] = []
@@ -5701,21 +5793,20 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                         }
 
                         if (isPdf && assetToLoad.url && !pdfSplitSucceeded) {
-                          // The document is a PDF and we attempted to split it into one
-                          // task per page, but fetching/splitting failed (e.g. the file
-                          // is missing from storage or its link expired). Surface the
-                          // real reason instead of silently degrading to a single task
-                          // with a broken document link.
-                          toast.error(
-                            `Could not split '${assetToLoad.name}' into page tasks${
-                              pdfSplitError ? `: ${pdfSplitError}` : ''
-                            }. The task was left unchanged.`
+                          // Splitting the stored PDF into per-page files failed (e.g. the
+                          // link is broken/expired or the object is unreadable). Don't
+                          // abort — fall back to splitting the extracted text into
+                          // sections below so the tutor still gets multiple tasks.
+                          toast.warning(
+                            `Couldn't split '${assetToLoad.name}' by page${
+                              pdfSplitError ? ` (${pdfSplitError})` : ''
+                            } — split it into sections from the text instead.`
                           )
-                          return
                         }
 
                         if (!pdfSplitSucceeded) {
-                          // Text-based split for non-PDF (or url-less) assets: one task per page.
+                          // Text-based split for non-PDF (or url-less) assets, and the
+                          // fallback when a PDF page-split failed: one task per section.
                           pages.forEach((pageContent, idx) => {
                             if (existingTask && existingTaskIndex !== -1 && idx === 0) {
                               updatedExistingTask = {
@@ -5878,16 +5969,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                         }
 
                         if (!pdfSplitSucceeded) {
-                          if (textToInsert.includes('\f')) {
-                            pages = textToInsert.split('\f').filter(p => p.trim())
-                          } else if (textToInsert.includes('--- Page')) {
-                            pages = textToInsert.split(/--- Page \d+ ---/).filter(p => p.trim())
-                          } else {
-                            const chunks = textToInsert
-                              .split(/\n\n+/)
-                              .filter(p => p.trim().length > 50)
-                            pages = chunks.length > 1 ? chunks : [textToInsert]
-                          }
+                          // No per-page PDFs (e.g. a .docx, or the page-split failed):
+                          // split the extracted text into sections so a structured
+                          // document still becomes multiple extensions, not one task.
+                          pages = splitDocIntoSections(textToInsert)
+                          if (pages.length === 0) pages = [textToInsert]
                         }
 
                         let nodeIndex = -1
@@ -9591,6 +9677,17 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                               >
                                                 <div className="ml-1 h-full w-full overflow-y-auto bg-white p-4">
                                                   <div className="space-y-4">
+                                                    {(version?.items ?? []).length === 0 && (
+                                                      <p className="text-muted-foreground text-sm">
+                                                        No questions in this DMI yet. Open{' '}
+                                                        <span className="font-medium">
+                                                          Edit marks &amp; answers
+                                                        </span>{' '}
+                                                        and generate the DMI — for study material
+                                                        the AI will author questions from the
+                                                        content.
+                                                      </p>
+                                                    )}
                                                     {(version?.items ?? []).map(item => (
                                                       <div
                                                         key={item.id}
@@ -9686,22 +9783,29 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                               // flow students get (chat → Task complete → per-answer
                               // responses → follow-up); assessments keep the composer.
                               (mainTab === 'test-pci' && testPciSource === 'task' ? (
-                                <div key={testPciActiveTab} className="mt-1 h-[55vh] min-h-[340px]">
-                                  {(() => {
-                                    const ext = taskBuilder.activeExtensionId
-                                      ? taskBuilder.extensions.find(
-                                          e => e.id === taskBuilder.activeExtensionId
-                                        )
-                                      : null
-                                    return (
+                                (() => {
+                                  const ext = taskBuilder.activeExtensionId
+                                    ? taskBuilder.extensions.find(
+                                        e => e.id === taskBuilder.activeExtensionId
+                                      )
+                                    : null
+                                  // Persist per task/extension AND per student tab, so each
+                                  // preview keeps its own conversation across remounts.
+                                  const persistKey = `${ext ? ext.id : 'base'}:${testPciActiveTab}`
+                                  return (
+                                    <div key={persistKey} className="mt-1 h-[55vh] min-h-[340px]">
                                       <TestTaskChat
                                         pci={(ext ? ext.pci : taskBuilder.taskPci) || ''}
                                         pciSpec={ext ? undefined : taskBuilder.pciSpec}
                                         questionText={`${taskBuilder.title}\n\n${ext ? ext.content : taskBuilder.taskContent}`}
+                                        initialState={testTaskChatStore.current[persistKey]}
+                                        onPersist={s => {
+                                          testTaskChatStore.current[persistKey] = s
+                                        }}
                                       />
-                                    )
-                                  })()}
-                                </div>
+                                    </div>
+                                  )
+                                })()
                               ) : (
                                 <div
                                   className={cn(
@@ -9810,6 +9914,36 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                             <Chip ok={hasRubric}>Rubric</Chip>
                                             <Chip ok={hasModel}>Model answer</Chip>
                                           </div>
+                                          {anyBasis && (
+                                            <div className="flex items-center gap-1">
+                                              <span className="text-slate-500">Test with:</span>
+                                              <select
+                                                value={testPciBasis}
+                                                onChange={e =>
+                                                  setTestPciBasis(
+                                                    e.target.value as
+                                                      | 'all'
+                                                      | 'pci'
+                                                      | 'rubric'
+                                                      | 'model'
+                                                  )
+                                                }
+                                                title="Debug: isolate one marking basis to see its effect (test only — never affects student grading)"
+                                                className="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-xs text-slate-700"
+                                              >
+                                                <option value="all">All bases</option>
+                                                <option value="pci" disabled={!hasPci}>
+                                                  PCI only
+                                                </option>
+                                                <option value="rubric" disabled={!hasRubric}>
+                                                  Rubric only
+                                                </option>
+                                                <option value="model" disabled={!hasModel}>
+                                                  Model answer only
+                                                </option>
+                                              </select>
+                                            </div>
+                                          )}
                                           {!anyBasis && (
                                             <span className="text-amber-600">
                                               Add a PCI, rubric, or model answer to grade.

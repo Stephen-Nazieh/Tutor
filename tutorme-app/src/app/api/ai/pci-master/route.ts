@@ -244,8 +244,11 @@ export async function POST(request: NextRequest) {
     // Timeout + retry budget for the upstream model call. Moonshot/Kimi is the
     // sole provider, so a slow or 5xx/429 response has no second provider to fall
     // back to — bound each attempt and retry a couple of times before giving up.
-    const GEN_TIMEOUT_MS = 60_000
-    const GEN_RETRIES = 3
+    // Kept well under Cloud Run's 300s request timeout (worst case 2×45s = 90s)
+    // so a slow turn returns a clean error instead of the connection dropping
+    // and surfacing as "Load failed" in the chat.
+    const GEN_TIMEOUT_MS = 45_000
+    const GEN_RETRIES = 2
     const fallbackOptions = {
       temperature: activeTemperature,
       maxTokens: 4096,
@@ -394,6 +397,26 @@ export async function POST(request: NextRequest) {
       if (guardrailWarnings.length > 0) {
         console.warn(
           `[guardrails] pci-master task violations (${guardrailWarnings.length}):`,
+          guardrailWarnings.map(v => `${v.ruleId} ${v.severity}`).join(', ')
+        )
+      }
+    } else if (guardrailDomain === 'assessment') {
+      // Warn-only hygiene for the assessment marking-policy chat. The DMI's
+      // STRUCTURAL guardrails (question-wording fidelity, rubric/marks totals,
+      // evaluation-layer separation) run in generate-dmi, where the parsed
+      // question structure exists. In this CONVERSATIONAL chat the relevant
+      // checks are the domain-agnostic ones — fabricated evaluation policy
+      // (marks/retries/penalties not in the source), false certainty, and
+      // keeping the reply conversational. Reuse those and surface them under a
+      // neutral PCI-* label so they aren't misattributed to a TASK-* rule.
+      guardrailWarnings = runTaskGuardrails(response.response, {
+        sourceContent: context?.content,
+        finalizing: tutorSignaledFinalize,
+        finalizedPci: pciDraft,
+      }).violations.map(v => ({ ...v, ruleId: v.ruleId.replace(/^TASK-/, 'PCI-') }))
+      if (guardrailWarnings.length > 0) {
+        console.warn(
+          `[guardrails] pci-master assessment violations (${guardrailWarnings.length}):`,
           guardrailWarnings.map(v => `${v.ruleId} ${v.severity}`).join(', ')
         )
       }
