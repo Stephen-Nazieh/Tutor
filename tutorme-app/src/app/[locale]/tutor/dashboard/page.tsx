@@ -53,6 +53,7 @@ import { DEFAULT_TIMEZONE, type CalendarView } from './components/InteractiveCal
 import { SessionCalendarPanel } from '@/components/session-calendar-panel'
 import { ModernHeroSection } from './components/ModernHeroSection'
 import { CountryFlag } from '@/components/country-flag'
+import { ClassroomDialog } from '@/components/classroom/ClassroomDialog'
 
 function SessionCountdown({ scheduledAt }: { scheduledAt: string }) {
   const [countdown, setCountdown] = useState('')
@@ -236,6 +237,9 @@ function TutorDashboardContent() {
   const [oneAccountTipDismissed, setOneAccountTipDismissed] = useState(true)
   const [oneOnOneRequests, setOneOnOneRequests] = useState<OneOnOneRequest[]>([])
   const [respondingRequestId, setRespondingRequestId] = useState<string | null>(null)
+
+  const [classroomDialogOpen, setClassroomDialogOpen] = useState(false)
+  const [classroomCourse, setClassroomCourse] = useState<EnrolledCourse | null>(null)
 
   // Cancel Course Modal State
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
@@ -895,9 +899,10 @@ function TutorDashboardContent() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() =>
-                                router.push(withLocalePath(`/tutor/classroom/${course.id}`))
-                              }
+                              onClick={() => {
+                                setClassroomCourse(course)
+                                setClassroomDialogOpen(true)
+                              }}
                               className="border-transparent bg-emerald-500 text-white transition-all duration-200 hover:bg-white hover:text-emerald-500"
                             >
                               <Presentation className="mr-1 h-3 w-3" />
@@ -1078,6 +1083,16 @@ function TutorDashboardContent() {
               handleOpenSessionsModal({ id: course.id, name: course.name } as EnrolledCourse)
             }
           }}
+        />
+
+        <ClassroomDialog
+          open={classroomDialogOpen}
+          onOpenChange={setClassroomDialogOpen}
+          courseId={classroomCourse?.id ?? null}
+          courseName={classroomCourse?.name ?? ''}
+          nationality={classroomCourse?.nationality ?? null}
+          variantCategory={classroomCourse?.variantCategory ?? null}
+          categories={classroomCourse?.categories ?? null}
         />
 
         {/* Course Sessions Modal */}
