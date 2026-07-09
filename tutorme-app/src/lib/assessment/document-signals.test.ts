@@ -1,5 +1,20 @@
 import { describe, it, expect } from 'vitest'
-import { analyzeDocumentSignals, documentKindLooksWrong } from './document-signals'
+import {
+  analyzeDocumentSignals,
+  documentKindLooksWrong,
+  resolveDocumentKind,
+  type DocumentSignals,
+} from './document-signals'
+
+const signalsWith = (paperSignal: DocumentSignals['paperSignal']): DocumentSignals => ({
+  markAllocations: 0,
+  questionLines: 0,
+  mcqOptionLines: 0,
+  answerBlanks: 0,
+  imperativeCues: 0,
+  proseChars: 0,
+  paperSignal,
+})
 
 // Numbered study notes: numbered headings + prose, but NO marks / MCQ / blanks.
 const STUDY_NOTES = [
@@ -109,5 +124,58 @@ describe('documentKindLooksWrong', () => {
 
   it('does not flag a classified doc when signals are unavailable (image-only PDF)', () => {
     expect(documentKindLooksWrong('question_paper', null)).toBe(false)
+  })
+})
+
+describe('resolveDocumentKind', () => {
+  it('a strong paper signal forces question_paper (the SAT/exam-paper backstop)', () => {
+    const r = resolveDocumentKind(undefined, signalsWith('strong'), 'study_material')
+    expect(r.settled).toBe('question_paper')
+    expect(r.documentKind).toBe('question_paper') // overrides the model's study_material
+  })
+
+  it('the tutor override always wins — even over a strong signal', () => {
+    const r = resolveDocumentKind('study_material', signalsWith('strong'), 'question_paper')
+    expect(r.settled).toBe('study_material')
+    expect(r.documentKind).toBe('study_material')
+  })
+
+  it('a weak/none signal is not settled — defers to the model classification', () => {
+    expect(resolveDocumentKind(undefined, signalsWith('weak'), 'study_material')).toEqual({
+      settled: undefined,
+      documentKind: 'study_material',
+    })
+    expect(resolveDocumentKind(undefined, signalsWith('none'), 'question_paper')).toEqual({
+      settled: undefined,
+      documentKind: 'question_paper',
+    })
+  })
+
+  it('no signals (image-only PDF) → defers to the model', () => {
+    expect(resolveDocumentKind(undefined, null, 'question_paper').documentKind).toBe(
+      'question_paper'
+    )
+    expect(resolveDocumentKind(undefined, null, null).documentKind).toBeNull()
+  })
+
+  it('computes the settled kind before generation (modelKind defaulting to null)', () => {
+    expect(resolveDocumentKind(undefined, signalsWith('strong')).settled).toBe('question_paper')
+    expect(resolveDocumentKind('question_paper', null).settled).toBe('question_paper')
+    expect(resolveDocumentKind(undefined, signalsWith('weak')).settled).toBeUndefined()
+  })
+
+  it('the real MCQ-paper signal resolves to question_paper even against a study_material model call', () => {
+    const mcq = `1. What is 2 + 2?
+A. 3
+B. 4
+C. 5
+D. 6
+2. Which is prime?
+A. 4
+B. 9
+C. 7
+D. 8`
+    const r = resolveDocumentKind(undefined, analyzeDocumentSignals(mcq), 'study_material')
+    expect(r.documentKind).toBe('question_paper')
   })
 })

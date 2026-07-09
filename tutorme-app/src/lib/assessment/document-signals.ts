@@ -45,6 +45,32 @@ function countMatches(text: string, re: RegExp): number {
   return m ? m.length : 0
 }
 
+export type DocumentKind = 'question_paper' | 'study_material'
+
+/**
+ * Resolve the document kind for DMI generation from the three inputs, in
+ * priority order:
+ *  1. the tutor's explicit choice (always wins);
+ *  2. a STRONG code-level paper signal → force `question_paper` (the backstop
+ *     that keeps SAT/exam papers from being mis-generated as study material when
+ *     their passages read "prose-heavy" and the model waffles);
+ *  3. otherwise the model's classification.
+ *
+ * `settled` is the kind known BEFORE generation (1 or 2) — used to instruct the
+ * model to extract vs author, and to skip the confirm dialog. `documentKind` is
+ * the final kind (falls back to the model's call). `modelKind` is null when the
+ * model hasn't classified yet (i.e. computing `settled` before generation).
+ */
+export function resolveDocumentKind(
+  tutorOverride: DocumentKind | undefined,
+  signals: DocumentSignals | null,
+  modelKind: DocumentKind | null = null
+): { settled?: DocumentKind; documentKind: DocumentKind | null } {
+  const settled =
+    tutorOverride ?? (signals?.paperSignal === 'strong' ? 'question_paper' : undefined)
+  return { settled, documentKind: settled ?? modelKind }
+}
+
 /**
  * Given the AI's `documentKind` and the code-level signals, does the claim look
  * wrong enough to double-check with the tutor before generating a DMI? Catches
@@ -57,7 +83,7 @@ function countMatches(text: string, re: RegExp): number {
  * flagged. Returns true → the route asks the tutor to confirm the kind.
  */
 export function documentKindLooksWrong(
-  modelKind: 'question_paper' | 'study_material' | null,
+  modelKind: DocumentKind | null,
   signals: DocumentSignals | null
 ): boolean {
   if (modelKind === null) return true
