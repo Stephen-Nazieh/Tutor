@@ -9715,6 +9715,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                           </span>
                                                           <select
                                                             value={testPciBasis}
+                                                            aria-label="Marking basis to test against (debug — does not affect student grading)"
                                                             onChange={e =>
                                                               setTestPciBasis(
                                                                 e.target.value as
@@ -9847,6 +9848,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                                   }
                                                                   rows={2}
                                                                   placeholder="Type a test answer to grade against this question…"
+                                                                  aria-label={`Test answer for question ${item.questionLabel ?? item.questionNumber}`}
                                                                   className="w-full resize-none rounded-md border border-gray-300 px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-violet-400"
                                                                 />
                                                                 <div className="mt-1 flex items-center gap-2">
@@ -9861,6 +9863,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                                     onClick={() =>
                                                                       gradeTestDmiItem(item)
                                                                     }
+                                                                    aria-label={`Grade test answer for question ${item.questionLabel ?? item.questionNumber}`}
                                                                     className="rounded-md bg-violet-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
                                                                   >
                                                                     {result?.loading
@@ -10085,6 +10088,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                               <span className="text-slate-500">Test with:</span>
                                               <select
                                                 value={testPciBasis}
+                                                aria-label="Marking basis to test against (debug — does not affect student grading)"
                                                 onChange={e =>
                                                   setTestPciBasis(
                                                     e.target.value as
