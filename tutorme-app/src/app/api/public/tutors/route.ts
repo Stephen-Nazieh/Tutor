@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { course, user, profile, courseVariant } from '@/lib/db/schema'
+import { course, user, profile, courseVariant, tutorApplication } from '@/lib/db/schema'
 import { eq, and, or, inArray, isNull, sql, desc, ilike } from 'drizzle-orm'
 import { ALL_COUNTRIES } from '@/lib/data/tutor-categories'
 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     // Fast path for favorites/bookmarks: fetch specific tutors by ids.
     if (requestedIds.length > 0) {
-      const [tutorProfiles, publishedCourseRows] = await Promise.all([
+      const [tutorProfiles, publishedCourseRows, tutorApps] = await Promise.all([
         drizzleDb
           .select({
             userId: profile.userId,
@@ -58,6 +58,13 @@ export async function GET(request: NextRequest) {
               inArray(course.creatorId, requestedIds)
             )
           ),
+        drizzleDb
+          .select({
+            userId: tutorApplication.userId,
+            countryOfResidence: tutorApplication.countryOfResidence,
+          })
+          .from(tutorApplication)
+          .where(inArray(tutorApplication.userId, requestedIds)),
       ])
 
       const coursesByTutor = new Map<string, { courseId: string; categories: string[] | null }[]>()
@@ -69,6 +76,7 @@ export async function GET(request: NextRequest) {
       }
 
       const profileById = new Map(tutorProfiles.map(p => [p.userId, p]))
+      const tutorAppById = new Map(tutorApps.map(a => [a.userId, a]))
       const tutors = requestedIds
         .map(tutorId => {
           const profileData = profileById.get(tutorId)
@@ -77,21 +85,31 @@ export async function GET(request: NextRequest) {
           const categories = Array.from(
             new Set(tutorCourses.flatMap(c => (Array.isArray(c.categories) ? c.categories : [])))
           )
+          const tutorApp = tutorAppById.get(tutorId)
+          const countryFromProfile =
+            profileData.countryOfResidence || profileData.nationality || null
+          const countryFromApp = tutorApp?.countryOfResidence || null
+          const country = countryFromProfile || countryFromApp
+          const tutorNationalities = [
+            ...new Set(
+              [
+                profileData.nationality,
+                profileData.countryOfResidence,
+                tutorApp?.countryOfResidence,
+              ].filter(Boolean)
+            ),
+          ]
           return {
             id: tutorId,
             name: profileData.name || 'Anonymous Tutor',
             username: profileData.username || tutorId.slice(0, 8),
             bio: profileData.bio || 'Experienced tutor ready to help you improve quickly.',
             avatarUrl: profileData.avatarUrl,
-            country: profileData.countryOfResidence || profileData.nationality || null,
+            country,
             specialties: categories,
             hourlyRate: profileData.hourlyRate,
             oneOnOneEnabled: profileData.oneOnOneEnabled ?? true,
-            tutorNationalities: profileData.nationality
-              ? [profileData.nationality]
-              : profileData.countryOfResidence
-                ? [profileData.countryOfResidence]
-                : [],
+            tutorNationalities,
             categoryNationalityCombinations: [],
             courseCount: tutorCourses.length,
             totalEnrollments: 0,
@@ -240,8 +258,8 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Fetch profiles, courses, and variants for paginated tutors only
-    const [tutorProfiles, publishedCourses, variants] = await Promise.all([
+    // Fetch profiles, courses, variants, and tutor applications for paginated tutors only
+    const [tutorProfiles, publishedCourses, variants, tutorApps] = await Promise.all([
       drizzleDb
         .select({
           userId: profile.userId,
@@ -298,6 +316,13 @@ export async function GET(request: NextRequest) {
               )
           )
         ),
+      drizzleDb
+        .select({
+          userId: tutorApplication.userId,
+          countryOfResidence: tutorApplication.countryOfResidence,
+        })
+        .from(tutorApplication)
+        .where(inArray(tutorApplication.userId, paginatedIds)),
     ])
 
     const variantsByCourseId = new Map<string, { nationality: string; category: string }[]>()
@@ -308,6 +333,7 @@ export async function GET(request: NextRequest) {
     }
 
     const profileById = new Map(tutorProfiles.map(p => [p.userId, p]))
+    const tutorAppById = new Map(tutorApps.map(a => [a.userId, a]))
     const coursesByTutorId = new Map<string, typeof publishedCourses>()
     for (const c of publishedCourses) {
       const list = coursesByTutorId.get(c.creatorId!) || []
@@ -317,6 +343,7 @@ export async function GET(request: NextRequest) {
 
     const tutors = paginatedIds.map(tutorId => {
       const profileData = profileById.get(tutorId)
+      const tutorApp = tutorAppById.get(tutorId)
       const tutorCourses = coursesByTutorId.get(tutorId) || []
       const tutorVariants = tutorCourses.flatMap(c => variantsByCourseId.get(c.courseId) || [])
       const tutorCombinations = [
@@ -328,6 +355,7 @@ export async function GET(request: NextRequest) {
             ...tutorVariants.map(v => v.nationality),
             profileData?.nationality,
             profileData?.countryOfResidence,
+            tutorApp?.countryOfResidence,
           ].filter(Boolean)
         ),
       ]
@@ -337,13 +365,17 @@ export async function GET(request: NextRequest) {
         (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       )[0]
 
+      const countryFromProfile = profileData?.countryOfResidence || profileData?.nationality || null
+      const countryFromApp = tutorApp?.countryOfResidence || null
+      const country = countryFromProfile || countryFromApp
+
       return {
         id: tutorId,
         name: profileData?.name || 'Anonymous Tutor',
         username: profileData?.username || tutorId.slice(0, 8),
         bio: profileData?.bio || 'Experienced tutor ready to help you improve quickly.',
         avatarUrl: profileData?.avatarUrl,
-        country: profileData?.countryOfResidence || profileData?.nationality || null,
+        country,
         specialties: allCategories,
         hourlyRate: profileData?.hourlyRate,
         oneOnOneEnabled: profileData?.oneOnOneEnabled ?? true,
