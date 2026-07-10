@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Send, Loader2, CheckCircle2, Sparkles } from 'lucide-react'
 import { fetchWithCsrf } from '@/lib/api/fetch-csrf'
+import { TaskDocumentCard, type TaskDocumentSource } from '@/components/task/TaskDocumentCard'
 import { toast } from 'sonner'
 
 interface ChatMsg {
@@ -24,10 +25,14 @@ interface ChatMsg {
 export function TaskChatPanel({
   taskId,
   taskTitle,
+  sourceDocument,
   onCompleted,
 }: {
   taskId: string
   taskTitle?: string
+  /** The task's document (PDF/image). Shown full until the first message, then
+   *  collapsed into a pinned, re-expandable "document" card in the chat. */
+  sourceDocument?: TaskDocumentSource | null
   /** Fired after the task is completed, with the student's answers — the page
    *  uses it to broadcast the live "completed" tick to the tutor. */
   onCompleted?: (answers: string[]) => void
@@ -43,6 +48,12 @@ export function TaskChatPanel({
     const el = scrollRef.current
     if (el) el.scrollTop = el.scrollHeight
   }, [messages, busy])
+
+  // The task document shows full until the student sends their first message,
+  // then auto-collapses into a pinned card (see TaskDocumentCard). Keep it
+  // collapsed until the prior-chat check resolves so a returning (already
+  // completed) student doesn't see it flash open then slam shut.
+  const hasSentMessage = messages.some(m => m.role === 'student')
 
   // Restore a prior chat: if the student already completed this task, rebuild the
   // transcript (their answers, each AI response, and any follow-ups) and drop
@@ -177,6 +188,11 @@ export function TaskChatPanel({
           </span>
         )}
       </div>
+
+      {/* Task document — full until the student's first message, then a pinned,
+          re-expandable "document" card (kept collapsed until the prior-chat
+          check resolves so a returning student doesn't see it flash). */}
+      <TaskDocumentCard sourceDocument={sourceDocument} autoOpen={loaded && !hasSentMessage} />
 
       <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
         {!loaded && (
