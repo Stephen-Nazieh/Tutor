@@ -6241,15 +6241,25 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
                       const extractedText = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
                       targetAssess.description = extractedText
-                      if (assetToLoad.url) {
+                      // A durable fileKey is enough to display/deploy the doc (the
+                      // viewer streams it via the by-key proxy), so don't require a
+                      // signed url — it can come back empty when the assets API
+                      // fails to refresh an expired presigned URL, which silently
+                      // left the assessment with no source document ("No document
+                      // selected", no error).
+                      if (assetToLoad.url || assetToLoad.fileKey) {
                         targetAssess.sourceDocument = {
                           fileName: assetToLoad.name,
-                          fileUrl: assetToLoad.url,
+                          fileUrl: assetToLoad.url || '',
                           fileKey: assetToLoad.fileKey,
                           mimeType: assetToLoad.mimeType || 'application/pdf',
                           uploadedAt: new Date().toISOString(),
                           extractedText,
                         }
+                      } else {
+                        toast.error(
+                          'This document has no stored file — please re-upload it before loading.'
+                        )
                       }
 
                       const newCourseBuilderNodes = [...nodes]
