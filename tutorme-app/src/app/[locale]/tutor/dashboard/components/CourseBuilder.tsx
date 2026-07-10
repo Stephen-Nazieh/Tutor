@@ -9492,9 +9492,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                     rows={3}
                                                   />
                                                   {/* Poll options preview */}
-                                                  <div className="mt-4 flex flex-wrap gap-2">
+                                                  <div className="mt-4">
                                                     {pollOptionMode === '1-10' && (
-                                                      <>
+                                                      <div className="grid grid-cols-5 gap-2">
                                                         {Array.from(
                                                           { length: 10 },
                                                           (_, i) => i + 1
@@ -9502,12 +9502,44 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                           <button
                                                             key={num}
                                                             type="button"
-                                                            className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-xs font-medium text-blue-700"
+                                                            className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-xs font-medium text-blue-700"
                                                           >
                                                             {num}
                                                           </button>
                                                         ))}
-                                                      </>
+                                                      </div>
+                                                    )}
+                                                    {pollOptionMode === 'likert' && (
+                                                      <div className="flex flex-col gap-2">
+                                                        {[
+                                                          'Strongly Disagree',
+                                                          'Disagree',
+                                                          'Neutral',
+                                                          'Agree',
+                                                          'Strongly Agree',
+                                                        ].map((label, i) => (
+                                                          <button
+                                                            key={i}
+                                                            type="button"
+                                                            className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-xs font-medium text-blue-700"
+                                                          >
+                                                            {label}
+                                                          </button>
+                                                        ))}
+                                                      </div>
+                                                    )}
+                                                    {pollOptionMode === 'ae' && (
+                                                      <div className="flex flex-wrap gap-2">
+                                                        {['A', 'B', 'C', 'D', 'E'].map(letter => (
+                                                          <button
+                                                            key={letter}
+                                                            type="button"
+                                                            className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-xs font-medium text-blue-700"
+                                                          >
+                                                            {letter}
+                                                          </button>
+                                                        ))}
+                                                      </div>
                                                     )}
                                                     {pollOptionMode === 'custom' && (
                                                       <p className="text-xs text-gray-600">
@@ -11855,21 +11887,53 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                               rows={3}
                                             />
                                             {/* Poll options preview */}
-                                            <div className="mt-4 flex flex-wrap gap-2">
+                                            <div className="mt-4">
                                               {pollOptionMode === '1-10' && (
-                                                <>
+                                                <div className="grid grid-cols-5 gap-2">
                                                   {Array.from({ length: 10 }, (_, i) => i + 1).map(
                                                     num => (
                                                       <button
                                                         key={num}
                                                         type="button"
-                                                        className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-xs font-medium text-blue-700"
+                                                        className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-xs font-medium text-blue-700"
                                                       >
                                                         {num}
                                                       </button>
                                                     )
                                                   )}
-                                                </>
+                                                </div>
+                                              )}
+                                              {pollOptionMode === 'likert' && (
+                                                <div className="flex flex-col gap-2">
+                                                  {[
+                                                    'Strongly Disagree',
+                                                    'Disagree',
+                                                    'Neutral',
+                                                    'Agree',
+                                                    'Strongly Agree',
+                                                  ].map((label, i) => (
+                                                    <button
+                                                      key={i}
+                                                      type="button"
+                                                      className="flex h-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-xs font-medium text-blue-700"
+                                                    >
+                                                      {label}
+                                                    </button>
+                                                  ))}
+                                                </div>
+                                              )}
+                                              {pollOptionMode === 'ae' && (
+                                                <div className="flex flex-wrap gap-2">
+                                                  {['A', 'B', 'C', 'D', 'E'].map(letter => (
+                                                    <button
+                                                      key={letter}
+                                                      type="button"
+                                                      className="flex h-8 w-8 items-center justify-center rounded-md border border-blue-200 bg-blue-50 text-xs font-medium text-blue-700"
+                                                    >
+                                                      {letter}
+                                                    </button>
+                                                  ))}
+                                                </div>
                                               )}
                                               {pollOptionMode === 'custom' && (
                                                 <p className="text-xs text-gray-600">
