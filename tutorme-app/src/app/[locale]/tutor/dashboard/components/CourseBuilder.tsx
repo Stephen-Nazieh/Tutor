@@ -7299,7 +7299,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                 panelsMounted ? 'transition-[width] duration-500 ease-in-out' : '',
                 leftPanelHidden
                   ? 'bg-transparent shadow-none'
-                  : 'rounded-[20px] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
+                  : 'shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
               )}
               ref={leftPanelRef}
               style={{ width: effLeftPanelWidth, flexShrink: 0 }}
@@ -11540,7 +11540,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                     panelsMounted ? 'transition-[width] duration-500 ease-in-out' : '',
                     rightPanelHidden
                       ? 'bg-transparent shadow-none'
-                      : 'rounded-[20px] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
+                      : 'shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
                   )}
                   style={{ width: effRightPanelWidth, flexShrink: 0 }}
                 >
