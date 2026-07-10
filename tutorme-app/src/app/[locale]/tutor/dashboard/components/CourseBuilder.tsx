@@ -12891,7 +12891,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           <DialogContent className="max-w-md border border-slate-200 shadow-2xl">
             <DialogHeader className="text-center">
               <DialogTitle className="mx-auto text-center text-white">
-                Choose questions to generate
+                Edit DMI Manually
               </DialogTitle>
               <DialogDescription className="text-white/80">
                 This document looks like study material rather than a question paper. Pick the
@@ -12912,7 +12912,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                       )
                     }
                   >
-                    <SelectTrigger className="h-10 flex-1 rounded-[10px] border border-gray-200 bg-white text-sm font-medium text-gray-900">
+                    <SelectTrigger className="h-10 w-full rounded-[10px] border border-gray-200 bg-white text-sm font-medium text-gray-900">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
