@@ -1686,31 +1686,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       'Agree',
       'Strongly Agree',
     ]
-    // Reusable custom option sets, persisted so a tutor can pick a set they used
-    // before instead of retyping it. Loaded once from localStorage.
-    const [savedPollOptionSets, setSavedPollOptionSets] = useState<string[][]>([])
-    useEffect(() => {
-      try {
-        const raw = localStorage.getItem('tutor-poll-option-sets')
-        const parsed = raw ? JSON.parse(raw) : []
-        if (Array.isArray(parsed)) setSavedPollOptionSets(parsed.filter(Array.isArray).slice(0, 8))
-      } catch {
-        /* ignore */
-      }
-    }, [])
-    const rememberPollOptionSet = useCallback((opts: string[]) => {
-      if (opts.length < 2) return
-      setSavedPollOptionSets(prev => {
-        const key = opts.join('')
-        const next = [opts, ...prev.filter(s => s.join('') !== key)].slice(0, 8)
-        try {
-          localStorage.setItem('tutor-poll-option-sets', JSON.stringify(next))
-        } catch {
-          /* ignore */
-        }
-        return next
-      })
-    }, [])
     const [questionPromptMap, setQuestionPromptMap] = useState<Record<string, string>>({})
     const [showAIPollMap, setShowAIPollMap] = useState<Record<string, boolean>>({})
     const [pollComposeModeMap, setPollComposeModeMap] = useState<Record<string, boolean>>({})
@@ -1857,22 +1832,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       })
     }
 
-    // Resolve the chosen preset to explicit labels. `letters` returns undefined
-    // so the server applies its A–E default; custom is split on newlines/commas.
-    // Split custom options on any common separator — newline, comma, slash, pipe
-    // or semicolon — so the tutor can type "Agree / Disagree / Unsure" (as the
-    // placeholder shows), or one per line, or comma-separated, and it all works.
-    // Previously only \n and , were split, so slash-separated input (per the
-    // example) collapsed into ONE option and silently fell back to A–E.
-    const parsePollOptions = (raw: string): string[] =>
-      raw
-        .split(/[\n,/|;]/)
-        .map(s => s.trim())
-        .filter(Boolean)
-        .slice(0, 8)
-
-    const customPollValid = parsePollOptions(pollCustomOptions).length >= 2
-
     const resolvePollOptions = (): string[] | undefined => {
       if (pollOptionMode === 'tf') return ['True', 'False']
       if (pollOptionMode === 'yn') return ['Yes', 'No']
@@ -1881,10 +1840,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         return custom && custom.length >= 2 ? custom : DEFAULT_LIKERT_LABELS
       }
       if (pollOptionMode === 'ae') return ['A', 'B', 'C', 'D', 'E']
-      if (pollOptionMode === 'custom') {
-        const opts = parsePollOptions(pollCustomOptions)
-        return opts.length >= 2 ? opts : undefined
-      }
       return undefined
     }
 
@@ -9787,9 +9742,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                       )
                                                         return
                                                       const opts = resolvePollOptions()
-                                                      if (pollOptionMode === 'custom' && opts) {
-                                                        rememberPollOptionSet(opts)
-                                                      }
                                                       insightsProps.onSendPoll({
                                                         taskId: currentInsightsId,
                                                         question: pollPrompt,
@@ -12202,9 +12154,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                 )
                                                   return
                                                 const opts = resolvePollOptions()
-                                                if (pollOptionMode === 'custom' && opts) {
-                                                  rememberPollOptionSet(opts)
-                                                }
                                                 insightsProps.onSendPoll({
                                                   taskId: currentInsightsId,
                                                   question: pollPrompt,
