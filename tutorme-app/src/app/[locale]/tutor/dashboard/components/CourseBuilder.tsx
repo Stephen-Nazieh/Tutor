@@ -206,7 +206,7 @@ import { getAllCourseCategoryOptions } from '@/lib/data/all-categories'
 import { reverifyAssessment } from '@/lib/assessment/assessment-gates'
 import { deriveSections, deriveTotalMarks } from '@/lib/assessment/sections'
 import { toStudentDmiItem } from '@/lib/assessment/student-dmi'
-import { findEvaluationLeaks } from '@/lib/ai/guardrails'
+import { findEvaluationLeaks, resolvePciComposition } from '@/lib/ai/guardrails'
 import { useMarkingScheme } from './hooks/use-marking-scheme'
 import { useDmiEditor } from './hooks/use-dmi-editor'
 import { usePci } from './hooks/use-pci'
@@ -7230,6 +7230,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           return `${label}:${text}${marks}${rubric}`
         })
         .join('\n'),
+      // Per-type steering for the assessment PCI chat: composition from the DMI
+      // question mix, source from the resolved documentKind. Forwarded as
+      // context.variant; undefined fields simply fall back to the base prompt.
+      assessmentPciVariant: {
+        composition: resolvePciComposition(assessmentDmiItems.map(q => q.questionType)),
+        documentKind: dmiDocumentKind.assessment,
+      },
     })
     const { pci, handlePciSend, applyTaskPciDraft, applyAssessmentPciDraft, setPciInput } = pciApi
     const editSpecSoFar = pciApi.editSpecSoFar

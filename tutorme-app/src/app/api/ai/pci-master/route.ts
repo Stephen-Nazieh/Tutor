@@ -74,6 +74,15 @@ const PciMasterRequestSchema = z.object({
       // Assessment DMI digest (per-question marks + rubric, no answers) so the
       // marking policy is built with the real questions/marks/rubrics in view.
       markingScheme: z.string().max(16000).optional(),
+      // Assessment-only: the resolved PCI-chat variant (derived client-side from
+      // the DMI question mix + documentKind). Selects per-type steering appended
+      // to the assessment prompt. Ignored for tasks.
+      variant: z
+        .object({
+          composition: z.enum(['objective', 'free_response', 'mixed']).optional(),
+          documentKind: z.enum(['question_paper', 'study_material']).optional(),
+        })
+        .optional(),
     })
     .optional(),
   // Rendered page images (data URLs) of an attached PDF, so the model can SEE the
@@ -169,7 +178,7 @@ export async function POST(request: NextRequest) {
     // Socratic prompt. Enforcement is warn-only — see the validator pass below.
     const guardrailDomain = context?.type
     const activeSystemPrompt = guardrailDomain
-      ? guardrailSystemPrompt(guardrailDomain)
+      ? guardrailSystemPrompt(guardrailDomain, context?.variant)
       : SYSTEM_PROMPT
     const activeTemperature = guardrailDomain ? GUARDRAILED_TEMPERATURE : 0.7
 
