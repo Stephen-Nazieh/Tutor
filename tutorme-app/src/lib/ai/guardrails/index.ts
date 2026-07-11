@@ -41,8 +41,17 @@ export {
 
 export { stripEvaluationLayer, findEvaluationLeaks } from './serialize'
 
+export {
+  resolvePciComposition,
+  assessmentVariantAddendum,
+  type PciComposition,
+  type PciDocumentKind,
+  type PciVariant,
+} from './variants'
+
 import { TASK_PCI_SYSTEM_PROMPT } from './task-pci'
 import { ASSESSMENT_SYSTEM_PROMPT } from './assessment'
+import { assessmentVariantAddendum, type PciVariant } from './variants'
 import {
   validateTaskPciOutput,
   validateAssessmentOutput,
@@ -53,9 +62,19 @@ import {
 
 export type GuardrailDomain = 'task' | 'assessment'
 
-/** Return the canonical guardrail system prompt for a given PCI domain. */
-export function guardrailSystemPrompt(domain: GuardrailDomain): string {
-  return domain === 'assessment' ? ASSESSMENT_SYSTEM_PROMPT : TASK_PCI_SYSTEM_PROMPT
+/**
+ * Return the canonical guardrail system prompt for a given PCI domain.
+ *
+ * For assessments, an optional `variant` appends per-type steering (objective /
+ * free-response / mixed question mix, and a study-material source note) AFTER
+ * the base prompt — additive only, so no guardrail is ever dropped. Tasks have
+ * no sub-variants yet; the variant is ignored for `domain === 'task'`.
+ */
+export function guardrailSystemPrompt(domain: GuardrailDomain, variant?: PciVariant): string {
+  if (domain === 'assessment') {
+    return ASSESSMENT_SYSTEM_PROMPT + assessmentVariantAddendum(variant)
+  }
+  return TASK_PCI_SYSTEM_PROMPT
 }
 
 /**
