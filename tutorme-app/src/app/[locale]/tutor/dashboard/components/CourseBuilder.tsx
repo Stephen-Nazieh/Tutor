@@ -204,6 +204,7 @@ import {
 import { deriveExamContext } from '@/lib/assessment/marking-scheme'
 import { getAllCourseCategoryOptions } from '@/lib/data/all-categories'
 import { deriveSections, deriveTotalMarks } from '@/lib/assessment/sections'
+import { reverifyAssessment, type ReverifyItem } from '@/lib/assessment/assessment-gates'
 import { toStudentDmiItem } from '@/lib/assessment/student-dmi'
 import { buildStudentDeployPayload, type RawDeployDmiItem } from '@/lib/assessment/deploy-safety'
 import { revealPolicyToDeployMode } from '@/lib/assessment/reveal-policy'
@@ -1404,6 +1405,26 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         // and carry it separately as `answerKey` (server-only, for grading). Every
         // deploy path routes through here, so this is the single guarantee that
         // answers/rubrics never reach students. Block if anything still leaks.
+
+        // ASMT-12 gradability gate (assessment-only): the assessment must be
+        // internally consistent and fully gradable before deploy — no duplicate
+        // question numbers, every open (short/long) question has a rubric
+        // pathway, and every closed (mcq/…) question has an answer key. Runs on
+        // the RAW items (which still carry answers/rubrics). This blocks, e.g.,
+        // deploying a configured MCQ paper before all correct options are set.
+        if (payload.source === 'assessment') {
+          const issues = reverifyAssessment((payload.dmiItems ?? []) as unknown as ReverifyItem[])
+          if (issues.length > 0) {
+            const shown = issues
+              .slice(0, 3)
+              .map(i => i.message)
+              .join(' ')
+            const more = issues.length > 3 ? ` (+${issues.length - 3} more)` : ''
+            toast.error(`Cannot deploy — ${shown}${more}`)
+            return
+          }
+        }
+
         const {
           dmiItems: safeDmiItems,
           answerKey,
@@ -2025,6 +2046,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           activeExtensionId,
         })
         setTaskDmiItems(task.dmiItems || [])
+        // Rehydrate the DMI source kind so the PCI-chat study-material variant
+        // applies for a returning tutor, not just in the generation session.
+        setDmiDocumentKind(prev => ({ ...prev, task: task.documentKind }))
         // Normalize persisted versions so `items` is always an array — a legacy /
         // partially-saved version with a missing items array would otherwise crash
         // the DMI version-list / preview dialogs (rendered at the root, outside the
@@ -2072,6 +2096,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         activeExtensionId: null,
       })
       setAssessmentDmiItems(assessment.dmiItems || [])
+      // Rehydrate the DMI source kind so the PCI-chat study-material variant
+      // applies for a returning tutor, not just in the generation session.
+      setDmiDocumentKind(prev => ({ ...prev, assessment: assessment.documentKind }))
       // Normalize so every version's `items` is an array (see task note above).
       setAssessmentDmiVersions(
         (assessment.dmiVersions || []).map(v => ({
@@ -2247,6 +2274,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   task.instructions === taskBuilder.taskPci &&
                   task.extensions === taskBuilder.extensions &&
                   task.dmiItems === taskDmiItems &&
+                  task.documentKind === (dmiDocumentKind.task ?? task.documentKind) &&
                   task.dmiVersions === taskDmiVersions &&
                   task.activeDmiVersionId === nextActiveDmiVersionId &&
                   task.sourceDocument === taskBuilder.sourceDocument
@@ -2266,6 +2294,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   pciSpec: taskBuilder.pciSpec,
                   extensions: taskBuilder.extensions,
                   dmiItems: taskDmiItems,
+                  // Preserve the persisted kind when the session hasn't set one.
+                  documentKind: dmiDocumentKind.task ?? task.documentKind,
                   dmiVersions: taskDmiVersions,
                   activeDmiVersionId: nextActiveDmiVersionId,
                   sourceDocument: taskBuilder.sourceDocument,
@@ -2287,6 +2317,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       taskBuilder.sourceDocument,
       taskDmiItems,
       taskDmiVersions,
+      dmiDocumentKind.task,
       testPciSource,
       testPciViewMode,
       loadedTaskId,
@@ -2320,6 +2351,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   hw.instructions === assessmentBuilder.taskPci &&
                   hw.pciSpec === assessmentBuilder.pciSpec &&
                   hw.dmiItems === assessmentDmiItems &&
+                  hw.documentKind === (dmiDocumentKind.assessment ?? hw.documentKind) &&
                   hw.dmiVersions === assessmentDmiVersions &&
                   hw.activeDmiVersionId === nextActiveDmiVersionId &&
                   hw.sourceDocument === assessmentBuilder.sourceDocument
@@ -2334,6 +2366,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   instructions: assessmentBuilder.taskPci,
                   pciSpec: assessmentBuilder.pciSpec,
                   dmiItems: assessmentDmiItems,
+                  // Preserve the persisted kind when the session hasn't set one.
+                  documentKind: dmiDocumentKind.assessment ?? hw.documentKind,
                   dmiVersions: assessmentDmiVersions,
                   activeDmiVersionId: nextActiveDmiVersionId,
                   sourceDocument: assessmentBuilder.sourceDocument,
@@ -2354,6 +2388,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       assessmentBuilder.sourceDocument,
       assessmentDmiItems,
       assessmentDmiVersions,
+      dmiDocumentKind.assessment,
       testPciSource,
       testPciViewMode,
       loadedAssessmentId,
