@@ -2099,6 +2099,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           activeExtensionId,
         })
         setTaskDmiItems(task.dmiItems || [])
+        // Rehydrate the DMI source kind so the PCI-chat study-material variant
+        // applies for a returning tutor, not just in the generation session.
+        setDmiDocumentKind(prev => ({ ...prev, task: task.documentKind }))
         // Normalize persisted versions so `items` is always an array — a legacy /
         // partially-saved version with a missing items array would otherwise crash
         // the DMI version-list / preview dialogs (rendered at the root, outside the
@@ -2146,6 +2149,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         activeExtensionId: null,
       })
       setAssessmentDmiItems(assessment.dmiItems || [])
+      // Rehydrate the DMI source kind so the PCI-chat study-material variant
+      // applies for a returning tutor, not just in the generation session.
+      setDmiDocumentKind(prev => ({ ...prev, assessment: assessment.documentKind }))
       // Normalize so every version's `items` is an array (see task note above).
       setAssessmentDmiVersions(
         (assessment.dmiVersions || []).map(v => ({
@@ -2321,6 +2327,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   task.instructions === taskBuilder.taskPci &&
                   task.extensions === taskBuilder.extensions &&
                   task.dmiItems === taskDmiItems &&
+                  task.documentKind === (dmiDocumentKind.task ?? task.documentKind) &&
                   task.dmiVersions === taskDmiVersions &&
                   task.activeDmiVersionId === nextActiveDmiVersionId &&
                   task.sourceDocument === taskBuilder.sourceDocument
@@ -2340,6 +2347,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   pciSpec: taskBuilder.pciSpec,
                   extensions: taskBuilder.extensions,
                   dmiItems: taskDmiItems,
+                  // Preserve the persisted kind when the session hasn't set one.
+                  documentKind: dmiDocumentKind.task ?? task.documentKind,
                   dmiVersions: taskDmiVersions,
                   activeDmiVersionId: nextActiveDmiVersionId,
                   sourceDocument: taskBuilder.sourceDocument,
@@ -2361,6 +2370,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       taskBuilder.sourceDocument,
       taskDmiItems,
       taskDmiVersions,
+      dmiDocumentKind.task,
       testPciSource,
       testPciViewMode,
       loadedTaskId,
@@ -2394,6 +2404,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   hw.instructions === assessmentBuilder.taskPci &&
                   hw.pciSpec === assessmentBuilder.pciSpec &&
                   hw.dmiItems === assessmentDmiItems &&
+                  hw.documentKind === (dmiDocumentKind.assessment ?? hw.documentKind) &&
                   hw.dmiVersions === assessmentDmiVersions &&
                   hw.activeDmiVersionId === nextActiveDmiVersionId &&
                   hw.sourceDocument === assessmentBuilder.sourceDocument
@@ -2408,6 +2419,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   instructions: assessmentBuilder.taskPci,
                   pciSpec: assessmentBuilder.pciSpec,
                   dmiItems: assessmentDmiItems,
+                  // Preserve the persisted kind when the session hasn't set one.
+                  documentKind: dmiDocumentKind.assessment ?? hw.documentKind,
                   dmiVersions: assessmentDmiVersions,
                   activeDmiVersionId: nextActiveDmiVersionId,
                   sourceDocument: assessmentBuilder.sourceDocument,
@@ -2428,6 +2441,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       assessmentBuilder.sourceDocument,
       assessmentDmiItems,
       assessmentDmiVersions,
+      dmiDocumentKind.assessment,
       testPciSource,
       testPciViewMode,
       loadedAssessmentId,
