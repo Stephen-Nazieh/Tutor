@@ -275,8 +275,8 @@ jobs:
           done
           echo "app did not become ready in time"; cat /tmp/app.log; exit 1
 
-      - name: Run insights tab-loop spec
-        run: npx playwright test e2e/insights-tab-loop.spec.ts --project=chromium
+      - name: Run insights builder smoke specs
+        run: npx playwright test e2e/insights-tab-loop.spec.ts e2e/tutor-builder-smoke.spec.ts --project=chromium
 
       - name: App logs (on failure)
         if: failure()
