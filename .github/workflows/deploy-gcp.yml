@@ -162,7 +162,6 @@ jobs:
             --memory=1Gi
             --min-instances=0
             --max-instances=10
-          port: 8080
           env_vars: NODE_ENV=production,ADK_PUBLIC_HEALTH=true,ADK_AUTH_TOKEN=${{ secrets.ADK_AUTH_TOKEN }},KIMI_API_KEY=${{ secrets.KIMI_API_KEY }},GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
 
       - name: Run migrations (inline docker)
