@@ -1360,6 +1360,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     ])
     const [mcqChoices, setMcqChoices] = useState(4)
     const [mcqMarks, setMcqMarks] = useState(1)
+    // Numbering across sections: false = continuous (1..N over the whole paper);
+    // true = each section restarts its question numbers at 1 (e.g. per module).
+    const [mcqRestartPerSection, setMcqRestartPerSection] = useState(false)
     // "Edit marks & answers" review modal — lets the tutor set per-question marks
     // and vet/approve the AI-generated answers before deploying.
     const [dmiEditor, setDmiEditor] = useState<{ source: 'task' | 'assessment' } | null>(null)
@@ -3615,6 +3618,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       setMcqSections([{ name: '', count: 10 }])
       setMcqChoices(4)
       setMcqMarks(1)
+      setMcqRestartPerSection(false)
       setMcqConfigDialog({ type })
     }
 
@@ -3635,14 +3639,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       const choices = Math.max(2, Math.min(8, Math.round(mcqChoices) || 4))
       const marks = Math.max(1, Math.round(mcqMarks) || 1)
       const items: DMIQuestion[] = []
-      let n = 0
+      // `questionNumber` stays globally unique (ordering/identity); the visible
+      // `questionLabel` is what restarts per section when the tutor chose that.
+      let globalN = 0
       for (const sec of sections) {
+        let localN = 0
         for (let i = 0; i < sec.count; i++) {
-          n++
+          globalN++
+          localN++
           items.push({
             id: `dmi-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-            questionNumber: n,
-            questionLabel: String(n),
+            questionNumber: globalN,
+            questionLabel: String(mcqRestartPerSection ? localN : globalN),
             questionText: '',
             answer: '',
             marks,
@@ -13571,6 +13579,39 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                     className="h-9 w-16 rounded-[10px] border border-gray-200 bg-white text-center text-sm font-medium text-gray-900"
                   />
                 </label>
+              </div>
+              <div className="border-t border-slate-100 pt-3">
+                <p className="mb-1.5 text-xs font-medium text-gray-600">Question numbering</p>
+                <div className="flex w-fit gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5">
+                  {[
+                    {
+                      key: false,
+                      label: 'Continuous',
+                      hint: 'numbered 1…N across the whole paper',
+                    },
+                    {
+                      key: true,
+                      label: 'Restart each section',
+                      hint: 'each section starts again at 1',
+                    },
+                  ].map(opt => (
+                    <button
+                      key={String(opt.key)}
+                      type="button"
+                      onClick={() => setMcqRestartPerSection(opt.key)}
+                      title={opt.hint}
+                      aria-pressed={mcqRestartPerSection === opt.key}
+                      className={cn(
+                        'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                        mcqRestartPerSection === opt.key
+                          ? 'bg-[#EEF4FF] text-[#2B5FB8]'
+                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
               <p className="text-[11px] text-gray-500">
                 {mcqSections.reduce((sum, s) => sum + (Math.round(s.count) || 0), 0)} question(s) in
