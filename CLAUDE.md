@@ -22,7 +22,7 @@ dependencies and is run from its own directory:
 - `landing-page/` — Vite + React 19 marketing site. Built and its `dist/` is copied into
   `tutorme-app/public/` so the main app serves it at `/`.
 - **Google ADK microservice** — Express + TypeScript service for AI agents. Extracted
-  to its own repository (`Solocorn/adk-service`); the app reaches it over HTTP via
+  to its own repository (`Solocorn-LLC/adk-service`); the app reaches it over HTTP via
   `ADK_BASE_URL` + `ADK_AUTH_TOKEN`. No longer part of this monorepo.
 - `design-system/solocorn/MASTER.md` — Shared design tokens/guidelines.
 
@@ -91,7 +91,7 @@ Schema source of truth: `src/lib/db/schema/` (enums, `tables/*`, `relations.ts`)
 
 ```bash
 cd landing-page && npm run dev    # :3000
-# ADK service now lives in its own repo: Solocorn/adk-service (run `npm run dev` there)
+# ADK service now lives in its own repo: Solocorn-LLC/adk-service (run `npm run dev` there)
 ```
 
 ## Architecture

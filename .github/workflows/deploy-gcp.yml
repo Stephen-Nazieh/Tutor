@@ -140,7 +140,7 @@ jobs:
           docker push "$IMAGE"
           echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
 
-      # ADK is now built & deployed from its own repository (Solocorn/adk-service).
+      # ADK is now built & deployed from its own repository (Solocorn-LLC/adk-service).
       # This pipeline no longer manages the adk-service Cloud Run service; the app
       # reaches it via the ADK_BASE_URL secret (its stable Cloud Run URL) below.
 
