@@ -36,6 +36,7 @@ import {
   PhoneOff,
 } from 'lucide-react'
 import { BackButton } from '@/components/navigation/BackButton'
+import { CourseCategoryPicker } from './CourseCategoryPicker'
 import {
   Select,
   SelectContent,
@@ -130,6 +131,9 @@ type Props = UseCourseBuilderContentArgs & {
   setIsCreateDialogOpen?: (v: boolean) => void
   newCourseName?: string
   setNewCourseName?: (v: string) => void
+  newCourseCategories?: string[]
+  setNewCourseCategories?: (v: string[]) => void
+  createStorageUserId?: string
   onCreateNewCourse?: () => void
   isDeleteDialogOpen?: boolean
   setIsDeleteDialogOpen?: (v: boolean) => void
@@ -446,6 +450,9 @@ function CourseBuilderInsightsRouteInner({
   setIsCreateDialogOpen,
   newCourseName,
   setNewCourseName,
+  newCourseCategories,
+  setNewCourseCategories,
+  createStorageUserId,
   onCreateNewCourse,
   isDeleteDialogOpen,
   setIsDeleteDialogOpen,
@@ -481,6 +488,8 @@ function CourseBuilderInsightsRouteInner({
   )
   const showWifiSignal = isClassroomMode || activeMainTab === 'live'
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
+  // Two-step create flow: name → category (category is required at creation).
+  const [createStep, setCreateStep] = useState<'name' | 'category'>('name')
   const [goLiveDialogOpen, setGoLiveDialogOpen] = useState(false)
   const [renameValue, setRenameValue] = useState('')
   const [leftPanelHidden, setLeftPanelHidden] = useState(false)
@@ -1147,63 +1156,106 @@ function CourseBuilderInsightsRouteInner({
           />
         )}
       </div>
-      {/* Create Course Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      {/* Create Course Dialog — step 1: name, step 2: category (required) */}
+      <Dialog
+        open={isCreateDialogOpen}
+        onOpenChange={next => {
+          setCreateStep('name')
+          setIsCreateDialogOpen?.(next)
+        }}
+      >
         <DialogContent
-          className="max-w-md border border-slate-200 shadow-2xl"
+          className={
+            createStep === 'category'
+              ? 'max-h-[90vh] max-w-3xl overflow-hidden border border-slate-200 shadow-2xl'
+              : 'max-w-md border border-slate-200 shadow-2xl'
+          }
           aria-describedby={undefined}
         >
           <DialogHeader className="text-center">
-            <DialogTitle className="mx-auto text-center text-white">Create New Course</DialogTitle>
+            <DialogTitle className="mx-auto text-center text-white">
+              {createStep === 'category' ? 'Choose a Category' : 'Create New Course'}
+            </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 px-6 py-4">
-            <div className="space-y-2">
-              <Input
-                value={newCourseName}
-                onChange={e => {
-                  const value = e.target.value
-                  if (value.length <= 25) {
-                    setNewCourseName?.(value)
-                  }
-                }}
-                placeholder="Course name"
-                maxLength={25}
-                className="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && newCourseName?.trim()) {
-                    e.preventDefault()
-                    onCreateNewCourse?.()
-                  }
-                }}
-              />
-              <div className="flex justify-end">
-                <span
-                  className={`text-xs font-medium ${
-                    (newCourseName?.length || 0) >= 25
-                      ? 'text-red-500'
-                      : (newCourseName?.length || 0) >= 20
-                        ? 'text-orange-500'
-                        : 'text-gray-600'
-                  }`}
-                >
-                  {newCourseName?.length || 0}/25
-                </span>
+          {createStep === 'name' ? (
+            <div className="space-y-4 px-6 py-4">
+              <div className="space-y-2">
+                <Input
+                  value={newCourseName}
+                  onChange={e => {
+                    const value = e.target.value
+                    if (value.length <= 25) {
+                      setNewCourseName?.(value)
+                    }
+                  }}
+                  placeholder="Course name"
+                  maxLength={25}
+                  autoFocus
+                  className="h-12 w-full rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && newCourseName?.trim()) {
+                      e.preventDefault()
+                      setCreateStep('category')
+                    }
+                  }}
+                />
+                <div className="flex justify-end">
+                  <span
+                    className={`text-xs font-medium ${
+                      (newCourseName?.length || 0) >= 25
+                        ? 'text-red-500'
+                        : (newCourseName?.length || 0) >= 20
+                          ? 'text-orange-500'
+                          : 'text-gray-600'
+                    }`}
+                  >
+                    {newCourseName?.length || 0}/25
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="max-h-[60vh] overflow-y-auto rounded-lg bg-white p-4 text-slate-900">
+              <CourseCategoryPicker
+                value={newCourseCategories ?? []}
+                onChange={v => setNewCourseCategories?.(v)}
+                storageUserId={createStorageUserId}
+              />
+            </div>
+          )}
 
           <DialogFooter className="gap-3">
-            <Button variant="modal-secondary-dark" onClick={() => setIsCreateDialogOpen?.(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="modal-primary-dark"
-              onClick={onCreateNewCourse}
-              disabled={!newCourseName?.trim()}
-            >
-              Create
-            </Button>
+            {createStep === 'name' ? (
+              <>
+                <Button
+                  variant="modal-secondary-dark"
+                  onClick={() => setIsCreateDialogOpen?.(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="modal-primary-dark"
+                  onClick={() => setCreateStep('category')}
+                  disabled={!newCourseName?.trim()}
+                >
+                  Next
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="modal-secondary-dark" onClick={() => setCreateStep('name')}>
+                  Back
+                </Button>
+                <Button
+                  variant="modal-primary-dark"
+                  onClick={onCreateNewCourse}
+                  disabled={!newCourseName?.trim() || (newCourseCategories?.length ?? 0) === 0}
+                >
+                  Create
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
