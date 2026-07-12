@@ -778,8 +778,6 @@ function CourseBuilderInsightsRouteInner({
 
   // Search both lists regardless of saveMode so the selected course is always found
   const currentCourse = [...(courses || []), ...(draftCourses || [])].find(c => c.id === courseId)
-  const isCoursePublished = currentCourse?.isPublished === true
-  const isCourseVariant = currentCourse?.isVariant === true
   const originalSchedule = currentCourse?.schedule || []
 
   // Reschedule handlers
@@ -1191,13 +1189,10 @@ function CourseBuilderInsightsRouteInner({
             onCreateCourse={onCreateCourse}
             onEditCourse={courseId ? openEditCourse : undefined}
             canDelete={!!(courseId && courseId !== 'insights-draft' && onDeleteCourse)}
-            canSchedule={
-              !!(
-                courseId &&
-                courseId !== 'insights-draft' &&
-                (saveMode === 'draft' || (saveMode === 'live' && isCourseVariant))
-              )
-            }
+            // Schedule stays available for any real selected course, published
+            // or not — a draft materializes + schedules, a live course opens
+            // the reschedule dialog. (Was gated to drafts / live variants only.)
+            canSchedule={!!(courseId && courseId !== 'insights-draft')}
             canGoLive={
               !!(
                 courseId &&
