@@ -13,6 +13,7 @@ import {
   isSlotWithinStudentAvailability,
   studentHasAvailabilityConfigured,
 } from '@/lib/student-availability'
+import { slotInstants } from '@/lib/one-on-one/time'
 
 const respondSchema = z.object({
   requestId: z.string().min(1),
@@ -100,9 +101,14 @@ export async function PATCH(request: NextRequest) {
         )
       }
 
-      // Create event timestamps
-      const eventStart = new Date(`${slotDate}T${slotStartTime}:00`)
-      const eventEnd = new Date(`${slotDate}T${slotEndTime}:00`)
+      // Resolve the picked wall-clock slot to true UTC instants in the
+      // booking's own timezone (not the server's).
+      const { start: eventStart, end: eventEnd } = slotInstants(
+        slotDate,
+        slotStartTime,
+        slotEndTime,
+        existingRequest.timezone
+      )
       const durationMinutes = existingRequest.durationMinutes || 60
 
       // CHECK FOR CONFLICTS using unified conflict detector, expanded by the
