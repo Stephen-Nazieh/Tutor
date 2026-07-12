@@ -129,9 +129,11 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       )
     )
 
+  // Free sessions have no payment to refund.
+  const isPaidSession = (gs.pricePerSeat ?? 0) > 0
   let refundedCount = 0
   for (const seat of seats) {
-    if (seat.status === 'PAID') {
+    if (seat.status === 'PAID' && isPaidSession) {
       const outcome = await refundGroupSeat(seat.participantId, 'Group session cancelled by host')
       if (outcome.refunded) refundedCount++
       notify({

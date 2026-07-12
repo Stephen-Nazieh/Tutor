@@ -17,7 +17,8 @@ import { drizzleDb } from '@/lib/db/drizzle'
 import { groupSession, groupSessionParticipant, sessionParticipant } from '@/lib/db/schema'
 import { notify } from '@/lib/notifications/notify'
 import { refundGroupSeat } from '@/lib/payments/refund-group-session'
-import { countActiveSeats } from '@/lib/group-session/seats'
+import { countActiveSeats, admitPaidSeat } from '@/lib/group-session/seats'
+import { getOrCreateConversation } from '@/lib/messaging/conversation'
 import { notifyWaitlistOfOpening } from '@/lib/one-on-one/waitlist'
 import { bookingInstants } from '@/lib/one-on-one/time'
 
@@ -67,30 +68,43 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         { status: 409 }
       )
     }
+
+    const isFree = (gs.pricePerSeat ?? 0) <= 0
+
+    // Resolve the seat row: reuse an existing RESERVED hold, revive a CANCELLED
+    // one, or create a new one (capacity-gated for a genuinely new seat).
+    let participantId: string
     if (existing && existing.status === 'RESERVED') {
-      return NextResponse.json({ success: true, participantId: existing.participantId })
+      participantId = existing.participantId
+    } else {
+      if ((await countActiveSeats(id)) >= gs.capacity) {
+        return NextResponse.json({ error: 'This session is full' }, { status: 409 })
+      }
+      if (existing) {
+        participantId = existing.participantId
+        await drizzleDb
+          .update(groupSessionParticipant)
+          .set({ status: 'RESERVED', reservedAt: new Date(), paidAt: null, paymentId: null })
+          .where(eq(groupSessionParticipant.participantId, participantId))
+      } else {
+        participantId = nanoid()
+        await drizzleDb.insert(groupSessionParticipant).values({
+          participantId,
+          groupSessionId: id,
+          studentId: session.user.id,
+          status: 'RESERVED',
+        })
+      }
     }
 
-    // Capacity gate — count seats that are still held.
-    if ((await countActiveSeats(id)) >= gs.capacity) {
-      return NextResponse.json({ error: 'This session is full' }, { status: 409 })
+    // Free session: confirm the seat immediately (no checkout) — admit to the
+    // room and open the student↔tutor chat, mirroring the paid webhook.
+    if (isFree) {
+      await admitPaidSeat(participantId)
+      getOrCreateConversation(session.user.id, gs.tutorId).catch(() => {})
+      return NextResponse.json({ success: true, free: true, confirmed: true, participantId })
     }
 
-    const participantId = nanoid()
-    if (existing) {
-      // A previously cancelled seat — revive it (keeps the unique row).
-      await drizzleDb
-        .update(groupSessionParticipant)
-        .set({ status: 'RESERVED', reservedAt: new Date(), paidAt: null, paymentId: null })
-        .where(eq(groupSessionParticipant.participantId, existing.participantId))
-      return NextResponse.json({ success: true, participantId: existing.participantId })
-    }
-    await drizzleDb.insert(groupSessionParticipant).values({
-      participantId,
-      groupSessionId: id,
-      studentId: session.user.id,
-      status: 'RESERVED',
-    })
     return NextResponse.json({ success: true, participantId })
   } catch (err) {
     console.error('group seat reserve failed:', err)
@@ -122,7 +136,10 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   let refundResult = null
   if (seat.status === 'PAID') {
-    refundResult = await refundGroupSeat(seat.participantId, 'Seat released by student')
+    // Free seats have no payment to refund.
+    if ((gs.pricePerSeat ?? 0) > 0) {
+      refundResult = await refundGroupSeat(seat.participantId, 'Seat released by student')
+    }
     // Remove them from the shared room roster.
     if (gs.liveSessionId) {
       await drizzleDb

@@ -28,6 +28,7 @@ const emptyForm = {
   endTime: '',
   capacity: '4',
   pricePerSeat: '20',
+  free: false,
 }
 
 function formatDate(iso: string): string {
@@ -80,7 +81,7 @@ export default function TutorGroupSessionsPage() {
           startTime: form.startTime,
           endTime: form.endTime,
           capacity: Number(form.capacity),
-          pricePerSeat: Number(form.pricePerSeat),
+          pricePerSeat: form.free ? 0 : Number(form.pricePerSeat),
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -206,10 +207,21 @@ export default function TutorGroupSessionsPage() {
             <input
               type="number"
               min={0}
-              className={field}
-              value={form.pricePerSeat}
+              disabled={form.free}
+              className={`${field} disabled:bg-slate-100 disabled:text-slate-400`}
+              value={form.free ? '0' : form.pricePerSeat}
               onChange={e => setForm({ ...form, pricePerSeat: e.target.value })}
             />
+          </label>
+          <label className="flex items-center gap-2 self-end pb-2 text-sm font-medium text-slate-700 sm:col-span-2">
+            <input
+              type="checkbox"
+              checked={form.free}
+              onChange={e => setForm({ ...form, free: e.target.checked })}
+              className="h-4 w-4"
+            />
+            Free session — students book a seat with no payment (great for testing or free
+            workshops)
           </label>
         </div>
         <div className="mt-4">
@@ -259,7 +271,7 @@ export default function TutorGroupSessionsPage() {
                       {formatDate(gs.requestedDate)} · {gs.startTime}–{gs.endTime}
                     </span>
                     <span>
-                      {gs.pricePerSeat} {gs.currency}/seat
+                      {gs.pricePerSeat > 0 ? `${gs.pricePerSeat} ${gs.currency}/seat` : 'Free'}
                     </span>
                     <span>
                       {gs.capacity - gs.seatsLeft}/{gs.capacity} booked

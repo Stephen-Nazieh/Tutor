@@ -73,6 +73,12 @@ export function GroupSessionsList({ tutorId }: { tutorId: string }) {
         load()
         return
       }
+      // Free session: the seat is already confirmed — no checkout.
+      if (joinData.free || joinData.confirmed) {
+        toast.success("You're booked — this session is free. See you there!")
+        load()
+        return
+      }
       // 2. Start checkout for that seat.
       const payRes = await fetchWithCsrf('/api/payments/create', {
         method: 'POST',
@@ -117,7 +123,7 @@ export function GroupSessionsList({ tutorId }: { tutorId: string }) {
                     {formatDate(gs.requestedDate)} · {gs.startTime}–{gs.endTime} ({gs.timezone})
                   </span>
                   <span>
-                    {gs.pricePerSeat} {gs.currency}/seat
+                    {gs.pricePerSeat > 0 ? `${gs.pricePerSeat} ${gs.currency}/seat` : 'Free'}
                   </span>
                   <span className={full ? 'text-slate-400' : 'text-emerald-700'}>
                     {full ? 'Full' : `${gs.seatsLeft} of ${gs.capacity} seats left`}
