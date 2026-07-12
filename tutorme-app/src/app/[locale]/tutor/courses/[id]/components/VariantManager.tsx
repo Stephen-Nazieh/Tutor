@@ -545,8 +545,8 @@ export const VariantManager = forwardRef<VariantManagerHandle, VariantManagerPro
             <CardContent spacing="default" className="bg-white text-slate-900">
               {variants.length === 0 && (
                 <div className="rounded-xl border border-dashed border-slate-200 py-12 text-center text-sm text-slate-500">
-                  This course has no category yet. Set one from the course builder
-                  (Edit Course) to generate a schedulable variant.
+                  This course has no category yet. Set one from the course builder (Edit Course) to
+                  generate a schedulable variant.
                 </div>
               )}
 
