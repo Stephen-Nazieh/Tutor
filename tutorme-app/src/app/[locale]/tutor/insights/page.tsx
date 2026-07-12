@@ -105,6 +105,7 @@ function TutorInsightsPageInner() {
 
   const [courseName, setCourseName] = useState('')
   const [newCourseName, setNewCourseName] = useState('')
+  const [newCourseCategories, setNewCourseCategories] = useState<string[]>([])
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [propagationDialogOpen, setPropagationDialogOpen] = useState(false)
@@ -406,6 +407,10 @@ function TutorInsightsPageInner() {
       toast.error('Please enter a course name')
       return
     }
+    if (newCourseCategories.length === 0) {
+      toast.error('Please select a category')
+      return
+    }
     if (saveMode === 'draft') {
       const newCourse = {
         id: `course-${Date.now()}`,
@@ -430,6 +435,7 @@ function TutorInsightsPageInner() {
         setCourseId(newCourse.id)
         setDetachedCourseName(newCourse.name)
         setNewCourseName('')
+        setNewCourseCategories([])
         setIsCreateDialogOpen(false)
         toast.success(`Created draft "${newCourse.name}"`)
       } catch {
@@ -443,7 +449,7 @@ function TutorInsightsPageInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newCourseName.trim(),
-          categories: [],
+          categories: newCourseCategories,
           schedule: [],
           isLiveOnline: false,
         }),
@@ -456,6 +462,7 @@ function TutorInsightsPageInner() {
         setCourseId(createdCourse.id)
         setDetachedCourseName(createdCourse.name)
         setNewCourseName('')
+        setNewCourseCategories([])
         setIsCreateDialogOpen(false)
         toast.success(`Created course "${createdCourse.name}"`)
       } else {
@@ -464,7 +471,7 @@ function TutorInsightsPageInner() {
     } catch {
       toast.error('Failed to create course')
     }
-  }, [newCourseName, saveMode])
+  }, [newCourseName, newCourseCategories, saveMode])
 
   const handleDeleteCourse = useCallback(async () => {
     if (!courseId || courseId === 'insights-draft') return
@@ -1294,6 +1301,9 @@ function TutorInsightsPageInner() {
           setIsCreateDialogOpen={setIsCreateDialogOpen}
           newCourseName={newCourseName}
           setNewCourseName={setNewCourseName}
+          newCourseCategories={newCourseCategories}
+          setNewCourseCategories={setNewCourseCategories}
+          createStorageUserId={session?.user?.id}
           onCreateNewCourse={handleCreateNewCourse}
           isDeleteDialogOpen={isDeleteDialogOpen}
           setIsDeleteDialogOpen={setIsDeleteDialogOpen}
