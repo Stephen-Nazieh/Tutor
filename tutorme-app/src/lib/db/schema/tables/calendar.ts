@@ -237,6 +237,13 @@ export const oneOnOneBookingRequest = pgTable(
     calendarEventId: text('calendarEventId').references(() => calendarEvent.eventId, {
       onDelete: 'set null',
     }),
+    // Pending reschedule proposal (one party proposes a new time; the other
+    // accepts to move the session, or declines to keep it). Cleared once
+    // resolved. `rescheduleProposedBy` is the proposer's userId.
+    rescheduleProposedDate: timestamp('rescheduleProposedDate', { withTimezone: true }),
+    rescheduleProposedStart: text('rescheduleProposedStart'),
+    rescheduleProposedEnd: text('rescheduleProposedEnd'),
+    rescheduleProposedBy: text('rescheduleProposedBy'),
     createdAt: timestamp('createdAt', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { withTimezone: true })
       .notNull()
