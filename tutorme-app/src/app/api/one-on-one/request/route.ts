@@ -13,6 +13,7 @@ import {
   NotFoundError,
 } from '@/lib/api/middleware'
 import { parseJson } from '@/lib/api/parse'
+import { requestedDateFromString } from '@/lib/one-on-one/time'
 import {
   isSlotWithinStudentAvailability,
   studentHasAvailabilityConfigured,
@@ -116,8 +117,9 @@ export const POST = withCsrf(
     const durationHours = validated.duration / 60
     const costPerSession = Math.round(tutorProfile.hourlyRate * durationHours * 100) / 100
 
-    // Parse the date and time
-    const requestedDate = new Date(`${primarySlot.date}T00:00:00`)
+    // Store the calendar date as midnight-UTC so it round-trips regardless of
+    // the server's own timezone (wall-clock times live in `timezone` below).
+    const requestedDate = requestedDateFromString(primarySlot.date)
 
     // Create the request
     const newRequest = await drizzleDb

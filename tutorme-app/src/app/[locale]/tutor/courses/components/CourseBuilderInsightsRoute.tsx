@@ -748,6 +748,14 @@ function CourseBuilderInsightsRouteInner({
 
     const isExistingDbCourse = courses?.some((c: any) => c.id === courseId)
 
+    // Carry the category chosen at creation. Drafts hold it locally, so when
+    // this first persists the draft to the DB we must pass it through — else
+    // the new course row gets categories:[] and the Course Details page shows
+    // no variant and no scheduler. (executeSave threads it the same way.)
+    const draftCategories = [...(courses || []), ...(draftCourses || [])].find(
+      (c: any) => c.id === courseId
+    )?.categories
+
     // 4. Publish via shared save function
     const result = await saveCourse({
       courseId,
@@ -755,6 +763,7 @@ function CourseBuilderInsightsRouteInner({
       mode: 'publish',
       courseName,
       detachedCourseName,
+      categories: draftCategories,
       developmentMode: 'single',
       previewDifficulty: 'all',
       isExistingDbCourse,
@@ -769,8 +778,6 @@ function CourseBuilderInsightsRouteInner({
 
   // Search both lists regardless of saveMode so the selected course is always found
   const currentCourse = [...(courses || []), ...(draftCourses || [])].find(c => c.id === courseId)
-  const isCoursePublished = currentCourse?.isPublished === true
-  const isCourseVariant = currentCourse?.isVariant === true
   const originalSchedule = currentCourse?.schedule || []
 
   // Reschedule handlers
@@ -1182,13 +1189,10 @@ function CourseBuilderInsightsRouteInner({
             onCreateCourse={onCreateCourse}
             onEditCourse={courseId ? openEditCourse : undefined}
             canDelete={!!(courseId && courseId !== 'insights-draft' && onDeleteCourse)}
-            canSchedule={
-              !!(
-                courseId &&
-                courseId !== 'insights-draft' &&
-                (saveMode === 'draft' || (saveMode === 'live' && isCourseVariant))
-              )
-            }
+            // Schedule stays available for any real selected course, published
+            // or not — a draft materializes + schedules, a live course opens
+            // the reschedule dialog. (Was gated to drafts / live variants only.)
+            canSchedule={!!(courseId && courseId !== 'insights-draft')}
             canGoLive={
               !!(
                 courseId &&
