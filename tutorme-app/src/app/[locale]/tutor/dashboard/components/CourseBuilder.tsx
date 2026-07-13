@@ -10161,7 +10161,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                           const version = versionId
                                             ? versions.find(v => v.id === versionId)
                                             : versions[0]
-                                          const hasDoc = !!(doc?.fileUrl || doc?.fileKey || doc?.extractedText)
+                                          const hasDoc = !!(
+                                            doc?.fileUrl ||
+                                            doc?.fileKey ||
+                                            doc?.extractedText
+                                          )
                                           const hasDmi = !!version
 
                                           if (!hasDoc && !hasDmi) {
@@ -11182,9 +11186,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                 'application/pdf' ||
                                               (currentTaskDocument?.fileKey &&
                                                 (!currentTaskDocument?.mimeType ||
-                                                  currentTaskDocument?.mimeType === 'application/pdf')) ? (
+                                                  currentTaskDocument?.mimeType ===
+                                                    'application/pdf')) ? (
                                                 <PDFViewer
-                                                  key={currentTaskDocument.fileUrl || currentTaskDocument.fileKey || 'task-doc'}
+                                                  key={
+                                                    currentTaskDocument.fileUrl ||
+                                                    currentTaskDocument.fileKey ||
+                                                    'task-doc'
+                                                  }
                                                   fileUrl={currentTaskDocument.fileUrl || ''}
                                                   fileKey={currentTaskDocument.fileKey}
                                                   className="absolute inset-0 h-full w-full"
@@ -11587,9 +11596,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                 'application/pdf' ||
                                               (currentAssessmentDocument?.fileKey &&
                                                 (!currentAssessmentDocument?.mimeType ||
-                                                  currentAssessmentDocument?.mimeType === 'application/pdf')) ? (
+                                                  currentAssessmentDocument?.mimeType ===
+                                                    'application/pdf')) ? (
                                                 <PDFViewer
-                                                  key={currentAssessmentDocument.fileUrl || currentAssessmentDocument.fileKey || 'assessment-doc'}
+                                                  key={
+                                                    currentAssessmentDocument.fileUrl ||
+                                                    currentAssessmentDocument.fileKey ||
+                                                    'assessment-doc'
+                                                  }
                                                   fileUrl={currentAssessmentDocument.fileUrl || ''}
                                                   fileKey={currentAssessmentDocument.fileKey}
                                                   className="absolute inset-0 h-full w-full"
