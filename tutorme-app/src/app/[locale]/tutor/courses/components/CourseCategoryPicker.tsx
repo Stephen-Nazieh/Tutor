@@ -441,16 +441,18 @@ export function CourseCategoryPicker({
             <TabsList className="flex w-full flex-wrap justify-between bg-transparent p-0">
               {tabs.map(config => {
                 const Icon = config.icon
-                const isNational = config.value === 'national'
                 const isActive = categoryTab === config.value
                 return (
                   <TabsTrigger
                     key={config.value}
                     value={config.value}
-                    disabled={isNational && nationalExams.length === 0}
+                    // National stays clickable even before a country is chosen —
+                    // its country selects only appear once the tab is active, so
+                    // gating the tab on nationalExams would deadlock it (can't
+                    // pick a country to unlock the tab you need to pick it in).
+                    // The tab's own empty state prompts for a region/country.
                     className={cn(
-                      'rounded-none border-b-2 border-transparent px-3 py-3 text-[16px] font-medium text-slate-500 data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none',
-                      isNational && nationalExams.length === 0 && 'disabled:opacity-50'
+                      'rounded-none border-b-2 border-transparent px-3 py-3 text-[16px] font-medium text-slate-500 data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none'
                     )}
                     style={{
                       color: isActive ? config.color : config.color + '80',
