@@ -146,6 +146,7 @@ export const POST = withCsrf(
           additionalSlots.length > 0
             ? `Alternative slots: ${JSON.stringify(additionalSlots)}`
             : null,
+        studentNotes: validated.studentNotes?.trim() || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
