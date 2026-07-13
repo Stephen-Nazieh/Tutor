@@ -222,6 +222,10 @@ ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "reschedulePropose
 ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "rescheduleProposedEnd" text;
 ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "rescheduleProposedBy" text;
 
+-- The student's note to the tutor ("why I want this session"), shown on the
+-- tutor's request card. Long accepted by the API but previously never persisted.
+ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "studentNotes" text;
+
 -- 0071: student reviews of completed 1-on-1 sessions (one per booking).
 CREATE TABLE IF NOT EXISTS "OneOnOneReview" (
   "id" text PRIMARY KEY NOT NULL,
