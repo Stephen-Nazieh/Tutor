@@ -64,6 +64,8 @@ describe('/api/ai/pci-master', () => {
 
   afterEach(() => {
     global.fetch = originalFetch
+    delete process.env.AGENT_KIT_PCI_MASTER
+    delete process.env.KIMI_API_KEY
   })
 
   it('uses tutor realm session when available', async () => {
@@ -179,6 +181,38 @@ describe('/api/ai/pci-master', () => {
     const data = await res.json()
 
     expect(data.response).toBe('Just plain prose, no JSON at all.')
+    expect(data.pciDraft).toBe('')
+  })
+
+  it('flag ON: routes local generation through the agent-kit runner, preserving skipCache/timeout/retries + guardrails', async () => {
+    // Force the LOCAL path (no ADK) with a local provider available, flag ON.
+    process.env.AGENT_KIT_PCI_MASTER = 'true'
+    delete process.env.ADK_BASE_URL
+    process.env.KIMI_API_KEY = 'test-key'
+    mocks.getSessionForRealm.mockResolvedValue({ user: { id: 'tutor-1', role: 'TUTOR' } })
+    mocks.generateWithFallback.mockResolvedValue({
+      content: '{"reply":"What makes an answer correct?","pci":""}',
+      provider: 'kimi',
+      latencyMs: 5,
+    })
+
+    const res = await postBody({ message: 'set marks', context: { type: 'task' } })
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    // generation went through the kit's injected generate → generateWithFallback
+    expect(mocks.generateWithFallback).toHaveBeenCalledTimes(1)
+    const [prompt, opts] = mocks.generateWithFallback.mock.calls[0]
+    // the retry/cache budget is preserved (the default adapter would drop these)
+    expect(opts).toMatchObject({
+      skipCache: true,
+      timeoutMs: expect.any(Number),
+      retries: expect.any(Number),
+    })
+    // user input is injection-fenced, and the task guardrail prompt is applied
+    expect(prompt).toContain('<user_input>')
+    // downstream envelope extraction still runs on the kit's output
+    expect(data.response).toBe('What makes an answer correct?')
     expect(data.pciDraft).toBe('')
   })
 

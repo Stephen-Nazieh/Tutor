@@ -20,8 +20,20 @@ import {
   GUARDRAILED_TEMPERATURE,
   type GuardrailViolation,
 } from '@/lib/ai/guardrails'
-import { PCI_MASTER_SYSTEM_PROMPT } from '@/lib/ai/agent-kit/agents/pci-master'
+import { PCI_MASTER_SYSTEM_PROMPT, pciMasterAgent } from '@/lib/ai/agent-kit/agents/pci-master'
+import { runAgent } from '@/lib/ai/agent-kit/runner'
 import { z } from 'zod'
+
+/**
+ * Flag-gated cutover: route the LOCAL text generation through the agent-kit
+ * runner so guardrail selection + post-validation are owned by the kit uniformly.
+ * Default OFF — prod behavior is unchanged until this is flipped after review.
+ * The vision and ADK paths are unaffected. Read per-request (not at module load)
+ * so it can be toggled by a revision's env without a code change, and is testable.
+ */
+function agentKitPciMasterEnabled(): boolean {
+  return process.env.AGENT_KIT_PCI_MASTER === 'true'
+}
 
 /**
  * Normalize a raw LLM response into clean assistant text + parsed structure.
@@ -280,6 +292,45 @@ export async function POST(request: NextRequest) {
       retries: GEN_RETRIES,
     }
 
+    // Local (text) generation — used by both the else branch and the ADK-failure
+    // fallback. When the flag is ON it runs through the agent-kit runner, which
+    // owns guardrail-prompt selection (per-request domain) + temperature; the
+    // injected `generate` preserves skipCache/timeout/retries that the default
+    // adapter doesn't carry. When OFF it's the original direct call, byte-for-byte.
+    const generateLocal = async (): Promise<{
+      response: string
+      parsed?: { response?: string } | null
+    }> => {
+      if (agentKitPciMasterEnabled()) {
+        const agentResult = await runAgent(
+          pciMasterAgent,
+          {
+            message: userPrompt,
+            context: { userId: session.user.id, guardrailDomain, variant: context?.variant },
+          },
+          {
+            generate: async ({ system, user, temperature, maxTokens }) => {
+              const prompt = system ? `${system}\n\n<user_input>\n${user}\n</user_input>` : user
+              const r = await generateWithFallback(prompt, {
+                temperature,
+                maxTokens,
+                skipCache: true,
+                timeoutMs: GEN_TIMEOUT_MS,
+                retries: GEN_RETRIES,
+              })
+              return { text: r.content }
+            },
+          }
+        )
+        return toCleanResponse(agentResult.text)
+      }
+      const fallback = await generateWithFallback(
+        `System:\n${activeSystemPrompt}\n\n${userPrompt}`,
+        fallbackOptions
+      )
+      return toCleanResponse(fallback.content)
+    }
+
     try {
       if (pdfPages && pdfPages.length > 0) {
         // Vision path: let the model actually SEE the attached document pages so it can
@@ -325,18 +376,10 @@ export async function POST(request: NextRequest) {
             )
           }
           console.warn('ADK PCI master failed, falling back to local providers:', error)
-          const fallback = await generateWithFallback(
-            `System:\n${activeSystemPrompt}\n\n${userPrompt}`,
-            fallbackOptions
-          )
-          response = toCleanResponse(fallback.content)
+          response = await generateLocal()
         }
       } else {
-        const fallback = await generateWithFallback(
-          `System:\n${activeSystemPrompt}\n\n${userPrompt}`,
-          fallbackOptions
-        )
-        response = toCleanResponse(fallback.content)
+        response = await generateLocal()
       }
     } catch (providerError) {
       // The upstream model failed (timeout / 429 / 5xx) after retries. Surface a
