@@ -295,14 +295,7 @@ export function CourseCategoryPicker({
   const tabs = CATEGORY_TAB_CONFIG.filter(config => config.value !== 'specialties')
 
   return (
-    <div
-      className={cn(
-        'relative flex flex-col gap-6 overflow-hidden rounded-2xl border border-white/10 bg-[rgba(31,41,51,0.60)] p-6 shadow-2xl backdrop-blur-xl',
-        className
-      )}
-    >
-      <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-slate-900/5 via-slate-900/10 to-slate-900/20" />
-      <div className="relative z-10 flex flex-col gap-6">
+    <div className={cn('flex flex-col gap-6', className)}>
         {/* Region + Country — only for the country-specific tabs (National +
             Universities); hidden on the global-board tabs where a country is
             meaningless and picking one caused the "choose country twice?"
@@ -438,7 +431,7 @@ export function CourseCategoryPicker({
         {/* Tabs */}
         <Tabs value={categoryTab} onValueChange={setCategoryTab} className="flex w-full flex-col">
           <div>
-            <TabsList className="flex w-full flex-wrap justify-between bg-transparent p-0">
+            <TabsList className="flex w-full flex-nowrap justify-between overflow-x-auto bg-transparent p-0 scrollbar-hide">
               {tabs.map(config => {
                 const Icon = config.icon
                 const isActive = categoryTab === config.value
@@ -452,7 +445,7 @@ export function CourseCategoryPicker({
                     // pick a country to unlock the tab you need to pick it in).
                     // The tab's own empty state prompts for a region/country.
                     className={cn(
-                      'rounded-none border-b-2 border-transparent px-3 py-3 text-[16px] font-medium text-slate-500 data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none'
+                      'rounded-none border-b-2 border-transparent px-2 py-2 text-[14px] font-medium text-slate-500 data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:text-indigo-600 data-[state=active]:shadow-none'
                     )}
                     style={{
                       color: isActive ? config.color : config.color + '80',
@@ -590,7 +583,6 @@ export function CourseCategoryPicker({
             </TabsContent>
           </div>
         </Tabs>
-      </div>
     </div>
   )
 }
