@@ -17,8 +17,8 @@ export function listAgents(): AgentDefinition[] {
   return Array.from(agents.values())
 }
 
-export function registerTool(tool: Tool): Tool {
-  tools.set(tool.name, tool)
+export function registerTool<I, O>(tool: Tool<I, O>): Tool<I, O> {
+  tools.set(tool.name, tool as Tool)
   return tool
 }
 

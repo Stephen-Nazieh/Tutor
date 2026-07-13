@@ -49,5 +49,7 @@ agent-kit/
 - **Phase 5 — retire ADK.** Remove `Solocorn-LLC/adk-service` once nothing calls it.
 
 ## Status
-Phase 1 only. `runAgent` does a guardrailed single-shot generation; tool calls are
-declared but not yet executed (Phase 2).
+**Phases 1–2 landed.** `runAgent` does guardrailed generation *and* executes tools via
+a provider-agnostic ReAct/JSON loop (`tools/mcq-score.ts` is a worked example), with
+structured assessment/DMI post-validation. Next: **Phase 3** — port the real agents to
+configs, point routes at `runAgent` behind a flag, and delete the duplicate prompts.
