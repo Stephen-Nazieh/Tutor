@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { eq, and, or } from 'drizzle-orm'
+import { eq, and, or, inArray } from 'drizzle-orm'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { oneOnOneBookingRequest, profile, user } from '@/lib/db/schema'
 import { notify } from '@/lib/notifications/notify'
@@ -146,6 +146,7 @@ export const POST = withCsrf(
           additionalSlots.length > 0
             ? `Alternative slots: ${JSON.stringify(additionalSlots)}`
             : null,
+        studentNotes: validated.studentNotes?.trim() || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -175,6 +176,17 @@ export const POST = withCsrf(
     )
   })
 )
+
+/** Map of tutor userId → their profile currency (for displaying session cost). */
+async function tutorCurrencyMap(tutorIds: string[]): Promise<Map<string, string | null>> {
+  const unique = [...new Set(tutorIds)]
+  if (unique.length === 0) return new Map()
+  const rows = await drizzleDb
+    .select({ userId: profile.userId, currency: profile.currency })
+    .from(profile)
+    .where(inArray(profile.userId, unique))
+  return new Map(rows.map(r => [r.userId, r.currency]))
+}
 
 // Get all pending requests for the current user (student or tutor)
 export const GET = withAuth(async (request: NextRequest, session) => {
@@ -218,7 +230,7 @@ export const GET = withAuth(async (request: NextRequest, session) => {
   let requests
   if (role === 'sent' || session.user.role === 'STUDENT') {
     // Get requests sent by current user (as student)
-    requests = await drizzleDb.query.oneOnOneBookingRequest.findMany({
+    const rows = await drizzleDb.query.oneOnOneBookingRequest.findMany({
       where: eq(oneOnOneBookingRequest.studentId, session.user.id),
       orderBy: (oneOnOneBookingRequest, { desc }) => [desc(oneOnOneBookingRequest.createdAt)],
       columns: CORE_BOOKING_COLUMNS,
@@ -233,9 +245,13 @@ export const GET = withAuth(async (request: NextRequest, session) => {
         },
       },
     })
+    // `costPerSession` is denominated in each tutor's own currency (set on their
+    // profile), so attach it per-request for display. Not a column on the booking.
+    const currencyByTutor = await tutorCurrencyMap(rows.map(r => r.tutorId))
+    requests = rows.map(r => ({ ...r, currency: currencyByTutor.get(r.tutorId) ?? null }))
   } else if (role === 'received' || session.user.role === 'TUTOR') {
     // Get requests received by current user (as tutor)
-    requests = await drizzleDb.query.oneOnOneBookingRequest.findMany({
+    const rows = await drizzleDb.query.oneOnOneBookingRequest.findMany({
       where: eq(oneOnOneBookingRequest.tutorId, session.user.id),
       orderBy: (oneOnOneBookingRequest, { desc }) => [desc(oneOnOneBookingRequest.createdAt)],
       columns: CORE_BOOKING_COLUMNS,
@@ -250,6 +266,14 @@ export const GET = withAuth(async (request: NextRequest, session) => {
         },
       },
     })
+    // The tutor is the current user; the price is in their own currency.
+    const [me] = await drizzleDb
+      .select({ currency: profile.currency })
+      .from(profile)
+      .where(eq(profile.userId, session.user.id))
+      .limit(1)
+    const currency = me?.currency ?? null
+    requests = rows.map(r => ({ ...r, currency }))
   } else {
     throw new ValidationError('Invalid role parameter')
   }

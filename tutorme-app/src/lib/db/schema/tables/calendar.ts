@@ -232,6 +232,8 @@ export const oneOnOneBookingRequest = pgTable(
     status: enums.bookingRequestStatusEnum('status').notNull().default('PENDING'),
     tutorResponseAt: timestamp('tutorResponseAt', { withTimezone: true }),
     tutorNotes: text('tutorNotes'),
+    // The student's note to the tutor when requesting ("why I want this session").
+    studentNotes: text('studentNotes'),
     paymentDueAt: timestamp('paymentDueAt', { withTimezone: true }),
     paidAt: timestamp('paidAt', { withTimezone: true }),
     calendarEventId: text('calendarEventId').references(() => calendarEvent.eventId, {

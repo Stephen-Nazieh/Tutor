@@ -124,6 +124,8 @@ export function CalendarBookingDialog({
 
   // Recurring booking: how many weeks to repeat the selected slot
   const [recurringWeeks, setRecurringWeeks] = useState(1)
+  // Optional note the student sends the tutor ("why I want this session").
+  const [studentNotes, setStudentNotes] = useState('')
 
   // Calendar week navigation
   const [weekOffset, setWeekOffset] = useState(0)
@@ -443,6 +445,7 @@ export function CalendarBookingDialog({
           tutorId: tutor.id,
           proposedSlots,
           duration: 60,
+          ...(studentNotes.trim() ? { studentNotes: studentNotes.trim() } : {}),
         }),
       })
 
@@ -450,6 +453,7 @@ export function CalendarBookingDialog({
 
       if (res.ok) {
         toast.success('Booking request sent! The tutor will review and confirm.')
+        setStudentNotes('')
         setHasPendingRequest(true)
         setActiveRequest({
           id: data.request.requestId ?? data.request.id,
@@ -929,6 +933,28 @@ export function CalendarBookingDialog({
                             ? 'Free'
                             : `${availability?.currency} ${(availability?.hourlyRate ?? 0) * summaryData.sessionCount}`}
                         </span>
+                      </div>
+                    </div>
+
+                    {/* Optional note to the tutor */}
+                    <div className="mt-4">
+                      <label
+                        htmlFor="booking-student-notes"
+                        className="mb-1.5 block text-sm font-semibold text-white"
+                      >
+                        Note to tutor <span className="font-normal text-white/50">(optional)</span>
+                      </label>
+                      <textarea
+                        id="booking-student-notes"
+                        value={studentNotes}
+                        onChange={e => setStudentNotes(e.target.value.slice(0, 1000))}
+                        rows={3}
+                        maxLength={1000}
+                        placeholder="What would you like help with? e.g. preparing for Friday's calculus test."
+                        className="w-full resize-none rounded-[12px] border border-[rgba(226,232,240,0.9)] bg-white px-[18px] py-3 text-sm text-[#1F2933] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                      />
+                      <div className="mt-1 text-right text-[11px] font-medium text-white/50">
+                        {studentNotes.length}/1000
                       </div>
                     </div>
                   </div>

@@ -20,6 +20,7 @@ import {
   groupSessionParticipant,
 } from '@/lib/db/schema'
 import { eq, and, gte, lte, inArray, isNull, ne, sql } from 'drizzle-orm'
+import { expandToCourseFamily } from '@/lib/courses/variant-family'
 import { LIVE_SESSION_OPEN_STATUSES } from '@/lib/sessions/live-session-status'
 
 export const GET = withAuth(
@@ -42,7 +43,12 @@ export const GET = withAuth(
       .from(courseEnrollment)
       .where(eq(courseEnrollment.studentId, studentId))
 
-    const courseIds = enrollments.map(e => e.courseId).filter(Boolean)
+    const enrolledIds = enrollments.map(e => e.courseId).filter(Boolean) as string[]
+
+    // A student enrolls in the PUBLISHED variant, but the tutor's sessions and
+    // schedules may be stored under the TEMPLATE course id — expand to the whole
+    // variant family so a template-scoped session still matches.
+    const courseIds = await expandToCourseFamily(enrolledIds)
 
     // --- Primary source: CalendarEvent (course sessions) ---
     // Only queried when the student is enrolled in courses; 1-on-1 sessions
