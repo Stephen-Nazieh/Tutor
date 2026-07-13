@@ -11246,7 +11246,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                 <div className="absolute inset-0 flex items-center justify-center bg-white p-4">
                                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                                   <img
-                                                    src={currentTaskDocument.fileUrl}
+                                                    src={
+                                                      currentTaskDocument.fileKey
+                                                        ? `/api/proxy-file?key=${encodeURIComponent(currentTaskDocument.fileKey)}`
+                                                        : currentTaskDocument.fileUrl
+                                                    }
                                                     alt={currentTaskDocument.fileName}
                                                     className="max-h-full max-w-full object-contain"
                                                   />
@@ -11254,13 +11258,17 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                               ) : currentTaskDocument &&
                                                 currentTaskDocument.mimeType !==
                                                   'application/pdf' &&
-                                                !currentTaskDocument.mimeType.startsWith(
+                                                !currentTaskDocument.mimeType?.startsWith(
                                                   'image/'
                                                 ) ? (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-6">
                                                   <FileText className="mb-4 h-16 w-16 text-blue-500" />
                                                   <a
-                                                    href={currentTaskDocument.fileUrl}
+                                                    href={
+                                                      currentTaskDocument.fileKey
+                                                        ? `/api/proxy-file?key=${encodeURIComponent(currentTaskDocument.fileKey)}`
+                                                        : currentTaskDocument.fileUrl
+                                                    }
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="text-center text-sm font-medium text-blue-600 hover:underline"
@@ -11657,7 +11665,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                 <div className="absolute inset-0 flex items-center justify-center bg-white p-4">
                                                   <div className="relative h-full w-full">
                                                     <NextImage
-                                                      src={currentAssessmentDocument.fileUrl}
+                                                      src={
+                                                        currentAssessmentDocument.fileKey
+                                                          ? `/api/proxy-file?key=${encodeURIComponent(currentAssessmentDocument.fileKey)}`
+                                                          : currentAssessmentDocument.fileUrl
+                                                      }
                                                       alt={currentAssessmentDocument.fileName}
                                                       fill
                                                       className="object-contain"
@@ -11670,7 +11682,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-6">
                                                   <FileText className="mb-4 h-16 w-16 text-blue-500" />
                                                   <a
-                                                    href={currentAssessmentDocument.fileUrl}
+                                                    href={
+                                                      currentAssessmentDocument.fileKey
+                                                        ? `/api/proxy-file?key=${encodeURIComponent(currentAssessmentDocument.fileKey)}`
+                                                        : currentAssessmentDocument.fileUrl
+                                                    }
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="text-center text-sm font-medium text-blue-600 hover:underline"
