@@ -9,10 +9,10 @@
 // Export all agent functions
 export * from './tutor'
 export * from './content-generator'
-// './grading' removed — it was a dead legacy module (every fn threw "Legacy
-// grading system removed"). Live grading is lib/grading/pci-grader.
-export * from './briefing'
-export * from './live-monitor'
+// Removed as dead modules (zero callers): './grading' (fns threw "Legacy grading
+// system removed"), './briefing' and './live-monitor' (entire agents orphaned).
+// Live grading is lib/grading/pci-grader; live-class assist is the
+// /api/ai/monitor-assistant route (not the deleted live-monitor agent).
 
 // Export shared data types
 export * from './shared-data'
