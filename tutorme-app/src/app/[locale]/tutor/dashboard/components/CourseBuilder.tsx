@@ -5747,6 +5747,117 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       setPptUploadDialog({ isOpen: false, file: null, target: null })
     }
 
+    const loadAssetAsAssessment = (
+      asset: {
+        name: string
+        content?: string
+        url?: string
+        fileKey?: string
+        mimeType?: string
+        folder?: string
+      } | null
+    ) => {
+      if (!asset) return
+
+      let nodeIndex = -1
+      let lessonIndex = -1
+      let existingAssess: Assessment | undefined
+
+      if (loadedAssessmentId) {
+        for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
+          for (let lIdx = 0; lIdx < nodes[nIdx].lessons.length; lIdx++) {
+            const hw = nodes[nIdx].lessons[lIdx].homework.find(h => h.id === loadedAssessmentId)
+            if (hw) {
+              existingAssess = hw
+              nodeIndex = nIdx
+              lessonIndex = lIdx
+              break
+            }
+          }
+          if (existingAssess) break
+        }
+      }
+
+      if (nodeIndex === -1 || lessonIndex === -1) {
+        const { nodeId, lessonId } = resolveAssetLoadTarget()
+        nodeIndex = nodes.findIndex(m => m.id === nodeId)
+        lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
+      }
+
+      let targetAssess: Assessment
+
+      if (existingAssess) {
+        targetAssess = { ...existingAssess }
+      } else {
+        targetAssess = DEFAULT_HOMEWORK(
+          nodes[nodeIndex].lessons[lessonIndex].homework.length,
+          'assessment'
+        )
+      }
+
+      const extractedText = asset.content || `[Asset: ${asset.name}]`
+      targetAssess.description = extractedText
+      // A durable fileKey is enough to display/deploy the doc (the
+      // viewer streams it via the by-key proxy), so don't require a
+      // signed url — it can come back empty when the assets API
+      // fails to refresh an expired presigned URL, which silently
+      // left the assessment with no source document ("No document
+      // selected", no error).
+      // A durable fileKey is enough (the viewer streams it via the
+      // by-key proxy), so don't require a signed url. But with NO
+      // stored file at all, there is nothing to preview or deploy —
+      // abort instead of creating an empty assessment and then
+      // (mis)reporting "Loaded …". This happens for stale/broken
+      // assets whose upload never stored a file; the tutor must
+      // re-upload the document to get a working asset.
+      if (!asset.url && !asset.fileKey) {
+        toast.error('This document has no stored file — please re-upload it before loading.')
+        setLoadAsModalOpen(false)
+        setAssetToLoad(null)
+        return
+      }
+
+      targetAssess.sourceDocument = {
+        fileName: asset.name,
+        fileUrl: asset.url || '',
+        fileKey: asset.fileKey,
+        mimeType: asset.mimeType || 'application/pdf',
+        uploadedAt: new Date().toISOString(),
+        extractedText,
+      }
+
+      const newCourseBuilderNodes = [...nodes]
+
+      if (existingAssess) {
+        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework = newCourseBuilderNodes[
+          nodeIndex
+        ].lessons[lessonIndex].homework.map(h => (h.id === loadedAssessmentId ? targetAssess : h))
+      } else {
+        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(targetAssess)
+      }
+
+      setCourseBuilderNodes(newCourseBuilderNodes)
+      setMainBuilderTab('assessment')
+      setSelectedItem({ type: 'assessment', id: targetAssess.id })
+      loadAssessmentIntoBuilder(targetAssess)
+
+      // Show PDF by default, hide text
+      setAssessmentPdfVisibleMap(prev => ({ ...prev, [targetAssess.id]: true }))
+      setAssessmentTextVisibleMap(prev => ({ ...prev, [targetAssess.id]: false }))
+
+      toast.success(`Loaded '${asset?.name}' into Assessment`)
+      setLoadAsModalOpen(false)
+      setAssetToLoad(null)
+
+      // DMI-first: generate the DMI (questions + answers/marks)
+      // right away. The marking-policy (PCI) chat stays locked
+      // until the DMI is ready. handleGenerateDMI detects the
+      // document kind and asks the tutor to confirm if unsure.
+      setTimeout(() => {
+        handleGenerateDMI('assessment')
+      }, 500)
+    }
+
     const handleLoadAsset = (
       asset: {
         name: string
@@ -5780,8 +5891,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       // If we came from an assessment/task "+" picker, the target context is known,
       // so skip the 'main' choice and go straight to options.
       if (target === 'assessment') {
-        setLoadAsStep('assessment-options')
-        setLoadAsModalOpen(true)
+        loadAssetAsAssessment(asset)
+        return
       } else if (target === 'task') {
         setLoadAsStep('task-options')
         setLoadAsModalOpen(true)
@@ -6500,114 +6611,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   <Button
                     className="h-auto w-full justify-start gap-3 rounded-xl border-slate-200 bg-white py-4 shadow-sm hover:border-slate-300 hover:bg-slate-50"
                     variant="outline"
-                    onClick={() => {
-                      if (!assetToLoad) return
-
-                      let nodeIndex = -1
-                      let lessonIndex = -1
-                      let existingAssess: Assessment | undefined
-
-                      if (loadedAssessmentId) {
-                        for (let nIdx = 0; nIdx < nodes.length; nIdx++) {
-                          for (let lIdx = 0; lIdx < nodes[nIdx].lessons.length; lIdx++) {
-                            const hw = nodes[nIdx].lessons[lIdx].homework.find(
-                              h => h.id === loadedAssessmentId
-                            )
-                            if (hw) {
-                              existingAssess = hw
-                              nodeIndex = nIdx
-                              lessonIndex = lIdx
-                              break
-                            }
-                          }
-                          if (existingAssess) break
-                        }
-                      }
-
-                      if (nodeIndex === -1 || lessonIndex === -1) {
-                        const { nodeId, lessonId } = resolveAssetLoadTarget()
-                        nodeIndex = nodes.findIndex(m => m.id === nodeId)
-                        lessonIndex = nodes[nodeIndex].lessons.findIndex(l => l.id === lessonId)
-                      }
-
-                      let targetAssess: Assessment
-
-                      if (existingAssess) {
-                        targetAssess = { ...existingAssess }
-                      } else {
-                        targetAssess = DEFAULT_HOMEWORK(
-                          nodes[nodeIndex].lessons[lessonIndex].homework.length,
-                          'assessment'
-                        )
-                      }
-
-                      const extractedText = assetToLoad.content || `[Asset: ${assetToLoad.name}]`
-                      targetAssess.description = extractedText
-                      // A durable fileKey is enough to display/deploy the doc (the
-                      // viewer streams it via the by-key proxy), so don't require a
-                      // signed url — it can come back empty when the assets API
-                      // fails to refresh an expired presigned URL, which silently
-                      // left the assessment with no source document ("No document
-                      // selected", no error).
-                      // A durable fileKey is enough (the viewer streams it via the
-                      // by-key proxy), so don't require a signed url. But with NO
-                      // stored file at all, there is nothing to preview or deploy —
-                      // abort instead of creating an empty assessment and then
-                      // (mis)reporting "Loaded …". This happens for stale/broken
-                      // assets whose upload never stored a file; the tutor must
-                      // re-upload the document to get a working asset.
-                      if (!assetToLoad.url && !assetToLoad.fileKey) {
-                        toast.error(
-                          'This document has no stored file — please re-upload it before loading.'
-                        )
-                        setLoadAsModalOpen(false)
-                        setAssetToLoad(null)
-                        return
-                      }
-
-                      targetAssess.sourceDocument = {
-                        fileName: assetToLoad.name,
-                        fileUrl: assetToLoad.url || '',
-                        fileKey: assetToLoad.fileKey,
-                        mimeType: assetToLoad.mimeType || 'application/pdf',
-                        uploadedAt: new Date().toISOString(),
-                        extractedText,
-                      }
-
-                      const newCourseBuilderNodes = [...nodes]
-
-                      if (existingAssess) {
-                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework =
-                          newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.map(h =>
-                            h.id === loadedAssessmentId ? targetAssess : h
-                          )
-                      } else {
-                        newCourseBuilderNodes[nodeIndex].lessons[lessonIndex].homework.push(
-                          targetAssess
-                        )
-                      }
-
-                      setCourseBuilderNodes(newCourseBuilderNodes)
-                      setMainBuilderTab('assessment')
-                      setSelectedItem({ type: 'assessment', id: targetAssess.id })
-                      loadAssessmentIntoBuilder(targetAssess)
-
-                      // Show PDF by default, hide text
-                      setAssessmentPdfVisibleMap(prev => ({ ...prev, [targetAssess.id]: true }))
-                      setAssessmentTextVisibleMap(prev => ({ ...prev, [targetAssess.id]: false }))
-
-                      toast.success(`Loaded '${assetToLoad?.name}' into Assessment`)
-                      setLoadAsModalOpen(false)
-                      setAssetToLoad(null)
-
-                      // DMI-first: generate the DMI (questions + answers/marks)
-                      // right away. The marking-policy (PCI) chat stays locked
-                      // until the DMI is ready. handleGenerateDMI detects the
-                      // document kind and asks the tutor to confirm if unsure.
-                      setTimeout(() => {
-                        handleGenerateDMI('assessment')
-                      }, 500)
-                    }}
+                    onClick={() => loadAssetAsAssessment(assetToLoad)}
                   >
                     <FileQuestion className="mt-1 h-5 w-5 shrink-0 text-purple-500" />
                     <div className="flex flex-col items-start text-left">
