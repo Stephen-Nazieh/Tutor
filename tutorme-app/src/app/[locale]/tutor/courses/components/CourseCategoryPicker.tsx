@@ -9,7 +9,7 @@
  * `storageUserId`, matching the previous Course Details behaviour.
  */
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   Search,
   Globe,
@@ -125,6 +125,9 @@ export function CourseCategoryPicker({
   const [customCategories, setCustomCategories] = useState<string[]>([])
   const [customCategoryInput, setCustomCategoryInput] = useState('')
   const [globalContentHeight, setGlobalContentHeight] = useState<number>(480)
+  const badgeScrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
   const globalContentRef = useRef<HTMLDivElement>(null)
 
   // Load the tutor's saved custom categories (localStorage, per-user key).
@@ -185,6 +188,29 @@ export function CourseCategoryPicker({
     filteredUniversityCategories.forEach(c => c.exams.forEach(e => map.set(e, 'universities')))
     return map
   }, [nationalExams, filteredUniversityCategories])
+
+  const checkScroll = useCallback(() => {
+    const el = badgeScrollRef.current
+    if (!el) return
+    setCanScrollLeft(el.scrollLeft > 0)
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1)
+  }, [])
+
+  const scrollBadges = (amount: number) => {
+    badgeScrollRef.current?.scrollBy({ left: amount, behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    checkScroll()
+    const el = badgeScrollRef.current
+    if (!el) return
+    el.addEventListener('scroll', checkScroll)
+    window.addEventListener('resize', checkScroll)
+    return () => {
+      el.removeEventListener('scroll', checkScroll)
+      window.removeEventListener('resize', checkScroll)
+    }
+  }, [checkScroll, value, selectedCountryCode])
 
   // Keep every tab the same height as the (tallest) Global tab.
   useLayoutEffect(() => {
@@ -382,10 +408,13 @@ export function CourseCategoryPicker({
           </Popover>
         </div>
 
-        {/* Search + selected badges */}
+        {/* Selected category badges container + Search */}
         <div className="mb-1 flex items-start gap-3">
           <div className="flex min-w-0 flex-1 flex-col">
-            <div className="scrollbar-hide flex h-10 min-w-0 items-center overflow-x-auto rounded-md border border-slate-200 bg-white px-6 py-1">
+            <div
+              ref={badgeScrollRef}
+              className="scrollbar-hide flex h-10 min-w-0 items-center overflow-x-auto rounded-md border border-slate-200 bg-white px-6 py-1"
+            >
               <div className="flex min-w-0 flex-nowrap items-center gap-2">
                 {value.length === 0 && (
                   <span className="select-none text-sm text-slate-400">
@@ -418,8 +447,52 @@ export function CourseCategoryPicker({
                 })}
               </div>
             </div>
+            <div
+              className={cn(
+                'mt-1 flex items-center justify-end gap-1',
+                canScrollLeft || canScrollRight ? 'visible' : 'invisible'
+              )}
+            >
+              <button
+                onClick={() => scrollBadges(-200)}
+                disabled={!canScrollLeft}
+                className={cn(
+                  'flex h-6 w-6 items-center justify-center rounded-full transition-colors',
+                  canScrollLeft ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/30'
+                )}
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="h-3 w-3" />
+              </button>
+              <button
+                onClick={() => scrollBadges(200)}
+                disabled={!canScrollRight}
+                className={cn(
+                  'flex h-6 w-6 items-center justify-center rounded-full transition-colors',
+                  canScrollRight ? 'bg-white/20 text-white hover:bg-white/30' : 'text-white/30'
+                )}
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
           </div>
-          <div className="relative z-10 max-w-md flex-1">
+          <Button
+            onClick={() => {}}
+            disabled={value.length === 0}
+            className={`h-10 shrink-0 px-5 text-sm focus:outline-none focus-visible:!shadow-none ${
+              value.length === 0
+                ? 'rounded-md border border-white bg-white/10 text-white shadow-md backdrop-blur-sm disabled:opacity-50'
+                : 'rounded-md border !border-white bg-blue-700 text-white hover:!border-blue-700 hover:bg-blue-600'
+            }`}
+          >
+            Search
+          </Button>
+        </div>
+
+        {/* Search */}
+        <div className="relative z-10 pb-2 pt-[15px]">
+          <div className="relative mx-auto max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               placeholder="Search categories..."
