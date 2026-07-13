@@ -22,6 +22,7 @@ export interface OneOnOneRequestSummary {
   status: string
   durationMinutes?: number | null
   currency?: string | null
+  studentNotes?: string | null
   createdAt?: string | null
   paymentDueAt?: string | null
   paidAt?: string | null
@@ -195,6 +196,23 @@ export function OneOnOneRequestCard({ request, perspective, variant = 'light', a
           ) : null}
         </div>
       )}
+
+      {/* student's note to the tutor ("why I want this session") */}
+      {request.studentNotes?.trim() ? (
+        <div
+          className={cn(
+            'rounded-lg border-l-2 py-1.5 pl-3 text-xs',
+            dark
+              ? 'border-white/20 bg-white/[0.03] text-white/70'
+              : 'border-slate-300 bg-slate-50 text-slate-600'
+          )}
+        >
+          <span className={cn('mr-1 font-semibold', detail)}>
+            {perspective === 'tutor' ? 'Note:' : 'Your note:'}
+          </span>
+          {request.studentNotes.trim()}
+        </div>
+      ) : null}
 
       {actions ? (
         <div className="flex flex-wrap items-center justify-end gap-2">{actions}</div>
