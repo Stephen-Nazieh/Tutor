@@ -14,26 +14,8 @@ export const AGENT_METADATA = {
     primaryFunction: 'Content creation',
     dataAccess: 'READ: Course, Student | WRITE: Quiz, Question, Lesson',
   },
-  grading: {
-    name: 'Grading Agent',
-    description: 'Auto-grades submissions with detailed feedback',
-    uiLocations: ['/tutor/courses/[id]/tasks', '/student/quizzes/[id]/results'],
-    primaryFunction: 'Assessment grading',
-    dataAccess: 'READ: Quiz, StudentAnswer | WRITE: StudentAnswer, QuizScore, ProgressData',
-  },
-  briefing: {
-    name: 'Briefing Agent',
-    description: 'Prepares tutors with pre-class insights',
-    uiLocations: ['/tutor/dashboard', '/tutor/insights?sessionId=[id]'],
-    primaryFunction: 'Tutor preparation',
-    dataAccess:
-      'READ: LiveSession, ProgressData, Student, Course | WRITE: LiveSession.briefingData',
-  },
-  liveMonitor: {
-    name: 'Live Monitor Agent',
-    description: 'Real-time classroom monitoring (1:50 ratio)',
-    uiLocations: ['/tutor/insights?sessionId=[id]'],
-    primaryFunction: 'Real-time engagement tracking',
-    dataAccess: 'READ/WRITE: LiveSession | READ: Student, ProgressData',
-  },
+  // grading, briefing and liveMonitor entries removed — those agents are deleted
+  // or dead code (their UI locations here were stale/fabricated). Only live agents
+  // are listed. Live grading = lib/grading/pci-grader; live-class assist =
+  // /api/ai/monitor-assistant.
 } as const
