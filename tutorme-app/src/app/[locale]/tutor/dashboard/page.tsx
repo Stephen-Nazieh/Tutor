@@ -1473,16 +1473,8 @@ function TutorDashboardContent() {
                     Create Class
                   </Button>
                 )}
-                {selectedCourseForCancel && sessionsView === 'create' && (
-                  <>
-                    <Button variant="modal-secondary-dark" onClick={() => setSessionsView('list')}>
-                      Cancel
-                    </Button>
-                    <Button variant="modal-primary-dark" onClick={() => {}} disabled>
-                      Publish Class
-                    </Button>
-                  </>
-                )}
+                {/* The create view's Cancel/Publish actions are rendered by
+                    CreateSessionForm itself (which owns the form state + submit). */}
                 {sessionsView === 'list' && (
                   <Button variant="modal-secondary-dark" onClick={() => setCancelModalOpen(false)}>
                     Close
