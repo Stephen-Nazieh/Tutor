@@ -23,6 +23,8 @@ const AIChatRequestSchema = z.object({
   // 'tutor' (default) = the student Socratic tutor. 'tutor_assist' = a DIRECT
   // assistant for the tutor's own tools; only honoured for TUTOR/ADMIN sessions.
   assistant: z.enum(['tutor', 'tutor_assist']).default('tutor'),
+  // Which tutor tool is asking, so the assistant uses the right specialised prompt.
+  assistKind: z.enum(['general', 'teaching', 'builder', 'analytics']).default('general'),
 })
 
 export async function POST(request: NextRequest) {
@@ -39,7 +41,14 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
     }
-    const { message, subject, context: _context, conversationId, assistant } = parsed.data
+    const {
+      message,
+      subject,
+      context: _context,
+      conversationId,
+      assistant,
+      assistKind,
+    } = parsed.data
 
     const safeMessage = AISecurityManager.sanitizeAiInput(message)
     if (!safeMessage) {
@@ -66,7 +75,11 @@ export async function POST(request: NextRequest) {
     // can never bypass the pedagogy or the ASMT-15 assessment guardrail.
     const isTutor = session.user.role === 'TUTOR' || session.user.role === 'ADMIN'
     if (assistant === 'tutor_assist' && isTutor) {
-      const assist = await runTutorAssistChat({ message: safeMessage, previousMessages })
+      const assist = await runTutorAssistChat({
+        message: safeMessage,
+        kind: assistKind,
+        previousMessages,
+      })
       return NextResponse.json({
         response: assist.response,
         conversationId: convoKey,

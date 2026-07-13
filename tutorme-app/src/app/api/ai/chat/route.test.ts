@@ -65,11 +65,19 @@ describe('/api/ai/chat — assistant routing + gate', () => {
     expect(mocks.runTutorAssistChat).not.toHaveBeenCalled()
   })
 
-  it('routes a TUTOR + tutor_assist to the DIRECT assistant', async () => {
+  it('routes a TUTOR + tutor_assist to the DIRECT assistant with the tool-specific kind', async () => {
     mocks.getServerSession.mockResolvedValue({ user: { id: 't1', role: 'TUTOR' } })
-    const res = await post({ message: 'draft 3 poll questions as JSON', assistant: 'tutor_assist' })
+    const res = await post({
+      message: 'draft 3 poll questions as JSON',
+      assistant: 'tutor_assist',
+      assistKind: 'teaching',
+    })
     const data = await res.json()
     expect(mocks.runTutorAssistChat).toHaveBeenCalledTimes(1)
+    // the tool's kind is threaded through so the right specialised prompt is used
+    expect(mocks.runTutorAssistChat).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'teaching' })
+    )
     expect(mocks.runTutorChat).not.toHaveBeenCalled()
     expect(data.response).toBe('direct')
   })
