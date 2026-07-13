@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { format } from 'date-fns'
 import { DialogPanel } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -258,6 +259,37 @@ export function CreateSessionForm({
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        {/* Actions — the Publish button lives with the form that owns the
+            validation + submit, so it's actually wired (the parent dialog's
+            footer button was a disabled stub). */}
+        <div className="mt-5 flex items-center justify-end gap-2">
+          {onCancel && (
+            <Button
+              type="button"
+              variant="modal-secondary-dark"
+              onClick={onCancel}
+              disabled={creating}
+            >
+              Cancel
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="modal-primary-dark"
+            onClick={handleSubmit}
+            disabled={creating || !form.title.trim() || !form.date || !form.time}
+          >
+            {creating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Publishing…
+              </>
+            ) : (
+              'Publish Class'
+            )}
+          </Button>
         </div>
       </DialogPanel>
     </div>
