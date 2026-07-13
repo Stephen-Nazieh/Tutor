@@ -581,6 +581,7 @@ function ItemAIChat({
         body: JSON.stringify({
           message: text,
           assistant: 'tutor_assist',
+          assistKind: 'analytics',
           subject: course?.categories?.[0] ?? session?.subject ?? 'general',
           context: {
             ...contextPayload,

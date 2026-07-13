@@ -96,6 +96,7 @@ Format your response clearly and concisely.`
         body: JSON.stringify({
           message: prompt,
           assistant: 'tutor_assist',
+          assistKind: 'builder',
         }),
       })
 
