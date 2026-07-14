@@ -14,9 +14,12 @@
 
 import { useState, type ComponentProps } from 'react'
 import { useSession } from 'next-auth/react'
+import { Send, FolderOpen } from 'lucide-react'
 import { useSocket } from '@/hooks/use-socket'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import { DailyVideoFrame } from '@/components/class/daily-video-frame'
+import { SessionDeployPanel } from '@/components/one-on-one/session-deploy-panel'
+import { SessionDeployedPanel } from '@/components/one-on-one/session-deployed-panel'
 
 type Pages = NonNullable<ComponentProps<typeof EnhancedWhiteboard>['pages']>
 
@@ -38,6 +41,8 @@ export function SessionClassroom({
   const { data: session } = useSession()
   const [pages, setPages] = useState<Pages>([])
   const [pageIndex, setPageIndex] = useState(0)
+  const [showDeploy, setShowDeploy] = useState(false)
+  const [showMaterials, setShowMaterials] = useState(false)
 
   // useSocket keys its effect on the option fields (not object identity), so an
   // inline object is safe — the compiler memoizes and the socket only reconnects
@@ -66,7 +71,7 @@ export function SessionClassroom({
   )
 
   return (
-    <div className="h-screen w-full bg-slate-950">
+    <div className="relative h-screen w-full bg-slate-950">
       <EnhancedWhiteboard
         socket={socket}
         roomId={sessionId}
@@ -79,6 +84,50 @@ export function SessionClassroom({
         videoOverlay
         videoComponent={video}
       />
+
+      {/* Classroom toolbar: deploy (tutor) + materials (everyone). */}
+      <div className="pointer-events-none absolute right-3 top-3 z-40 flex gap-2">
+        {isTutor ? (
+          <button
+            type="button"
+            onClick={() => {
+              setShowDeploy(v => !v)
+              setShowMaterials(false)
+            }}
+            className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
+          >
+            <Send className="h-3.5 w-3.5" />
+            Deploy
+          </button>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => {
+            setShowMaterials(v => !v)
+            setShowDeploy(false)
+          }}
+          className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
+        >
+          <FolderOpen className="h-3.5 w-3.5" />
+          Materials
+        </button>
+      </div>
+
+      {/* Side panels (fail independently of the whiteboard). */}
+      {showDeploy || showMaterials ? (
+        <div className="pointer-events-none absolute bottom-3 right-3 top-16 z-40 flex">
+          {showDeploy && isTutor ? (
+            <SessionDeployPanel
+              sessionId={sessionId}
+              socket={socket}
+              onClose={() => setShowDeploy(false)}
+            />
+          ) : null}
+          {showMaterials ? (
+            <SessionDeployedPanel socket={socket} onClose={() => setShowMaterials(false)} />
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }
