@@ -21,6 +21,7 @@ import { DailyVideoFrame } from '@/components/class/daily-video-frame'
 import { SessionDeployPanel } from '@/components/one-on-one/session-deploy-panel'
 import { SessionDeployedPanel } from '@/components/one-on-one/session-deployed-panel'
 import { SessionResponsesPanel } from '@/components/one-on-one/session-responses-panel'
+import { useSessionRoomState } from '@/components/one-on-one/use-session-room-state'
 import { FallbackBoundary } from '@/components/ui/fallback-boundary'
 
 type ActivePanel = 'deploy' | 'materials' | 'responses' | null
@@ -59,6 +60,14 @@ export function SessionClassroom({
       : undefined
 
   const { socket } = useSocket(socketOptions)
+
+  // Canonical deployed-task + submission state, owned here (mounted from join)
+  // so the panels — which mount only when opened — hydrate from the join-time
+  // room_state replay instead of missing everything that happened before.
+  const { tasks, responsesByTask, myCompletedTaskIds } = useSessionRoomState(
+    socket,
+    session?.user?.id
+  )
 
   // The call feed rides along as the whiteboard's draggable video overlay.
   const video = (
@@ -133,13 +142,19 @@ export function SessionClassroom({
               />
             ) : null}
             {activePanel === 'responses' && isTutor ? (
-              <SessionResponsesPanel socket={socket} onClose={() => setActivePanel(null)} />
+              <SessionResponsesPanel
+                tasks={tasks}
+                responsesByTask={responsesByTask}
+                onClose={() => setActivePanel(null)}
+              />
             ) : null}
             {activePanel === 'materials' ? (
               <SessionDeployedPanel
                 sessionId={sessionId}
                 socket={socket}
                 isTutor={isTutor}
+                tasks={tasks}
+                completedTaskIds={myCompletedTaskIds}
                 onClose={() => setActivePanel(null)}
               />
             ) : null}

@@ -1,95 +1,39 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import type { Socket } from 'socket.io-client'
+import { useMemo, useState } from 'react'
 import { X, Users, CheckCircle2 } from 'lucide-react'
 import { normalizeDmiQuestionType } from '@/lib/assessment/question-types'
 import type { StudentDmiItem } from '@/lib/assessment/student-dmi'
-
-interface DeployedTaskLite {
-  id: string
-  title: string
-  dmiItems?: StudentDmiItem[]
-}
-
-interface StudentResponse {
-  studentId: string
-  studentName: string
-  completedAt: number
-  answers: Record<string, string>
-}
+import type {
+  SessionRoomTask,
+  SessionStudentResponse,
+} from '@/components/one-on-one/use-session-room-state'
 
 /**
  * Tutor-only, read-only panel: who has answered each deployed task in this live
- * session, and what they answered. It listens to the same room broadcasts the
- * classroom already emits — `task:deployed` (to learn each task's questions) and
- * `task:completed` (which carries the student's name + answers) — so it needs no
- * API and can't affect the whiteboard/video around it. The auto-grade score
- * lands asynchronously in the tutor's grading views; this is the live pulse.
+ * session, and what they answered. The deployed tasks and their submissions are
+ * owned by the classroom (`useSessionRoomState`) and passed in, so opening this
+ * panel late — or after a rejoin — still shows everything already submitted. The
+ * auto-grade score lands asynchronously in the tutor's grading views; this is
+ * the live pulse.
  */
 export function SessionResponsesPanel({
-  socket,
+  tasks,
+  responsesByTask,
   onClose,
 }: {
-  socket: Socket | null
+  tasks: SessionRoomTask[]
+  responsesByTask: Record<string, Record<string, SessionStudentResponse>>
   onClose: () => void
 }) {
-  const [tasks, setTasks] = useState<DeployedTaskLite[]>([])
-  // taskId -> studentId -> response
-  const [responses, setResponses] = useState<Record<string, Record<string, StudentResponse>>>({})
   const [activeId, setActiveId] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!socket) return
-    const upsertTask = (task: DeployedTaskLite) => {
-      if (!task?.id) return
-      setTasks(prev =>
-        prev.some(t => t.id === task.id)
-          ? prev.map(t => (t.id === task.id ? { ...t, ...task } : t))
-          : [...prev, task]
-      )
-      setActiveId(cur => cur ?? task.id)
-    }
-    const onDeployed = (task: DeployedTaskLite) => upsertTask(task)
-    const onUpdated = (payload: { task: DeployedTaskLite }) => {
-      if (payload?.task?.id) upsertTask(payload.task)
-    }
-    const onCompleted = (evt: {
-      taskId: string
-      studentId: string
-      studentName?: string
-      completedAt?: number
-      answers?: Record<string, string>
-    }) => {
-      if (!evt?.taskId || !evt?.studentId) return
-      setActiveId(cur => cur ?? evt.taskId)
-      setResponses(prev => ({
-        ...prev,
-        [evt.taskId]: {
-          ...(prev[evt.taskId] ?? {}),
-          [evt.studentId]: {
-            studentId: evt.studentId,
-            studentName: evt.studentName || 'Student',
-            completedAt: evt.completedAt || 0,
-            answers: evt.answers ?? {},
-          },
-        },
-      }))
-    }
-    socket.on('task:deployed', onDeployed)
-    socket.on('task:updated', onUpdated)
-    socket.on('task:completed', onCompleted)
-    return () => {
-      socket.off('task:deployed', onDeployed)
-      socket.off('task:updated', onUpdated)
-      socket.off('task:completed', onCompleted)
-    }
-  }, [socket])
-
-  const active = tasks.find(t => t.id === activeId) ?? null
+  // Only tasks with questions can gather responses.
+  const answerable = useMemo(() => tasks.filter(t => (t.dmiItems?.length ?? 0) > 0), [tasks])
+  const active =
+    answerable.find(t => t.id === activeId) ?? answerable[answerable.length - 1] ?? null
   const activeResponses = useMemo(
-    () => (activeId ? Object.values(responses[activeId] ?? {}) : []),
-    [responses, activeId]
+    () => (active ? Object.values(responsesByTask[active.id] ?? {}) : []),
+    [responsesByTask, active]
   )
 
   return (
@@ -105,7 +49,7 @@ export function SessionResponsesPanel({
         </button>
       </div>
 
-      {tasks.length === 0 ? (
+      {answerable.length === 0 ? (
         <div className="flex flex-1 items-center justify-center px-6 text-center text-xs text-slate-500">
           Deploy a task with questions, and student answers will stream in here as they submit.
         </div>
@@ -113,15 +57,15 @@ export function SessionResponsesPanel({
         <>
           {/* Deployed-task tabs with a live answered-count. */}
           <div className="flex flex-wrap gap-1.5 border-b p-2">
-            {tasks.map(t => {
-              const count = Object.keys(responses[t.id] ?? {}).length
+            {answerable.map(t => {
+              const count = Object.keys(responsesByTask[t.id] ?? {}).length
               return (
                 <button
                   key={t.id}
                   onClick={() => setActiveId(t.id)}
                   className={
                     'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ' +
-                    (t.id === activeId
+                    (t.id === active?.id
                       ? 'bg-blue-600 text-white'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200')
                   }
@@ -132,7 +76,9 @@ export function SessionResponsesPanel({
                     <span
                       className={
                         'rounded-full px-1.5 text-[10px] font-bold ' +
-                        (t.id === activeId ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-700')
+                        (t.id === active?.id
+                          ? 'bg-white/25 text-white'
+                          : 'bg-blue-100 text-blue-700')
                       }
                     >
                       {count}
@@ -178,7 +124,7 @@ function ResponseAnswers({
   item,
   answers,
 }: {
-  item: DeployedTaskLite
+  item: SessionRoomTask
   answers: Record<string, string>
 }) {
   const dmiItems = item.dmiItems ?? []
