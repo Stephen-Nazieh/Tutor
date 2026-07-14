@@ -16,6 +16,7 @@ import os from 'os'
 import { mkdtemp, writeFile, readFile, rm, access } from 'fs/promises'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { withConversionSlot, ConversionBusyError } from './conversion-limiter'
 
 const execAsync = promisify(exec)
 
@@ -55,21 +56,29 @@ export async function convertOfficeToPdf(input: Buffer, fileName: string): Promi
       return (err?.stderr || err?.message || String(e)).slice(0, 300).replace(/\s+/g, ' ').trim()
     }
     let binary = 'soffice'
+    // Serialise soffice process-wide so concurrent conversions can't OOM the
+    // instance; the whole (soffice → libreoffice fallback) attempt holds one slot.
     try {
-      await execAsync(cmd('soffice'), opts)
-    } catch (sofficeErr) {
-      console.warn(
-        `[office-to-pdf] soffice failed for ${safeName}, retrying via libreoffice: ${detail(sofficeErr)}`
-      )
-      binary = 'libreoffice'
-      try {
-        await execAsync(cmd('libreoffice'), opts)
-      } catch (libreErr) {
+      await withConversionSlot(async () => {
+        try {
+          await execAsync(cmd('soffice'), opts)
+        } catch (sofficeErr) {
+          console.warn(
+            `[office-to-pdf] soffice failed for ${safeName}, retrying via libreoffice: ${detail(sofficeErr)}`
+          )
+          binary = 'libreoffice'
+          await execAsync(cmd('libreoffice'), opts)
+        }
+      })
+    } catch (convErr) {
+      if (convErr instanceof ConversionBusyError) {
+        console.warn(`[office-to-pdf] busy: skipped ${safeName} — too many concurrent conversions`)
+      } else {
         console.error(
-          `[office-to-pdf] LibreOffice conversion FAILED for ${safeName} (${input.length} bytes): ${detail(libreErr)}`
+          `[office-to-pdf] LibreOffice conversion FAILED for ${safeName} (${input.length} bytes): ${detail(convErr)}`
         )
-        return null
       }
+      return null
     }
 
     const pdfPath = path.join(workDir, `${path.basename(inputPath, path.extname(inputPath))}.pdf`)
