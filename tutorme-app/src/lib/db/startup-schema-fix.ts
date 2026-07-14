@@ -234,6 +234,12 @@ ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "seriesId" text;
 ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "seriesIndex" integer;
 CREATE INDEX IF NOT EXISTS "OneOnOneBookingRequest_seriesId_idx" ON "OneOnOneBookingRequest" ("seriesId");
 
+-- Course linkage: a group session or a student's 1-on-1 request can name the
+-- course it's built around, so the tutor can deploy that course in the live room.
+-- Nullable, FK-less text (drift-proof); the app validates ownership/publication.
+ALTER TABLE "GroupSession" ADD COLUMN IF NOT EXISTS "courseId" text;
+ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "courseId" text;
+
 -- 0071: student reviews of completed 1-on-1 sessions (one per booking).
 CREATE TABLE IF NOT EXISTS "OneOnOneReview" (
   "id" text PRIMARY KEY NOT NULL,
