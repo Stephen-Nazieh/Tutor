@@ -211,6 +211,7 @@ import { buildStudentDeployPayload, type RawDeployDmiItem } from '@/lib/assessme
 import { revealPolicyToDeployMode } from '@/lib/assessment/reveal-policy'
 import { dmiOptionLetter, dmiSelectedOptionLetters } from '@/lib/assessment/mcq-answer'
 import { nextDmiGate } from '@/lib/assessment/dmi-generate-gate'
+import { resolveDocPaneVisibility } from '@/lib/courses/doc-pane-visibility'
 import { resolvePciComposition, inferDocumentKindFromProvenance } from '@/lib/ai/guardrails'
 import { useMarkingScheme } from './hooks/use-marking-scheme'
 import { useDmiEditor } from './hooks/use-dmi-editor'
@@ -7505,22 +7506,17 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       {}
     )
 
-    // We already defined hasTaskDocument above, so we don't redefine it here.
-    // With no document there is nothing to preview, so the text editor is always
-    // shown and the document pane hidden — a stale per-item view preference (e.g.
-    // left over from a document that was since removed) must never hide the editor
-    // and strand the tutor with no way to type. Once a document is present, the
-    // saved preference applies, defaulting to the document view.
-    const taskTextVisible = !hasTaskDocument
-      ? true
-      : loadedTaskId
-        ? (taskTextVisibleMap[loadedTaskId] ?? false)
-        : false
-    const taskPdfVisible = !hasTaskDocument
-      ? false
-      : loadedTaskId
-        ? (taskPdfVisibleMap[loadedTaskId] ?? true)
-        : true
+    // Which content panes show (text editor / document preview / both). The rule
+    // — including the invariant that a document-less item ALWAYS shows the text
+    // editor so a stale view preference can't strand the tutor — lives in the
+    // tested resolveDocPaneVisibility helper.
+    const taskView = resolveDocPaneVisibility({
+      hasDocument: hasTaskDocument,
+      savedTextVisible: loadedTaskId ? taskTextVisibleMap[loadedTaskId] : undefined,
+      savedPdfVisible: loadedTaskId ? taskPdfVisibleMap[loadedTaskId] : undefined,
+    })
+    const taskTextVisible = taskView.textVisible
+    const taskPdfVisible = taskView.pdfVisible
 
     const setTaskTextVisible = (val: boolean) => {
       if (loadedTaskId) setTaskTextVisibleMap(prev => ({ ...prev, [loadedTaskId]: val }))
@@ -7529,18 +7525,16 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       if (loadedTaskId) setTaskPdfVisibleMap(prev => ({ ...prev, [loadedTaskId]: val }))
     }
 
-    // Same as the task builder: with no document the text editor is always shown
-    // so a stale view preference can't strand the tutor with nothing to type into.
-    const assessmentTextVisible = !hasAssessmentDocument
-      ? true
-      : loadedAssessmentId
-        ? (assessmentTextVisibleMap[loadedAssessmentId] ?? false)
-        : false
-    const assessmentPdfVisible = !hasAssessmentDocument
-      ? false
-      : loadedAssessmentId
-        ? (assessmentPdfVisibleMap[loadedAssessmentId] ?? true)
-        : true
+    // Same rule for the assessment builder, via the same tested helper.
+    const assessmentView = resolveDocPaneVisibility({
+      hasDocument: hasAssessmentDocument,
+      savedTextVisible: loadedAssessmentId
+        ? assessmentTextVisibleMap[loadedAssessmentId]
+        : undefined,
+      savedPdfVisible: loadedAssessmentId ? assessmentPdfVisibleMap[loadedAssessmentId] : undefined,
+    })
+    const assessmentTextVisible = assessmentView.textVisible
+    const assessmentPdfVisible = assessmentView.pdfVisible
 
     const setAssessmentTextVisible = (val: boolean) => {
       if (loadedAssessmentId)
