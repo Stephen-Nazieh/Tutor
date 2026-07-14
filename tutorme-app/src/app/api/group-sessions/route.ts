@@ -15,7 +15,8 @@ import { and, desc, eq, gte, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { nanoid } from 'nanoid'
 import { drizzleDb } from '@/lib/db/drizzle'
-import { groupSession, profile } from '@/lib/db/schema'
+import { groupSession, profile, course } from '@/lib/db/schema'
+import { isNull } from 'drizzle-orm'
 import { createSession } from '@/lib/sessions/create-session'
 import { dailyProvider } from '@/lib/video/daily-provider'
 import { findConflicts } from '@/lib/schedule/conflicts'
@@ -33,6 +34,8 @@ const createSchema = z.object({
   // 1 seat = a true 1-on-1 (only one student can sign up); up to 50 for a group.
   capacity: z.number().int().min(1).max(50),
   pricePerSeat: z.number().min(0).max(100000),
+  // Optional course this session is built around (published or draft).
+  courseId: z.string().min(1).optional().nullable(),
 })
 
 export async function POST(req: NextRequest) {
@@ -46,6 +49,24 @@ export async function POST(req: NextRequest) {
     const body = createSchema.parse(await req.json())
     if (body.endTime <= body.startTime) {
       return NextResponse.json({ error: 'End time must be after start time' }, { status: 400 })
+    }
+
+    // A named course must belong to this tutor (either publication state is fine).
+    if (body.courseId) {
+      const [owned] = await drizzleDb
+        .select({ courseId: course.courseId })
+        .from(course)
+        .where(
+          and(
+            eq(course.courseId, body.courseId),
+            eq(course.creatorId, session.user.id),
+            isNull(course.deletedAt)
+          )
+        )
+        .limit(1)
+      if (!owned) {
+        return NextResponse.json({ error: 'That course is not one of yours.' }, { status: 400 })
+      }
     }
 
     const [tutorProfile] = await drizzleDb
@@ -105,6 +126,7 @@ export async function POST(req: NextRequest) {
           maxStudents: body.capacity,
           description: body.description,
           timezone,
+          courseId: body.courseId ?? undefined,
           existingRoom: room,
         },
         tx
@@ -117,6 +139,7 @@ export async function POST(req: NextRequest) {
           tutorId: session.user.id,
           title: body.title,
           description: body.description ?? null,
+          courseId: body.courseId ?? null,
           requestedDate: requestedDateFromString(body.date),
           startTime: body.startTime,
           endTime: body.endTime,

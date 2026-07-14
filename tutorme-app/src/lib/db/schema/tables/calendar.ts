@@ -349,6 +349,10 @@ export const groupSession = pgTable(
       .references(() => user.userId, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     description: text('description'),
+    // Optional course this session is built around — lets the tutor deploy that
+    // course's structure/tasks in the live room. Nullable (ad-hoc sessions have
+    // none); the course may be published or still a draft.
+    courseId: text('courseId').references(() => course.courseId, { onDelete: 'set null' }),
     requestedDate: timestamp('requestedDate', { withTimezone: true }).notNull(),
     startTime: text('startTime').notNull(),
     endTime: text('endTime').notNull(),
