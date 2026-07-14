@@ -85,6 +85,7 @@ export function TestTaskChat({
   const [pdfPopupOpen, setPdfPopupOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const lastIncomingLen = useRef(0)
+  const isClassroom = mode === 'classroom'
 
   // In classroom mode, sync messages directly from incomingMessages.
   // This ensures messages persist when switching tabs (component remounts).
@@ -263,7 +264,6 @@ export function TestTaskChat({
     onPersist?.(emptyState)
   }
 
-  const isClassroom = mode === 'classroom'
   const accentColor = isClassroom ? 'text-[#F17623]' : 'text-violet-600'
   const accentBg = isClassroom ? 'bg-orange-50/60' : 'bg-violet-50/60'
   const accentBorder = isClassroom ? 'border-orange-100' : 'border-violet-100'
