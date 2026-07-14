@@ -1,79 +1,43 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Socket } from 'socket.io-client'
 import { X, FileText, Loader2, CheckCircle2, ListChecks } from 'lucide-react'
 import { toast } from 'sonner'
 import { TaskDocumentCard } from '@/components/task/TaskDocumentCard'
 import { normalizeDmiQuestionType } from '@/lib/assessment/question-types'
 import type { StudentDmiItem } from '@/lib/assessment/student-dmi'
-
-interface SourceDocument {
-  fileName: string
-  fileUrl: string
-  fileKey?: string
-  mimeType: string
-}
-
-interface DeployedTask {
-  id: string
-  title: string
-  content?: string
-  source?: string
-  dmiItems?: StudentDmiItem[]
-  sourceDocument?: SourceDocument
-}
+import type { SessionRoomTask } from '@/components/one-on-one/use-session-room-state'
 
 /**
  * Both-sides panel showing what the tutor has deployed into the session, live.
- * Listens to the same `task:deployed` / `task:updated` room events the course
- * classroom uses (already broadcast for any session id), so it needs no course.
  *
- * For a deployed task that carries structured questions (`dmiItems`), students
- * get answer fields and a Submit that emits `task:complete` — the same event the
- * course classroom uses, which the server auto-grades against the answer key it
- * reloads by taskId (never sent to the client). Tutors see the questions
- * read-only (they authored them).
+ * The deployed tasks (and, for the student, which they've already completed) are
+ * owned by the classroom via `useSessionRoomState` and passed in — so opening
+ * this panel late, or after a rejoin, still shows everything already deployed.
+ * For a task that carries structured questions (`dmiItems`), students get answer
+ * fields and a Submit that emits `task:complete` (the same event + encoding the
+ * course classroom uses, which the server auto-grades by taskId). Tutors see the
+ * questions read-only.
  */
 export function SessionDeployedPanel({
   sessionId,
   socket,
   isTutor,
+  tasks,
+  completedTaskIds,
   onClose,
 }: {
   sessionId: string
   socket: Socket | null
   isTutor?: boolean
+  tasks: SessionRoomTask[]
+  completedTaskIds: Set<string>
   onClose: () => void
 }) {
-  const [deployed, setDeployed] = useState<DeployedTask[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!socket) return
-    const upsert = (task: DeployedTask) =>
-      setDeployed(prev =>
-        prev.some(t => t.id === task.id)
-          ? prev.map(t => (t.id === task.id ? { ...t, ...task } : t))
-          : [...prev, task]
-      )
-    const onDeployed = (task: DeployedTask) => {
-      if (!task?.id) return
-      upsert(task)
-      setActiveId(task.id)
-    }
-    const onUpdated = (payload: { task: DeployedTask }) => {
-      if (payload?.task?.id) upsert(payload.task)
-    }
-    socket.on('task:deployed', onDeployed)
-    socket.on('task:updated', onUpdated)
-    return () => {
-      socket.off('task:deployed', onDeployed)
-      socket.off('task:updated', onUpdated)
-    }
-  }, [socket])
-
-  const active = deployed.find(t => t.id === activeId) ?? null
+  // Default to the most-recently-deployed task when nothing is selected.
+  const active = tasks.find(t => t.id === activeId) ?? tasks[tasks.length - 1] ?? null
 
   return (
     <div className="pointer-events-auto flex h-full w-96 flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl">
@@ -88,7 +52,7 @@ export function SessionDeployedPanel({
         </button>
       </div>
 
-      {deployed.length === 0 ? (
+      {tasks.length === 0 ? (
         <div className="flex flex-1 items-center justify-center px-6 text-center text-xs text-slate-500">
           Nothing shared yet. When the tutor deploys a task or material, it appears here.
         </div>
@@ -96,13 +60,13 @@ export function SessionDeployedPanel({
         <>
           {/* Tabs of deployed items */}
           <div className="flex flex-wrap gap-1.5 border-b p-2">
-            {deployed.map(t => (
+            {tasks.map(t => (
               <button
                 key={t.id}
                 onClick={() => setActiveId(t.id)}
                 className={
                   'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ' +
-                  (t.id === activeId
+                  (t.id === active?.id
                     ? 'bg-blue-600 text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200')
                 }
@@ -113,6 +77,9 @@ export function SessionDeployedPanel({
                   <FileText className="h-3 w-3" />
                 )}
                 <span className="max-w-[8rem] truncate">{t.title}</span>
+                {completedTaskIds.has(t.id) ? (
+                  <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                ) : null}
               </button>
             ))}
           </div>
@@ -142,6 +109,7 @@ export function SessionDeployedPanel({
                     items={active.dmiItems}
                     socket={socket}
                     isTutor={isTutor}
+                    alreadySubmitted={completedTaskIds.has(active.id)}
                   />
                 ) : !active.sourceDocument && !active.content ? (
                   <p className="text-xs text-slate-400">This item has no preview.</p>
@@ -167,16 +135,19 @@ function DeployedQuestions({
   items,
   socket,
   isTutor,
+  alreadySubmitted,
 }: {
   sessionId: string
   taskId: string
   items: StudentDmiItem[]
   socket: Socket | null
   isTutor?: boolean
+  alreadySubmitted?: boolean
 }) {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
+  const [justSubmitted, setJustSubmitted] = useState(false)
+  const submitted = alreadySubmitted || justSubmitted
 
   const answeredCount = useMemo(
     () => items.filter(it => (answers[it.id] ?? '').trim().length > 0).length,
@@ -210,7 +181,7 @@ function DeployedQuestions({
             toast.error(resp?.error || 'Could not submit — please try again.')
             return
           }
-          setSubmitted(true)
+          setJustSubmitted(true)
           toast.success('Answers submitted')
         }
       )
