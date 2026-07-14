@@ -6369,10 +6369,14 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                 ...existingTask,
                                 description: pageContent,
                                 sourceDocument:
-                                  assetToLoad.url && assetToLoad.mimeType
+                                  (assetToLoad.url || assetToLoad.fileKey) && assetToLoad.mimeType
                                     ? {
                                         fileName: assetToLoad.name,
-                                        fileUrl: assetToLoad.url,
+                                        fileUrl:
+                                          assetToLoad.url ||
+                                          (assetToLoad.fileKey
+                                            ? `/api/proxy-file?key=${encodeURIComponent(assetToLoad.fileKey)}`
+                                            : ''),
                                         fileKey: assetToLoad.fileKey,
                                         mimeType: assetToLoad.mimeType,
                                         uploadedAt: new Date().toISOString(),
@@ -6385,10 +6389,17 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                               const newTask = DEFAULT_TASK(startIndex + idx)
                               newTask.title = `Task ${groupNumber}.${existingTask ? idx + 1 : idx + 1}`
                               newTask.description = pageContent
-                              if (assetToLoad.url && assetToLoad.mimeType) {
+                              if (
+                                (assetToLoad.url || assetToLoad.fileKey) &&
+                                assetToLoad.mimeType
+                              ) {
                                 newTask.sourceDocument = {
                                   fileName: assetToLoad.name,
-                                  fileUrl: assetToLoad.url,
+                                  fileUrl:
+                                    assetToLoad.url ||
+                                    (assetToLoad.fileKey
+                                      ? `/api/proxy-file?key=${encodeURIComponent(assetToLoad.fileKey)}`
+                                      : ''),
                                   fileKey: assetToLoad.fileKey,
                                   mimeType: assetToLoad.mimeType,
                                   uploadedAt: new Date().toISOString(),
@@ -6579,10 +6590,17 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                             uploadedAt: new Date().toISOString(),
                             extractedText: pages[0] || textToInsert,
                           }
-                        } else if (assetToLoad.url && assetToLoad.mimeType) {
+                        } else if (
+                          (assetToLoad.url || assetToLoad.fileKey) &&
+                          assetToLoad.mimeType
+                        ) {
                           newTask.sourceDocument = {
                             fileName: assetToLoad.name,
-                            fileUrl: assetToLoad.url,
+                            fileUrl:
+                              assetToLoad.url ||
+                              (assetToLoad.fileKey
+                                ? `/api/proxy-file?key=${encodeURIComponent(assetToLoad.fileKey)}`
+                                : ''),
                             fileKey: assetToLoad.fileKey,
                             mimeType: assetToLoad.mimeType,
                             uploadedAt: new Date().toISOString(),
