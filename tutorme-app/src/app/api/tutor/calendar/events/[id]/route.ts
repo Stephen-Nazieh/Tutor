@@ -1,113 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, withCsrf } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
-import {
-  calendarEvent,
-  liveSession,
-  courseEnrollment,
-  sessionParticipant,
-  profile,
-} from '@/lib/db/schema'
-import { eq, and, inArray } from 'drizzle-orm'
+import { calendarEvent, liveSession } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { z } from 'zod'
 import { findConflicts, findAlternativeSlots } from '@/lib/schedule/conflicts'
-import { notify } from '@/lib/notifications/notify'
-
-/** Format an instant in a specific IANA timezone, with the zone labelled. */
-function formatInZone(date: Date, tz: string): string {
-  try {
-    // NB: timeZoneName can't be combined with dateStyle/timeStyle (throws),
-    // so spell out the fields explicitly.
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZone: tz,
-      timeZoneName: 'short',
-    }).format(date)
-  } catch {
-    // Invalid/unknown tz → fall back to UTC, still labelled.
-    try {
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZone: 'UTC',
-        timeZoneName: 'short',
-      }).format(date)
-    } catch {
-      return `${date.toISOString().replace('T', ' ').slice(0, 16)} UTC`
-    }
-  }
-}
-
-/**
- * Notify every student of a rescheduled session (in-app + SSE + web push +
- * email, via notify.ts). Students come from the course enrollment (the
- * reliable roster) plus anyone already added as a session participant. The new
- * time is formatted in EACH student's own profile timezone so it reads as their
- * local time; the session's timezone (or UTC) is the fallback.
- * Best-effort: never throws into the reschedule request.
- */
-async function notifyStudentsOfReschedule(opts: {
-  sessionId: string
-  courseId: string | null
-  title: string | null
-  newStart: Date
-  timezone?: string | null
-}): Promise<void> {
-  try {
-    const { sessionId, courseId, title, newStart, timezone } = opts
-    const ids = new Set<string>()
-    if (courseId) {
-      const enrolled = await drizzleDb
-        .select({ studentId: courseEnrollment.studentId })
-        .from(courseEnrollment)
-        .where(eq(courseEnrollment.courseId, courseId))
-      for (const r of enrolled) if (r.studentId) ids.add(r.studentId)
-    }
-    const participants = await drizzleDb
-      .select({ studentId: sessionParticipant.studentId })
-      .from(sessionParticipant)
-      .where(eq(sessionParticipant.sessionId, sessionId))
-    for (const r of participants) if (r.studentId) ids.add(r.studentId)
-
-    const userIds = Array.from(ids)
-    if (userIds.length === 0) return
-
-    // Each student's own timezone (default 'UTC' in schema) → localize per user.
-    const tzRows = await drizzleDb
-      .select({ userId: profile.userId, timezone: profile.timezone })
-      .from(profile)
-      .where(inArray(profile.userId, userIds))
-    const tzByUser = new Map(tzRows.map(r => [r.userId, r.timezone]))
-    const fallbackTz = timezone || 'UTC'
-
-    const name = title || 'Your session'
-    const actionUrl = courseId ? `/student/classroom/${courseId}` : '/student/schedule'
-
-    await Promise.allSettled(
-      userIds.map(userId => {
-        const when = formatInZone(newStart, tzByUser.get(userId) || fallbackTz)
-        return notify({
-          userId,
-          type: 'class',
-          title: 'Session rescheduled',
-          message: `"${name}" has been moved to ${when}.`,
-          data: { sessionId, scheduledAt: newStart.toISOString() },
-          actionUrl,
-        })
-      })
-    )
-  } catch (err) {
-    console.warn('[reschedule] student notification failed (non-critical):', err)
-  }
-}
-
+import { notifyStudentsOfReschedule } from '@/lib/notifications/reschedule'
 export const GET = withAuth(async () => {
   return NextResponse.json(
     {
