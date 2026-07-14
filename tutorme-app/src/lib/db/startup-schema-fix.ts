@@ -216,6 +216,9 @@ ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "status" text NOT NULL DEFAULT 'acti
 -- 0069: per-tutor buffer (minutes) enforced around 1-on-1 bookings.
 ALTER TABLE "Profile" ADD COLUMN IF NOT EXISTS "bufferMinutes" integer;
 
+-- Per-tutor toggle: allow students to book a recurring weekly series (default on).
+ALTER TABLE "Profile" ADD COLUMN IF NOT EXISTS "oneOnOneRecurringEnabled" boolean NOT NULL DEFAULT true;
+
 -- 0070: pending reschedule proposal fields (propose → accept/decline).
 ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "rescheduleProposedDate" timestamptz;
 ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "rescheduleProposedStart" text;
@@ -225,6 +228,11 @@ ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "reschedulePropose
 -- The student's note to the tutor ("why I want this session"), shown on the
 -- tutor's request card. Long accepted by the API but previously never persisted.
 ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "studentNotes" text;
+
+-- Recurring bookings: the N weekly sessions requested together share one seriesId.
+ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "seriesId" text;
+ALTER TABLE "OneOnOneBookingRequest" ADD COLUMN IF NOT EXISTS "seriesIndex" integer;
+CREATE INDEX IF NOT EXISTS "OneOnOneBookingRequest_seriesId_idx" ON "OneOnOneBookingRequest" ("seriesId");
 
 -- 0071: student reviews of completed 1-on-1 sessions (one per booking).
 CREATE TABLE IF NOT EXISTS "OneOnOneReview" (
