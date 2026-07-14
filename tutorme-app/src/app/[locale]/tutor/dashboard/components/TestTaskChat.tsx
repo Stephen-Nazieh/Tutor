@@ -84,7 +84,16 @@ export function TestTaskChat({
   const [busy, setBusy] = useState(false)
   const [pdfPopupOpen, setPdfPopupOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const lastIncomingLen = useRef(incomingMessages?.length ?? 0)
+  const lastIncomingLen = useRef(0)
+  const isClassroom = mode === 'classroom'
+
+  // In classroom mode, sync messages directly from incomingMessages.
+  // This ensures messages persist when switching tabs (component remounts).
+  useEffect(() => {
+    if (isClassroom && incomingMessages) {
+      setMessages(incomingMessages)
+    }
+  }, [incomingMessages, isClassroom])
 
   useEffect(() => {
     const el = scrollRef.current
@@ -94,14 +103,16 @@ export function TestTaskChat({
   }, [messages, busy])
 
   // Append any new incoming messages from the parent (cross-tab relay).
+  // Only used for non-classroom mode (student tabs).
   useEffect(() => {
+    if (isClassroom) return
     const len = incomingMessages?.length ?? 0
     if (len > lastIncomingLen.current) {
       const newMsgs = incomingMessages!.slice(lastIncomingLen.current)
       setMessages(prev => [...prev, ...newMsgs])
       lastIncomingLen.current = len
     }
-  }, [incomingMessages])
+  }, [incomingMessages, isClassroom])
 
   // Mirror state to the parent's store so a remount (switching Test students)
   // can rehydrate it. Cheap; runs only when the persisted fields change.
@@ -253,7 +264,6 @@ export function TestTaskChat({
     onPersist?.(emptyState)
   }
 
-  const isClassroom = mode === 'classroom'
   const accentColor = isClassroom ? 'text-[#F17623]' : 'text-violet-600'
   const accentBg = isClassroom ? 'bg-orange-50/60' : 'bg-violet-50/60'
   const accentBorder = isClassroom ? 'border-orange-100' : 'border-violet-100'
