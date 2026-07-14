@@ -14,13 +14,16 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, FolderOpen } from 'lucide-react'
+import { Send, FolderOpen, Users } from 'lucide-react'
 import { useSocket } from '@/hooks/use-socket'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import { DailyVideoFrame } from '@/components/class/daily-video-frame'
 import { SessionDeployPanel } from '@/components/one-on-one/session-deploy-panel'
 import { SessionDeployedPanel } from '@/components/one-on-one/session-deployed-panel'
+import { SessionResponsesPanel } from '@/components/one-on-one/session-responses-panel'
 import { FallbackBoundary } from '@/components/ui/fallback-boundary'
+
+type ActivePanel = 'deploy' | 'materials' | 'responses' | null
 
 interface SessionClassroomProps {
   sessionId: string
@@ -38,8 +41,9 @@ export function SessionClassroom({
   twoWay,
 }: SessionClassroomProps) {
   const { data: session } = useSession()
-  const [showDeploy, setShowDeploy] = useState(false)
-  const [showMaterials, setShowMaterials] = useState(false)
+  const [activePanel, setActivePanel] = useState<ActivePanel>(null)
+  const toggle = (panel: Exclude<ActivePanel, null>) =>
+    setActivePanel(cur => (cur === panel ? null : panel))
 
   // useSocket keys its effect on the option fields (not object identity), so an
   // inline object is safe — the compiler memoizes and the socket only reconnects
@@ -85,27 +89,31 @@ export function SessionClassroom({
         />
       </FallbackBoundary>
 
-      {/* Classroom toolbar: deploy (tutor) + materials (everyone). */}
+      {/* Classroom toolbar: deploy + responses (tutor) + materials (everyone). */}
       <div className="pointer-events-none absolute right-3 top-3 z-40 flex gap-2">
         {isTutor ? (
-          <button
-            type="button"
-            onClick={() => {
-              setShowDeploy(v => !v)
-              setShowMaterials(false)
-            }}
-            className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
-          >
-            <Send className="h-3.5 w-3.5" />
-            Deploy
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={() => toggle('deploy')}
+              className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
+            >
+              <Send className="h-3.5 w-3.5" />
+              Deploy
+            </button>
+            <button
+              type="button"
+              onClick={() => toggle('responses')}
+              className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
+            >
+              <Users className="h-3.5 w-3.5" />
+              Responses
+            </button>
+          </>
         ) : null}
         <button
           type="button"
-          onClick={() => {
-            setShowMaterials(v => !v)
-            setShowDeploy(false)
-          }}
+          onClick={() => toggle('materials')}
           className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
         >
           <FolderOpen className="h-3.5 w-3.5" />
@@ -114,22 +122,25 @@ export function SessionClassroom({
       </div>
 
       {/* Side panels — wrapped so a panel crash closes to nothing, never the room. */}
-      {showDeploy || showMaterials ? (
+      {activePanel ? (
         <FallbackBoundary label="session panel" fallback={null}>
           <div className="pointer-events-none absolute bottom-3 right-3 top-16 z-40 flex">
-            {showDeploy && isTutor ? (
+            {activePanel === 'deploy' && isTutor ? (
               <SessionDeployPanel
                 sessionId={sessionId}
                 socket={socket}
-                onClose={() => setShowDeploy(false)}
+                onClose={() => setActivePanel(null)}
               />
             ) : null}
-            {showMaterials ? (
+            {activePanel === 'responses' && isTutor ? (
+              <SessionResponsesPanel socket={socket} onClose={() => setActivePanel(null)} />
+            ) : null}
+            {activePanel === 'materials' ? (
               <SessionDeployedPanel
                 sessionId={sessionId}
                 socket={socket}
                 isTutor={isTutor}
-                onClose={() => setShowMaterials(false)}
+                onClose={() => setActivePanel(null)}
               />
             ) : null}
           </div>
