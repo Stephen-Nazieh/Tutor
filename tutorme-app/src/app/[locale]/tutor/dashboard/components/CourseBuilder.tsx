@@ -1423,6 +1423,11 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const [dmiFormatDialog, setDmiFormatDialog] = useState<{
       type: 'task' | 'assessment'
     } | null>(null)
+    // Content-source chooser: shown when a PDF is attached AND the text box was
+    // edited away from the document's own extraction (the two sources disagree).
+    const [dmiSourceDialog, setDmiSourceDialog] = useState<{
+      type: 'task' | 'assessment'
+    } | null>(null)
     const [mcqConfigDialog, setMcqConfigDialog] = useState<{
       type: 'task' | 'assessment'
     } | null>(null)
@@ -3409,7 +3414,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       type: 'task' | 'assessment',
       questionSpec?: Array<{ type: DmiQuestionType; count: number }>,
       documentKindOverride?: 'question_paper' | 'study_material',
-      skipFormatPrompt?: boolean
+      skipFormatPrompt?: boolean,
+      contentSourceOverride?: 'document' | 'text'
     ) => {
       const isTask = type === 'task'
       const builder = isTask ? taskBuilder : assessmentBuilder
@@ -3430,6 +3436,22 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         return
       }
 
+      // When a PDF is attached AND the text box has been edited to something
+      // other than the document's own extraction, the two sources genuinely
+      // disagree — ask the tutor which to generate from instead of silently
+      // preferring the PDF. Text left as the auto-filled extraction isn't
+      // ambiguous, so we don't nag.
+      const normalizeText = (s: string) => s.replace(/\s+/g, ' ').trim()
+      const docExtractedText = normalizeText(sourceDoc?.extractedText || '')
+      const typedText = normalizeText(content)
+      const sourcesDisagree = !!hasPdf && typedText.length > 0 && typedText !== docExtractedText
+      if (sourcesDisagree && !contentSourceOverride) {
+        setDmiSourceDialog({ type })
+        return
+      }
+      // 'text' → generate from the typed text and skip the PDF file entirely.
+      const effectiveHasPdf = hasPdf && contentSourceOverride !== 'text'
+
       // Assessment: choose the response format BEFORE spending any LLM tokens.
       // A multiple-choice paper doesn't need the AI to read it — the tutor
       // configures sections + counts and we build the DMI locally. Free-response
@@ -3444,7 +3466,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       try {
         let pdfPages: string[] | undefined
         let pdfText: string | undefined
-        if (hasPdf) {
+        if (effectiveHasPdf) {
           toast.info('Analyzing PDF with AI...')
           // Prefer full-text extraction so EVERY page of a multi-page paper is
           // captured (image analysis is capped at a few pages and would miss
@@ -3489,7 +3511,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
           body: JSON.stringify({
             type,
             title: builder.title,
-            content: pdfText ?? (!hasPdf && hasContent ? content : undefined),
+            content: pdfText ?? (!effectiveHasPdf && hasContent ? content : undefined),
             pdfPages,
             questionSpec,
             documentKindOverride,
@@ -3708,6 +3730,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       const { type } = dmiSpecDialog
       setDmiSpecDialog(null)
       void handleGenerateDMI(type, spec)
+    }
+
+    // Content-source choice → re-run generation forcing the picked source.
+    const handleChooseDmiDocument = () => {
+      const type = dmiSourceDialog?.type
+      setDmiSourceDialog(null)
+      if (type) void handleGenerateDMI(type, undefined, undefined, false, 'document')
+    }
+    const handleChooseDmiTypedText = () => {
+      const type = dmiSourceDialog?.type
+      setDmiSourceDialog(null)
+      if (type) void handleGenerateDMI(type, undefined, undefined, false, 'text')
     }
 
     // Response-format choice → free-response runs the AI flow; multiple-choice
@@ -13721,6 +13755,55 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                 <span className="text-xs text-slate-500">
                   The AI reads the paper and drafts the questions, marks, and answer key for you to
                   review.
+                </span>
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Content-source chooser — shown when a PDF is attached but the text box
+            was edited to differ from the doc's extraction. */}
+        <Dialog
+          open={!!dmiSourceDialog}
+          onOpenChange={open => {
+            if (!open) setDmiSourceDialog(null)
+          }}
+        >
+          <DialogContent className="max-w-md border border-slate-200 shadow-2xl">
+            <DialogHeader className="text-center">
+              <DialogTitle className="mx-auto text-center text-white">
+                Which content should the DMI use?
+              </DialogTitle>
+              <DialogDescription className="text-white/80">
+                This has both an attached document and edited text, and they differ. Pick the one to
+                generate from.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-3 px-6 py-4">
+              <button
+                type="button"
+                onClick={handleChooseDmiDocument}
+                className="flex flex-col items-start gap-1 rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-indigo-300 hover:bg-indigo-50/40"
+              >
+                <span className="flex items-center gap-2 font-semibold text-slate-900">
+                  <FileText className="h-4 w-4 text-indigo-600" /> The attached document
+                </span>
+                <span className="text-xs text-slate-500">
+                  Read the original file directly — most accurate for a real paper. Ignores edits in
+                  the text box.
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={handleChooseDmiTypedText}
+                className="flex flex-col items-start gap-1 rounded-xl border border-slate-200 bg-white p-4 text-left shadow-sm transition-colors hover:border-indigo-300 hover:bg-indigo-50/40"
+              >
+                <span className="flex items-center gap-2 font-semibold text-slate-900">
+                  <Type className="h-4 w-4 text-indigo-600" /> The typed text
+                </span>
+                <span className="text-xs text-slate-500">
+                  Generate from exactly what's in the text box — uses your edits/additions and
+                  ignores the file.
                 </span>
               </button>
             </div>
