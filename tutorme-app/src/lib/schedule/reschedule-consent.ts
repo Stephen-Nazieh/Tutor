@@ -166,7 +166,7 @@ export async function proposeReschedule(opts: {
           sessionId: session.sessionId,
           proposedStart: proposedStart.toISOString(),
         },
-        actionUrl: '/student/schedule',
+        actionUrl: '/student/dashboard',
       })
     })
   )
@@ -335,7 +335,7 @@ async function notifyOutcome(
         title: copy.title,
         message: copy.body(when),
         data: { type: `reschedule-${outcome}`, sessionId: proposal.sessionId },
-        actionUrl: '/student/schedule',
+        actionUrl: '/student/dashboard',
       })
     })
   )
