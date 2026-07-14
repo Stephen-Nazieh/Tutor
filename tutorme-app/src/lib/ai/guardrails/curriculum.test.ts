@@ -118,4 +118,45 @@ describe('checkCurriculumMatch — layer 2 (AI subject)', () => {
     })
     expect(v.some(x => x.ruleId === 'CURRIC-2')).toBe(false)
   })
+
+  // Subject-family bridge: related fields are not a mismatch.
+  it('does NOT warn: Mathematics document in an AP Statistics course (stats ⊂ math)', () => {
+    const v = checkCurriculumMatch({
+      expectedBoard: 'AP',
+      expectedSubject: 'AP Statistics',
+      aiSubject: 'Mathematics',
+      aiConfidence: 'high',
+    })
+    expect(v.some(x => x.ruleId === 'CURRIC-2')).toBe(false)
+  })
+
+  it('does NOT warn: Calculus document in a Mathematics course', () => {
+    const v = checkCurriculumMatch({
+      expectedBoard: 'A Level',
+      expectedSubject: 'A Level Mathematics',
+      aiSubject: 'Calculus',
+      aiConfidence: 'high',
+    })
+    expect(v.some(x => x.ruleId === 'CURRIC-2')).toBe(false)
+  })
+
+  it('still warns: Biology document in an AP Statistics course (unrelated)', () => {
+    const v = checkCurriculumMatch({
+      expectedBoard: 'AP',
+      expectedSubject: 'AP Statistics',
+      aiSubject: 'Biology',
+      aiConfidence: 'high',
+    })
+    expect(v.some(x => x.ruleId === 'CURRIC-2')).toBe(true)
+  })
+
+  it('still warns: Chemistry document in a Biology course (distinct sciences)', () => {
+    const v = checkCurriculumMatch({
+      expectedBoard: 'AP',
+      expectedSubject: 'AP Biology',
+      aiSubject: 'Chemistry',
+      aiConfidence: 'high',
+    })
+    expect(v.some(x => x.ruleId === 'CURRIC-2')).toBe(true)
+  })
 })

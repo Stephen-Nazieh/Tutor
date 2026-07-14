@@ -158,6 +158,58 @@ function subjectTokens(subject: string | null | undefined): Set<string> {
   return out
 }
 
+/**
+ * Subject families — related fields that should NOT be flagged as a mismatch.
+ * Statistics is part of Mathematics, so "AP Statistics" vs a "Mathematics" paper
+ * is not a wrong-subject upload. Kept intentionally tight: only genuine
+ * parent/child/synonym relationships, so distinct subjects (Biology vs
+ * Chemistry, Spanish vs French) still warn.
+ */
+const SUBJECT_FAMILY_GROUPS: string[][] = [
+  [
+    'mathematics',
+    'math',
+    'maths',
+    'statistics',
+    'stats',
+    'statistical',
+    'calculus',
+    'algebra',
+    'geometry',
+    'trigonometry',
+    'mechanics',
+    'probability',
+  ],
+  ['english', 'literature', 'composition', 'rhetoric'],
+  ['computer', 'computing', 'programming', 'informatics'],
+]
+
+const TOKEN_TO_FAMILY = new Map<string, string>()
+SUBJECT_FAMILY_GROUPS.forEach((group, i) =>
+  group.forEach(tok => TOKEN_TO_FAMILY.set(tok, `fam${i}`))
+)
+
+/** The subject families spanned by a token set (empty when none are known). */
+function subjectFamilies(tokens: Set<string>): Set<string> {
+  const fams = new Set<string>()
+  for (const tok of tokens) {
+    const fam = TOKEN_TO_FAMILY.get(tok)
+    if (fam) fams.add(fam)
+  }
+  return fams
+}
+
+/**
+ * Whether two subjects are related — a shared content token OR a shared subject
+ * family (so Statistics ≈ Mathematics). Related subjects are not a mismatch.
+ */
+function subjectsRelated(want: Set<string>, got: Set<string>): boolean {
+  if ([...got].some(t => want.has(t))) return true
+  const wantFams = subjectFamilies(want)
+  if (wantFams.size === 0) return false
+  return [...subjectFamilies(got)].some(f => wantFams.has(f))
+}
+
 export interface CurriculumCheckInput {
   /** Extracted document text (drives the deterministic board scan). */
   extractedText?: string | null
@@ -211,8 +263,9 @@ export function checkCurriculumMatch(input: CurriculumCheckInput): GuardrailViol
     const want = subjectTokens(input.expectedSubject)
     const got = subjectTokens(input.aiSubject)
     if (want.size > 0 && got.size > 0) {
-      const overlap = [...got].some(t => want.has(t))
-      if (!overlap) {
+      // Related subjects (shared token or subject family, e.g. Statistics ⊂
+      // Mathematics) are not a mismatch — only warn when they're truly disjoint.
+      if (!subjectsRelated(want, got)) {
         violations.push({
           ruleId: RULE_SUBJECT,
           severity: 'warning',
