@@ -9,7 +9,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 import type { Session } from 'next-auth'
-import { withAuth, withCsrf, handleApiError } from '@/lib/api/middleware'
+import { withAuth, withCsrf, withRateLimitPreset, handleApiError } from '@/lib/api/middleware'
 import { readFileBuffer } from '@/lib/storage/service'
 import { convertOfficeToPdf } from '@/lib/documents/office-to-pdf'
 
@@ -20,6 +20,14 @@ export const POST = withCsrf(
     const startedAt = Date.now()
     const userId = session?.user?.id ?? 'unknown'
     try {
+      // LibreOffice conversion is expensive — rate-limit it per user, like the
+      // other AI-generation endpoints, so it can't be spammed.
+      const { response: rateLimited } = await withRateLimitPreset(request, 'aiGenerate', userId)
+      if (rateLimited) {
+        console.warn(`[office-to-pdf] 429 rate limited (user ${userId})`)
+        return rateLimited
+      }
+
       const body = await request.json().catch(() => null)
       const fileKey = typeof body?.fileKey === 'string' ? body.fileKey : ''
       const fileName = typeof body?.fileName === 'string' ? body.fileName : 'document'
