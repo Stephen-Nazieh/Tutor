@@ -332,8 +332,7 @@ export function CourseCategoryPicker({
             >
               <span className="truncate">
                 {selectedCountryCode
-                  ? availableCountries.find(c => c.code === selectedCountryCode)?.name ||
-                    'Country'
+                  ? availableCountries.find(c => c.code === selectedCountryCode)?.name || 'Country'
                   : 'Country'}
               </span>
               <svg
