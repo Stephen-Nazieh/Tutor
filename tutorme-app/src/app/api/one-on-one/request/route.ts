@@ -20,10 +20,7 @@ import { findConflicts } from '@/lib/schedule/conflicts'
 import { expireOverdueOneOnOneBookings } from '@/lib/one-on-one/expire'
 import { completeFinishedOneOnOneSessions } from '@/lib/one-on-one/complete'
 import { unpaidSeriesTotal } from '@/lib/one-on-one/series-total'
-import {
-  isSlotWithinStudentAvailability,
-  studentHasAvailabilityConfigured,
-} from '@/lib/student-availability'
+import { isSlotWithinStudentAvailability } from '@/lib/student-availability'
 
 const requestSchema = z.object({
   tutorId: z.string().min(1),
@@ -105,23 +102,17 @@ export const POST = withCsrf(
       )
     }
 
-    // A student with no availability configured can't book — otherwise the
-    // per-slot check below is skipped and a tutor could be booked out of hours.
-    if (!(await studentHasAvailabilityConfigured(session.user.id))) {
-      throw new ValidationError(
-        'Set your availability before requesting a 1-on-1 — ask your parent to add your available hours.'
-      )
-    }
-
+    // Students can book any time by default (24/7). Only slots a parent has
+    // explicitly blocked are off-limits — enforced per-slot below.
     const tutorTimezone = tutorProfile.timezone || 'UTC'
     const tutorBuffer = tutorProfile.bufferMinutes ?? 0
     const isSeriesRequest = validated.proposedSlots.length > 1
 
-    // Every proposed time must (a) fall within the student's availability (managed
-    // by their parent) and (b) not clash with the tutor's already-confirmed
-    // schedule. The tutor-conflict check uses the SAME detector the tutor's accept
-    // runs, so a time that passes here won't be un-acceptable later — a student
-    // can no longer propose a slot (or a series week) the tutor can never accept.
+    // Every proposed time must (a) not fall on an hour the parent has BLOCKED and
+    // (b) not clash with the tutor's already-confirmed schedule. The tutor-conflict
+    // check uses the SAME detector the tutor's accept runs, so a time that passes
+    // here won't be un-acceptable later — a student can no longer propose a slot
+    // (or a series week) the tutor can never accept.
     for (const slot of validated.proposedSlots) {
       const withinAvailability = await isSlotWithinStudentAvailability(
         session.user.id,
@@ -131,7 +122,7 @@ export const POST = withCsrf(
       )
       if (!withinAvailability) {
         throw new ValidationError(
-          'One or more of your proposed times are outside your available hours. Ask your parent to update your availability, or choose a different time.'
+          'One or more of your proposed times have been blocked by your parent. Please choose a different time, or ask them to allow it.'
         )
       }
 
