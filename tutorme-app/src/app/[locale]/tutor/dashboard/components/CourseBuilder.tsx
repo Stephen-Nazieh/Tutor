@@ -5551,17 +5551,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
             e.preventDefault()
             e.stopPropagation()
 
-            if (
-              asset.folder &&
-              designatedFolder !== 'Uncategorized' &&
-              asset.folder !== designatedFolder
-            ) {
-              const confirmLoad = window.confirm(
-                `This document belongs to the folder "${asset.folder}", but you are currently editing "${designatedFolder}". Are you sure you want to load it here?`
-              )
-              if (!confirmLoad) return
-            }
-
             if (target === 'assessment') {
               if (!asset.url && !asset.fileKey) {
                 toast.error(
@@ -5885,6 +5874,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
               }
 
               if (currentId) {
+                setSelectedItem({ type: 'task', id: currentId })
                 const newAsset = {
                   id: `asset-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
                   name: firstFile.name,
@@ -6138,18 +6128,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       // would otherwise stay stuck and hide the picker on later kebab loads.
       target: 'task' | 'assessment' | null = assetPickerTarget
     ) => {
-      // Warn if loading from a folder that doesn't match the current course's designated folder
-      if (
-        asset.folder &&
-        designatedFolder !== 'Uncategorized' &&
-        asset.folder !== designatedFolder
-      ) {
-        const confirmLoad = window.confirm(
-          `This document belongs to the folder "${asset.folder}", but you are currently editing "${designatedFolder}". Are you sure you want to load it here?`
-        )
-        if (!confirmLoad) return
-      }
-
       setAssetToLoad(asset)
       // Start every load flow with no explicit target. The kebab "Load" picker
       // sets it later (to the chosen lesson); the task/assessment "+" flows leave
