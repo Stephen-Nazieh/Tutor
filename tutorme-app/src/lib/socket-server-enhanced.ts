@@ -1082,6 +1082,42 @@ export async function initEnhancedSocketServer(server: NetServer) {
       await (effectiveRole === 'student'
         ? addStudentToRoom(socket, room)
         : addTutorToRoom(socket, room))
+
+      // Private board sub-room: replay the strokes already drawn to the joining
+      // socket, so a tutor opening a student's board (or anyone rejoining) sees
+      // the existing drawing instead of a blank board. EnhancedWhiteboard only
+      // applies live deltas, so without this the board appears empty. Sent to the
+      // joiner alone; attributed to the board owner (board rooms aren't filtered).
+      const replayBoardIdx = roomId.indexOf(':board:')
+      if (replayBoardIdx >= 0 && room.whiteboardData) {
+        const ownerId = roomId.slice(replayBoardIdx + ':board:'.length)
+        const wb = room.whiteboardData as {
+          strokes?: Array<{ pageIndex?: number }>
+          shapes?: Array<{ pageIndex?: number }>
+          texts?: Array<{ pageIndex?: number }>
+        }
+        for (const stroke of wb.strokes ?? []) {
+          socket.emit('whiteboard:stroke:added', {
+            userId: ownerId,
+            stroke,
+            pageIndex: stroke.pageIndex ?? 0,
+          })
+        }
+        for (const shape of wb.shapes ?? []) {
+          socket.emit('whiteboard:shape:added', {
+            userId: ownerId,
+            shape,
+            pageIndex: shape.pageIndex ?? 0,
+          })
+        }
+        for (const text of wb.texts ?? []) {
+          socket.emit('whiteboard:text:added', {
+            userId: ownerId,
+            text,
+            pageIndex: text.pageIndex ?? 0,
+          })
+        }
+      }
     })
 
     // Activity ping keeps room and student alive during quiet sessions
