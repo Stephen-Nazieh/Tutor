@@ -16,7 +16,7 @@ import {
 import { drizzleDb } from '@/lib/db/drizzle'
 import { payment, refund, course } from '@/lib/db/schema'
 import { getPaymentGateway, type GatewayName } from '@/lib/payments'
-import { eq } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 
 export const POST = withCsrf(
   withAuth(async (req: NextRequest, session) => {
@@ -74,6 +74,31 @@ export const POST = withCsrf(
 
     const gateway = getPaymentGateway(paymentRow.gateway as GatewayName)
     const refundAmount = amount != null && amount > 0 ? amount : paymentRow.amount
+
+    // Guard against over-refunding: the requested amount plus everything already
+    // refunded must not exceed the payment. Without this, a too-large `amount`,
+    // or repeated partial refunds (which don't flip the payment to REFUNDED),
+    // could move more money than was ever charged.
+    const [prior] = await drizzleDb
+      .select({ total: sql<number>`COALESCE(SUM(${refund.amount}), 0)` })
+      .from(refund)
+      .where(
+        and(
+          eq(refund.paymentId, paymentRow.paymentId),
+          inArray(refund.status, ['COMPLETED', 'PENDING'])
+        )
+      )
+    const alreadyRefunded = Number(prior?.total ?? 0)
+    if (refundAmount <= 0 || alreadyRefunded + refundAmount > paymentRow.amount + 0.001) {
+      const refundable = Math.max(0, paymentRow.amount - alreadyRefunded)
+      return NextResponse.json(
+        {
+          error: `Refund amount exceeds the refundable balance. Paid ${paymentRow.amount}, already refunded ${alreadyRefunded}, refundable ${refundable}.`,
+        },
+        { status: 400 }
+      )
+    }
+
     // Airwallex requires payment_attempt_id for refunds; we store it in metadata on payment_intent.succeeded
     const metadata = paymentRow.metadata as { payment_attempt_id?: string } | null
     const refundPaymentId =
