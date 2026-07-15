@@ -123,6 +123,7 @@ export function CalendarBookingDialog({
   const [availability, setAvailability] = useState<AvailabilityData | null>(null)
   const [availabilityError, setAvailabilityError] = useState<string | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
+  const [slotError, setSlotError] = useState(false)
   const [hasPendingRequest, setHasPendingRequest] = useState(false)
   const [activeRequest, setActiveRequest] = useState<{ id: string; status: string } | null>(null)
   const [onWaitlist, setOnWaitlist] = useState(false)
@@ -413,11 +414,17 @@ export function CalendarBookingDialog({
       dayOfWeek: dayIndex,
       timezone: availability?.timezone ?? 'UTC',
     })
+    setSlotError(false)
   }
 
   const handleSubmit = async () => {
-    if (!selectedSlot || !session?.user) {
-      toast.error('Please select a time slot')
+    if (!selectedSlot) {
+      // Highlight the picker in red inline instead of only warning.
+      setSlotError(true)
+      return
+    }
+    if (!session?.user) {
+      toast.error('Please sign in to book a session')
       return
     }
 
@@ -608,8 +615,10 @@ export function CalendarBookingDialog({
             <Video className="h-5 w-5" />
             Book 1 on 1 Session with {tutor.name}
           </DialogTitle>
-          <DialogDescription>
-            Select an available time slot for your one-hour session.
+          <DialogDescription className={slotError ? 'font-medium text-red-600' : undefined}>
+            {slotError
+              ? 'Please select a time slot below to continue.'
+              : 'Select an available time slot for your one-hour session.'}
           </DialogDescription>
         </DialogHeader>
 
