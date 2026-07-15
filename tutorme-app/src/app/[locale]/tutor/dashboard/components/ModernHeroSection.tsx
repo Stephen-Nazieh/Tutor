@@ -16,6 +16,7 @@ async function fetchTutorUsername(): Promise<string | null> {
     return null
   }
 }
+import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import {
@@ -30,6 +31,7 @@ import {
   Award,
   MessageSquare,
   User,
+  Video,
 } from 'lucide-react'
 import {
   Dialog,
@@ -162,7 +164,7 @@ export function ModernHeroSection({
 
   if (loading) {
     return (
-      <div className="relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-8 shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+      <div className="relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-8 shadow-[0_14px_45px_rgba(0,0,0,0.12)] ring-1 ring-white/20">
         <div className="animate-pulse space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
@@ -186,7 +188,7 @@ export function ModernHeroSection({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5 shadow-[0_12px_32px_rgba(0,0,0,0.12)]">
+    <div className="relative overflow-hidden rounded-[18px] border border-white/10 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] p-5 shadow-[0_14px_45px_rgba(0,0,0,0.12)] ring-1 ring-white/20">
       {/* Content */}
       <div className="relative z-10">
         {/* Header Row */}
@@ -223,7 +225,7 @@ export function ModernHeroSection({
               </div>
               <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
                 <BookOpen className="h-4 w-4 text-white/80" />
-                <span className="text-xs font-medium text-white/80">Active Courses</span>
+                <span className="text-xs font-medium text-white/80">Sessions</span>
                 <span className="text-sm font-bold text-white">{heroStats.activeCourses}</span>
               </div>
               <div className="flex items-center gap-2 rounded-xl bg-white/15 px-3 py-2 backdrop-blur-sm">
@@ -319,7 +321,15 @@ export function ModernHeroSection({
 
         {/* Action Bar */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-1 items-center justify-start gap-2" />
+          <div className="flex flex-1 items-center justify-start gap-2">
+            <Button
+              size="sm"
+              className="border border-white bg-[#65A30D] text-white hover:translate-y-0 hover:bg-[#65A30D]/90"
+            >
+              <Video className="mr-1 h-4 w-4" />
+              Go Live
+            </Button>
+          </div>
           <div className="flex-none text-center">
             <span className="text-base text-white">
               {formatDate(currentTime)} • {formatTime(currentTime)} {timeZoneAbbr}
