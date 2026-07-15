@@ -207,8 +207,10 @@ export function SessionDeployPanel({
             <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
           </div>
         ) : items.length === 0 ? (
-          <div className="rounded-lg border border-dashed py-10 text-center text-xs text-slate-500">
-            No saved tasks to deploy yet. Create tasks in the course builder first.
+          <div className="rounded-lg border border-dashed px-4 py-10 text-center text-xs text-slate-500">
+            {courseId
+              ? 'This session is scoped to its course, and that course has no saved tasks yet. Add tasks to it in the course builder to deploy them here.'
+              : 'No saved tasks to deploy yet. Create tasks in the course builder first.'}
           </div>
         ) : courses.length === 0 ? (
           <div className="rounded-lg border border-dashed py-10 text-center text-xs text-slate-500">
