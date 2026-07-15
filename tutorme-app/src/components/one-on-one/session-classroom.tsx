@@ -266,7 +266,7 @@ export function SessionClassroom({
         <Dialog open={showCourseEditor} onOpenChange={setShowCourseEditor}>
           <DialogContent size="full" className="h-[95vh] overflow-hidden p-0">
             <iframe
-              src={`/tutor/insights?tab=builder&courseId=${encodeURIComponent(courseId)}&mode=edit`}
+              src={`/tutor/insights?tab=builder&courseId=${encodeURIComponent(courseId)}&mode=edit&embed=1`}
               title={courseName ? `Edit ${courseName}` : 'Edit course'}
               className="h-full w-full rounded-lg border-0"
             />
