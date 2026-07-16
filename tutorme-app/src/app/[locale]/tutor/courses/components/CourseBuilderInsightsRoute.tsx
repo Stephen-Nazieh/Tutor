@@ -939,7 +939,10 @@ function CourseBuilderInsightsRouteInner({
         <div className="flex w-full flex-col gap-4">
           <div className="flex min-h-[72px] w-full flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.08)] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <BackButton href="/tutor/dashboard" />
+              <BackButton
+                href="/tutor/dashboard"
+                className="rounded-full hover:bg-[#F17623] hover:text-white"
+              />
 
               <div className="flex flex-col justify-center">
                 <div className="flex items-center gap-2">
@@ -998,7 +1001,11 @@ function CourseBuilderInsightsRouteInner({
                             </SelectItem>
                           )}
                           {courses?.map(c => (
-                            <SelectItem key={c.id} value={c.id} className="focus-visible:ring-0">
+                            <SelectItem
+                              key={c.id}
+                              value={c.id}
+                              className="hover:bg-black/10 focus-visible:bg-black/10 focus-visible:ring-0"
+                            >
                               {c.nationality && c.nationality !== 'Global' ? (
                                 <span className="inline-flex items-center gap-1">
                                   {c.name} — {c.variantCategory || ''} —{' '}
@@ -1021,7 +1028,11 @@ function CourseBuilderInsightsRouteInner({
                             </SelectItem>
                           )}
                           {draftCourses?.map(c => (
-                            <SelectItem key={c.id} value={c.id} className="focus-visible:ring-0">
+                            <SelectItem
+                              key={c.id}
+                              value={c.id}
+                              className="hover:bg-black/10 focus-visible:bg-black/10 focus-visible:ring-0"
+                            >
                               {c.nationality && c.nationality !== 'Global' ? (
                                 <span className="inline-flex items-center gap-1">
                                   {c.name} — {c.variantCategory || ''} —{' '}
@@ -1297,14 +1308,14 @@ function CourseBuilderInsightsRouteInner({
         <DialogContent
           className={
             createStep === 'name'
-              ? 'max-w-md border border-white/25 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl'
-              : 'max-h-[90vh] w-full max-w-5xl overflow-hidden border border-white/25 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl'
+              ? 'max-w-md border border-slate-200 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl'
+              : 'max-h-[90vh] w-full max-w-5xl overflow-hidden border border-slate-200 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl'
           }
           aria-describedby={undefined}
         >
           <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-slate-900/5 via-slate-900/10 to-slate-900/20" />
           <div className="relative z-10 flex flex-col overflow-hidden">
-            <DialogHeader className="shrink-0 pb-4 pt-4 text-center">
+            <DialogHeader className="shrink-0 border-white/20 pb-4 pt-4 text-center">
               <DialogTitle className="mx-auto text-center text-white">
                 {createStep === 'category' ? 'Choose a Category' : 'Create New Course'}
               </DialogTitle>
@@ -1357,7 +1368,7 @@ function CourseBuilderInsightsRouteInner({
               )}
             </div>
 
-            <DialogFooter className="shrink-0 gap-3 px-6 pb-4">
+            <DialogFooter className="shrink-0 gap-3 border-white/20 px-6 pb-4">
               {createStep === 'name' ? (
                 <>
                   <Button variant="modal-secondary-dark" onClick={closeCreateDialog}>
@@ -1393,12 +1404,12 @@ function CourseBuilderInsightsRouteInner({
       {/* Edit Category Dialog */}
       <Dialog open={isEditCourseOpen} onOpenChange={setIsEditCourseOpen}>
         <DialogContent
-          className="max-h-[90vh] w-full max-w-5xl overflow-hidden border border-white/25 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl"
+          className="max-h-[90vh] w-full max-w-5xl overflow-hidden border border-slate-200 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl"
           aria-describedby={undefined}
         >
           <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-slate-900/5 via-slate-900/10 to-slate-900/20" />
           <div className="relative z-10 flex flex-col overflow-hidden">
-            <DialogHeader className="shrink-0 pb-4 pt-4 text-center">
+            <DialogHeader className="shrink-0 border-white/20 pb-4 pt-4 text-center">
               <DialogTitle className="mx-auto text-center text-white">Edit Category</DialogTitle>
             </DialogHeader>
 
@@ -1410,7 +1421,7 @@ function CourseBuilderInsightsRouteInner({
               />
             </div>
 
-            <DialogFooter className="shrink-0 gap-3 px-6 pb-4">
+            <DialogFooter className="shrink-0 gap-3 border-white/20 px-6 pb-4">
               <Button variant="modal-secondary-dark" onClick={() => setIsEditCourseOpen(false)}>
                 Cancel
               </Button>
