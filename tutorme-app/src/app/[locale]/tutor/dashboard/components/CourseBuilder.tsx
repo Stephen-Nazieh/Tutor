@@ -7903,12 +7903,24 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     }, [loadedAssessmentId, assessmentDmiReady, canEdit])
 
     // Auto-scroll the task PCI chat so new messages / the loading indicator
-    // stays pinned to the bottom without manual scrolling.
+    // stays pinned to the bottom without manual scrolling. Also re-pin when the
+    // PCI tab becomes active, so the tutor always lands on the latest turn.
     useEffect(() => {
       const el = taskPciScrollRef.current
       if (!el) return
-      el.scrollTop = el.scrollHeight
-    }, [activeTaskPciMessages.length, taskPciLoading])
+      const scroll = () => {
+        el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+      }
+      // Defer one frame so the DOM has finished laying out the new message.
+      const raf = requestAnimationFrame(() => {
+        scroll()
+        // Some browsers measure scrollHeight before layout; give a second chance.
+        const t = setTimeout(scroll, 50)
+        return () => clearTimeout(t)
+      })
+      return () => cancelAnimationFrame(raf)
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTaskPciMessages.length, taskPciLoading, taskBuilderActiveTab])
 
     // Auto-switch assessment panels based on document presence
     useEffect(() => {
