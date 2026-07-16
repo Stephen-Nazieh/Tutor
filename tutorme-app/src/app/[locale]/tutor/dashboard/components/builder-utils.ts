@@ -457,44 +457,80 @@ export function generateQuestionPaperPDF(
 /**
  * Generate a simple PDF from a task's typed title + content so that text-only
  * tasks can be previewed and deployed exactly like uploaded PDF documents.
+ *
+ * Uses html2canvas to rasterise the text as an image inside the PDF. This avoids
+ * font/encoding limitations and gives us full browser language support (CJK,
+ * Arabic, Devanagari, emojis, etc.) without bundling huge font files.
  */
-export function generateTaskTextPDF(
+export async function generateTaskTextPDF(
   title: string,
   content: string
-): { blob: Blob; fileName: string } {
-  // Dynamic import jsPDF to avoid SSR issues
-  const jsPDF = require('jspdf')
-  const doc = new jsPDF()
-
-  const pageWidth = doc.internal.pageSize.getWidth()
-  const margin = 15
-  const contentWidth = pageWidth - margin * 2
-  let y = 20
-
-  if (title.trim()) {
-    doc.setFontSize(16)
-    doc.setFont('helvetica', 'bold')
-    const titleLines = doc.splitTextToSize(title.trim(), contentWidth)
-    doc.text(titleLines, margin, y)
-    y += titleLines.length * 8 + 12
+): Promise<{ blob: Blob; fileName: string }> {
+  if (typeof document === 'undefined') {
+    throw new Error('generateTaskTextPDF must be called in a browser')
   }
 
-  if (content.trim()) {
-    doc.setFontSize(11)
-    doc.setFont('helvetica', 'normal')
-    const lines = doc.splitTextToSize(content.trim(), contentWidth)
-    for (const line of lines) {
-      if (y > 270) {
-        doc.addPage()
-        y = 20
-      }
-      doc.text(line, margin, y)
-      y += 6
+  const jsPDF = require('jspdf')
+  const html2canvas = (await import('html2canvas')).default
+
+  const container = document.createElement('div')
+  container.style.position = 'fixed'
+  container.style.left = '-9999px'
+  container.style.top = '-9999px'
+  container.style.width = '794px' // A4 width at 96dpi
+  container.style.padding = '48px'
+  container.style.background = '#ffffff'
+  container.style.color = '#1f2937'
+  container.style.fontFamily =
+    'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif'
+  container.style.fontSize = '16px'
+  container.style.lineHeight = '1.6'
+  container.style.whiteSpace = 'pre-wrap'
+  container.style.wordBreak = 'break-word'
+
+  const titleEl = document.createElement('h1')
+  titleEl.style.fontSize = '24px'
+  titleEl.style.fontWeight = '700'
+  titleEl.style.margin = '0 0 24px 0'
+  titleEl.style.lineHeight = '1.3'
+  titleEl.style.color = '#111827'
+  titleEl.textContent = title.trim()
+  container.appendChild(titleEl)
+
+  const contentEl = document.createElement('div')
+  contentEl.style.whiteSpace = 'pre-wrap'
+  contentEl.style.wordBreak = 'break-word'
+  contentEl.textContent = content.trim()
+  contentEl.setAttribute('dir', 'auto')
+  container.appendChild(contentEl)
+
+  document.body.appendChild(container)
+
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    })
+
+    const cssWidth = container.scrollWidth
+    const cssHeight = container.scrollHeight
+    // 1 CSS px = 0.75 pt (72 pt / 96 dpi)
+    const ptWidth = cssWidth * 0.75
+    const ptHeight = cssHeight * 0.75
+
+    const doc = new jsPDF({ unit: 'pt', format: [ptWidth, ptHeight] })
+    const imgData = canvas.toDataURL('image/png')
+    doc.addImage(imgData, 'PNG', 0, 0, ptWidth, ptHeight)
+
+    const safeTitle = title.trim().replace(/[^a-zA-Z0-9_-]/g, '_') || 'Task'
+    return { blob: doc.output('blob'), fileName: `${safeTitle}.pdf` }
+  } finally {
+    if (container.parentNode) {
+      document.body.removeChild(container)
     }
   }
-
-  const safeTitle = title.trim().replace(/[^a-zA-Z0-9_-]/g, '_') || 'Task'
-  return { blob: doc.output('blob'), fileName: `${safeTitle}.pdf` }
 }
 
 export function resolveSelectedItem(

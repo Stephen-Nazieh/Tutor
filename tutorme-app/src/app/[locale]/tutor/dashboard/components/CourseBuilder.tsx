@@ -4553,7 +4553,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
 
       generatingTaskDocRef.current = true
       try {
-        const { blob, fileName } = generateTaskTextPDF(taskBuilder.title || 'Task', content)
+        const { blob, fileName } = await generateTaskTextPDF(taskBuilder.title || 'Task', content)
         const file = new File([blob], fileName, { type: 'application/pdf' })
         const formData = new FormData()
         formData.append('file', file)
