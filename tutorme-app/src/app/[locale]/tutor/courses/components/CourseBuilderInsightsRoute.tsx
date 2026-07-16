@@ -1297,8 +1297,8 @@ function CourseBuilderInsightsRouteInner({
         <DialogContent
           className={
             createStep === 'name'
-              ? 'max-w-md border border-white/25 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl'
-              : 'max-h-[90vh] w-full max-w-5xl overflow-hidden border border-white/25 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl'
+              ? 'max-w-md border border-slate-200 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl'
+              : 'max-h-[90vh] w-full max-w-5xl overflow-hidden border border-slate-200 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl'
           }
           aria-describedby={undefined}
         >
@@ -1393,7 +1393,7 @@ function CourseBuilderInsightsRouteInner({
       {/* Edit Category Dialog */}
       <Dialog open={isEditCourseOpen} onOpenChange={setIsEditCourseOpen}>
         <DialogContent
-          className="max-h-[90vh] w-full max-w-5xl overflow-hidden border border-white/25 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl"
+          className="max-h-[90vh] w-full max-w-5xl overflow-hidden border border-slate-200 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl"
           aria-describedby={undefined}
         >
           <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-slate-900/5 via-slate-900/10 to-slate-900/20" />
