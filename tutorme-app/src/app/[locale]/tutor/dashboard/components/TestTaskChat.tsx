@@ -224,7 +224,7 @@ export function TestTaskChat({
     const q = draft.trim()
     if (!q || busy) return
     const questionMsg: ChatMsg = {
-      role: isClassroom ? 'tutor' : 'student',
+      role: 'student',
       content: q,
       timestamp: Date.now(),
     }
