@@ -15,7 +15,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { and, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, ne, or, sql } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { builderTask, builderTaskDmi, course, courseLesson, courseVariant } from '@/lib/db/schema'
@@ -75,6 +75,120 @@ async function resolveCourseFamily(scopedId: string): Promise<string[]> {
   return [...family]
 }
 
+/**
+ * Materialize the course's authored lesson tasks — stored in the builder's
+ * working model `courseLesson.builderData.{tasks,assessments,homework}` — into
+ * BuilderTask + BuilderTaskDmi rows so they become deployable.
+ *
+ * Why: the deploy panel lists BuilderTask rows, but those are otherwise only
+ * created the first time a task is deployed from a course class (the socket
+ * `task:deploy` handler upserts them). A course whose tasks were authored but
+ * never deployed therefore shows an empty panel — even though the tutor can see
+ * the tasks under "Edit course" (which reads builderData). This runs the SAME
+ * builderData→BuilderTask copy the deploy path already performs, up front and
+ * scoped to this session's course family, keeping the answer key server-side in
+ * BuilderTaskDmi exactly as the deploy path does (the deployables query below
+ * still strips it via buildStudentDeployPayload before anything reaches a client).
+ *
+ * Idempotent: upserts keyed on the authored item id and refreshed from
+ * builderData (the source of truth), so re-opening the panel just no-ops/refreshes.
+ */
+async function materializeCourseFamilyTasks(tutorId: string, familyIds: string[]): Promise<void> {
+  const lessons = await drizzleDb
+    .select({
+      lessonId: courseLesson.lessonId,
+      courseId: courseLesson.courseId,
+      builderData: courseLesson.builderData,
+    })
+    .from(courseLesson)
+    .where(and(inArray(courseLesson.courseId, familyIds), isNull(courseLesson.deletedAt)))
+
+  const now = new Date()
+  const SOURCES: Array<['task' | 'assessment' | 'homework', string]> = [
+    ['task', 'tasks'],
+    ['assessment', 'assessments'],
+    ['homework', 'homework'],
+  ]
+  const taskRows: (typeof builderTask.$inferInsert)[] = []
+  const dmiRows: (typeof builderTaskDmi.$inferInsert)[] = []
+  const seen = new Set<string>()
+
+  for (const l of lessons) {
+    const bd = (l.builderData ?? {}) as Record<string, unknown>
+    for (const [type, key] of SOURCES) {
+      const arr = Array.isArray(bd[key]) ? (bd[key] as Record<string, unknown>[]) : []
+      for (const item of arr) {
+        const id = typeof item?.id === 'string' ? item.id : null
+        if (!id || seen.has(id) || taskRows.length >= 500) continue
+        seen.add(id)
+        const title = (typeof item.title === 'string' && item.title.trim()) || 'Untitled task'
+        const content =
+          (typeof item.content === 'string' && item.content) ||
+          (typeof item.description === 'string' && item.description) ||
+          (typeof item.instructions === 'string' && item.instructions) ||
+          ''
+        taskRows.push({
+          taskId: id,
+          courseId: l.courseId,
+          lessonId: l.lessonId,
+          tutorId,
+          title,
+          content,
+          pci: '',
+          type,
+          status: 'published',
+          publishedAt: now,
+          createdAt: now,
+          updatedAt: now,
+        })
+        if (Array.isArray(item.dmiItems) && item.dmiItems.length > 0) {
+          dmiRows.push({
+            dmiId: `dmi-${id}`,
+            taskId: id,
+            type: type === 'assessment' ? 'assessment' : 'task',
+            items: item.dmiItems,
+            createdAt: now,
+            updatedAt: now,
+          })
+        }
+      }
+    }
+  }
+
+  if (taskRows.length === 0) return
+
+  await drizzleDb
+    .insert(builderTask)
+    .values(taskRows)
+    .onConflictDoUpdate({
+      target: builderTask.taskId,
+      set: {
+        title: sql`excluded."title"`,
+        content: sql`excluded."content"`,
+        type: sql`excluded."type"`,
+        courseId: sql`excluded."courseId"`,
+        lessonId: sql`excluded."lessonId"`,
+        status: sql`excluded."status"`,
+        publishedAt: sql`excluded."publishedAt"`,
+        updatedAt: sql`excluded."updatedAt"`,
+      },
+    })
+
+  if (dmiRows.length > 0) {
+    await drizzleDb
+      .insert(builderTaskDmi)
+      .values(dmiRows)
+      .onConflictDoUpdate({
+        target: builderTaskDmi.dmiId,
+        set: {
+          items: sql`excluded."items"`,
+          type: sql`excluded."type"`,
+          updatedAt: sql`excluded."updatedAt"`,
+        },
+      })
+  }
+}
+
 export const GET = withAuth(
   async (req: NextRequest, session) => {
     // When a live session is built around a course, the classroom passes its
@@ -84,6 +198,17 @@ export const GET = withAuth(
     // Scope to the whole variant family, not just the raw id, so tasks authored
     // under a sibling variant/template id are still found (see resolveCourseFamily).
     const scopedFamily = scopedCourseId ? await resolveCourseFamily(scopedCourseId) : null
+
+    // Ensure the course's authored lesson tasks exist as deployable BuilderTask
+    // rows before we read them (see materializeCourseFamilyTasks). Only for a
+    // course-scoped session; non-critical, so a failure never blocks the panel.
+    if (scopedFamily) {
+      try {
+        await materializeCourseFamilyTasks(session.user.id, scopedFamily)
+      } catch (err) {
+        console.warn('[deployables] task materialization failed (non-critical):', err)
+      }
+    }
 
     const rows = await drizzleDb
       .select({
