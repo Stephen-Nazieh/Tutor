@@ -309,13 +309,14 @@ export function convertQuizToAssessment(quiz: Quiz): Assessment {
 /**
  * Generate a PDF question paper from questions using jsPDF
  */
-export function generateQuestionPaperPDF(
+export async function generateQuestionPaperPDF(
   title: string,
   description: string,
   questions: QuizQuestion[]
-): { blob: Blob; url: string; fileName: string } {
-  // Dynamic import jsPDF to avoid SSR issues
-  const jsPDF = require('jspdf')
+): Promise<{ blob: Blob; url: string; fileName: string }> {
+  // Dynamic import jsPDF to avoid SSR issues and to get the correct default
+  // export in both dev and production builds.
+  const { default: jsPDF } = await import('jspdf')
   const doc = new jsPDF()
 
   const pageWidth = doc.internal.pageSize.getWidth()
@@ -439,7 +440,7 @@ export function generateQuestionPaperPDF(
   })
 
   // Footer
-  const totalPages = doc.internal.getNumberOfPages()
+  const totalPages = (doc.internal as any).getNumberOfPages()
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i)
     doc.setFontSize(8)
@@ -474,7 +475,7 @@ export async function generateTaskTextPDF(
     throw new Error('generateTaskTextPDF must be called in a browser')
   }
 
-  const jsPDF = require('jspdf')
+  const { default: jsPDF } = await import('jspdf')
   const html2canvas = (await import('html2canvas')).default
 
   // Snapshot card styled like the Task Slide display.
