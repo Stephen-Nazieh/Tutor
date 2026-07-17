@@ -123,7 +123,7 @@ export function ChatMessageBubble({
               {initial}
             </AvatarFallback>
           </Avatar>
-          {sender === 'ai' && <span className="text-[9px] font-medium text-gray-400">AI</span>}
+          {sender === 'ai' && <span className="text-[9px] font-medium text-gray-400">{name}</span>}
         </div>
       )}
 
