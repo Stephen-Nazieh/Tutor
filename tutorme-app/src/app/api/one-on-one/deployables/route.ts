@@ -15,7 +15,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { and, desc, eq, inArray, isNull, ne, or } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, ne, notInArray, or, sql } from 'drizzle-orm'
 import { withAuth } from '@/lib/api/middleware'
 import { drizzleDb } from '@/lib/db/drizzle'
 import { builderTask, builderTaskDmi, course, courseLesson, courseVariant } from '@/lib/db/schema'
@@ -193,6 +193,51 @@ async function materializeCourseFamilyTasks(
         }
       }
     }
+
+    // Standalone lesson documents (docs/worksheets not attached to a task) —
+    // surface each as a deployable document so the tutor can push a PDF/worksheet
+    // to the live room (shown in the Materials panel via the sourceDocument path,
+    // no questions). Guarded: only items carrying a durable fileKey.
+    for (const key of ['docs', 'worksheets']) {
+      const arr = Array.isArray(bd[key]) ? (bd[key] as Record<string, unknown>[]) : []
+      for (const doc of arr) {
+        const fk = typeof doc?.fileKey === 'string' && doc.fileKey ? doc.fileKey : null
+        if (!fk) continue
+        const id = typeof doc.id === 'string' && doc.id ? doc.id : `doc-${fk}`
+        if (seen.has(id)) continue
+        seen.add(id)
+        sourceDocByTask.set(id, {
+          fileKey: fk,
+          fileUrl: typeof doc.fileUrl === 'string' ? doc.fileUrl : '',
+          fileName:
+            typeof doc.fileName === 'string' ? doc.fileName : fk.split('/').pop() || 'document',
+          mimeType:
+            typeof doc.mimeType === 'string'
+              ? doc.mimeType
+              : fk.toLowerCase().endsWith('.pdf')
+                ? 'application/pdf'
+                : 'application/octet-stream',
+        })
+        if (taskRows.length >= MATERIALIZE_CAP) continue
+        taskRows.push({
+          taskId: id,
+          courseId: l.courseId,
+          lessonId: l.lessonId,
+          tutorId,
+          title:
+            (typeof doc.title === 'string' && doc.title.trim()) ||
+            (typeof doc.fileName === 'string' && doc.fileName) ||
+            'Document',
+          content: '',
+          pci: '',
+          type: 'task',
+          status: 'published',
+          publishedAt: now,
+          createdAt: now,
+          updatedAt: now,
+        })
+      }
+    }
   }
 
   if (seen.size > MATERIALIZE_CAP) {
@@ -215,6 +260,28 @@ async function materializeCourseFamilyTasks(
       target: builderTaskDmi.dmiId,
     })
   }
+
+  // Reconcile deletions: soft-delete family tasks that we materialized but that
+  // are no longer in builderData (the tutor deleted them in the builder) — so a
+  // deleted task stops showing as a deployable "ghost". Only touches rows that
+  // were NEVER deployed (no DeployedMaterial); a task that was actually deployed
+  // has live history and is kept even if later removed from the builder. `seen`
+  // holds every current authored id. This distinguisher works without a flag, so
+  // it also cleans up rows materialized by earlier versions.
+  const currentIds = [...seen]
+  await drizzleDb
+    .update(builderTask)
+    .set({ deletedAt: now })
+    .where(
+      and(
+        eq(builderTask.tutorId, tutorId),
+        inArray(builderTask.courseId, familyIds),
+        isNull(builderTask.deletedAt),
+        ne(builderTask.courseId, ADHOC_ANCHOR_COURSE_ID),
+        ...(currentIds.length > 0 ? [notInArray(builderTask.taskId, currentIds)] : []),
+        sql`NOT EXISTS (SELECT 1 FROM "DeployedMaterial" dm WHERE dm."itemId" = ${builderTask.taskId})`
+      )
+    )
 
   return sourceDocByTask
 }
