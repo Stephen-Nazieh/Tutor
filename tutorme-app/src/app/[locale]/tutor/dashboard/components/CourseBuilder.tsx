@@ -1458,6 +1458,45 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         // ignore
       }
     }, [classroomMessages])
+    // Tutor-only session AI messages, keyed by extension id. Kept separate from the
+    // broadcast chat stream so the tutor↔AI conversation is not sent to students.
+    const [classroomAiMessages, setClassroomAiMessages] = useState<
+      Record<string, TestTaskChatMsg[]>
+    >({})
+    const [classroomAiPanelOpen, setClassroomAiPanelOpen] = useState(false)
+    const [aiBusy, setAiBusy] = useState(false)
+
+    // Generate the session AI's initial summary whenever a task is loaded into Test mode.
+    useEffect(() => {
+      if (mainTab !== 'test-pci' || testPciSource !== 'task') return
+      const previewExt = taskBuilder.activeExtensionId
+        ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)
+        : null
+      const extKey = previewExt ? previewExt.id : 'base'
+      if (classroomAiMessages[extKey]?.length) return
+      const summary = [
+        'Session ready.',
+        '',
+        `Task: ${taskBuilder.title?.trim() || 'Untitled task'}`,
+        `Course: ${courseName?.trim() || 'Test Course'}`,
+        'Enrolled Students: 2',
+        `Date: ${new Date().toLocaleDateString()}`,
+        'Session Number: 1',
+        'Attendance: 100%',
+      ].join('\n')
+      setClassroomAiMessages(prev => ({
+        ...prev,
+        [extKey]: [{ role: 'ai' as const, content: summary, timestamp: Date.now() }],
+      }))
+    }, [
+      mainTab,
+      testPciSource,
+      taskBuilder.activeExtensionId,
+      taskBuilder.extensions,
+      taskBuilder.title,
+      courseName,
+      classroomAiMessages,
+    ])
     // Test-tab-only DEBUG control: grade against all available bases (default) or
     // isolate one (PCI / rubric / model answer) to see its effect alone. Never
     // affects student/production grading — only the tutor's test-grade requests.
@@ -10934,6 +10973,45 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                           tab.id === 'student1' ? 0 : 1
                                                         ]
                                                   }
+                                                  aiMessages={
+                                                    isClassroomTab ? classroomAiMessages[extKey] : undefined
+                                                  }
+                                                  aiPanelOpen={classroomAiPanelOpen}
+                                                  onAiPanelToggle={() =>
+                                                    setClassroomAiPanelOpen(p => !p)
+                                                  }
+                                                  onAiSend={content => {
+                                                    if (!content.trim() || aiBusy) return
+                                                    const next = [
+                                                      ...(classroomAiMessages[extKey] ?? []),
+                                                      {
+                                                        role: 'tutor' as const,
+                                                        content: content.trim(),
+                                                        timestamp: Date.now(),
+                                                      },
+                                                    ]
+                                                    setClassroomAiMessages(prev => ({
+                                                      ...prev,
+                                                      [extKey]: next,
+                                                    }))
+                                                    setAiBusy(true)
+                                                    window.setTimeout(() => {
+                                                      setClassroomAiMessages(prev => ({
+                                                        ...prev,
+                                                        [extKey]: [
+                                                          ...(prev[extKey] ?? []),
+                                                          {
+                                                            role: 'ai' as const,
+                                                            content:
+                                                              'Session LLM response will be wired in the next step.',
+                                                            timestamp: Date.now(),
+                                                          },
+                                                        ],
+                                                      }))
+                                                      setAiBusy(false)
+                                                    }, 800)
+                                                  }}
+                                                  aiBusy={aiBusy}
                                                 />
                                               </div>
                                             )
