@@ -416,10 +416,7 @@ function TutorInsightsPageInner() {
         }
       } else {
         console.error('[Insights] Save failed:', result.error)
-        toast.error(
-          result.error ||
-            'Failed to save course'
-        )
+        toast.error(result.error || 'Failed to save course')
       }
     },
     [
