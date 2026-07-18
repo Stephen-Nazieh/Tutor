@@ -14,13 +14,13 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, FolderOpen, Users, Pencil, PenTool, LayoutGrid, BookOpen } from 'lucide-react'
+import { Send, FolderOpen, ListChecks, Pencil, PenTool, LayoutGrid, BookOpen } from 'lucide-react'
 import { useSocket } from '@/hooks/use-socket'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import { DailyVideoFrame } from '@/components/class/daily-video-frame'
 import { SessionDeployPanel } from '@/components/one-on-one/session-deploy-panel'
 import { SessionDeployedPanel } from '@/components/one-on-one/session-deployed-panel'
-import { SessionResponsesPanel } from '@/components/one-on-one/session-responses-panel'
+import { SessionSubmissionsPanel } from '@/components/one-on-one/session-submissions-panel'
 import {
   SessionBoardsOverlay,
   BoardsPicker,
@@ -185,8 +185,8 @@ export function SessionClassroom({
               onClick={() => toggle('responses')}
               className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
             >
-              <Users className="h-3.5 w-3.5" />
-              Responses
+              <ListChecks className="h-3.5 w-3.5" />
+              Submissions
             </button>
             {courseId ? (
               <button
@@ -282,9 +282,11 @@ export function SessionClassroom({
               />
             ) : null}
             {activePanel === 'responses' && isTutor ? (
-              <SessionResponsesPanel
+              <SessionSubmissionsPanel
+                sessionId={sessionId}
                 tasks={tasks}
                 responsesByTask={responsesByTask}
+                students={students}
                 onClose={() => setActivePanel(null)}
               />
             ) : null}
