@@ -375,9 +375,17 @@ export const GET = withAuth(
       const scopedIds = new Set(lessonRows.map(l => l.lessonId))
       const byRoot = new Map<string, string>()
       const byOrder = new Map<number, string>()
+      // `order` has no unique constraint; only use it as a fallback for orders that
+      // identify exactly ONE lesson, so a duplicate order never mis-nests a task
+      // (an ambiguous one falls through to "Other tasks" instead of guessing).
+      const orderCount = new Map<number, number>()
+      for (const l of lessonRows) {
+        if (typeof l.order === 'number') orderCount.set(l.order, (orderCount.get(l.order) ?? 0) + 1)
+      }
       for (const l of lessonRows) {
         byRoot.set(l.sourceLessonId || l.lessonId, l.lessonId)
-        if (typeof l.order === 'number') byOrder.set(l.order, l.lessonId)
+        if (typeof l.order === 'number' && orderCount.get(l.order) === 1)
+          byOrder.set(l.order, l.lessonId)
       }
       resolveScopedLessonId = (lessonId, sourceId, order) => {
         if (!lessonId) return null
