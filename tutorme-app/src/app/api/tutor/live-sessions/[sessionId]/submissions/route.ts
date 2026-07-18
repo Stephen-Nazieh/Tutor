@@ -130,6 +130,12 @@ export const GET = withAuth(async (req, session, context) => {
             score: taskSubmission.score,
             maxScore: taskSubmission.maxScore,
             submittedAt: taskSubmission.submittedAt,
+            // Detail fields for the in-session Submissions panel: the answers, the
+            // per-question correctness breakdown, and any AI/tutor feedback.
+            answers: taskSubmission.answers,
+            questionResults: taskSubmission.questionResults,
+            aiFeedback: taskSubmission.aiFeedback,
+            tutorFeedback: taskSubmission.tutorFeedback,
           })
           .from(taskSubmission)
           .where(
