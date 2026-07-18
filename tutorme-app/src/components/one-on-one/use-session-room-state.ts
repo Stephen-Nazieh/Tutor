@@ -43,9 +43,20 @@ export interface SessionStudentResponse {
   correctAnswers?: Record<string, string> | null
 }
 
+/** A room chat message (mirrors the socket server's ChatMessage). */
+export interface SessionChatMessage {
+  id: string
+  userId: string
+  name: string
+  text: string
+  timestamp: number
+  isAI?: boolean
+}
+
 interface RoomStatePayload {
   students?: Array<{ userId: string; name?: string }>
   tasks?: Array<SessionRoomTask & { responses?: Record<string, Record<string, string>> }>
+  chatHistory?: SessionChatMessage[]
 }
 
 interface TaskCompletedEvent {
@@ -84,6 +95,9 @@ export function useSessionRoomState(socket: Socket | null, myUserId: string | un
   >({})
   // The student roster (for the tutor's board viewer), from room_state + joins.
   const [students, setStudents] = useState<Array<{ userId: string; name: string }>>([])
+  // Room chat — hydrated from room_state on join, appended live. Held here (in the
+  // always-mounted classroom) so the chat panel shows history even when opened late.
+  const [chatMessages, setChatMessages] = useState<SessionChatMessage[]>([])
 
   useEffect(() => {
     if (!socket) return
@@ -108,8 +122,16 @@ export function useSessionRoomState(socket: Socket | null, myUserId: string | un
 
     // Join-time replay: hydrate both the deployed tasks and any submissions that
     // already happened (task.responses), naming students from the roster.
+    const mergeChat = (incoming: SessionChatMessage[]) =>
+      setChatMessages(prev => {
+        const byId = new Map(prev.map(m => [m.id, m]))
+        for (const m of incoming) if (m?.id) byId.set(m.id, m)
+        return Array.from(byId.values()).sort((a, b) => a.timestamp - b.timestamp)
+      })
+
     const onRoomState = (state: RoomStatePayload) => {
       if (Array.isArray(state?.students)) mergeStudents(state.students)
+      if (Array.isArray(state?.chatHistory)) mergeChat(state.chatHistory)
       if (!Array.isArray(state?.tasks)) return
       const nameById = new Map((state.students ?? []).map(s => [s.userId, s.name || 'Student']))
       setTasks(prev => {
@@ -198,12 +220,17 @@ export function useSessionRoomState(socket: Socket | null, myUserId: string | un
       if (data?.userId) mergeStudents([data])
     }
 
+    const onChatMessage = (msg: SessionChatMessage) => {
+      if (msg?.id && typeof msg.text === 'string') mergeChat([msg])
+    }
+
     socket.on('room_state', onRoomState)
     socket.on('task:deployed', onDeployed)
     socket.on('task:updated', onUpdated)
     socket.on('task:completed', onCompleted)
     socket.on('task:graded', onGraded)
     socket.on('student_joined', onStudentJoined)
+    socket.on('chat_message', onChatMessage)
     return () => {
       socket.off('room_state', onRoomState)
       socket.off('task:deployed', onDeployed)
@@ -211,6 +238,7 @@ export function useSessionRoomState(socket: Socket | null, myUserId: string | un
       socket.off('task:completed', onCompleted)
       socket.off('task:graded', onGraded)
       socket.off('student_joined', onStudentJoined)
+      socket.off('chat_message', onChatMessage)
     }
   }, [socket])
 
@@ -239,5 +267,5 @@ export function useSessionRoomState(socket: Socket | null, myUserId: string | un
     return out
   }, [responsesByTask, myUserId])
 
-  return { tasks, responsesByTask, myCompletedTaskIds, myResultByTask, students }
+  return { tasks, responsesByTask, myCompletedTaskIds, myResultByTask, students, chatMessages }
 }

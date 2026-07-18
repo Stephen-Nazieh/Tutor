@@ -14,7 +14,16 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { Send, FolderOpen, ListChecks, Pencil, PenTool, LayoutGrid, BookOpen } from 'lucide-react'
+import {
+  Send,
+  FolderOpen,
+  ListChecks,
+  Pencil,
+  PenTool,
+  LayoutGrid,
+  BookOpen,
+  MessageSquare,
+} from 'lucide-react'
 import { useSocket } from '@/hooks/use-socket'
 import { EnhancedWhiteboard } from '@/components/class/enhanced-whiteboard'
 import { DailyVideoFrame } from '@/components/class/daily-video-frame'
@@ -27,10 +36,11 @@ import {
   useOwnBoardOpened,
 } from '@/components/one-on-one/session-boards'
 import { useSessionRoomState } from '@/components/one-on-one/use-session-room-state'
+import { SessionChatPanel } from '@/components/one-on-one/session-chat-panel'
 import { FallbackBoundary } from '@/components/ui/fallback-boundary'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 
-type ActivePanel = 'deploy' | 'materials' | 'responses' | null
+type ActivePanel = 'deploy' | 'materials' | 'responses' | 'chat' | null
 interface BoardTarget {
   ownerId: string
   ownerName: string
@@ -105,7 +115,7 @@ export function SessionClassroom({
   // Canonical deployed-task + submission state, owned here (mounted from join)
   // so the panels — which mount only when opened — hydrate from the join-time
   // room_state replay instead of missing everything that happened before.
-  const { tasks, responsesByTask, myCompletedTaskIds, myResultByTask, students } =
+  const { tasks, responsesByTask, myCompletedTaskIds, myResultByTask, students, chatMessages } =
     useSessionRoomState(socket, session?.user?.id)
 
   // The call feed rides along as the whiteboard's draggable video overlay.
@@ -254,6 +264,14 @@ export function SessionClassroom({
           <FolderOpen className="h-3.5 w-3.5" />
           Materials
         </button>
+        <button
+          type="button"
+          onClick={() => toggle('chat')}
+          className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
+        >
+          <MessageSquare className="h-3.5 w-3.5" />
+          Chat
+        </button>
       </div>
 
       {/* Private-board overlay — sits above the shared board (which stays mounted
@@ -287,6 +305,15 @@ export function SessionClassroom({
                 tasks={tasks}
                 responsesByTask={responsesByTask}
                 students={students}
+                onClose={() => setActivePanel(null)}
+              />
+            ) : null}
+            {activePanel === 'chat' ? (
+              <SessionChatPanel
+                sessionId={sessionId}
+                socket={socket}
+                messages={chatMessages}
+                myUserId={myId}
                 onClose={() => setActivePanel(null)}
               />
             ) : null}
