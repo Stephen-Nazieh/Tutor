@@ -74,7 +74,6 @@ interface ApiResponse {
 type MergedRow = {
   studentId: string
   name: string
-  submissionId: string | null
   submitted: boolean
   status: string
   score: number | null
@@ -197,7 +196,6 @@ export function SessionSubmissionsPanel({
         return {
           studentId,
           name,
-          submissionId: sub?.submissionId ?? null,
           submitted: !!sub || !!live,
           status: sub?.status ?? (live ? 'submitted' : 'not_submitted'),
           score: sub?.score ?? live?.score ?? null,
@@ -254,7 +252,7 @@ export function SessionSubmissionsPanel({
             <button
               onClick={exportCsv}
               aria-label="Export CSV"
-              title="Export this task's submissions as CSV"
+              title="Download all of this task's submissions as CSV"
               className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
             >
               <Download className="h-4 w-4" />
@@ -590,7 +588,10 @@ function scoreLabel(row: MergedRow): string | null {
 }
 
 function csvCell(v: unknown): string {
-  const s = String(v ?? '')
+  let s = String(v ?? '')
+  // Neutralise spreadsheet formula injection: a cell a spreadsheet would treat
+  // as a formula (leading = + - @) is prefixed with a quote so it stays text.
+  if (/^[=+\-@]/.test(s)) s = `'${s}`
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
 }
 
