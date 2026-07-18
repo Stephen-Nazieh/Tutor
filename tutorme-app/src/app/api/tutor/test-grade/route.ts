@@ -18,6 +18,7 @@ import { generateWithKimi } from '@/lib/ai/kimi'
 import { runTaskGuardrails } from '@/lib/ai/guardrails'
 import { gradeAnswerAgainstBasis, renderGradingSpec } from '@/lib/grading/pci-grader'
 import { AISecurityManager } from '@/lib/security/ai-sanitization'
+import { NO_POLICY_SET_MESSAGE } from '@/lib/classroom/sai/guardrails'
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,15 +67,40 @@ export async function POST(request: NextRequest) {
       if (answers.length === 0) {
         return NextResponse.json({ error: 'No answers to respond to' }, { status: 400 })
       }
-      const responses: { answer: string; response: string; score: number | null }[] = []
+      const responses: Array<{
+        answer: string
+        studentFeedback: string | null
+        tutorNote: string | null
+        score: number | null
+        hasBasis: boolean
+      }> = []
       for (const a of answers) {
         const r = await gradeAnswerAgainstBasis({ pci, specText, questionText, studentAnswer: a })
-        const response = !r.hasBasis
-          ? "This answer's recorded — there's no marking policy set for this task yet, so it can't be checked here."
-          : r.aiUnavailable
-            ? 'The assistant is unavailable right now — try again in a moment.'
-            : r.feedback || 'Noted.'
-        responses.push({ answer: a, response, score: r.score })
+        if (!r.hasBasis) {
+          responses.push({
+            answer: a,
+            studentFeedback: null,
+            tutorNote: NO_POLICY_SET_MESSAGE,
+            score: null,
+            hasBasis: false,
+          })
+        } else if (r.aiUnavailable) {
+          responses.push({
+            answer: a,
+            studentFeedback: 'The assistant is unavailable right now — try again in a moment.',
+            tutorNote: null,
+            score: null,
+            hasBasis: true,
+          })
+        } else {
+          responses.push({
+            answer: a,
+            studentFeedback: r.feedback || 'Noted.',
+            tutorNote: null,
+            score: r.score,
+            hasBasis: true,
+          })
+        }
       }
       return NextResponse.json({ mode: 'complete', responses })
     }
@@ -88,8 +114,8 @@ export async function POST(request: NextRequest) {
       if (!pci?.trim() && !specText) {
         return NextResponse.json({
           mode: 'ask',
-          answer:
-            "There's no marking policy set for this task, so I can't explain it — add a PCI, then test again.",
+          answer: null,
+          tutorNote: NO_POLICY_SET_MESSAGE,
         })
       }
       const priorAnswers = Array.isArray(body.answers)
@@ -187,6 +213,7 @@ export async function POST(request: NextRequest) {
       aiUnavailable: result.aiUnavailable,
       score: result.score,
       feedback: result.feedback,
+      tutorNote: result.hasBasis ? undefined : NO_POLICY_SET_MESSAGE,
       pciNote: result.pciNote || undefined,
       guardrailWarnings: result.guardrailViolations.map(v => ({
         ruleId: v.ruleId,

@@ -16,16 +16,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react'
-import {
-  Send,
-  Loader2,
-  CheckCircle2,
-  Sparkles,
-  FileText,
-  X,
-  ImageIcon,
-  RotateCcw,
-} from 'lucide-react'
+import { Send, Loader2, CheckCircle2, FileText, X, RotateCcw } from 'lucide-react'
 import { fetchWithCsrf } from '@/lib/api/fetch-csrf'
 import { PDFViewer } from '@/components/pdf/PDFViewer'
 import { PDFThumbnail } from '@/components/pdf/PDFThumbnail'
@@ -70,11 +61,9 @@ export function TestTaskChat({
   mode = 'test-student',
   tutorAvatarUrl,
   studentAvatarUrl,
-  aiMessages,
-  aiPanelOpen,
-  onAiPanelToggle,
   onAiSend,
   aiBusy,
+  onTutorNote,
 }: {
   pci?: string
   pciSpec?: unknown
@@ -91,27 +80,22 @@ export function TestTaskChat({
   incomingMessages?: TestTaskChatMsg[]
   /** Which preview mode this is rendering in. */
   mode?: 'classroom' | 'test-student'
-  /** Tutor avatar URL — shown on tutor/AI messages. */
+  /** Tutor avatar URL — shown on tutor messages. */
   tutorAvatarUrl?: string | null
   /** Student avatar URL — shown on student messages. */
   studentAvatarUrl?: string | null
-  /** AI messages for the tutor-only session assistant panel (classroom mode only). */
-  aiMessages?: ChatMsg[]
-  /** Whether the AI chat panel is open (classroom mode only). */
-  aiPanelOpen?: boolean
-  /** Toggle the AI chat panel open/closed. */
-  onAiPanelToggle?: () => void
-  /** Called when the tutor sends a message to the session AI. */
+  /** Called when the tutor sends a message to the session AI (classroom mode only). */
   onAiSend?: (content: string) => void
-  /** Whether the session AI is processing a response. */
+  /** Whether the session AI is processing a response (classroom mode only). */
   aiBusy?: boolean
+  /** Called when the test-grade endpoint returns a tutor-only note. */
+  onTutorNote?: (note: string) => void
 }) {
   const [messages, setMessages] = useState<ChatMsg[]>(initialState?.messages ?? [])
   const [draft, setDraft] = useState(initialState?.draft ?? '')
   const [completed, setCompleted] = useState(initialState?.completed ?? false)
   const [busy, setBusy] = useState(false)
   const [pdfPopupOpen, setPdfPopupOpen] = useState(false)
-  const [aiDraft, setAiDraft] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const lastIncomingLen = useRef(0)
   const isClassroom = mode === 'classroom'
@@ -216,15 +200,27 @@ export function TestTaskChat({
       const res = await post({ answers })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || 'Failed to grade')
-      const responses: Array<{ answer: string; response: string }> = Array.isArray(data.responses)
-        ? data.responses
-        : []
-      const aiMsgs: ChatMsg[] = responses.map(r => ({
-        role: 'ai' as const,
-        content: r.response,
-        re: r.answer,
-        timestamp: Date.now(),
-      }))
+      const responses: Array<{
+        answer: string
+        studentFeedback: string | null
+        tutorNote: string | null
+        score: number | null
+        hasBasis: boolean
+      }> = Array.isArray(data.responses) ? data.responses : []
+      const aiMsgs: ChatMsg[] = []
+      responses.forEach(r => {
+        if (r.tutorNote) {
+          onTutorNote?.(r.tutorNote)
+        }
+        if (r.studentFeedback) {
+          aiMsgs.push({
+            role: 'ai' as const,
+            content: r.studentFeedback,
+            re: r.answer,
+            timestamp: Date.now(),
+          })
+        }
+      })
       const finalMessages = [...nextMessages, ...aiMsgs]
       setMessages(finalMessages)
       aiMsgs.forEach(m => onBroadcast?.(m))
@@ -260,15 +256,22 @@ export function TestTaskChat({
       const res = await post({ question: q, history, answers: studentAnswers })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(data?.error || 'Failed to answer')
-      const aiMsg: ChatMsg = {
-        role: 'ai',
-        content: data.answer || '…',
-        timestamp: Date.now(),
+      if (data.tutorNote) {
+        onTutorNote?.(data.tutorNote)
       }
-      const finalMessages = [...nextMessages, aiMsg]
-      setMessages(finalMessages)
-      onBroadcast?.(aiMsg)
-      onPersist?.({ messages: finalMessages, draft: '', completed })
+      const aiMsg: ChatMsg | null = data.answer
+        ? {
+            role: 'ai',
+            content: data.answer,
+            timestamp: Date.now(),
+          }
+        : null
+      if (aiMsg) {
+        const finalMessages = [...nextMessages, aiMsg]
+        setMessages(finalMessages)
+        onBroadcast?.(aiMsg)
+        onPersist?.({ messages: finalMessages, draft: '', completed })
+      }
     } catch {
       setMessages(prev => [
         ...prev,
@@ -283,7 +286,20 @@ export function TestTaskChat({
     }
   }
 
-  const onSend = () => (completed ? ask() : addAnswer())
+  const sendToSai = () => {
+    const text = draft.trim()
+    if (!text || aiBusy) return
+    onAiSend?.(text)
+    setDraft('')
+  }
+
+  const onSend = () => {
+    if (isClassroom) {
+      sendToSai()
+    } else {
+      completed ? ask() : addAnswer()
+    }
+  }
 
   const reset = () => {
     const emptyState: TestTaskChatState = { messages: [], draft: '', completed: false }
@@ -316,26 +332,31 @@ export function TestTaskChat({
         {[...messages]
           .reverse()
           .filter(m => !isClassroom || m.role !== 'student')
-          .map((m, i) => (
-            <ChatMessageBubble
-              key={i}
-              sender={m.role}
-              name={
-                m.name || (m.role === 'student' ? 'Student' : m.role === 'ai' ? 'Tutor' : 'Tutor')
-              }
-              content={m.content}
-              avatarUrl={m.role === 'student' ? studentAvatarUrl : tutorAvatarUrl}
-              re={m.re}
-              timestamp={m.timestamp ? new Date(m.timestamp) : undefined}
-              isClassroom={isClassroom}
-              studentOnRight
-            />
-          ))}
+          .map((m, i) => {
+            const defaultAiName = isClassroom ? 'SAI' : 'AI'
+            return (
+              <ChatMessageBubble
+                key={i}
+                sender={m.role}
+                name={
+                  m.name ||
+                  (m.role === 'student' ? 'Student' : m.role === 'ai' ? defaultAiName : 'Tutor')
+                }
+                content={m.content}
+                avatarUrl={m.role === 'student' ? studentAvatarUrl : tutorAvatarUrl}
+                re={m.re}
+                timestamp={m.timestamp ? new Date(m.timestamp) : undefined}
+                isClassroom={isClassroom}
+                studentOnRight
+                aiOnRight={isClassroom}
+              />
+            )
+          })}
 
-        {busy && (
+        {(busy || (isClassroom && aiBusy)) && (
           <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            {completed ? 'Thinking…' : 'Checking the answers…'}
+            {isClassroom ? 'SAI is thinking…' : completed ? 'Thinking…' : 'Checking the answers…'}
           </div>
         )}
 
@@ -355,7 +376,7 @@ export function TestTaskChat({
         )}
 
         {/* Text-only task: show the question text as the initial tutor message. */}
-        {!sourceDocument && questionText && (
+        {!sourceDocument && questionText?.trim() && (
           <ChatMessageBubble
             sender="tutor"
             name="Tutor"
@@ -416,111 +437,7 @@ export function TestTaskChat({
         )}
       </div>
 
-      {/* AI participant — classroom mode only */}
-      {isClassroom && (
-        <>
-          {!aiPanelOpen && (
-            <button
-              type="button"
-              onClick={onAiPanelToggle}
-              className="absolute right-4 top-4 z-20 flex flex-col items-center gap-1"
-              aria-label="Open session AI"
-            >
-              <div className="grid h-12 w-12 place-items-center rounded-full bg-violet-600 text-white shadow-lg transition-transform hover:scale-105">
-                <Sparkles className="h-6 w-6" />
-              </div>
-              <span className="text-[10px] font-medium text-violet-600">AI</span>
-            </button>
-          )}
-
-          {aiPanelOpen && (
-            <div className="absolute inset-y-0 right-0 z-20 flex w-80 flex-col border-l border-gray-200 bg-white shadow-xl">
-              <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2">
-                <span className="text-sm font-semibold text-gray-800">Solocorn Assistant</span>
-                <button
-                  type="button"
-                  onClick={onAiPanelToggle}
-                  className="grid h-7 w-7 place-items-center rounded-md text-gray-500 transition-colors hover:bg-gray-100"
-                  aria-label="Close session AI"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
-                {aiMessages?.map((m, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      'flex items-end gap-2',
-                      m.role === 'tutor' ? 'justify-end' : 'justify-start'
-                    )}
-                  >
-                    {m.role !== 'tutor' && (
-                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-violet-100 text-violet-700">
-                        <Sparkles className="h-4 w-4" />
-                      </div>
-                    )}
-                    <div
-                      className={cn(
-                        'max-w-[75%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm',
-                        m.role === 'tutor'
-                          ? 'rounded-br-sm bg-gray-100 text-gray-800'
-                          : 'rounded-bl-sm bg-violet-600 text-white'
-                      )}
-                    >
-                      {m.content}
-                    </div>
-                  </div>
-                ))}
-                {aiBusy && (
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Thinking…
-                  </div>
-                )}
-              </div>
-
-              <div className="border-t border-gray-100 p-2">
-                <div className="flex items-end gap-2">
-                  <textarea
-                    value={aiDraft}
-                    onChange={e => setAiDraft(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault()
-                        const text = aiDraft.trim()
-                        if (!text || aiBusy) return
-                        onAiSend?.(text)
-                        setAiDraft('')
-                      }
-                    }}
-                    disabled={aiBusy}
-                    rows={1}
-                    placeholder="Ask the session AI…"
-                    className="max-h-28 min-h-[40px] flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-violet-400"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const text = aiDraft.trim()
-                      if (!text || aiBusy) return
-                      onAiSend?.(text)
-                      setAiDraft('')
-                    }}
-                    disabled={aiBusy || !aiDraft.trim()}
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-violet-600 text-white transition-colors hover:bg-violet-700 disabled:opacity-40"
-                  >
-                    <Send className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Input area */}
+      {/* Input area -- classroom mode routes to SAI, test mode to sample answers */}
       <div className="border-t border-gray-100 p-2">
         <div className="flex items-end gap-2">
           <textarea
@@ -532,17 +449,23 @@ export function TestTaskChat({
                 onSend()
               }
             }}
-            disabled={busy}
+            disabled={isClassroom ? aiBusy : busy}
             rows={1}
-            placeholder={completed ? 'Ask about this task…' : 'Type a sample answer…'}
+            placeholder={
+              isClassroom
+                ? 'Ask SAI…'
+                : completed
+                  ? 'Ask about this task…'
+                  : 'Type a sample answer…'
+            }
             className="max-h-28 min-h-[40px] flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-violet-400"
           />
           <button
             type="button"
             onClick={onSend}
-            disabled={busy || !draft.trim()}
-            title={completed ? 'Send' : 'Add answer'}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-slate-400 text-white transition-colors hover:bg-slate-500 disabled:opacity-40"
+            disabled={(isClassroom ? aiBusy : busy) || !draft.trim()}
+            title={isClassroom ? 'Ask SAI' : completed ? 'Send' : 'Add answer'}
+            className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg text-white transition-colors disabled:opacity-40 ${sendButtonBg} hover:opacity-90`}
           >
             <Send className="h-4 w-4" />
           </button>

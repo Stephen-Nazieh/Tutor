@@ -1458,22 +1458,36 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         // ignore
       }
     }, [classroomMessages])
-    // Tutor-only session AI messages, keyed by extension id. Kept separate from the
-    // broadcast chat stream so the tutor↔AI conversation is not sent to students.
-    const [classroomAiMessages, setClassroomAiMessages] = useState<
-      Record<string, TestTaskChatMsg[]>
-    >({})
-    const [classroomAiPanelOpen, setClassroomAiPanelOpen] = useState(false)
     const [aiBusy, setAiBusy] = useState(false)
+
+    // Current extension key for the Test/Classroom chat preview.
+    const getCurrentExtKey = () => {
+      const previewExt = taskBuilder.activeExtensionId
+        ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)
+        : null
+      return previewExt ? previewExt.id : 'base'
+    }
+
+    // Append a tutor-facing SAI message to the classroom chat stream.
+    const appendClassroomAiMessage = (content: string, name = 'SAI') => {
+      const key = getCurrentExtKey()
+      setClassroomMessages(prev => ({
+        ...prev,
+        [key]: [
+          ...(prev[key] ?? []),
+          { role: 'ai' as const, name, content, timestamp: Date.now() },
+        ],
+      }))
+    }
 
     // Generate the session AI's initial summary whenever a task is loaded into Test mode.
     useEffect(() => {
       if (mainTab !== 'test-pci' || testPciSource !== 'task') return
-      const previewExt = taskBuilder.activeExtensionId
-        ? taskBuilder.extensions.find(e => e.id === taskBuilder.activeExtensionId)
-        : null
-      const extKey = previewExt ? previewExt.id : 'base'
-      if (classroomAiMessages[extKey]?.length) return
+      const key = getCurrentExtKey()
+      if (
+        classroomMessages[key]?.some(m => m.role === 'ai' && m.content.startsWith('Session ready.'))
+      )
+        return
       const summary = [
         'Session ready.',
         '',
@@ -1484,10 +1498,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         'Session Number: 1',
         'Attendance: 100%',
       ].join('\n')
-      setClassroomAiMessages(prev => ({
-        ...prev,
-        [extKey]: [{ role: 'ai' as const, content: summary, timestamp: Date.now() }],
-      }))
+      appendClassroomAiMessage(summary, 'SAI')
     }, [
       mainTab,
       testPciSource,
@@ -1495,7 +1506,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       taskBuilder.extensions,
       taskBuilder.title,
       courseName,
-      classroomAiMessages,
+      classroomMessages,
     ])
     // Test-tab-only DEBUG control: grade against all available bases (default) or
     // isolate one (PCI / rubric / model answer) to see its effect alone. Never
@@ -3174,13 +3185,12 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         const data = await res.json().catch(() => ({}))
         if (!res.ok) throw new Error(data?.error || 'Failed to grade')
         if (!data.hasBasis) {
+          const noPolicy = 'No policy was set for this class'
           setTestDmiResults(prev => ({
             ...prev,
-            [key]: {
-              feedback:
-                'No marking basis for this question yet — add a rubric, model answer, or PCI.',
-            },
+            [key]: { feedback: noPolicy },
           }))
+          appendClassroomAiMessage(noPolicy, 'SAI')
           return
         }
         setTestDmiResults(prev => ({
@@ -3325,10 +3335,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         if (!response.ok) throw new Error(data?.error || 'Failed to grade')
 
         if (!data.hasBasis) {
-          recordNote(
-            'No marking basis yet — add a PCI, a rubric, or a model answer, then test again.'
-          )
-          toast.warning('Add a PCI, rubric, or model answer to test grading.')
+          const noPolicy = 'No policy was set for this class'
+          appendClassroomAiMessage(noPolicy, 'SAI')
+          toast.warning(noPolicy)
           return
         }
         if (data.aiUnavailable) {
@@ -10125,8 +10134,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                   <Card
                     padding="none"
                     className={cn(
-                      'flex h-full w-full min-w-0 flex-1 flex-col overflow-hidden rounded-[20px] border bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]',
-                      mainTab === 'live' ? 'border-orange-300' : 'border-violet-300'
+                      'flex h-full w-full min-w-0 flex-1 flex-col overflow-hidden rounded-[20px] border-0 bg-[#FFFFFF] shadow-[0_18px_45px_rgba(0,0,0,0.12),0_4px_12px_rgba(0,0,0,0.06)]'
                     )}
                   >
                     <div
@@ -10603,14 +10611,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                       </div>
                                     ) : null
                                   ) : (
-                                    <div
-                                      className={cn(
-                                        'flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border bg-white p-0',
-                                        mainTab === 'live'
-                                          ? 'border-orange-300'
-                                          : 'border-violet-300'
-                                      )}
-                                    >
+                                    <div className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border-0 bg-white p-0">
                                       <PanelErrorBoundary
                                         label="this view"
                                         resetKeys={[
@@ -10871,11 +10872,17 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                   pciSpec={
                                                     previewExt ? undefined : taskBuilder.pciSpec
                                                   }
-                                                  questionText={`${taskBuilder.title}\n\n${previewExt ? previewExt.content : taskBuilder.taskContent}`}
+                                                  questionText={
+                                                    loadedTaskId
+                                                      ? `${taskBuilder.title}\n\n${previewExt ? previewExt.content : taskBuilder.taskContent}`
+                                                      : undefined
+                                                  }
                                                   sourceDocument={
-                                                    previewExt
-                                                      ? previewExt.sourceDocument
-                                                      : currentTaskDocument
+                                                    loadedTaskId
+                                                      ? previewExt
+                                                        ? previewExt.sourceDocument
+                                                        : currentTaskDocument
+                                                      : undefined
                                                   }
                                                   initialState={
                                                     isClassroomTab
@@ -10985,29 +10992,26 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                           tab.id === 'student1' ? 0 : 1
                                                         ]
                                                   }
-                                                  aiMessages={
+                                                  onTutorNote={
                                                     isClassroomTab
-                                                      ? classroomAiMessages[extKey]
+                                                      ? note =>
+                                                          appendClassroomAiMessage(note, 'SAI')
                                                       : undefined
-                                                  }
-                                                  aiPanelOpen={classroomAiPanelOpen}
-                                                  onAiPanelToggle={() =>
-                                                    setClassroomAiPanelOpen(p => !p)
                                                   }
                                                   onAiSend={async content => {
                                                     if (!content.trim() || aiBusy) return
                                                     const trimmed = content.trim()
-                                                    const next = [
-                                                      ...(classroomAiMessages[extKey] ?? []),
-                                                      {
-                                                        role: 'tutor' as const,
-                                                        content: trimmed,
-                                                        timestamp: Date.now(),
-                                                      },
-                                                    ]
-                                                    setClassroomAiMessages(prev => ({
+                                                    setClassroomMessages(prev => ({
                                                       ...prev,
-                                                      [extKey]: next,
+                                                      [extKey]: [
+                                                        ...(prev[extKey] ?? []),
+                                                        {
+                                                          role: 'tutor' as const,
+                                                          name: 'Tutor',
+                                                          content: trimmed,
+                                                          timestamp: Date.now(),
+                                                        },
+                                                      ],
                                                     }))
                                                     setAiBusy(true)
 
@@ -11040,7 +11044,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                       currentDate: new Date().toLocaleDateString(),
                                                     }
                                                     const history = (
-                                                      classroomAiMessages[extKey] ?? []
+                                                      classroomMessages[extKey] ?? []
                                                     )
                                                       .filter(
                                                         m => m.role === 'tutor' || m.role === 'ai'
@@ -11084,12 +11088,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                           err.error || 'Session assistant failed'
                                                         )
                                                       }
-                                                      setClassroomAiMessages(prev => ({
+                                                      setClassroomMessages(prev => ({
                                                         ...prev,
                                                         [extKey]: [
                                                           ...(prev[extKey] ?? []),
                                                           {
                                                             role: 'ai' as const,
+                                                            name: 'SAI',
                                                             content: reply,
                                                             timestamp: Date.now(),
                                                           },
@@ -11103,12 +11108,13 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                       toast.error(
                                                         'Session assistant is unavailable'
                                                       )
-                                                      setClassroomAiMessages(prev => ({
+                                                      setClassroomMessages(prev => ({
                                                         ...prev,
                                                         [extKey]: [
                                                           ...(prev[extKey] ?? []),
                                                           {
                                                             role: 'ai' as const,
+                                                            name: 'SAI',
                                                             content:
                                                               'Session assistant is unavailable. Please try again.',
                                                             timestamp: Date.now(),
