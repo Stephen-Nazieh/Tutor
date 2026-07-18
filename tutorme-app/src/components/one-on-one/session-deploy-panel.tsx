@@ -18,6 +18,7 @@ import {
 import type { StudentDmiItem } from '@/lib/assessment/student-dmi'
 import { TaskDocumentCard } from '@/components/task/TaskDocumentCard'
 import { sanitizeHtml } from '@/lib/security/sanitize'
+import { isImportPlaceholder } from '@/lib/tasks/import-placeholder'
 
 interface Deployable {
   taskId: string
@@ -482,15 +483,10 @@ function TaskPreviewOverlay({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  // The importer stores "[Imported <file>]" as placeholder content when it can't
-  // extract text from an uploaded doc. It's noise, not authored content — show
-  // the real content only, and never as the sole "preview" of a task.
+  // Show only real authored content — hide the importer's "[Imported file.docx]"
+  // placeholder (the actual document is rendered separately). See isImportPlaceholder.
   const contentText = task.content?.trim() ?? ''
-  // The importer emits "[Imported file.docx]" (single upload) or several such
-  // blocks separated by blank lines (multi-upload). Match either shape wholly —
-  // real authored content interleaved with a block breaks the match and is shown.
-  const isImportPlaceholder = /^(\[Imported .+\]\s*)+$/.test(contentText)
-  const showContent = contentText.length > 0 && !isImportPlaceholder
+  const showContent = contentText.length > 0 && !isImportPlaceholder(contentText)
   // The right column holds the authored content + questions. When both a document
   // and a right column exist they sit side by side; either one alone fills the row.
   const hasRightColumn = showContent || task.dmiItems.length > 0
