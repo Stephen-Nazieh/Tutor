@@ -459,7 +459,10 @@ function TaskPreviewOverlay({
   // extract text from an uploaded doc. It's noise, not authored content — show
   // the real content only, and never as the sole "preview" of a task.
   const contentText = task.content?.trim() ?? ''
-  const isImportPlaceholder = /^\[Imported .+\]$/.test(contentText)
+  // The importer emits "[Imported file.docx]" (single upload) or several such
+  // blocks separated by blank lines (multi-upload). Match either shape wholly —
+  // real authored content interleaved with a block breaks the match and is shown.
+  const isImportPlaceholder = /^(\[Imported .+\]\s*)+$/.test(contentText)
   const showContent = contentText.length > 0 && !isImportPlaceholder
   const hasAnyPreview = !!task.sourceDocument || showContent || task.dmiItems.length > 0
 
