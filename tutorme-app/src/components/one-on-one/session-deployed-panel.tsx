@@ -16,6 +16,8 @@ import {
 import { toast } from 'sonner'
 import { TaskDocumentCard } from '@/components/task/TaskDocumentCard'
 import { normalizeDmiQuestionType } from '@/lib/assessment/question-types'
+import { sanitizeHtml } from '@/lib/security/sanitize'
+import { isImportPlaceholder } from '@/lib/tasks/import-placeholder'
 import { resolvePublicUrl } from '@/lib/utils'
 import type { StudentDmiItem } from '@/lib/assessment/student-dmi'
 import type {
@@ -270,11 +272,13 @@ function ActiveTaskBody({
           </button>
         ) : null}
       </div>
-      {task.content ? (
+      {/* Shown to everyone in the room (incl. students). Sanitize the tutor-authored
+          HTML, and hide the auto-generated "[Imported file.docx]" placeholder — the
+          attached document itself is rendered separately by TaskDocumentCard. */}
+      {task.content && !isImportPlaceholder(task.content) ? (
         <div
           className="prose prose-sm mb-4 max-w-none text-slate-700"
-          // Tutor-authored task content, shown to their own session.
-          dangerouslySetInnerHTML={{ __html: task.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(task.content) }}
         />
       ) : null}
     </>
