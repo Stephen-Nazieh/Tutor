@@ -721,6 +721,20 @@
     z-index: 1000;
   }
 
+  /* Suppress the white focus-ring flash on Radix dropdown/select panels and items.
+     Keyboard users still get the hover/focus-visible pill from the component classes. */
+  [data-radix-dropdown-menu-content],
+  [data-radix-dropdown-menu-sub-content],
+  [data-radix-select-content] {
+    outline: none !important;
+  }
+  [data-radix-dropdown-menu-content] [data-highlighted],
+  [data-radix-dropdown-menu-sub-content] [data-highlighted],
+  [data-radix-select-content] [data-highlighted] {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
   /* Typography Hierarchy - Fira Code for headings */
   h1,
   h2,
