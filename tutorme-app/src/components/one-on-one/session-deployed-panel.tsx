@@ -124,15 +124,26 @@ export function SessionDeployedPanel({
                 // rendered inside TaskChatPanel (not standalone). Students get the
                 // real (persisted) flow; the tutor gets a stateless interactive
                 // preview (onCompleted omitted → no live completion is emitted).
-                <>
-                  <p className="mb-3 text-sm font-semibold text-slate-900">{active.title}</p>
+                // Fill the panel as a flex column so the chat scrolls internally
+                // (one scrollbar) rather than a viewport-height box inside the
+                // already-scrollable parent.
+                <div className="flex h-full flex-col">
+                  <p className="mb-3 shrink-0 text-sm font-semibold text-slate-900">
+                    {active.title}
+                  </p>
                   {active.content && !isImportPlaceholder(active.content) ? (
                     <div
-                      className="prose prose-sm mb-4 max-w-none text-slate-700"
+                      className="prose prose-sm mb-3 max-h-40 shrink-0 overflow-y-auto pr-1 text-slate-700"
                       dangerouslySetInnerHTML={{ __html: sanitizeHtml(active.content) }}
                     />
                   ) : null}
-                  <div className="h-[70vh] max-h-[calc(100vh-200px)] min-h-[420px]">
+                  {isTutor ? (
+                    <p className="mb-3 shrink-0 rounded-md bg-slate-50 px-2.5 py-1.5 text-xs text-slate-500">
+                      Preview — try the chat as a student would. Nothing is saved and no completion
+                      is sent to the room from here.
+                    </p>
+                  ) : null}
+                  <div className="min-h-[320px] flex-1">
                     <TaskChatPanel
                       key={active.id}
                       taskId={active.id}
@@ -156,7 +167,7 @@ export function SessionDeployedPanel({
                       }
                     />
                   </div>
-                </>
+                </div>
               ) : (
                 <>
                   {active.sourceDocument ? (
