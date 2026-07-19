@@ -65,8 +65,22 @@ interface SourceDoc {
   fileKey?: string | null
   mimeType?: string | null
 }
+/** Read-only, student-safe view of a question (never carries answer/rubric). */
+interface DirQuestion {
+  id?: string
+  questionNumber?: number
+  questionLabel?: string
+  questionText?: string
+  options?: string[]
+}
 type Detail =
-  | { kind: 'doc'; title: string; html: string | null; sourceDocument: SourceDoc | null }
+  | {
+      kind: 'doc'
+      title: string
+      html: string | null
+      sourceDocument: SourceDoc | null
+      questions: DirQuestion[]
+    }
   | {
       kind: 'report'
       title: string
@@ -143,11 +157,26 @@ export function SessionDirectoryPanel({ onClose }: { onClose: () => void }) {
       parsed = raw as Record<string, unknown>
     }
     const html = typeof parsed.content === 'string' ? parsed.content : null
+    // Read the questions student-safe: only the prompt + option bank, NEVER answer
+    // or rubric — even if the stored content happens to carry them.
+    const rawQ = Array.isArray(parsed.dmiItems)
+      ? (parsed.dmiItems as Record<string, unknown>[])
+      : []
+    const questions: DirQuestion[] = rawQ.map(q => ({
+      id: typeof q.id === 'string' ? q.id : undefined,
+      questionNumber: typeof q.questionNumber === 'number' ? q.questionNumber : undefined,
+      questionLabel: typeof q.questionLabel === 'string' ? q.questionLabel : undefined,
+      questionText: typeof q.questionText === 'string' ? q.questionText : undefined,
+      options: Array.isArray(q.options)
+        ? q.options.filter((o): o is string => typeof o === 'string')
+        : undefined,
+    }))
     setDetail({
       kind: 'doc',
       title: item.title,
       html: html && !isImportPlaceholder(html) ? sanitizeHtml(html) : null,
       sourceDocument: (parsed.sourceDocument as SourceDoc | undefined) ?? null,
+      questions,
     })
   }
 
@@ -357,11 +386,39 @@ function DirectoryItemViewer({ detail, onClose }: { detail: Detail; onClose: () 
               ) : null}
               {detail.html ? (
                 <div
-                  className="prose prose-sm max-w-none text-slate-700"
+                  className="prose prose-sm mb-4 max-w-none text-slate-700"
                   dangerouslySetInnerHTML={{ __html: detail.html }}
                 />
               ) : null}
-              {!detail.sourceDocument && !detail.html ? (
+              {detail.questions.length > 0 ? (
+                <ol className="flex flex-col gap-3">
+                  {detail.questions.map((q, i) => (
+                    <li key={q.id ?? i} className="rounded-lg border border-slate-200 p-3">
+                      <p className="mb-1 text-xs font-semibold text-slate-500">
+                        {q.questionLabel || `Question ${q.questionNumber || i + 1}`}
+                      </p>
+                      {q.questionText ? (
+                        <p className="mb-2 whitespace-pre-wrap text-sm text-slate-800">
+                          {q.questionText}
+                        </p>
+                      ) : null}
+                      {q.options && q.options.length > 0 ? (
+                        <ul className="flex flex-col gap-1">
+                          {q.options.map((opt, oi) => (
+                            <li key={oi} className="flex items-start gap-2 text-sm text-slate-700">
+                              <span className="shrink-0 font-semibold text-slate-400">
+                                {String.fromCharCode(65 + oi)}.
+                              </span>
+                              <span className="whitespace-pre-wrap">{opt}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
+              {!detail.sourceDocument && !detail.html && detail.questions.length === 0 ? (
                 <p className="text-sm text-slate-400">Nothing to preview for this item.</p>
               ) : null}
             </>
