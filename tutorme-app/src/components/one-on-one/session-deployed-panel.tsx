@@ -119,30 +119,44 @@ export function SessionDeployedPanel({
               isChatTask(active) ? (
                 // A chat task (source 'task', no structured questions) is answered
                 // via the AI chat — the same box as the course-builder classroom.
-                // Students get the real (persisted) flow; the tutor gets a stateless
+                // Mirrors the student feedback page: the task title + instructional
+                // content sit above the panel, and the source document (if any) is
+                // rendered inside TaskChatPanel (not standalone). Students get the
+                // real (persisted) flow; the tutor gets a stateless interactive
                 // preview (onCompleted omitted → no live completion is emitted).
-                <TaskChatPanel
-                  key={active.id}
-                  taskId={active.id}
-                  taskTitle={active.title}
-                  sourceDocument={active.sourceDocument}
-                  onCompleted={
-                    isTutor
-                      ? undefined
-                      : answers => {
-                          const record: Record<string, string> = {}
-                          answers.forEach((a, i) => {
-                            record[String(i + 1)] = a
-                          })
-                          socket?.emit('task:complete', {
-                            roomId: sessionId,
-                            taskId: active.id,
-                            answers: record,
-                            aiHandled: true,
-                          })
-                        }
-                  }
-                />
+                <>
+                  <p className="mb-3 text-sm font-semibold text-slate-900">{active.title}</p>
+                  {active.content && !isImportPlaceholder(active.content) ? (
+                    <div
+                      className="prose prose-sm mb-4 max-w-none text-slate-700"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(active.content) }}
+                    />
+                  ) : null}
+                  <div className="h-[70vh] max-h-[calc(100vh-200px)] min-h-[420px]">
+                    <TaskChatPanel
+                      key={active.id}
+                      taskId={active.id}
+                      taskTitle={active.title}
+                      sourceDocument={active.sourceDocument}
+                      onCompleted={
+                        isTutor
+                          ? undefined
+                          : answers => {
+                              const record: Record<string, string> = {}
+                              answers.forEach((a, i) => {
+                                record[String(i + 1)] = a
+                              })
+                              socket?.emit('task:complete', {
+                                roomId: sessionId,
+                                taskId: active.id,
+                                answers: record,
+                                aiHandled: true,
+                              })
+                            }
+                      }
+                    />
+                  </div>
+                </>
               ) : (
                 <>
                   {active.sourceDocument ? (
