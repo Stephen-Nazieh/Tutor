@@ -5,7 +5,7 @@
 
 'use client'
 
-import { Suspense, useCallback, useEffect, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -562,16 +562,38 @@ function CourseBuilderInsightsRouteInner({
   const [controlsMode, setControlsMode] = useState<ControlsMode>(
     initialMainTab === 'live' ? 'classroom' : initialMainTab === 'test-pci' ? 'test' : 'build'
   )
-  // Local saveMode that defaults to 'draft' (Editing) unless in an active live session.
-  // This ensures all courses open in Editing mode by default, requiring conscious
-  // switching to Live mode. Parent saveMode prop is ignored for initialization.
-  const [localSaveMode, setLocalSaveMode] = useState<'live' | 'draft'>(
-    insightsProps.sessionId ? 'live' : 'draft'
-  )
-  const effectiveSaveMode = localSaveMode
-  const handleSaveModeChange = (mode: 'live' | 'draft') => {
-    setLocalSaveMode(mode)
-    onSaveModeChange?.(mode)
+  type CourseStateFilter = 'creating' | 'unpublished' | 'published'
+
+  // Course-state filter for the toggle. It controls which courses appear in the
+  // dropdown and is updated automatically when the selected course changes.
+  const initialCourseStateFilter: CourseStateFilter =
+    saveMode === 'draft' ? 'creating' : 'unpublished'
+  const [courseStateFilter, setCourseStateFilter] =
+    useState<CourseStateFilter>(initialCourseStateFilter)
+
+  // The selected course's actual state (draft / unpublished / published).
+  const currentCourseState = useMemo((): CourseStateFilter => {
+    if (!courseId) return courseStateFilter
+    if (draftCourses?.some(c => c.id === courseId)) return 'creating'
+    const dbCourse = courses?.find(c => c.id === courseId)
+    if (dbCourse?.isPublished) return 'published'
+    return 'unpublished'
+  }, [courseId, courses, draftCourses, courseStateFilter])
+
+  // Persist mode is determined by the course itself, not by the toggle.
+  const effectiveSaveMode = useMemo((): 'live' | 'draft' => {
+    if (draftCourses?.some(c => c.id === courseId)) return 'draft'
+    return 'live'
+  }, [courseId, draftCourses])
+
+  // Sync the filter toggle to the selected course whenever the course changes.
+  useEffect(() => {
+    if (!courseId) return
+    setCourseStateFilter(prev => (prev === currentCourseState ? prev : currentCourseState))
+  }, [courseId, currentCourseState])
+
+  const handleCourseStateFilterChange = (filter: CourseStateFilter) => {
+    setCourseStateFilter(filter)
   }
   const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState(false)
   const router = useRouter()
@@ -818,8 +840,8 @@ function CourseBuilderInsightsRouteInner({
 
     const isExistingDbCourse = courses?.some((c: any) => c.id === courseId)
 
-    // Carry the category chosen at creation. Drafts hold it locally, so when
-    // this first persists the draft to the DB we must pass it through — else
+    // Carry the category chosen at creation. Creating-mode courses hold it locally, so when
+    // this first persists the course to the DB we must pass it through — else
     // the new course row gets categories:[] and the Course Details page shows
     // no variant and no scheduler. (executeSave threads it the same way.)
     const draftCategories = [...(courses || []), ...(draftCourses || [])].find(
@@ -991,52 +1013,96 @@ function CourseBuilderInsightsRouteInner({
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent className="w-[var(--radix-select-trigger-width)] max-w-[420px] border-white/10 bg-[rgba(31,41,51,0.60)] shadow-2xl backdrop-blur-xl">
-                          {courses && courses.length > 0 && (
-                            <SelectItem
-                              value="__live-header__"
-                              disabled
-                              className="text-xs font-semibold text-white transition-none focus-visible:ring-0"
-                            >
-                              Live Courses
-                            </SelectItem>
-                          )}
-                          {courses?.map(c => (
-                            <SelectItem key={c.id} value={c.id} className="transition-none">
-                              {c.nationality && c.nationality !== 'Global' ? (
-                                <span className="inline-flex items-center gap-1">
-                                  {c.name} — {c.variantCategory || ''} —{' '}
-                                  <CountryFlag countryName={c.nationality} size="xs" showLabel />
-                                </span>
-                              ) : c.isVariant ? (
-                                `${c.name} — Global`
-                              ) : (
-                                c.name
-                              )}
-                            </SelectItem>
-                          ))}
-                          {draftCourses && draftCourses.length > 0 && (
-                            <SelectItem
-                              value="__draft-header__"
-                              disabled
-                              className="text-xs font-semibold text-white transition-none focus-visible:ring-0"
-                            >
-                              Draft Courses
-                            </SelectItem>
-                          )}
-                          {draftCourses?.map(c => (
-                            <SelectItem key={c.id} value={c.id} className="transition-none">
-                              {c.nationality && c.nationality !== 'Global' ? (
-                                <span className="inline-flex items-center gap-1">
-                                  {c.name} — {c.variantCategory || ''} —{' '}
-                                  <CountryFlag countryName={c.nationality} size="xs" showLabel />
-                                </span>
-                              ) : c.isVariant ? (
-                                `${c.name} — Global`
-                              ) : (
-                                c.name
-                              )}
-                            </SelectItem>
-                          ))}
+                          {courseStateFilter === 'unpublished' &&
+                            courses &&
+                            courses.filter(c => !c.isPublished).length > 0 && (
+                              <SelectItem
+                                value="__unpublished-header__"
+                                disabled
+                                className="text-xs font-semibold text-white transition-none focus-visible:ring-0"
+                              >
+                                Unpublished Courses
+                              </SelectItem>
+                            )}
+                          {courseStateFilter === 'unpublished' &&
+                            courses
+                              ?.filter(c => !c.isPublished)
+                              .map(c => (
+                                <SelectItem key={c.id} value={c.id} className="transition-none">
+                                  {c.nationality && c.nationality !== 'Global' ? (
+                                    <span className="inline-flex items-center gap-1">
+                                      {c.name} — {c.variantCategory || ''} —{' '}
+                                      <CountryFlag
+                                        countryName={c.nationality}
+                                        size="xs"
+                                        showLabel
+                                      />
+                                    </span>
+                                  ) : c.isVariant ? (
+                                    `${c.name} — Global`
+                                  ) : (
+                                    c.name
+                                  )}
+                                </SelectItem>
+                              ))}
+                          {courseStateFilter === 'published' &&
+                            courses &&
+                            courses.filter(c => c.isPublished).length > 0 && (
+                              <SelectItem
+                                value="__published-header__"
+                                disabled
+                                className="text-xs font-semibold text-white transition-none focus-visible:ring-0"
+                              >
+                                Published Courses
+                              </SelectItem>
+                            )}
+                          {courseStateFilter === 'published' &&
+                            courses
+                              ?.filter(c => c.isPublished)
+                              .map(c => (
+                                <SelectItem key={c.id} value={c.id} className="transition-none">
+                                  {c.nationality && c.nationality !== 'Global' ? (
+                                    <span className="inline-flex items-center gap-1">
+                                      {c.name} — {c.variantCategory || ''} —{' '}
+                                      <CountryFlag
+                                        countryName={c.nationality}
+                                        size="xs"
+                                        showLabel
+                                      />
+                                    </span>
+                                  ) : c.isVariant ? (
+                                    `${c.name} — Global`
+                                  ) : (
+                                    c.name
+                                  )}
+                                </SelectItem>
+                              ))}
+                          {courseStateFilter === 'creating' &&
+                            draftCourses &&
+                            draftCourses.length > 0 && (
+                              <SelectItem
+                                value="__creating-header__"
+                                disabled
+                                className="text-xs font-semibold text-white transition-none focus-visible:ring-0"
+                              >
+                                Creating Courses
+                              </SelectItem>
+                            )}
+                          {courseStateFilter === 'creating' &&
+                            draftCourses?.map(c => (
+                              <SelectItem key={c.id} value={c.id} className="transition-none">
+                                {c.nationality && c.nationality !== 'Global' ? (
+                                  <span className="inline-flex items-center gap-1">
+                                    {c.name} — {c.variantCategory || ''} —{' '}
+                                    <CountryFlag countryName={c.nationality} size="xs" showLabel />
+                                  </span>
+                                ) : c.isVariant ? (
+                                  `${c.name} — Global`
+                                ) : (
+                                  c.name
+                                )}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     )}
@@ -1118,23 +1184,29 @@ function CourseBuilderInsightsRouteInner({
                 onSaveModeChange &&
                 !modeLocked && (
                   <Select
-                    value={effectiveSaveMode}
-                    onValueChange={(val: 'live' | 'draft') => handleSaveModeChange(val)}
+                    value={courseStateFilter}
+                    onValueChange={(val: CourseStateFilter) => handleCourseStateFilterChange(val)}
                   >
                     <SelectTrigger className="h-9 w-[190px] border-slate-200 bg-white text-sm font-medium">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="live" className="">
+                      <SelectItem value="unpublished" className="">
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-green-500" />
-                          Live
+                          Unpublished
                         </div>
                       </SelectItem>
-                      <SelectItem value="draft" className="">
+                      <SelectItem value="published" className="">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-blue-500" />
+                          Published
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="creating" className="">
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-2 rounded-full bg-amber-500" />
-                          Editing
+                          Creating
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -1143,7 +1215,7 @@ function CourseBuilderInsightsRouteInner({
               {(activeMainTab === 'builder' || activeMainTab === 'live') && modeLocked && (
                 <div className="flex h-9 w-[190px] items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 text-sm font-medium text-slate-600">
                   <div className="h-2 w-2 rounded-full bg-amber-500" />
-                  Editing
+                  Creating
                 </div>
               )}
               {/* Reflect the real socket connection: emerald when connected,
@@ -1234,7 +1306,7 @@ function CourseBuilderInsightsRouteInner({
               leftPanelHidden={leftPanelHidden}
               onLeftPanelHiddenChange={setLeftPanelHidden}
               saveMode={effectiveSaveMode}
-              onSaveModeChange={handleSaveModeChange}
+              onSaveModeChange={onSaveModeChange}
               onSyncToLiveSession={onSyncToLiveSession}
               onUnsyncedChangesChange={setHasUnsyncedChanges}
               focusLessonId={
@@ -1270,7 +1342,7 @@ function CourseBuilderInsightsRouteInner({
             onCreateCourse={onCreateCourse}
             onEditCourse={courseId ? openEditCourse : undefined}
             canDelete={!!(courseId && courseId !== 'insights-draft' && onDeleteCourse)}
-            // Schedule is only available in Editing mode. In live state, scheduling
+            // Schedule is only available in Creating mode. In Unpublished mode, scheduling
             // is not allowed — publication is handled through the Course Details page.
             canSchedule={
               !!(courseId && courseId !== 'insights-draft' && effectiveSaveMode === 'draft')
