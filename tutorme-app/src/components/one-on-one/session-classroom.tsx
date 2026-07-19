@@ -261,6 +261,9 @@ export function SessionClassroom({
           userName={session?.user?.name || undefined}
           videoOverlay
           videoComponent={video}
+          // A student can open a deployed task full-page (z-30, below the toolbar);
+          // keep their video above it so the tutor stays visible while they read.
+          videoZClassName={!isTutor ? 'z-[35]' : 'z-10'}
         />
       </FallbackBoundary>
 
@@ -432,7 +435,7 @@ export function SessionClassroom({
           className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xl bg-white/90 px-3 py-2 text-xs font-semibold text-slate-800 shadow-lg backdrop-blur hover:bg-white"
         >
           <FolderOpen className="h-3.5 w-3.5" />
-          Materials
+          {isTutor ? 'Materials' : 'Lessons'}
         </button>
         <button
           type="button"
@@ -456,8 +459,9 @@ export function SessionClassroom({
         onClose={() => setBoardTarget(null)}
       />
 
-      {/* Side panels — wrapped so a panel crash closes to nothing, never the room. */}
-      {activePanel ? (
+      {/* Side panels — wrapped so a panel crash closes to nothing, never the room.
+          Materials/Lessons is handled separately below (self-positioned). */}
+      {activePanel && activePanel !== 'materials' ? (
         <FallbackBoundary label="session panel" fallback={null}>
           <div className="pointer-events-none absolute bottom-3 right-3 top-16 z-40 flex">
             {activePanel === 'deploy' && isTutor ? (
@@ -511,18 +515,26 @@ export function SessionClassroom({
                 onClose={() => setActivePanel(null)}
               />
             ) : null}
-            {activePanel === 'materials' ? (
-              <SessionDeployedPanel
-                sessionId={sessionId}
-                socket={socket}
-                isTutor={isTutor}
-                tasks={tasks}
-                completedTaskIds={myCompletedTaskIds}
-                resultByTask={myResultByTask}
-                onClose={() => setActivePanel(null)}
-              />
-            ) : null}
           </div>
+        </FallbackBoundary>
+      ) : null}
+
+      {/* Materials/Lessons is rendered OUTSIDE the shared z-40 container and
+          self-positions: as a side panel normally, or full-page (z-30) when a
+          student opens a task. Keeping it out of the container's z-40 stacking
+          context is what lets the toolbar (z-40) and video (z-[35]) overlay the
+          opened task. */}
+      {activePanel === 'materials' ? (
+        <FallbackBoundary label="session materials" fallback={null}>
+          <SessionDeployedPanel
+            sessionId={sessionId}
+            socket={socket}
+            isTutor={isTutor}
+            tasks={tasks}
+            completedTaskIds={myCompletedTaskIds}
+            resultByTask={myResultByTask}
+            onClose={() => setActivePanel(null)}
+          />
         </FallbackBoundary>
       ) : null}
 

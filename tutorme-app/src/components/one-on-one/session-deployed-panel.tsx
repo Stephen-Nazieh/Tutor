@@ -82,21 +82,37 @@ export function SessionDeployedPanel({
   // Newest first, matching the reference panel's ordering.
   const orderedTasks = [...tasks].reverse()
 
+  // A student opens a deployed task FULL-PAGE (portaled to <body> at z-30, so the
+  // toolbar buttons (z-40) and the student's video (z-[35]) overlay it). Tutors
+  // keep the compact side panel. The label is "Lessons" for students (matching the
+  // course-builder classroom) and "Materials" for tutors.
+  const studentFullPage = !!active && !isTutor
+  const panelTitle = isTutor ? 'Materials' : 'Lessons'
+
+  // Self-positioned (a direct child of the classroom root, NOT the shared z-40
+  // panel container) so the full-page task shares one stacking context with the
+  // toolbar (z-40) and video (z-[35]) and reliably sits under them at z-30.
   return (
-    <div className="pointer-events-auto flex h-full w-96 flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl">
+    <div
+      className={
+        studentFullPage
+          ? 'pointer-events-auto absolute inset-0 z-30 flex flex-col bg-white'
+          : 'pointer-events-auto absolute bottom-3 right-3 top-16 z-40 flex w-96 flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl'
+      }
+    >
       <div className="flex items-center justify-between gap-2 border-b px-4 py-3">
         <div className="flex min-w-0 items-center gap-2">
           {active ? (
             <button
               onClick={() => setActiveId(null)}
               aria-label="Back to list"
-              className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+              className="inline-flex items-center gap-1 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
           ) : null}
           <h3 className="truncate text-sm font-semibold text-slate-900">
-            {active ? 'Back to materials' : 'Materials'}
+            {active ? active.title : panelTitle}
           </h3>
         </div>
         <button
@@ -169,9 +185,6 @@ export function SessionDeployedPanel({
                 // (one scrollbar) rather than a viewport-height box inside the
                 // already-scrollable parent.
                 <div className="flex h-full flex-col">
-                  <p className="mb-3 shrink-0 text-sm font-semibold text-slate-900">
-                    {active.title}
-                  </p>
                   {active.content && !isImportPlaceholder(active.content) ? (
                     <div
                       className="prose prose-sm mb-3 max-h-40 shrink-0 overflow-y-auto pr-1 text-slate-700"
@@ -213,12 +226,9 @@ export function SessionDeployedPanel({
               ) : (
                 <>
                   {active.sourceDocument ? (
-                    <>
-                      <p className="mb-3 text-sm font-semibold text-slate-900">{active.title}</p>
-                      <div className="h-[60vh] w-full">
-                        <TaskDocumentCard sourceDocument={active.sourceDocument} alwaysOpen />
-                      </div>
-                    </>
+                    <div className="h-[60vh] w-full">
+                      <TaskDocumentCard sourceDocument={active.sourceDocument} alwaysOpen />
+                    </div>
                   ) : (
                     <ActiveTaskBody
                       key={active.id}
