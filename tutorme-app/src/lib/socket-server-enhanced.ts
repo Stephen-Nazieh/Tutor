@@ -7,7 +7,7 @@ import { Server as NetServer } from 'http'
 import { Server as SocketIOServer, Socket } from 'socket.io'
 import Redis from 'ioredis'
 import * as Sentry from '@sentry/nextjs'
-import { eq, and, inArray, desc } from 'drizzle-orm'
+import { eq, and, inArray, desc, sql } from 'drizzle-orm'
 import { expandToCourseFamily } from '@/lib/courses/variant-family'
 import { authorizeSessionStudent } from '@/lib/live/session-student-auth'
 import { drizzleDb } from '@/lib/db/drizzle'
@@ -1039,7 +1039,9 @@ export async function initEnhancedSocketServer(server: NetServer) {
         try {
           await drizzleDb
             .update(liveSession)
-            .set({ status: 'active', startedAt: new Date() })
+            // Preserve an existing startedAt (COALESCE) so a re-promotion can never
+            // reset the recorded start time / session-duration metric.
+            .set({ status: 'active', startedAt: sql`COALESCE(${liveSession.startedAt}, now())` })
             .where(and(eq(liveSession.sessionId, roomId), eq(liveSession.status, 'scheduled')))
         } catch (goLiveErr) {
           console.warn('[join_class] failed to promote session to active:', goLiveErr)
@@ -1286,7 +1288,8 @@ export async function initEnhancedSocketServer(server: NetServer) {
     // Helper: check if a session is currently in a state where tutors can deploy content
     async function canDeployToSession(
       sessionId: string,
-      source?: string
+      source?: string,
+      deployerId?: string
     ): Promise<{ ok: true } | { ok: false; reason: string }> {
       try {
         const [sessionRec] = await drizzleDb
@@ -1295,12 +1298,22 @@ export async function initEnhancedSocketServer(server: NetServer) {
             scheduledAt: liveSession.scheduledAt,
             startedAt: liveSession.startedAt,
             endedAt: liveSession.endedAt,
+            tutorId: liveSession.tutorId,
           })
           .from(liveSession)
           .where(eq(liveSession.sessionId, sessionId))
           .limit(1)
 
         if (!sessionRec) return { ok: false, reason: 'Session not found' }
+
+        // Ownership: only the session's own tutor may deploy into it. The handler
+        // only checks role === 'tutor' and recreates the room on demand, so without
+        // this any tutor could deploy to any session by id (and then read its
+        // students' submissions). Skip only when the caller is unknown or the row
+        // has no tutor (legacy/ad-hoc) to preserve prior behaviour in those cases.
+        if (deployerId && sessionRec.tutorId && sessionRec.tutorId !== deployerId) {
+          return { ok: false, reason: 'Not authorized for this session' }
+        }
 
         // Homework can be dropped even after session ends
         if (source !== 'homework') {
@@ -1358,7 +1371,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
         console.log(`[task:deploy] Recreated room ${roomId} on demand`)
       }
 
-      const deployCheck = await canDeployToSession(roomId, task.source)
+      const deployCheck = await canDeployToSession(roomId, task.source, socket.data.userId)
       if (!deployCheck.ok) {
         socket.emit('task:deploy:error', { error: deployCheck.reason })
         return
@@ -2503,7 +2516,7 @@ export async function initEnhancedSocketServer(server: NetServer) {
           return
         }
 
-        const deployCheck = await canDeployToSession(roomId)
+        const deployCheck = await canDeployToSession(roomId, undefined, socket.data.userId)
         if (!deployCheck.ok) {
           socket.emit('insight:send:error', { error: deployCheck.reason })
           return
