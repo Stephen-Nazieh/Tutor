@@ -8119,8 +8119,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     }, [loadedTaskId, hasTaskDocument])
 
     // DMI-first kickoff: once the assessment's DMI is ready (chat unlocked) and
-    // the marking-policy chat has no messages yet, auto-start the guided flow —
-    // the agent first summarizes the assessment (using the DMI it already has)
+    // the marking-policy chat has no user messages yet, auto-start the guided flow
+    // — the agent first summarizes the assessment (using the DMI it already has)
     // for the tutor to confirm, then walks the general marking policy. Fires
     // once per assessment.
     const pciKickoffRef = useRef<Set<string>>(new Set())
@@ -8128,16 +8128,20 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       const id = loadedAssessmentId
       if (!id || !assessmentDmiReady || !canEdit) return
       const thread = getThread(pci, { kind: 'assessment', id })
-      if (thread.messages.length > 0 || thread.loading) return
+      const hasUserMessage = thread.messages.some(m => m.role === 'user')
+      if (hasUserMessage || thread.loading) return
       if (pciKickoffRef.current.has(id)) return
       pciKickoffRef.current.add(id)
-      const t = setTimeout(() => {
+      // Defer to the next microtask so the render finishes and the once-per-target
+      // guard survives React Strict Mode's double effect run. With setTimeout, the
+      // first cleanup would clear the pending timeout and the second run would see
+      // the id already in the ref, so the kickoff would never fire in dev.
+      queueMicrotask(() => {
         handlePciSend(
           'assessment',
           'You already have the questions, sections, and marks (the DMI), so do not ask me about the questions, types, sections, or marks. First give me a brief summary of this assessment — what it covers, its sections / question types, and the total marks — so I can confirm you have understood it, then guide me through the GENERAL marking policy for the whole assessment one simple question at a time (how marks are awarded — method vs final answer, partial credit — how to handle wrong / partial / no answers, and tone), in clear, simple language with a small example each time. Only ask about a specific question if its marking differs from the general rule.'
         )
-      }, 300)
-      return () => clearTimeout(t)
+      })
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loadedAssessmentId, assessmentDmiReady, canEdit])
 
@@ -8156,14 +8160,17 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       if (hasUserMessage || activeTaskThread.loading) return
       if (pciKickoffRef.current.has(targetId)) return
       pciKickoffRef.current.add(targetId)
-      const t = setTimeout(() => {
+      // Defer to the next microtask so the render finishes and the once-per-target
+      // guard survives React Strict Mode's double effect run. With setTimeout, the
+      // first cleanup would clear the pending timeout and the second run would see
+      // the target already in the ref, so the kickoff would never fire in dev.
+      queueMicrotask(() => {
         handlePciSend(
           'task',
           'Please summarize this task based on the provided context, including its role in the lesson and course.',
           true
         )
-      }, 300)
-      return () => clearTimeout(t)
+      })
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [taskBuilderActiveTab, loadedTaskId, taskBuilder.activeExtensionId])
 
