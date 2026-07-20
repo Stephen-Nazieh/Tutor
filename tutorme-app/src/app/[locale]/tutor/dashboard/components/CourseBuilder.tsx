@@ -8142,15 +8142,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     }, [loadedAssessmentId, assessmentDmiReady, canEdit])
 
     // Task PCI first-open kickoff: when the tutor opens the PCI tab for a task
-    // (or task extension) and the chat is empty, auto-request the grounded summary
-    // so the tutor does not have to type a first message. Fires once per target.
+    // (or task extension) and no user message has been sent yet, auto-request the
+    // grounded summary so the tutor does not have to type a first message. Saved
+    // assistant-only policy is ignored because it is not a conversation turn.
+    // Fires once per target.
     useEffect(() => {
       if (taskBuilderActiveTab !== 'pci') return
       const taskId = loadedTaskId
       if (!taskId) return
       const extId = taskBuilder.activeExtensionId
       const targetId = extId ? `ext:${extId}` : `task:${taskId}`
-      if (activeTaskThread.messages.length > 0 || activeTaskThread.loading) return
+      const hasUserMessage = activeTaskThread.messages.some(m => m.role === 'user')
+      if (hasUserMessage || activeTaskThread.loading) return
       if (pciKickoffRef.current.has(targetId)) return
       pciKickoffRef.current.add(targetId)
       const t = setTimeout(() => {
