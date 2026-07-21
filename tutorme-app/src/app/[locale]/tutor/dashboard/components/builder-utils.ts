@@ -456,11 +456,43 @@ export async function generateQuestionPaperPDF(
 }
 
 /**
+ * Check whether the given task content would overflow the locked 1100 x 620 slide
+ * viewport when rendered at the fixed editor font size (20px, 1.6 line height).
+ * Used to reject keystrokes or drops that would exceed the slide canvas.
+ */
+export function isTaskSlideOverflowing(content: string): boolean {
+  if (typeof document === 'undefined') return false
+  const el = document.createElement('div')
+  el.style.position = 'absolute'
+  el.style.left = '-9999px'
+  el.style.top = '0'
+  el.style.width = '1100px'
+  el.style.height = '620px'
+  el.style.padding = '48px'
+  el.style.fontFamily =
+    'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif'
+  el.style.fontSize = '20px'
+  el.style.lineHeight = '1.6'
+  el.style.whiteSpace = 'pre-wrap'
+  el.style.wordBreak = 'break-word'
+  el.style.boxSizing = 'border-box'
+  el.style.overflow = 'hidden'
+  el.setAttribute('dir', 'auto')
+  el.textContent = content.trim()
+  document.body.appendChild(el)
+  try {
+    return el.scrollHeight > el.clientHeight
+  } finally {
+    document.body.removeChild(el)
+  }
+}
+
+/**
  * Version of the text-only task snapshot renderer. Bump this whenever the
  * generated snapshot format changes so existing auto-generated PDFs are
  * invalidated and regenerated.
  */
-export const TASK_TEXT_SNAPSHOT_VERSION = 3
+export const TASK_TEXT_SNAPSHOT_VERSION = 4
 
 /**
  * Generate a simple PDF from a task's typed content so that text-only
@@ -470,10 +502,11 @@ export const TASK_TEXT_SNAPSHOT_VERSION = 3
  * font/encoding limitations and gives us full browser language support (CJK,
  * Arabic, Devanagari, emojis, etc.) without bundling huge font files.
  *
- * The PDF page is a landscape snapshot of the Task Slide viewport: a plain white
- * document showing the task content as it appears in the slide. It does not
- * include the task number/title card or the purple branding. The height expands
- * only if the content exceeds the default viewport height.
+ * The PDF page is a locked landscape snapshot of the Task Slide viewport: a plain
+ * white document showing the task content as it appears in the slide. It does not
+ * include the task number/title card or the purple branding. The viewport is fixed
+ * at 1100 x 620 px; any overflow is clipped because the in-editor textarea prevents
+ * input beyond this area.
  */
 export async function generateTaskTextPDF(
   title: string,
@@ -487,12 +520,12 @@ export async function generateTaskTextPDF(
   const html2canvas = (await import('html2canvas')).default
 
   const VIEWPORT_WIDTH = 1100
-  const VIEWPORT_MIN_HEIGHT = 620
+  const VIEWPORT_HEIGHT = 620
 
   // Off-screen landscape slide viewport that mirrors the Task Slide display area.
   // Use an absolute wrapper so html2canvas gets a reliable 1100px width and the
-  // PDF page stays landscape by default. The wrapper is placed far off-screen; it
-  // is not visibility:hidden so the element still renders and has real dimensions.
+  // PDF page stays landscape. The wrapper is placed far off-screen; it is not
+  // visibility:hidden so the element still renders and has real dimensions.
   const wrapper = document.createElement('div')
   wrapper.style.position = 'absolute'
   wrapper.style.left = '-9999px'
@@ -501,7 +534,7 @@ export async function generateTaskTextPDF(
 
   const viewport = document.createElement('div')
   viewport.style.width = `${VIEWPORT_WIDTH}px`
-  viewport.style.minHeight = `${VIEWPORT_MIN_HEIGHT}px`
+  viewport.style.height = `${VIEWPORT_HEIGHT}px`
   viewport.style.padding = '48px'
   viewport.style.background = '#ffffff'
   viewport.style.color = '#1F2933'
@@ -521,14 +554,6 @@ export async function generateTaskTextPDF(
   document.body.appendChild(wrapper)
 
   try {
-    // Force layout and measure the rendered width/height. html2canvas needs the
-    // element to be rendered and have an explicit height; minHeight alone is not
-    // enough for the captured canvas to match the intended PDF page size.
-    const viewportCssWidth = Math.round(viewport.getBoundingClientRect().width)
-    const contentHeight = Math.round(viewport.scrollHeight)
-    const viewportCssHeight = Math.max(contentHeight, VIEWPORT_MIN_HEIGHT)
-    viewport.style.height = `${viewportCssHeight}px`
-
     const canvas = await html2canvas(viewport, {
       scale: 2,
       useCORS: true,
@@ -537,8 +562,8 @@ export async function generateTaskTextPDF(
     })
 
     // 1 CSS px = 0.75 pt (72 pt / 96 dpi)
-    const ptWidth = viewportCssWidth * 0.75
-    const ptHeight = viewportCssHeight * 0.75
+    const ptWidth = VIEWPORT_WIDTH * 0.75
+    const ptHeight = VIEWPORT_HEIGHT * 0.75
 
     const doc = new jsPDF({ unit: 'pt', format: [ptWidth, ptHeight] })
     const imgData = canvas.toDataURL('image/png')

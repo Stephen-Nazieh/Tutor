@@ -348,6 +348,7 @@ import {
   CONTENT_TEMPLATES,
   generateQuestionPaperPDF,
   generateTaskTextPDF,
+  isTaskSlideOverflowing,
   TASK_TEXT_SNAPSHOT_VERSION,
   resolveSelectedItem,
   stringToColor,
@@ -1281,6 +1282,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const loadPciMessagesRef = useRef<(target: PciTarget, messages: PciMessage[]) => void>(() => {})
     const resetPciRef = useRef<() => void>(() => {})
     const taskPciScrollRef = useRef<HTMLDivElement>(null)
+    // Ref for the task text editor so we can check whether a keystroke would
+    // overflow the locked 1100 x 620 slide canvas and reject it.
+    const taskTextareaRef = useRef<HTMLTextAreaElement>(null)
 
     // Whether the "Current PCI" box is in edit mode (tutor typing the policy
     // directly instead of via the assistant chat).
@@ -7751,6 +7755,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
       ? activeTaskExtension.sourceDocument
       : taskSourceDocument || taskBuilder.sourceDocument
     const hasTaskDocument = !!currentTaskDocument
+    const hasUploadedTaskDocument = !!currentTaskDocument && !currentTaskDocument.generatedFromText
 
     const currentAssessmentDocument = assessmentSourceDocument || assessmentBuilder.sourceDocument
 
@@ -8067,7 +8072,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     // editor so a stale view preference can't strand the tutor — lives in the
     // tested resolveDocPaneVisibility helper.
     const taskView = resolveDocPaneVisibility({
-      hasDocument: hasTaskDocument,
+      hasDocument: hasUploadedTaskDocument,
       savedTextVisible: loadedTaskId ? taskTextVisibleMap[loadedTaskId] : undefined,
       savedPdfVisible: loadedTaskId ? taskPdfVisibleMap[loadedTaskId] : undefined,
     })
@@ -8101,21 +8106,23 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
         setAssessmentPdfVisibleMap(prev => ({ ...prev, [loadedAssessmentId]: val }))
     }
 
-    // Auto-switch task panels based on document presence
+    // Auto-switch task panels based on whether there is an uploaded document.
+    // Generated-from-text snapshots are intentionally treated as "no document"
+    // in the Slide builder so the tutor only sees the editable slide canvas there.
     useEffect(() => {
       if (loadedTaskId) {
         setTaskTextVisibleMap(prev => {
-          const expected = !hasTaskDocument
+          const expected = !hasUploadedTaskDocument
           if (prev[loadedTaskId] === expected) return prev
           return { ...prev, [loadedTaskId]: expected }
         })
         setTaskPdfVisibleMap(prev => {
-          const expected = hasTaskDocument
+          const expected = hasUploadedTaskDocument
           if (prev[loadedTaskId] === expected) return prev
           return { ...prev, [loadedTaskId]: expected }
         })
       }
-    }, [loadedTaskId, hasTaskDocument])
+    }, [loadedTaskId, hasUploadedTaskDocument])
 
     // DMI-first kickoff: once the assessment's DMI is ready (chat unlocked) and
     // the marking-policy chat has no user messages yet, auto-start the guided flow
@@ -11820,8 +11827,8 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                       {/* View controls: switch between the text
                                           editor (left) and the document (right),
                                           or show both side by side. Only relevant
-                                          once a document is present. */}
-                                      {hasTaskDocument && (
+                                          once an uploaded document is present. */}
+                                      {hasUploadedTaskDocument && (
                                         <div className="mb-2 flex shrink-0 flex-wrap items-center gap-3">
                                           <div className="flex items-center gap-0.5 self-start rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
                                             {[
@@ -11894,249 +11901,301 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                         </div>
                                       )}
                                       <div
-                                        className="relative flex min-h-0 flex-1 flex-row overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-sm"
+                                        className="relative flex min-h-0 flex-1 overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-sm"
                                         onDragOver={e => e.preventDefault()}
                                         onDrop={(e: any) => {
                                           if (!canEdit) return
                                           handleDragFiles(
                                             e,
                                             text => {
+                                              const activeExt = taskBuilder.activeExtensionId
+                                              const currentContent = activeExt
+                                                ? taskBuilder.extensions.find(
+                                                    ext => ext.id === activeExt
+                                                  )?.content || ''
+                                                : taskBuilder.taskContent
+                                              const combined =
+                                                currentContent +
+                                                (currentContent ? '\n\n' : '') +
+                                                text
+                                              if (isTaskSlideOverflowing(combined)) {
+                                                toast.error(
+                                                  'Dropped text would exceed the slide area'
+                                                )
+                                                return
+                                              }
                                               setTaskBuilder(prev => {
                                                 if (prev.activeExtensionId) {
-                                                  const ext = prev.extensions.find(
-                                                    x => x.id === prev.activeExtensionId
-                                                  )
-                                                  const combined = ext
-                                                    ? ext.content +
-                                                      (ext.content ? '\n\n' : '') +
-                                                      text
-                                                    : text
                                                   return {
                                                     ...prev,
-                                                    extensions: prev.extensions.map(x =>
-                                                      x.id === prev.activeExtensionId
-                                                        ? { ...x, content: combined }
-                                                        : x
+                                                    extensions: prev.extensions.map(ext =>
+                                                      ext.id === prev.activeExtensionId
+                                                        ? { ...ext, content: combined }
+                                                        : ext
                                                     ),
                                                   }
-                                                } else {
-                                                  return {
-                                                    ...prev,
-                                                    taskContent:
-                                                      prev.taskContent +
-                                                      (prev.taskContent ? '\n\n' : '') +
-                                                      text,
-                                                  }
                                                 }
+                                                return { ...prev, taskContent: combined }
                                               })
                                             },
                                             'task'
                                           )
                                         }}
                                       >
-                                        {/* Centered Pill for Test button */}
-
-                                        {/* Left Panel (Text) */}
-                                        {taskTextVisible && (
-                                          <div
-                                            className={cn(
-                                              'relative flex h-full flex-col bg-[#FBFCFD]',
-                                              taskPdfVisible ? 'w-1/2 border-r' : 'w-full'
-                                            )}
-                                          >
-                                            <AutoTextarea
-                                              className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent p-4 text-[#1F2933] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                              style={{ fontSize: `${extractedTextFontSize}px` }}
-                                              disableAutoResize
-                                              readOnly={!canEdit}
-                                              placeholder="Type the task content here — or load a document above to work from it."
-                                              onDrop={(e: any) =>
-                                                handleDragFiles(
-                                                  e,
-                                                  text => {
-                                                    setTaskBuilder(prev => {
-                                                      if (prev.activeExtensionId) {
-                                                        const ext = prev.extensions.find(
-                                                          x => x.id === prev.activeExtensionId
-                                                        )
-                                                        const combined = ext
-                                                          ? ext.content +
-                                                            (ext.content ? '\n\n' : '') +
-                                                            text
-                                                          : text
-                                                        return {
-                                                          ...prev,
-                                                          extensions: prev.extensions.map(x =>
-                                                            x.id === prev.activeExtensionId
-                                                              ? { ...x, content: combined }
-                                                              : x
-                                                          ),
-                                                        }
-                                                      } else {
-                                                        const combined =
-                                                          prev.taskContent +
-                                                          (prev.taskContent ? '\n\n' : '') +
-                                                          text
-                                                        return {
-                                                          ...prev,
-                                                          taskContent: combined,
-                                                        }
-                                                      }
-                                                    })
-                                                  },
-                                                  'task'
-                                                )
-                                              }
-                                              value={
-                                                taskBuilder.activeExtensionId
-                                                  ? taskBuilder.extensions.find(
-                                                      e => e.id === taskBuilder.activeExtensionId
-                                                    )?.content || ''
-                                                  : taskBuilder.taskContent
-                                              }
-                                              onChange={(e: any) => {
-                                                const newContent = e.target.value
-                                                if (
-                                                  !loadedTaskId &&
-                                                  !taskBuilder.activeExtensionId
-                                                ) {
-                                                  autoCreateTask()
+                                        {!hasUploadedTaskDocument ? (
+                                          // Text-only task: locked 1100 x 620 slide canvas.
+                                          // No PDF preview here; the snapshot is generated only when entering Test/Live.
+                                          <div className="flex h-full w-full items-center justify-center overflow-auto bg-slate-50">
+                                            <div className="relative h-[620px] w-[1100px] flex-shrink-0 bg-white shadow-md">
+                                              <AutoTextarea
+                                                ref={taskTextareaRef}
+                                                className="h-full w-full resize-none overflow-hidden border-0 bg-transparent p-12 text-[20px] leading-relaxed text-[#1F2933] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                disableAutoResize
+                                                readOnly={!canEdit}
+                                                placeholder="Type the task content here — or load a document above to work from it."
+                                                value={
+                                                  taskBuilder.activeExtensionId
+                                                    ? taskBuilder.extensions.find(
+                                                        e => e.id === taskBuilder.activeExtensionId
+                                                      )?.content || ''
+                                                    : taskBuilder.taskContent
                                                 }
-                                                if (taskBuilder.activeExtensionId) {
-                                                  setTaskBuilder(prev => {
-                                                    return {
+                                                onChange={(e: any) => {
+                                                  const target = e.target as HTMLTextAreaElement
+                                                  if (target.scrollHeight > target.clientHeight) {
+                                                    return
+                                                  }
+                                                  const newContent = target.value
+                                                  if (
+                                                    !loadedTaskId &&
+                                                    !taskBuilder.activeExtensionId
+                                                  ) {
+                                                    autoCreateTask()
+                                                  }
+                                                  if (taskBuilder.activeExtensionId) {
+                                                    setTaskBuilder(prev => ({
                                                       ...prev,
                                                       extensions: prev.extensions.map(ext =>
                                                         ext.id === prev.activeExtensionId
                                                           ? { ...ext, content: newContent }
                                                           : ext
                                                       ),
-                                                    }
-                                                  })
-                                                } else {
-                                                  setTaskBuilder(prev => ({
-                                                    ...prev,
-                                                    taskContent: newContent,
-                                                  }))
-                                                }
-                                              }}
-                                              onBlur={() => ensureTaskTextDocument()}
-                                            />
-                                            {/* Floating font size control */}
-                                            <div
-                                              className="absolute bottom-6 right-6 z-20 flex origin-bottom-right scale-150 items-center gap-1 rounded-md px-2 py-1 text-white"
-                                              style={{
-                                                background: 'rgba(40,40,40,0.78)',
-                                                backdropFilter: 'blur(8px)',
-                                              }}
-                                            >
-                                              <button
-                                                type="button"
-                                                onClick={() =>
-                                                  setExtractedTextFontSize(
-                                                    Math.max(10, extractedTextFontSize - 2)
-                                                  )
-                                                }
-                                                className="cursor-pointer px-1 py-0.5 text-xs opacity-80 hover:opacity-100"
-                                              >
-                                                -
-                                              </button>
-                                              <span className="min-w-[1.5rem] text-center text-[11px] font-medium">
-                                                {extractedTextFontSize}px
-                                              </span>
-                                              <button
-                                                type="button"
-                                                onClick={() =>
-                                                  setExtractedTextFontSize(
-                                                    Math.min(32, extractedTextFontSize + 2)
-                                                  )
-                                                }
-                                                className="cursor-pointer px-1 py-0.5 text-xs opacity-80 hover:opacity-100"
-                                              >
-                                                +
-                                              </button>
+                                                    }))
+                                                  } else {
+                                                    setTaskBuilder(prev => ({
+                                                      ...prev,
+                                                      taskContent: newContent,
+                                                    }))
+                                                  }
+                                                }}
+                                              />
                                             </div>
                                           </div>
-                                        )}
-
-                                        {/* Right Panel (Preview) */}
-                                        {taskPdfVisible && (
-                                          <div
-                                            className={cn(
-                                              'relative flex h-full flex-col bg-[#FBFCFD]',
-                                              taskTextVisible ? 'w-1/2' : 'w-full'
-                                            )}
-                                          >
-                                            <div className="relative min-h-0 flex-1 overflow-hidden">
-                                              {currentTaskDocument?.mimeType ===
-                                                'application/pdf' ||
-                                              (currentTaskDocument?.fileKey &&
-                                                (!currentTaskDocument?.mimeType ||
-                                                  currentTaskDocument?.mimeType ===
-                                                    'application/pdf')) ? (
-                                                <PDFViewer
-                                                  key={
-                                                    currentTaskDocument.fileUrl ||
-                                                    currentTaskDocument.fileKey ||
-                                                    'task-doc'
+                                        ) : (
+                                          <div className="flex h-full w-full flex-row">
+                                            {taskTextVisible && (
+                                              <div
+                                                className={cn(
+                                                  'relative flex h-full flex-col bg-[#FBFCFD]',
+                                                  taskPdfVisible ? 'w-1/2 border-r' : 'w-full'
+                                                )}
+                                              >
+                                                <AutoTextarea
+                                                  className="h-full min-h-0 w-full flex-1 resize-none overflow-y-auto border-0 bg-transparent p-4 text-[#1F2933] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                                                  style={{ fontSize: `${extractedTextFontSize}px` }}
+                                                  disableAutoResize
+                                                  readOnly={!canEdit}
+                                                  placeholder="Type the task content here — or load a document above to work from it."
+                                                  onDrop={(e: any) =>
+                                                    handleDragFiles(
+                                                      e,
+                                                      text => {
+                                                        setTaskBuilder(prev => {
+                                                          if (prev.activeExtensionId) {
+                                                            const ext = prev.extensions.find(
+                                                              x => x.id === prev.activeExtensionId
+                                                            )
+                                                            const combined = ext
+                                                              ? ext.content +
+                                                                (ext.content ? '\n\n' : '') +
+                                                                text
+                                                              : text
+                                                            return {
+                                                              ...prev,
+                                                              extensions: prev.extensions.map(x =>
+                                                                x.id === prev.activeExtensionId
+                                                                  ? { ...x, content: combined }
+                                                                  : x
+                                                              ),
+                                                            }
+                                                          } else {
+                                                            return {
+                                                              ...prev,
+                                                              taskContent:
+                                                                prev.taskContent +
+                                                                (prev.taskContent ? '\n\n' : '') +
+                                                                text,
+                                                            }
+                                                          }
+                                                        })
+                                                      },
+                                                      'task'
+                                                    )
                                                   }
-                                                  fileUrl={currentTaskDocument.fileUrl || ''}
-                                                  fileKey={currentTaskDocument.fileKey}
-                                                  className="absolute inset-0 h-full w-full"
-                                                  fitToScreen
-                                                  onHidePreview={() => {
-                                                    if (!taskTextVisible) setTaskTextVisible(true)
-                                                    setTaskPdfVisible(false)
+                                                  value={
+                                                    taskBuilder.activeExtensionId
+                                                      ? taskBuilder.extensions.find(
+                                                          e =>
+                                                            e.id === taskBuilder.activeExtensionId
+                                                        )?.content || ''
+                                                      : taskBuilder.taskContent
+                                                  }
+                                                  onChange={(e: any) => {
+                                                    const newContent = e.target.value
+                                                    if (
+                                                      !loadedTaskId &&
+                                                      !taskBuilder.activeExtensionId
+                                                    ) {
+                                                      autoCreateTask()
+                                                    }
+                                                    if (taskBuilder.activeExtensionId) {
+                                                      setTaskBuilder(prev => {
+                                                        return {
+                                                          ...prev,
+                                                          extensions: prev.extensions.map(ext =>
+                                                            ext.id === prev.activeExtensionId
+                                                              ? { ...ext, content: newContent }
+                                                              : ext
+                                                          ),
+                                                        }
+                                                      })
+                                                    } else {
+                                                      setTaskBuilder(prev => ({
+                                                        ...prev,
+                                                        taskContent: newContent,
+                                                      }))
+                                                    }
                                                   }}
                                                 />
-                                              ) : currentTaskDocument &&
-                                                currentTaskDocument.mimeType !==
-                                                  'application/pdf' &&
-                                                currentTaskDocument.mimeType?.startsWith(
-                                                  'image/'
-                                                ) ? (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-white p-4">
-                                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                  <img
-                                                    src={
-                                                      currentTaskDocument.fileKey
-                                                        ? `/api/proxy-file?key=${encodeURIComponent(currentTaskDocument.fileKey)}`
-                                                        : currentTaskDocument.fileUrl
+                                                {/* Floating font size control */}
+                                                <div
+                                                  className="absolute bottom-6 right-6 z-20 flex origin-bottom-right scale-150 items-center gap-1 rounded-md px-2 py-1 text-white"
+                                                  style={{
+                                                    background: 'rgba(40,40,40,0.78)',
+                                                    backdropFilter: 'blur(8px)',
+                                                  }}
+                                                >
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      setExtractedTextFontSize(
+                                                        Math.max(10, extractedTextFontSize - 2)
+                                                      )
                                                     }
-                                                    alt={currentTaskDocument.fileName}
-                                                    className="max-h-full max-w-full object-contain"
-                                                  />
-                                                </div>
-                                              ) : currentTaskDocument &&
-                                                currentTaskDocument.mimeType !==
-                                                  'application/pdf' &&
-                                                !currentTaskDocument.mimeType?.startsWith(
-                                                  'image/'
-                                                ) ? (
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-6">
-                                                  <FileText className="mb-4 h-16 w-16 text-blue-500" />
-                                                  <a
-                                                    href={
-                                                      currentTaskDocument.fileKey
-                                                        ? `/api/proxy-file?key=${encodeURIComponent(currentTaskDocument.fileKey)}`
-                                                        : currentTaskDocument.fileUrl
-                                                    }
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="text-center text-sm font-medium text-blue-600 hover:underline"
+                                                    className="cursor-pointer px-1 py-0.5 text-xs opacity-80 hover:opacity-100"
                                                   >
-                                                    Open {currentTaskDocument.fileName} in new tab
-                                                  </a>
+                                                    -
+                                                  </button>
+                                                  <span className="min-w-[1.5rem] text-center text-[11px] font-medium">
+                                                    {extractedTextFontSize}px
+                                                  </span>
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      setExtractedTextFontSize(
+                                                        Math.min(32, extractedTextFontSize + 2)
+                                                      )
+                                                    }
+                                                    className="cursor-pointer px-1 py-0.5 text-xs opacity-80 hover:opacity-100"
+                                                  >
+                                                    +
+                                                  </button>
                                                 </div>
-                                              ) : (
-                                                <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-600">
-                                                  <FileText className="mb-4 h-16 w-16 text-gray-300" />
-                                                  <p className="text-lg font-medium text-gray-500">
-                                                    No document selected
-                                                  </p>
+                                              </div>
+                                            )}
+
+                                            {/* Right Panel (Preview) */}
+                                            {taskPdfVisible && (
+                                              <div
+                                                className={cn(
+                                                  'relative flex h-full flex-col bg-[#FBFCFD]',
+                                                  taskTextVisible ? 'w-1/2' : 'w-full'
+                                                )}
+                                              >
+                                                <div className="relative min-h-0 flex-1 overflow-hidden">
+                                                  {currentTaskDocument?.mimeType ===
+                                                    'application/pdf' ||
+                                                  (currentTaskDocument?.fileKey &&
+                                                    (!currentTaskDocument?.mimeType ||
+                                                      currentTaskDocument?.mimeType ===
+                                                        'application/pdf')) ? (
+                                                    <PDFViewer
+                                                      key={
+                                                        currentTaskDocument.fileUrl ||
+                                                        currentTaskDocument.fileKey ||
+                                                        'task-doc'
+                                                      }
+                                                      fileUrl={currentTaskDocument.fileUrl || ''}
+                                                      fileKey={currentTaskDocument.fileKey}
+                                                      className="absolute inset-0 h-full w-full"
+                                                      fitToScreen
+                                                      onHidePreview={() => {
+                                                        if (!taskTextVisible)
+                                                          setTaskTextVisible(true)
+                                                        setTaskPdfVisible(false)
+                                                      }}
+                                                    />
+                                                  ) : currentTaskDocument &&
+                                                    currentTaskDocument.mimeType !==
+                                                      'application/pdf' &&
+                                                    currentTaskDocument.mimeType?.startsWith(
+                                                      'image/'
+                                                    ) ? (
+                                                    <div className="absolute inset-0 flex items-center justify-center bg-white p-4">
+                                                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                      <img
+                                                        src={
+                                                          currentTaskDocument.fileKey
+                                                            ? `/api/proxy-file?key=${encodeURIComponent(currentTaskDocument.fileKey)}`
+                                                            : currentTaskDocument.fileUrl
+                                                        }
+                                                        alt={currentTaskDocument.fileName}
+                                                        className="max-h-full max-w-full object-contain"
+                                                      />
+                                                    </div>
+                                                  ) : currentTaskDocument &&
+                                                    currentTaskDocument.mimeType !==
+                                                      'application/pdf' &&
+                                                    !currentTaskDocument.mimeType?.startsWith(
+                                                      'image/'
+                                                    ) ? (
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white p-6">
+                                                      <FileText className="mb-4 h-16 w-16 text-blue-500" />
+                                                      <a
+                                                        href={
+                                                          currentTaskDocument.fileKey
+                                                            ? `/api/proxy-file?key=${encodeURIComponent(currentTaskDocument.fileKey)}`
+                                                            : currentTaskDocument.fileUrl
+                                                        }
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="text-center text-sm font-medium text-blue-600 hover:underline"
+                                                      >
+                                                        Open {currentTaskDocument.fileName} in new
+                                                        tab
+                                                      </a>
+                                                    </div>
+                                                  ) : (
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-600">
+                                                      <FileText className="mb-4 h-16 w-16 text-gray-300" />
+                                                      <p className="text-lg font-medium text-gray-500">
+                                                        No document selected
+                                                      </p>
+                                                    </div>
+                                                  )}
                                                 </div>
-                                              )}
-                                            </div>
+                                              </div>
+                                            )}
                                           </div>
                                         )}
                                       </div>
