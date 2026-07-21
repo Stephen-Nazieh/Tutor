@@ -2126,6 +2126,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     }
 
     const resolvePollOptions = (): string[] | undefined => {
+      // '1-10' is the DEFAULT mode; without this case it returned undefined and
+      // the server fell back to A–E, so students saw the wrong options.
+      if (pollOptionMode === '1-10') return Array.from({ length: 10 }, (_, i) => String(i + 1))
       if (pollOptionMode === 'tf') return ['True', 'False']
       if (pollOptionMode === 'yn') return ['Yes', 'No']
       if (pollOptionMode === 'likert') {
