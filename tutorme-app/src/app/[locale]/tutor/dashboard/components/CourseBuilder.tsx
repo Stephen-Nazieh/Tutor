@@ -12678,37 +12678,43 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                               (
                                             </span>
 
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              data-pci-anchor="generate-dmi"
-                                              className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
-                                              disabled={dmiGenerating || !canEdit}
-                                              onClick={() => {
-                                                if (!canEdit) return
-                                                const content = assessmentBuilder.taskContent
-                                                const hasPdf =
-                                                  currentAssessmentDocument?.mimeType ===
-                                                  'application/pdf'
-                                                if (!content.trim() && !hasPdf) {
-                                                  toast.error(
-                                                    'Please add content to the Assessment tab or load a PDF first'
-                                                  )
-                                                  return
-                                                }
-                                                handleGenerateDMI('assessment')
-                                              }}
-                                            >
-                                              {dmiGenerating ? (
+                                            {/* DMI generation is automatic once a document is
+                                                loaded, so there's no manual "Generate" then. A
+                                                text-only assessment keeps a manual Generate; a
+                                                Regenerate appears only after a DMI exists. */}
+                                            {dmiGenerating ? (
+                                              <span className="flex h-6 items-center px-2 text-xs font-medium text-gray-500">
                                                 <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                                              ) : null}
-                                              {/* Only a generated DMI can be re-generated; before
-                                                  that it's the initial "Generate" (a loaded document
-                                                  auto-generates, but this stays the manual fallback). */}
-                                              {assessmentDmiItems.length > 0
-                                                ? 'Regenerate DMI'
-                                                : 'Generate DMI'}
-                                            </Button>
+                                                Generating…
+                                              </span>
+                                            ) : assessmentDmiItems.length > 0 ||
+                                              !currentAssessmentDocument ? (
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                data-pci-anchor="generate-dmi"
+                                                className="h-6 px-2 text-xs font-medium text-gray-600 hover:text-gray-900"
+                                                disabled={!canEdit}
+                                                onClick={() => {
+                                                  if (!canEdit) return
+                                                  const content = assessmentBuilder.taskContent
+                                                  const hasPdf =
+                                                    currentAssessmentDocument?.mimeType ===
+                                                    'application/pdf'
+                                                  if (!content.trim() && !hasPdf) {
+                                                    toast.error(
+                                                      'Please add content to the Assessment tab or load a PDF first'
+                                                    )
+                                                    return
+                                                  }
+                                                  handleGenerateDMI('assessment')
+                                                }}
+                                              >
+                                                {assessmentDmiItems.length > 0
+                                                  ? 'Regenerate DMI'
+                                                  : 'Generate DMI'}
+                                              </Button>
+                                            ) : null}
 
                                             {assessmentDmiItems.length > 0 && (
                                               <>
@@ -12767,7 +12773,9 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                 The marking-policy chat unlocks once your DMI has
                                                 questions, marks, and an answer key or rubric.{' '}
                                                 {assessmentDmiItems.length === 0
-                                                  ? 'Generate the DMI from your document to begin.'
+                                                  ? currentAssessmentDocument
+                                                    ? 'Your DMI generates automatically from the loaded document.'
+                                                    : 'Generate the DMI to begin.'
                                                   : assessmentDmiTotalMarks === 0
                                                     ? 'Open “Edit marks & answers” to set the marks.'
                                                     : 'Open “Edit marks & answers” to add the answer key / rubric.'}
@@ -12775,18 +12783,23 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                               {canEdit && (
                                                 <div className="mt-2 flex gap-2">
                                                   {assessmentDmiItems.length === 0 ? (
-                                                    <button
-                                                      type="button"
-                                                      disabled={dmiGenerating}
-                                                      onClick={() =>
-                                                        handleGenerateDMI('assessment')
-                                                      }
-                                                      className="rounded-md bg-amber-600 px-2.5 py-1 font-semibold text-white hover:bg-amber-700 disabled:opacity-50"
-                                                    >
-                                                      {dmiGenerating
-                                                        ? 'Generating…'
-                                                        : 'Generate DMI'}
-                                                    </button>
+                                                    dmiGenerating ? (
+                                                      <span className="inline-flex items-center rounded-md bg-amber-600/80 px-2.5 py-1 font-semibold text-white">
+                                                        Generating…
+                                                      </span>
+                                                    ) : !currentAssessmentDocument ? (
+                                                      // Manual generate only when there's no document
+                                                      // to auto-generate from (text-only assessment).
+                                                      <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                          handleGenerateDMI('assessment')
+                                                        }
+                                                        className="rounded-md bg-amber-600 px-2.5 py-1 font-semibold text-white hover:bg-amber-700"
+                                                      >
+                                                        Generate DMI
+                                                      </button>
+                                                    ) : null
                                                   ) : (
                                                     <button
                                                       type="button"
