@@ -492,7 +492,7 @@ export function isTaskSlideOverflowing(content: string): boolean {
  * generated snapshot format changes so existing auto-generated PDFs are
  * invalidated and regenerated.
  */
-export const TASK_TEXT_SNAPSHOT_VERSION = 4
+export const TASK_TEXT_SNAPSHOT_VERSION = 5
 
 /**
  * Generate a simple PDF from a task's typed content so that text-only
@@ -523,14 +523,17 @@ export async function generateTaskTextPDF(
   const VIEWPORT_HEIGHT = 620
 
   // Off-screen landscape slide viewport that mirrors the Task Slide display area.
-  // Use an absolute wrapper so html2canvas gets a reliable 1100px width and the
-  // PDF page stays landscape. The wrapper is placed far off-screen; it is not
-  // visibility:hidden so the element still renders and has real dimensions.
+  // Use a fixed-position wrapper with explicit dimensions so html2canvas reliably
+  // renders the element at the intended 1100 x 620 size and the PDF page stays
+  // landscape. The wrapper is placed far off-screen; it is not visibility:hidden
+  // so the element still renders and has real dimensions.
   const wrapper = document.createElement('div')
-  wrapper.style.position = 'absolute'
-  wrapper.style.left = '-9999px'
-  wrapper.style.top = '0'
+  wrapper.style.position = 'fixed'
+  wrapper.style.left = '-10000px'
+  wrapper.style.top = '-10000px'
   wrapper.style.width = `${VIEWPORT_WIDTH}px`
+  wrapper.style.height = `${VIEWPORT_HEIGHT}px`
+  wrapper.style.overflow = 'hidden'
 
   const viewport = document.createElement('div')
   viewport.style.width = `${VIEWPORT_WIDTH}px`
