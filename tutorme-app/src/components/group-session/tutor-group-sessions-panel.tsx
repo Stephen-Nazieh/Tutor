@@ -237,113 +237,115 @@ export function TutorGroupSessionsPanel({ embedded = false }: TutorGroupSessions
               defaultOpen={true}
               fillHeight={true}
             >
-              <div className="grid gap-4 p-6 sm:grid-cols-2">
-                <label className="text-sm font-medium text-slate-700 sm:col-span-2">
-                  Title
-                  <input
-                    className={field}
-                    value={form.title}
-                    maxLength={120}
-                    placeholder="e.g. SAT Math crash session"
-                    onChange={e => setForm({ ...form, title: e.target.value })}
-                  />
-                </label>
-                <label className="text-sm font-medium text-slate-700 sm:col-span-2">
-                  Description (optional)
-                  <textarea
-                    className={field}
-                    value={form.description}
-                    maxLength={1000}
-                    rows={2}
-                    onChange={e => setForm({ ...form, description: e.target.value })}
-                  />
-                </label>
-                <div className="text-sm font-medium text-slate-700 sm:col-span-2">
-                  Course (optional)
-                  <div className="mt-1">
-                    <CourseCombobox
-                      options={courses}
-                      value={courseId}
-                      onChange={setCourseId}
-                      loading={coursesLoading}
-                      placeholder="Build this session around a course…"
+              <div className="h-full overflow-y-auto">
+                <div className="grid gap-4 p-6 sm:grid-cols-2">
+                  <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+                    Title
+                    <input
+                      className={field}
+                      value={form.title}
+                      maxLength={120}
+                      placeholder="e.g. SAT Math crash session"
+                      onChange={e => setForm({ ...form, title: e.target.value })}
                     />
+                  </label>
+                  <label className="text-sm font-medium text-slate-700 sm:col-span-2">
+                    Description (optional)
+                    <textarea
+                      className={field}
+                      value={form.description}
+                      maxLength={1000}
+                      rows={2}
+                      onChange={e => setForm({ ...form, description: e.target.value })}
+                    />
+                  </label>
+                  <div className="text-sm font-medium text-slate-700 sm:col-span-2">
+                    Course (optional)
+                    <div className="mt-1">
+                      <CourseCombobox
+                        options={courses}
+                        value={courseId}
+                        onChange={setCourseId}
+                        loading={coursesLoading}
+                        placeholder="Build this session around a course…"
+                      />
+                    </div>
+                    <p className="mt-1 text-xs font-normal text-slate-400">
+                      Linking a course lets you deploy its lessons, tasks and assessments live in
+                      the room. Published and draft courses are both available.
+                    </p>
                   </div>
-                  <p className="mt-1 text-xs font-normal text-slate-400">
-                    Linking a course lets you deploy its lessons, tasks and assessments live in the
-                    room. Published and draft courses are both available.
-                  </p>
-                </div>
-                <label className="text-sm font-medium text-slate-700">
-                  Date
-                  <input
-                    type="date"
-                    className={field}
-                    value={form.date}
-                    onChange={e => setForm({ ...form, date: e.target.value })}
-                  />
-                </label>
-                <div className="grid grid-cols-2 gap-3">
                   <label className="text-sm font-medium text-slate-700">
-                    Start
+                    Date
                     <input
-                      type="time"
+                      type="date"
                       className={field}
-                      value={form.startTime}
-                      onChange={e => setForm({ ...form, startTime: e.target.value })}
+                      value={form.date}
+                      onChange={e => setForm({ ...form, date: e.target.value })}
                     />
                   </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="text-sm font-medium text-slate-700">
+                      Start
+                      <input
+                        type="time"
+                        className={field}
+                        value={form.startTime}
+                        onChange={e => setForm({ ...form, startTime: e.target.value })}
+                      />
+                    </label>
+                    <label className="text-sm font-medium text-slate-700">
+                      End
+                      <input
+                        type="time"
+                        className={field}
+                        value={form.endTime}
+                        onChange={e => setForm({ ...form, endTime: e.target.value })}
+                      />
+                    </label>
+                  </div>
                   <label className="text-sm font-medium text-slate-700">
-                    End
+                    Seats
                     <input
-                      type="time"
+                      type="number"
+                      min={1}
+                      max={50}
                       className={field}
-                      value={form.endTime}
-                      onChange={e => setForm({ ...form, endTime: e.target.value })}
+                      value={form.capacity}
+                      onChange={e => setForm({ ...form, capacity: e.target.value })}
+                    />
+                    <span className="mt-1 block text-xs font-normal text-slate-400">
+                      Set 1 seat for a private 1-on-1.
+                    </span>
+                  </label>
+                  <label className="text-sm font-medium text-slate-700">
+                    Price per seat
+                    <input
+                      type="number"
+                      min={0}
+                      disabled={form.free}
+                      className={`${field} disabled:bg-slate-100 disabled:text-slate-400`}
+                      value={form.free ? '0' : form.pricePerSeat}
+                      onChange={e => setForm({ ...form, pricePerSeat: e.target.value })}
                     />
                   </label>
+                  <label className="flex items-center gap-2 self-end pb-2 text-sm font-medium text-slate-700 sm:col-span-2">
+                    <input
+                      type="checkbox"
+                      checked={form.free}
+                      onChange={e => setForm({ ...form, free: e.target.checked })}
+                      className="h-4 w-4"
+                    />
+                    Free session — students book a seat with no payment (great for testing or free
+                    workshops)
+                  </label>
                 </div>
-                <label className="text-sm font-medium text-slate-700">
-                  Seats
-                  <input
-                    type="number"
-                    min={1}
-                    max={50}
-                    className={field}
-                    value={form.capacity}
-                    onChange={e => setForm({ ...form, capacity: e.target.value })}
-                  />
-                  <span className="mt-1 block text-xs font-normal text-slate-400">
-                    Set 1 seat for a private 1-on-1.
-                  </span>
-                </label>
-                <label className="text-sm font-medium text-slate-700">
-                  Price per seat
-                  <input
-                    type="number"
-                    min={0}
-                    disabled={form.free}
-                    className={`${field} disabled:bg-slate-100 disabled:text-slate-400`}
-                    value={form.free ? '0' : form.pricePerSeat}
-                    onChange={e => setForm({ ...form, pricePerSeat: e.target.value })}
-                  />
-                </label>
-                <label className="flex items-center gap-2 self-end pb-2 text-sm font-medium text-slate-700 sm:col-span-2">
-                  <input
-                    type="checkbox"
-                    checked={form.free}
-                    onChange={e => setForm({ ...form, free: e.target.checked })}
-                    className="h-4 w-4"
-                  />
-                  Free session — students book a seat with no payment (great for testing or free
-                  workshops)
-                </label>
-              </div>
-              <div className="px-6 pb-6">
-                <Button variant="solocorn-book" onClick={create} disabled={creating}>
-                  {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Create session
-                </Button>
+                <div className="px-6 pb-6">
+                  <Button variant="solocorn-book" onClick={create} disabled={creating}>
+                    {creating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Create session
+                  </Button>
+                </div>
               </div>
             </CollapsibleCard>
           </TabsContent>
