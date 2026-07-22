@@ -229,9 +229,7 @@ function TutorInsightsPageInner() {
         const raw = localStorage.getItem(draftStorageKey)
         const parsed = raw ? JSON.parse(raw) : []
         const updated = parsed.map((c: any) =>
-          c.id === courseId
-            ? { ...c, name: trimmed, updatedAt: new Date().toISOString() }
-            : c
+          c.id === courseId ? { ...c, name: trimmed, updatedAt: new Date().toISOString() } : c
         )
         localStorage.setItem(draftStorageKey, JSON.stringify(updated))
       } catch {
