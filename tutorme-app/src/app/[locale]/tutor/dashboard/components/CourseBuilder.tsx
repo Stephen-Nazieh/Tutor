@@ -11416,6 +11416,7 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                             </Tabs>
                             {testPciActiveTab !== 'insights' &&
                               testPciActiveTab !== 'student-monitor' &&
+                              testPciActiveTab !== 'classroom' &&
                               !(mainTab === 'live' && testPciActiveTab === 'student1') &&
                               // For a TASK in the Test tab, preview the new chat-based
                               // flow students get (chat → Task complete → per-answer
