@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { toast } from 'sonner'
 import { Card, CardContent } from '@/components/ui/card'
+import { GoLiveDialog } from './GoLiveDialog'
 
 async function fetchTutorUsername(): Promise<string | null> {
   try {
@@ -80,6 +83,88 @@ export function ModernHeroSection({
   const [currentTime, setCurrentTime] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<{ date: Date; events: ClassEvent[] } | null>(null)
   const [username, setUsername] = useState<string | null>(null)
+  const router = useRouter()
+  const [goLiveDialogOpen, setGoLiveDialogOpen] = useState(false)
+  const [goLiveLoading, setGoLiveLoading] = useState(false)
+  const [unpublishedCourses, setUnpublishedCourses] = useState<{ id: string; name: string }[]>([])
+
+  const handleGoLiveClick = async () => {
+    try {
+      setGoLiveLoading(true)
+      const res = await fetch('/api/tutor/courses?hideTemplatesWithPublishedVariants=false', {
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error('Failed to fetch courses')
+      const data = await res.json()
+      const courses = (data.courses ?? []).filter(
+        (c: { isPublished?: boolean | null }) => c.isPublished !== true
+      )
+      if (courses.length === 0) {
+        toast.info('No unpublished courses available to go live with.')
+        return
+      }
+      setUnpublishedCourses(
+        courses.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name }))
+      )
+      setGoLiveDialogOpen(true)
+    } catch (_err) {
+      toast.error('Could not load courses for Go Live.')
+    } finally {
+      setGoLiveLoading(false)
+    }
+  }
+
+  const handleConfirmTeachingUnpublished = async (courseId: string) => {
+    const course = unpublishedCourses.find(c => c.id === courseId)
+    if (!course) return
+    try {
+      const res = await fetch('/api/tutor/classes/start-ad-hoc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'teaching',
+          courseId,
+          title: `${course.name} - Live Session`,
+        }),
+      })
+      if (!res.ok) throw new Error('Failed to start session')
+      const data = await res.json()
+      toast.success('Live session started!')
+      router.push(`/tutor/classroom?sessionId=${data.sessionId}`)
+    } catch (_err) {
+      toast.error('Could not start live session.')
+    }
+  }
+
+  const handleConfirmTraining = async (data: {
+    token: string
+    targetAudience: string
+    category: string
+  }) => {
+    try {
+      const res = await fetch('/api/tutor/classes/start-ad-hoc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'training',
+          trainingToken: data.token,
+          targetAudience: data.targetAudience,
+          trainingCategory: data.category,
+          title: 'Training Session',
+        }),
+      })
+      if (!res.ok) {
+        if (res.status === 403) throw new Error('Invalid token')
+        throw new Error('Failed to start session')
+      }
+      const resData = await res.json()
+      toast.success('Training session started!')
+      router.push(`/tutor/classroom?sessionId=${resData.sessionId}`)
+    } catch (err) {
+      const error = err as Error
+      toast.error(error.message || 'Could not start training session')
+    }
+  }
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -325,6 +410,8 @@ export function ModernHeroSection({
             <Button
               size="sm"
               className="border border-white bg-[#65A30D] text-white hover:translate-y-0 hover:bg-[#65A30D]/90"
+              onClick={handleGoLiveClick}
+              disabled={goLiveLoading}
             >
               <Video className="mr-1 h-4 w-4" />
               Go Live
@@ -345,6 +432,14 @@ export function ModernHeroSection({
           </div>
         </div>
       </div>
+
+      <GoLiveDialog
+        open={goLiveDialogOpen}
+        onOpenChange={setGoLiveDialogOpen}
+        onConfirmTeachingUnpublished={handleConfirmTeachingUnpublished}
+        unpublishedCourses={unpublishedCourses}
+        onConfirmTraining={handleConfirmTraining}
+      />
     </div>
   )
 }
