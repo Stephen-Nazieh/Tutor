@@ -23,7 +23,9 @@ import { Loader2 } from 'lucide-react'
 type GoLiveDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onConfirmTeaching: () => Promise<void>
+  onConfirmTeaching?: () => Promise<void>
+  onConfirmTeachingUnpublished?: (courseId: string) => Promise<void>
+  unpublishedCourses?: { id: string; name: string }[]
   onConfirmTraining: (data: {
     token: string
     targetAudience: string
@@ -35,10 +37,15 @@ export function GoLiveDialog({
   open,
   onOpenChange,
   onConfirmTeaching,
+  onConfirmTeachingUnpublished,
+  unpublishedCourses,
   onConfirmTraining,
 }: GoLiveDialogProps) {
   const [sessionType, setSessionType] = useState<'teaching' | 'training'>('teaching')
   const [loading, setLoading] = useState(false)
+
+  // Teaching fields (only used when a dashboard caller provides unpublished courses)
+  const [selectedCourseId, setSelectedCourseId] = useState('')
 
   // Training fields
   const [token, setToken] = useState('')
@@ -49,17 +56,27 @@ export function GoLiveDialog({
     setLoading(true)
     try {
       if (sessionType === 'teaching') {
-        await onConfirmTeaching()
+        if (unpublishedCourses && unpublishedCourses.length > 0) {
+          await onConfirmTeachingUnpublished?.(selectedCourseId)
+        } else {
+          await onConfirmTeaching?.()
+        }
       } else {
         await onConfirmTraining({ token, targetAudience, category })
       }
       onOpenChange(false)
-    } catch (err) {
+    } catch (_err) {
       // Error is handled by parent (e.g. toast)
     } finally {
       setLoading(false)
     }
   }
+
+  const confirmDisabled =
+    loading ||
+    (sessionType === 'training' && !token) ||
+    (sessionType === 'teaching' &&
+      Boolean(unpublishedCourses && unpublishedCourses.length > 0 && !selectedCourseId))
 
   return (
     <Dialog
@@ -80,17 +97,45 @@ export function GoLiveDialog({
             className="flex flex-col space-y-4"
           >
             <DialogPanel
-              className="flex cursor-pointer items-center space-x-2 hover:bg-gray-50"
+              className="flex cursor-pointer flex-col space-y-2 hover:bg-gray-50"
               onClick={() => setSessionType('teaching')}
             >
-              <RadioGroupItem value="teaching" id="teaching" />
-              <Label htmlFor="teaching" className="flex-1 cursor-pointer">
-                <div className="text-base font-semibold text-gray-900">Start a live session</div>
-                <div className="mt-1 text-sm font-normal text-gray-600">
-                  Start a live session to meet new students, conduct a demo lesson, provide a
-                  diagnostic test…
-                </div>
-              </Label>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="teaching" id="teaching" />
+                <Label htmlFor="teaching" className="flex-1 cursor-pointer">
+                  <div className="text-base font-semibold text-gray-900">Start a live session</div>
+                  <div className="mt-1 text-sm font-normal text-gray-600">
+                    Start a live session to meet new students, conduct a demo lesson, provide a
+                    diagnostic test…
+                  </div>
+                </Label>
+              </div>
+              {sessionType === 'teaching' &&
+                unpublishedCourses &&
+                unpublishedCourses.length > 0 && (
+                  <div className="ml-6 space-y-2 pt-2">
+                    <Label className="text-gray-900">Select an unpublished course</Label>
+                    <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a course" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {unpublishedCourses.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              {sessionType === 'teaching' &&
+                unpublishedCourses &&
+                unpublishedCourses.length === 0 && (
+                  <div className="ml-6 pt-2 text-sm text-gray-500">
+                    No unpublished courses available.
+                  </div>
+                )}
             </DialogPanel>
             <DialogPanel
               className="flex cursor-pointer flex-col space-y-2 hover:bg-gray-50"
@@ -157,11 +202,7 @@ export function GoLiveDialog({
           <Button variant="modal-secondary-dark" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button
-            variant="modal-primary-dark"
-            onClick={handleConfirm}
-            disabled={loading || (sessionType === 'training' && !token)}
-          >
+          <Button variant="modal-primary-dark" onClick={handleConfirm} disabled={confirmDisabled}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Go Live
           </Button>
