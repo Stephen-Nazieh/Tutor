@@ -307,10 +307,7 @@ export function usePci(deps: UsePciDeps) {
       // every turn. When we already have extracted text, one page is enough as a layout aid;
       // otherwise render a few pages so the model has some visual signal.
       let pdfPages: string[] | undefined
-      if (
-        sourceDocData?.mimeType === 'application/pdf' &&
-        sourceDocData.fileUrl
-      ) {
+      if (sourceDocData?.mimeType === 'application/pdf' && sourceDocData.fileUrl) {
         const cacheKey = `${sourceDocData.fileUrl}:${sourceDocData.fileKey ?? ''}`
         const cached = deps.pdfPageCache.get(cacheKey)
         const hasExtractedText = !!(sourceDocData.extractedText || '').trim()
