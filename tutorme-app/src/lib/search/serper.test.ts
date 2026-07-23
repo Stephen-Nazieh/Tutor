@@ -69,7 +69,10 @@ describe('searchAnswerKey', () => {
 
   it('returns empty array when the fetch fails', async () => {
     const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 429, statusText: 'Too Many Requests' }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, status: 429, statusText: 'Too Many Requests' })
+    )
 
     const results = await searchAnswerKey('query', 'test-key')
     expect(results).toEqual([])

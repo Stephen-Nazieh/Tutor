@@ -87,8 +87,7 @@ export function formatSearchResultsForPrompt(results: SerperSearchResult[]): str
     'Answer-key research results (use these to prepopulate answers/rubrics when trustworthy; otherwise rely on your own analysis):\n' +
     results
       .map(
-        (r, i) =>
-          `[${i + 1}] ${r.title}\nURL: ${r.link}\nSnippet: ${r.snippet || '(no snippet)'}`
+        (r, i) => `[${i + 1}] ${r.title}\nURL: ${r.link}\nSnippet: ${r.snippet || '(no snippet)'}`
       )
       .join('\n\n')
   )
