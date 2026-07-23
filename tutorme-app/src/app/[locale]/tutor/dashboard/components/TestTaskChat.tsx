@@ -171,6 +171,7 @@ export function TestTaskChat({
       setMessages(nextMessages)
     }
     setDraft('')
+    setPdfPopupOpen(false)
     onPersist?.({ messages: nextMessages, draft: '', completed })
     onBroadcast?.(msg)
     onAddAnswer?.(a)
@@ -196,6 +197,7 @@ export function TestTaskChat({
         setMessages(nextMessages)
       }
       setDraft('')
+      setPdfPopupOpen(false)
       onPersist?.({ messages: nextMessages, draft: '', completed })
       onBroadcast?.(pendingMsg)
     }
