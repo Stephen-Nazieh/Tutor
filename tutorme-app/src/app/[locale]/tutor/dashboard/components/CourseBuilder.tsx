@@ -320,6 +320,8 @@ import {
   PreviewCard,
 } from './builder-components'
 import { LessonSelectorDialog, NEW_LESSON_VALUE } from './LessonSelectorDialog'
+import { TaskSlideTextEditor, type TaskSlideTextEditorRef } from './TaskSlideTextEditor'
+import { TaskSlideFontEditor } from './TaskSlideFontEditor'
 import {
   AssessmentBuilderModal,
   TaskBuilderModal,
@@ -1285,9 +1287,6 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const loadPciMessagesRef = useRef<(target: PciTarget, messages: PciMessage[]) => void>(() => {})
     const resetPciRef = useRef<() => void>(() => {})
     const taskPciScrollRef = useRef<HTMLDivElement>(null)
-    // Ref for the task text editor so we can check whether a keystroke would
-    // overflow the locked 1100 x 620 slide canvas and reject it.
-    const taskTextareaRef = useRef<HTMLTextAreaElement>(null)
 
     // Whether the "Current PCI" box is in edit mode (tutor typing the policy
     // directly instead of via the assistant chat).
@@ -1937,6 +1936,18 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
     const extractedTextFontSize = activeItemId ? (extractedTextFontSizeMap[activeItemId] ?? 18) : 18
     const setExtractedTextFontSize = (val: number) => {
       if (activeItemId) setExtractedTextFontSizeMap(prev => ({ ...prev, [activeItemId]: val }))
+    }
+
+    const taskSlideEditorRef = useRef<TaskSlideTextEditorRef | null>(null)
+    const [slideFontSizeMap, setSlideFontSizeMap] = useState<Record<string, number>>({})
+    const [slideTextColorMap, setSlideTextColorMap] = useState<Record<string, string>>({})
+    const slideFontSize = activeItemId ? (slideFontSizeMap[activeItemId] ?? 18) : 18
+    const slideTextColor = activeItemId ? (slideTextColorMap[activeItemId] ?? '#000000') : '#000000'
+    const setSlideFontSize = (val: number) => {
+      if (activeItemId) setSlideFontSizeMap(prev => ({ ...prev, [activeItemId]: val }))
+    }
+    const setSlideTextColor = (val: string) => {
+      if (activeItemId) setSlideTextColorMap(prev => ({ ...prev, [activeItemId]: val }))
     }
     // In the LIVE view the poll/question composer targets this task. When no
     // task is loaded in the builder (the common case — the tutor is just running
@@ -11910,25 +11921,16 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                           // No PDF preview here; the snapshot is generated only when entering Test/Live.
                                           <div className="flex h-full w-full items-center justify-center overflow-auto bg-slate-50">
                                             <div className="relative h-[620px] w-[1100px] flex-shrink-0 bg-white shadow-md">
-                                              <AutoTextarea
-                                                ref={taskTextareaRef}
-                                                className="h-full w-full resize-none overflow-hidden border-0 bg-transparent p-12 text-[20px] leading-relaxed text-[#1F2933] focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                                                disableAutoResize
-                                                readOnly={!canEdit}
-                                                placeholder="Type the task content here — or load a document above to work from it."
-                                                value={
+                                              <TaskSlideTextEditor
+                                                ref={taskSlideEditorRef}
+                                                html={
                                                   taskBuilder.activeExtensionId
                                                     ? taskBuilder.extensions.find(
                                                         e => e.id === taskBuilder.activeExtensionId
                                                       )?.content || ''
                                                     : taskBuilder.taskContent
                                                 }
-                                                onChange={(e: any) => {
-                                                  const target = e.target as HTMLTextAreaElement
-                                                  if (target.scrollHeight > target.clientHeight) {
-                                                    return
-                                                  }
-                                                  const newContent = target.value
+                                                onHtmlChange={(newContent: string) => {
                                                   if (
                                                     !loadedTaskId &&
                                                     !taskBuilder.activeExtensionId
@@ -11950,6 +11952,26 @@ export const CourseBuilder = forwardRef<CourseBuilderRef, CourseBuilderProps>(
                                                       taskContent: newContent,
                                                     }))
                                                   }
+                                                }}
+                                                readOnly={!canEdit}
+                                                placeholder="Type the task content here — or load a document above to work from it."
+                                                className="h-full w-full"
+                                                style={{ fontSize: '18px' }}
+                                              />
+                                              <TaskSlideFontEditor
+                                                fontSize={slideFontSize}
+                                                onFontSizeChange={(size: number) => {
+                                                  setSlideFontSize(size)
+                                                  taskSlideEditorRef.current?.applyFormat({
+                                                    fontSize: size,
+                                                  })
+                                                }}
+                                                color={slideTextColor}
+                                                onColorChange={(color: string) => {
+                                                  setSlideTextColor(color)
+                                                  taskSlideEditorRef.current?.applyFormat({
+                                                    color,
+                                                  })
                                                 }}
                                               />
                                             </div>
